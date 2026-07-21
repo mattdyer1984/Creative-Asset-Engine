@@ -7,6 +7,11 @@ imports an SDK or instantiates an adapter itself. Adding a new provider
 for an existing capability (e.g. Claude for OCR) is: implement
 OCRProvider in a new class, add one line to OCR_ADAPTERS, flip
 providers.yaml - no registry code changes.
+
+`default_registry` (bottom of this file) is constructed lazily via a
+module-level __getattr__ (PEP 562), not as a bare top-level statement -
+see the comment down there for why, and app/main.py's `lifespan` for
+where construction is explicitly, intentionally triggered.
 """
 
 from app.ai_providers.base import (
@@ -108,4 +113,32 @@ class AIProviderRegistry:
 
 # Module-level default instance - Stages import this rather than each
 # constructing their own registry, so config is loaded once per process.
-default_registry = AIProviderRegistry()
+#
+# Built lazily (on first access to the name `default_registry`, via the
+# module __getattr__ below - PEP 562) rather than as a bare
+# `default_registry = AIProviderRegistry()` statement, so merely
+# *importing* this module (e.g. for the AIProviderRegistry class itself,
+# or transitively via some import chain that never actually needs the
+# singleton) no longer has the side effect of reading providers.yaml and
+# constructing five adapters. app/main.py's `lifespan` explicitly touches
+# `default_registry` on app startup as the intentional, documented
+# trigger point for that construction.
+#
+# Every Stage still does `from app.ai_providers.registry import
+# default_registry` exactly as before - that statement itself invokes
+# this __getattr__ (Python's `from module import name` performs a
+# getattr(module, name), which module-level __getattr__ intercepts), so
+# no Stage or test file needed to change: each Stage's own
+# `default_registry` name still ends up bound to this same cached
+# instance, and `monkeypatch.setattr("app.stages.<x>.default_registry",
+# ...)` continues to work exactly as it does today.
+_default_registry: AIProviderRegistry | None = None
+
+
+def __getattr__(name: str) -> AIProviderRegistry:
+    if name == "default_registry":
+        global _default_registry
+        if _default_registry is None:
+            _default_registry = AIProviderRegistry()
+        return _default_registry
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
