@@ -1,0 +1,605 @@
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1a1a;
+  text-align: left;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+section {
+  margin-bottom: 2.5rem;
+}
+
+section h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+  color: #333;
+}
+
+/* Projects */
+
+.create-project-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.create-project-form input {
+  flex: 1;
+  max-width: 320px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.create-project-form button {
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.create-project-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.project-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.project-name {
+  font-weight: 500;
+}
+
+.project-meta {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+/* Import panel */
+
+.import-panel {
+  background: #f4f4f4;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.import-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.import-controls select {
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.file-picker-button {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Creatives grid */
+
+.creative-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.creative-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.creative-thumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+}
+
+.creative-card-body {
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.creative-filename {
+  font-size: 0.8rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #e0e0e0;
+  color: #444;
+}
+
+.status-badge.status-imported {
+  background: #e3e8ff;
+  color: #3145c9;
+}
+
+.status-badge.status-queued {
+  background: #ece4ff;
+  color: #6b3fd4;
+}
+
+.status-badge.status-analyzing {
+  background: #fff3d6;
+  color: #9a6b00;
+}
+
+.status-badge.status-ready {
+  background: #d9f2e3;
+  color: #157a41;
+}
+
+.status-badge.status-failed {
+  background: #fbdada;
+  color: #a11d1d;
+}
+
+.analyze-button,
+.view-ocr-button {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: white;
+  cursor: pointer;
+}
+
+.analyze-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.view-ocr-button {
+  color: #3145c9;
+  border-color: #c5cdfa;
+}
+
+.card-error {
+  font-size: 0.7rem;
+}
+
+.copy-button {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: white;
+  cursor: pointer;
+}
+
+/* Products */
+
+.products-section {
+  margin-bottom: 1.5rem;
+}
+
+.product-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.product-list-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.product-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-analysis-button {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: white;
+  cursor: pointer;
+}
+
+.product-analysis-panel {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.reference-images-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reference-image-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.lock-profile-json {
+  font-size: 0.7rem;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 0.5rem;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.product-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.product-picker select {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  max-width: 110px;
+}
+
+.product-picker button {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: white;
+  cursor: pointer;
+}
+
+.assigned-product {
+  font-size: 0.75rem;
+  color: #157a41;
+  background: #d9f2e3;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.unassign-button {
+  color: #a11d1d;
+  border-color: #f3c9c9 !important;
+}
+
+.new-product-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.new-product-form input {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  max-width: 110px;
+}
+
+/* Shared */
+
+.error {
+  color: #b00020;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  color: #777;
+  font-style: italic;
+}
+
+/* Creative Blueprint modal (M7) */
+
+.blueprint-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1rem;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.blueprint-modal {
+  position: relative;
+  background: #fafafa;
+  border-radius: 12px;
+  max-width: 720px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.blueprint-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #eee;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+}
+
+.blueprint-close:hover {
+  background: #e0e0e0;
+}
+
+.blueprint-header {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-right: 2rem;
+}
+
+.blueprint-hero-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.blueprint-header-info h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.4rem;
+}
+
+.blueprint-meta {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0.3rem 0 0;
+}
+
+.analyze-all-button {
+  margin-top: 0.6rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.analyze-all-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.blueprint-failure-banner {
+  background: #fbdada;
+  color: #7a1414;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.blueprint-section {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.blueprint-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.blueprint-section-header h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.blueprint-section-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.rerun-button {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rerun-button.secondary {
+  color: #555;
+}
+
+.rerun-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.section-error {
+  font-size: 0.8rem;
+  color: #a11d1d;
+  background: #fbdada;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  margin: 0 0 0.6rem;
+}
+
+.narrative-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+}
+
+/* Field grid - the "spec sheet" layout for structured artifacts */
+
+.field-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  align-items: baseline;
+}
+
+.field-label {
+  flex: 0 0 150px;
+  color: #888;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.field-value {
+  color: #222;
+  flex: 1;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.tag {
+  font-size: 0.72rem;
+  background: #f0f0f0;
+  color: #333;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.text-overlay-item {
+  font-size: 0.82rem;
+  margin-bottom: 0.3rem;
+}
+
+/* The one deliberate visual accent: immutable_characteristics gets a
+   distinct "locked" treatment, since these are the single most important
+   facts in the whole Product Lock Profile - everything else is a plain
+   description, this is a constraint. */
+.immutable-callout {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff8e8;
+  border: 1px solid #f0dca0;
+  border-left: 3px solid #c9971f;
+  border-radius: 6px;
+}
+
+.immutable-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a6a10;
+  margin-bottom: 0.35rem;
+}
+
+.immutable-callout ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: #4a3c0f;
+}
+
+.blocks-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+}
+
+.blocks-table td {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.blocks-role {
+  color: #888;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  width: 100px;
+}

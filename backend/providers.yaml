@@ -1,0 +1,25 @@
+# AI provider configuration (plan §4.2).
+#
+# Config is per-capability, not per-app - each capability below can point
+# at a different provider/model independently. All 5 of the plan's AI
+# capabilities are now used: ocr, product_isolation, vision_analysis
+# (M4), text_generation (M5), prompt_generation (M6).
+#
+# API keys are NOT stored here - see app/ai_providers/config.py
+# (get_api_key) for how credentials are resolved (macOS Keychain, with an
+# environment variable fallback for local development).
+
+providers:
+  ocr: openai
+  product_isolation: openai
+  vision_analysis: openai
+  text_generation: openai
+  prompt_generation: openai
+
+models:
+  openai:
+    ocr: gpt-5.5
+    product_isolation: gpt-5.5
+    vision_analysis: gpt-5.5
+    text_generation: gpt-5.5
+    prompt_generation: gpt-5.5

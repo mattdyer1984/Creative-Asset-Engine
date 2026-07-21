@@ -1,0 +1,12 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+sqlalchemy==2.0.36
+alembic==1.14.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-multipart==0.0.19
+keyring==25.5.0
+openai==2.46.0
+pyyaml==6.0.3
+pytest==9.1.1
+pillow==12.3.0

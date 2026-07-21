@@ -1,0 +1,14 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Local data (DB + imported/generated files) — never committed
+backend/data/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
