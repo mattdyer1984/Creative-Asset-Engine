@@ -8,8 +8,6 @@ Creative look like" logic lives in one testable function rather than
 being reconstructed in the route handler.
 """
 
-import json
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -43,7 +41,7 @@ def assemble_creative_blueprint(db: Session, creative: Creative) -> AssembledCre
                 schema_version=row.schema_version,
                 is_current=row.is_current,
                 raw_text=row.raw_text,
-                structured_blocks=json.loads(row.structured_blocks_json),
+                structured_blocks=row.structured_blocks_json,
                 created_at=row.created_at,
             )
 
@@ -65,8 +63,8 @@ def assemble_creative_blueprint(db: Session, creative: Creative) -> AssembledCre
                 id=row.id,
                 schema_version=row.schema_version,
                 is_current=row.is_current,
-                structured=json.loads(row.structured_json),
-                reference_image_ids=json.loads(row.reference_image_ids_json),
+                structured=row.structured_json,
+                reference_image_ids=row.reference_image_ids_json,
                 created_at=row.created_at,
             )
 
@@ -78,7 +76,7 @@ def assemble_creative_blueprint(db: Session, creative: Creative) -> AssembledCre
                 id=row.id,
                 schema_version=row.schema_version,
                 is_current=row.is_current,
-                structured=json.loads(row.structured_json),
+                structured=row.structured_json,
                 created_at=row.created_at,
             )
 
@@ -98,7 +96,7 @@ def assemble_creative_blueprint(db: Session, creative: Creative) -> AssembledCre
                 is_current=row.is_current,
                 product_lock_profile_id=row.product_lock_profile_id,
                 creative_fingerprint_id=row.creative_fingerprint_id,
-                structured=json.loads(row.structured_json),
+                structured=row.structured_json,
                 created_at=row.created_at,
             )
 
@@ -112,7 +110,7 @@ def assemble_creative_blueprint(db: Session, creative: Creative) -> AssembledCre
         project_id=creative.project_id,
         product_id=creative.product_id,
         product=creative.product,
-        source_references=json.loads(blueprint.source_references_json),
+        source_references=blueprint.source_references_json,
         ocr_result=ocr_result,
         product_reference_images=product_reference_images,
         product_lock_profile=product_lock_profile,

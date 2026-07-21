@@ -9,7 +9,7 @@ ProductLockProfile and CreativeFingerprint VERSIONS it was composed from
 knowing exactly which upstream versions produced it.
 """
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -26,4 +26,4 @@ class RecreationPrompt(Base, AnalysisArtifactMixin):
     creative_fingerprint_id: Mapped[str] = mapped_column(
         ForeignKey("creative_fingerprints.id"), nullable=False
     )
-    structured_json: Mapped[str] = mapped_column(Text, nullable=False)
+    structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)

@@ -2,8 +2,6 @@
 Unit tests for CreativeFingerprintStage (plan §13's Stage contract tests).
 """
 
-import json
-
 from sqlalchemy import select
 
 from app.models.analysis_run import STATUS_FAILED, STATUS_SUCCEEDED, AnalysisRun
@@ -49,7 +47,7 @@ def test_succeeds_and_updates_blueprint(db_session, creative_with_blueprint, mon
 
     fingerprint = db_session.get(CreativeFingerprint, fingerprint_id)
     assert fingerprint.is_current is True
-    structured = json.loads(fingerprint.structured_json)
+    structured = fingerprint.structured_json
     assert structured["target_audience"] == "health-conscious young adults"
 
     analysis_run = db_session.get(AnalysisRun, fingerprint.analysis_run_id)

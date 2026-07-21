@@ -16,7 +16,6 @@ Product Lock Profile Stage: schema_version is system-assigned, and
 strict Structured Outputs mode requires a fully enumerated shape).
 """
 
-import json
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -132,7 +131,7 @@ class CreativeFingerprintStage:
             fingerprint = CreativeFingerprint(
                 analysis_run_id=analysis_run.id,
                 creative_id=creative.id,
-                structured_json=json.dumps(result),
+                structured_json=result,
             )
             db.add(fingerprint)
             db.flush()

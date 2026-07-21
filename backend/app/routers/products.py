@@ -7,8 +7,6 @@ enough to verify the Product Isolation and Product Lock Profile Stages
 worked, ahead of the proper assembled Blueprint view in M7.
 """
 
-import json
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import select
@@ -98,7 +96,7 @@ def get_current_lock_profile(product_id: str, db: Session = Depends(get_db)) -> 
         id=profile.id,
         schema_version=profile.schema_version,
         is_current=profile.is_current,
-        structured=json.loads(profile.structured_json),
-        reference_image_ids=json.loads(profile.reference_image_ids_json),
+        structured=profile.structured_json,
+        reference_image_ids=profile.reference_image_ids_json,
         created_at=profile.created_at,
     )

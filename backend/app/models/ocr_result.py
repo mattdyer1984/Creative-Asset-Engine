@@ -5,7 +5,7 @@ is_current is scoped to creative_id: at most one OCRResult per creative
 has is_current=True at any time.
 """
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -17,4 +17,4 @@ class OCRResult(Base, AnalysisArtifactMixin):
 
     creative_id: Mapped[str] = mapped_column(ForeignKey("creatives.id"), nullable=False)
     raw_text: Mapped[str] = mapped_column(Text, default="")
-    structured_blocks_json: Mapped[str] = mapped_column(Text, default="[]")
+    structured_blocks_json: Mapped[list] = mapped_column(JSON, default=list)

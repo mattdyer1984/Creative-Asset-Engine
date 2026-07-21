@@ -5,8 +5,6 @@ M1 added import/list/get/file-serving. M2 adds triggering the Analysis
 Orchestrator and reading back its results (plan §6, §11).
 """
 
-import json
-
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select
@@ -125,7 +123,7 @@ def get_ocr_result(creative_id: str, db: Session = Depends(get_db)) -> OCRResult
         schema_version=ocr_result.schema_version,
         is_current=ocr_result.is_current,
         raw_text=ocr_result.raw_text,
-        structured_blocks=json.loads(ocr_result.structured_blocks_json),
+        structured_blocks=ocr_result.structured_blocks_json,
         created_at=ocr_result.created_at,
     )
 
@@ -145,7 +143,7 @@ def get_creative_fingerprint(creative_id: str, db: Session = Depends(get_db)) ->
         id=fingerprint.id,
         schema_version=fingerprint.schema_version,
         is_current=fingerprint.is_current,
-        structured=json.loads(fingerprint.structured_json),
+        structured=fingerprint.structured_json,
         created_at=fingerprint.created_at,
     )
 
@@ -181,7 +179,7 @@ def get_recreation_prompt(creative_id: str, db: Session = Depends(get_db)) -> Re
         is_current=prompt.is_current,
         product_lock_profile_id=prompt.product_lock_profile_id,
         creative_fingerprint_id=prompt.creative_fingerprint_id,
-        structured=json.loads(prompt.structured_json),
+        structured=prompt.structured_json,
         created_at=prompt.created_at,
     )
 

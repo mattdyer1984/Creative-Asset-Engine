@@ -12,8 +12,6 @@ gets handed to the Analysis Orchestrator to move it from "imported" to
 "analyzing". That hand-off doesn't exist yet.
 """
 
-import json
-
 from sqlalchemy.orm import Session
 
 from app.domain import MarketingCreative
@@ -54,7 +52,7 @@ def _persist_marketing_creative(
         original_filename=marketing_creative.original_filename,
         source_type=marketing_creative.source_type,
         source_locator=marketing_creative.source_locator,
-        raw_metadata_json=json.dumps(marketing_creative.raw_metadata),
+        raw_metadata_json=marketing_creative.raw_metadata,
         imported_at=marketing_creative.imported_at,
         # placeholder; replaced below once we have the generated id
         stored_file_path="",
@@ -69,13 +67,11 @@ def _persist_marketing_creative(
 
     blueprint = CreativeBlueprint(
         creative_id=creative.id,
-        source_references_json=json.dumps(
-            {
-                "source_type": marketing_creative.source_type,
-                "source_locator": marketing_creative.source_locator,
-                "raw_metadata": marketing_creative.raw_metadata,
-            }
-        ),
+        source_references_json={
+            "source_type": marketing_creative.source_type,
+            "source_locator": marketing_creative.source_locator,
+            "raw_metadata": marketing_creative.raw_metadata,
+        },
     )
     db.add(blueprint)
 

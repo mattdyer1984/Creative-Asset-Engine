@@ -18,7 +18,6 @@ Two small, deliberate adaptations from the plan's illustrative schema
      freeform key-value bag isn't representable in strict mode.
 """
 
-import json
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -187,10 +186,8 @@ class ProductLockProfileStage:
         profile = ProductLockProfile(
             analysis_run_id=analysis_run.id,
             product_id=creative.product_id,
-            structured_json=json.dumps(result),
-            reference_image_ids_json=json.dumps(
-                [img.id for img in current_reference_images]
-            ),
+            structured_json=result,
+            reference_image_ids_json=[img.id for img in current_reference_images],
         )
         db.add(profile)
         db.flush()

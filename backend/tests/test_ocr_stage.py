@@ -4,8 +4,6 @@ valid input, fails gracefully given a provider error, is independently
 rerunnable).
 """
 
-import json
-
 from sqlalchemy import select
 
 from app.ai_providers.base import OCRExtraction
@@ -32,7 +30,7 @@ def test_ocr_stage_succeeds_and_updates_blueprint(db_session, creative_with_blue
     ocr_result = db_session.get(OCRResult, ocr_result_id)
     assert ocr_result.raw_text == "Fresh Squeezed. Zero Sugar Added."
     assert ocr_result.is_current is True
-    assert json.loads(ocr_result.structured_blocks_json)[0]["role"] == "headline"
+    assert ocr_result.structured_blocks_json[0]["role"] == "headline"
 
     analysis_run = db_session.get(AnalysisRun, ocr_result.analysis_run_id)
     assert analysis_run.status == STATUS_SUCCEEDED

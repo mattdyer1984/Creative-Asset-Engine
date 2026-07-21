@@ -2,8 +2,6 @@
 Unit tests for ProductLockProfileStage (plan §13's Stage contract tests).
 """
 
-import json
-
 from sqlalchemy import select
 
 from app.models.analysis_run import STATUS_SUCCEEDED, AnalysisRun
@@ -45,9 +43,9 @@ def test_succeeds_without_reference_images_yet(db_session, creative_with_product
 
     profile = db_session.get(ProductLockProfile, profile_id)
     assert profile.is_current is True
-    assert json.loads(profile.reference_image_ids_json) == []
+    assert profile.reference_image_ids_json == []
 
-    structured = json.loads(profile.structured_json)
+    structured = profile.structured_json
     assert structured["product_category"] == "beverage"
     assert structured["branding"]["brand_name"] == "Sunrise"
 
@@ -74,7 +72,7 @@ def test_snapshots_current_reference_images(db_session, creative_with_product, m
     profile = db_session.get(
         ProductLockProfile, creative_with_product.blueprint.current_product_lock_profile_id
     )
-    snapshotted_ids = json.loads(profile.reference_image_ids_json)
+    snapshotted_ids = profile.reference_image_ids_json
     assert len(snapshotted_ids) == 1
 
 
@@ -119,7 +117,7 @@ def test_snapshots_all_current_images_when_isolation_produces_multiple_crops(
     profile = db_session.get(
         ProductLockProfile, creative_with_product.blueprint.current_product_lock_profile_id
     )
-    snapshotted_ids = json.loads(profile.reference_image_ids_json)
+    snapshotted_ids = profile.reference_image_ids_json
     assert len(snapshotted_ids) == 2
 
 

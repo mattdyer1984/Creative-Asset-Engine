@@ -2,8 +2,6 @@
 Unit tests for RecreationPromptStage (plan §13's Stage contract tests).
 """
 
-import json
-
 from sqlalchemy import select
 
 from app.models.analysis_run import STATUS_SUCCEEDED, AnalysisRun
@@ -85,7 +83,7 @@ def test_succeeds_and_assembles_product_lock_reference(db_session, creative_with
     assert prompt.product_lock_profile_id == creative_with_product.blueprint.current_product_lock_profile_id
     assert prompt.creative_fingerprint_id == creative_with_product.blueprint.current_creative_fingerprint_id
 
-    structured = json.loads(prompt.structured_json)
+    structured = prompt.structured_json
     # AI-generated creative direction fields present:
     assert structured["subject"]
     assert structured["aspect_ratio"] == "4:5"

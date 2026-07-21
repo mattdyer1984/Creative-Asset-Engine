@@ -6,7 +6,6 @@ writes a new AnalysisRun + OCRResult (Analysis Artifact). Owns
 CreativeBlueprint.current_ocr_result_id.
 """
 
-import json
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -57,7 +56,7 @@ class OCRStage:
             analysis_run_id=analysis_run.id,
             creative_id=creative.id,
             raw_text=extraction.raw_text,
-            structured_blocks_json=json.dumps(extraction.structured_blocks),
+            structured_blocks_json=extraction.structured_blocks,
         )
         db.add(ocr_result)
         db.flush()

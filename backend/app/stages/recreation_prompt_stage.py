@@ -18,8 +18,6 @@ the AI's creative direction with a product_lock_reference block built
 directly from the ProductLockProfile row.
 """
 
-import json
-
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
@@ -120,8 +118,8 @@ class RecreationPromptStage:
         )
 
         try:
-            lock_profile_data = json.loads(lock_profile.structured_json)
-            fingerprint_data = json.loads(fingerprint.structured_json)
+            lock_profile_data = lock_profile.structured_json
+            fingerprint_data = fingerprint.structured_json
 
             ai_result = prompt_provider.generate_recreation_prompt(
                 lock_profile=lock_profile_data,
@@ -133,7 +131,7 @@ class RecreationPromptStage:
             final_structured = dict(ai_result)
             final_structured["product_lock_reference"] = {
                 "product_lock_profile_id": lock_profile.id,
-                "reference_image_ids": json.loads(lock_profile.reference_image_ids_json),
+                "reference_image_ids": lock_profile.reference_image_ids_json,
                 "immutable_characteristics": lock_profile_data.get(
                     "immutable_characteristics", []
                 ),
@@ -149,7 +147,7 @@ class RecreationPromptStage:
                 creative_id=creative.id,
                 product_lock_profile_id=lock_profile.id,
                 creative_fingerprint_id=fingerprint.id,
-                structured_json=json.dumps(final_structured),
+                structured_json=final_structured,
             )
             db.add(recreation_prompt)
             db.flush()

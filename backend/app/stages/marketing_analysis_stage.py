@@ -10,6 +10,8 @@ Uses TextGenerationProvider, not vision - this stage never looks at the
 image itself, only the structured Fingerprint already produced from it.
 """
 
+import json
+
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
@@ -78,8 +80,12 @@ class MarketingAnalysisStage:
         )
 
         try:
+            # fingerprint.structured_json is now a native dict (JSON column,
+            # not Text) - re-serialize explicitly so the prompt text sent to
+            # the provider is byte-for-byte the same as before this column's
+            # type changed, rather than Python's dict repr().
             prompt = MARKETING_ANALYSIS_PROMPT_TEMPLATE.format(
-                fingerprint_json=fingerprint.structured_json
+                fingerprint_json=json.dumps(fingerprint.structured_json)
             )
             result = text_provider.generate(
                 prompt_spec={"prompt": prompt, "schema_name": "marketing_analysis"},

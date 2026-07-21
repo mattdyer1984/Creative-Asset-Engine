@@ -6,7 +6,7 @@ Owned by Creative. is_current is scoped to creative_id: at most one
 CreativeFingerprint per creative has is_current=True at any time.
 """
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -17,4 +17,4 @@ class CreativeFingerprint(Base, AnalysisArtifactMixin):
     __tablename__ = "creative_fingerprints"
 
     creative_id: Mapped[str] = mapped_column(ForeignKey("creatives.id"), nullable=False)
-    structured_json: Mapped[str] = mapped_column(Text, nullable=False)
+    structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)
