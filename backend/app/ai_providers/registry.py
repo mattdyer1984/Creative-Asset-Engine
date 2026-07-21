@@ -88,7 +88,7 @@ class AIProviderRegistry:
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
         model = getattr(models_config, provider_name, {}).get(capability, "gpt-5.5")
-        return adapters[provider_name](model=model)
+        return adapters[provider_name](model=model, provider=provider_name)
 
     def ocr(self) -> OCRProvider:
         return self._ocr

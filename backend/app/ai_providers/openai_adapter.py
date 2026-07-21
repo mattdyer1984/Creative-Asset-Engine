@@ -59,8 +59,9 @@ def _image_content_block(image_bytes: bytes) -> dict:
 
 
 class OpenAIOCRAdapter:
-    def __init__(self, model: str = "gpt-5.5"):
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
+        self.provider = provider
         self._client: OpenAI | None = None
 
     @property
@@ -142,8 +143,9 @@ PRODUCT_ISOLATION_PROMPT = (
 
 
 class OpenAIProductIsolationAdapter:
-    def __init__(self, model: str = "gpt-5.5"):
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
+        self.provider = provider
         self._client: OpenAI | None = None
 
     @property
@@ -185,8 +187,9 @@ class OpenAIVisionAnalysisAdapter:
     will use this same adapter with a different schema/prompt).
     """
 
-    def __init__(self, model: str = "gpt-5.5"):
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
+        self.provider = provider
         self._client: OpenAI | None = None
 
     @property
@@ -231,8 +234,9 @@ class OpenAITextGenerationAdapter:
     Creative Fingerprint's JSON, not a fresh look at the image itself.
     """
 
-    def __init__(self, model: str = "gpt-5.5"):
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
+        self.provider = provider
         self._client: OpenAI | None = None
 
     @property
@@ -268,8 +272,9 @@ class OpenAIPromptGenerationAdapter:
     artifacts, never a fresh look at the Creative's image.
     """
 
-    def __init__(self, model: str = "gpt-5.5"):
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
+        self.provider = provider
         self._client: OpenAI | None = None
 
     @property

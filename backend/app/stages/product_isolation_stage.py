@@ -46,7 +46,7 @@ class ProductIsolationStage:
                 error="No product assigned to this creative - assign one before running Product Isolation.",
             )
 
-        provider = default_registry.isolation()
+        isolation_provider = default_registry.isolation()
 
         # Committed immediately as a durable "pending" record - if
         # anything below fails and we roll back, this row survives
@@ -56,14 +56,14 @@ class ProductIsolationStage:
             db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_PRODUCT_ISOLATION,
-            provider="openai",
-            model_name=provider.model,
+            provider=isolation_provider.provider,
+            model_name=isolation_provider.model,
             durable=True,
         )
 
         try:
             image_bytes = Path(creative.stored_file_path).read_bytes()
-            bounding_boxes = provider.isolate_product(image_bytes)
+            bounding_boxes = isolation_provider.isolate_product(image_bytes)
             if not bounding_boxes:
                 raise ValueError("No product detected in the image")
             crops = _crop_bounding_boxes(image_bytes, bounding_boxes)

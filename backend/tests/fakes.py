@@ -32,6 +32,7 @@ class FakeOCRProvider:
     """Returns a canned result, or raises, depending on how it's configured."""
 
     model = "fake-ocr-model"
+    provider = "openai"
 
     def __init__(self, extraction: OCRExtraction | None = None, raise_error: Exception | None = None):
         self._extraction = extraction or OCRExtraction(
@@ -64,6 +65,7 @@ class FakeProductIsolationProvider:
     """Returns a canned bounding box, or raises, depending on how it's configured."""
 
     model = "fake-isolation-model"
+    provider = "openai"
 
     def __init__(self, bounding_boxes: list[dict] | None = None, raise_error: Exception | None = None):
         self._bounding_boxes = (
@@ -119,6 +121,7 @@ class FakeVisionAnalysisProvider:
     """Returns a canned Product Lock Profile dict, or raises."""
 
     model = "fake-vision-model"
+    provider = "openai"
 
     def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
         self._result = result if result is not None else {
@@ -177,6 +180,7 @@ class FakeTextGenerationProvider:
     """Returns a canned narrative dict, or raises."""
 
     model = "fake-text-model"
+    provider = "openai"
 
     def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
         self._result = result if result is not None else {
@@ -227,6 +231,7 @@ class FakePromptGenerationProvider:
     """Returns a canned recreation-prompt creative-direction dict, or raises."""
 
     model = "fake-prompt-model"
+    provider = "openai"
 
     def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
         self._result = result if result is not None else {

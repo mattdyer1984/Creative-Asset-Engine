@@ -26,22 +26,20 @@ class OCRStage:
     def run(
         self, db: Session, creative: Creative, blueprint: CreativeBlueprint
     ) -> StageResult:
-        provider = default_registry.ocr()
+        ocr_provider = default_registry.ocr()
 
         analysis_run = start_analysis_run(
             db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_OCR,
-            provider="openai",  # TODO(M4+): read from providers_config once
-                                 # more than one provider is registered for
-                                 # this capability, rather than hardcoding.
-            model_name=provider.model,
+            provider=ocr_provider.provider,
+            model_name=ocr_provider.model,
             durable=False,
         )
 
         try:
             image_bytes = Path(creative.stored_file_path).read_bytes()
-            extraction = provider.extract_text(image_bytes)
+            extraction = ocr_provider.extract_text(image_bytes)
         except Exception as exc:
             return mark_failed(db, analysis_run, exc, rollback=False)
 

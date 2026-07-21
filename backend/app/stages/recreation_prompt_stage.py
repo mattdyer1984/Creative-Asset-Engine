@@ -114,7 +114,7 @@ class RecreationPromptStage:
             db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_RECREATION_PROMPT,
-            provider="openai",
+            provider=prompt_provider.provider,
             model_name=prompt_provider.model,
             durable=True,
         )

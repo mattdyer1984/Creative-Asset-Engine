@@ -105,7 +105,7 @@ class CreativeFingerprintStage:
             db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_CREATIVE_FINGERPRINT,
-            provider="openai",
+            provider=vision_provider.provider,
             model_name=vision_provider.model,
             durable=True,
         )
