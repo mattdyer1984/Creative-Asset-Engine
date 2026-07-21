@@ -24,17 +24,13 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 PRODUCT_LOCK_PROFILE_SCHEMA = {
     "type": "object",
@@ -148,14 +144,14 @@ class ProductLockProfileStage:
 
         vision_provider = default_registry.vision()
 
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
             provider="openai",
             model_name=vision_provider.model,
+            durable=False,
         )
-        db.add(analysis_run)
-        db.flush()
 
         # Reads the Product's current reference images (plan §6.3) - if
         # Product Isolation hasn't produced any yet (e.g. this stage is
@@ -181,10 +177,7 @@ class ProductLockProfileStage:
                 response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
             )
         except Exception as exc:
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=False)
 
         db.query(ProductLockProfile).filter(
             ProductLockProfile.product_id == creative.product_id,
@@ -202,8 +195,5 @@ class ProductLockProfileStage:
         db.add(profile)
         db.flush()
 
-        analysis_run.status = STATUS_SUCCEEDED
         blueprint.current_product_lock_profile_id = profile.id
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)

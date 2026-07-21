@@ -18,16 +18,12 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_PRODUCT_ISOLATION,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_ISOLATION
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.product_reference_image import ProductReferenceImage
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 from app.storage import save_product_reference_image
 
 ISOLATION_METHOD = "llm_bounding_box_v1"
@@ -56,15 +52,14 @@ class ProductIsolationStage:
         # anything below fails and we roll back, this row survives
         # (rollback only discards the *next* transaction, not one
         # already committed), so the failure is never silently lost.
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_PRODUCT_ISOLATION,
             provider="openai",
             model_name=provider.model,
+            durable=True,
         )
-        db.add(analysis_run)
-        db.commit()
-        db.refresh(analysis_run)
 
         try:
             image_bytes = Path(creative.stored_file_path).read_bytes()
@@ -110,16 +105,9 @@ class ProductIsolationStage:
             ).update({"is_current": False}, synchronize_session=False)
 
         except Exception as exc:
-            db.rollback()
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=True)
 
-        analysis_run.status = STATUS_SUCCEEDED
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)
 
 
 def _crop_bounding_boxes(image_bytes: bytes, bounding_boxes: list[dict]) -> list[bytes]:

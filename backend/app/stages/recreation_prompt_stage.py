@@ -23,18 +23,14 @@ import json
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_RECREATION_PROMPT,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_RECREATION_PROMPT
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.recreation_prompt import RecreationPrompt
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 RECREATION_PROMPT_AI_SCHEMA = {
     "type": "object",
@@ -114,15 +110,14 @@ class RecreationPromptStage:
 
         prompt_provider = default_registry.prompt_generation()
 
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_RECREATION_PROMPT,
             provider="openai",
             model_name=prompt_provider.model,
+            durable=True,
         )
-        db.add(analysis_run)
-        db.commit()
-        db.refresh(analysis_run)
 
         try:
             lock_profile_data = json.loads(lock_profile.structured_json)
@@ -160,14 +155,7 @@ class RecreationPromptStage:
             db.flush()
 
         except Exception as exc:
-            db.rollback()
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=True)
 
-        analysis_run.status = STATUS_SUCCEEDED
         blueprint.current_recreation_prompt_id = recreation_prompt.id
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)

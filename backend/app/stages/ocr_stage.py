@@ -12,16 +12,12 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_OCR,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_OCR
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.ocr_result import OCRResult
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 
 class OCRStage:
@@ -32,25 +28,22 @@ class OCRStage:
     ) -> StageResult:
         provider = default_registry.ocr()
 
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_OCR,
             provider="openai",  # TODO(M4+): read from providers_config once
                                  # more than one provider is registered for
                                  # this capability, rather than hardcoding.
             model_name=provider.model,
+            durable=False,
         )
-        db.add(analysis_run)
-        db.flush()
 
         try:
             image_bytes = Path(creative.stored_file_path).read_bytes()
             extraction = provider.extract_text(image_bytes)
         except Exception as exc:
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=False)
 
         # Flip the previous current OCRResult (if any) via the Blueprint's
         # own pointer - the Blueprint's current_ocr_result_id is the single
@@ -71,8 +64,5 @@ class OCRStage:
         db.add(ocr_result)
         db.flush()
 
-        analysis_run.status = STATUS_SUCCEEDED
         blueprint.current_ocr_result_id = ocr_result.id
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)

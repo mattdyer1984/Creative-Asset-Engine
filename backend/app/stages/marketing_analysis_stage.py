@@ -13,17 +13,13 @@ image itself, only the structured Fingerprint already produced from it.
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_MARKETING_ANALYSIS,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_MARKETING_ANALYSIS
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.marketing_analysis import MarketingAnalysis
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 MARKETING_ANALYSIS_SCHEMA = {
     "type": "object",
@@ -72,15 +68,14 @@ class MarketingAnalysisStage:
 
         text_provider = default_registry.text_generation()
 
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_MARKETING_ANALYSIS,
             provider="openai",
             model_name=text_provider.model,
+            durable=True,
         )
-        db.add(analysis_run)
-        db.commit()
-        db.refresh(analysis_run)
 
         try:
             prompt = MARKETING_ANALYSIS_PROMPT_TEMPLATE.format(
@@ -105,14 +100,7 @@ class MarketingAnalysisStage:
             db.flush()
 
         except Exception as exc:
-            db.rollback()
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=True)
 
-        analysis_run.status = STATUS_SUCCEEDED
         blueprint.current_marketing_analysis_id = marketing_analysis.id
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)

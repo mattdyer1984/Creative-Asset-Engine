@@ -22,17 +22,13 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
-from app.models.analysis_run import (
-    ANALYSIS_TYPE_CREATIVE_FINGERPRINT,
-    STATUS_FAILED,
-    STATUS_SUCCEEDED,
-    AnalysisRun,
-)
+from app.models.analysis_run import ANALYSIS_TYPE_CREATIVE_FINGERPRINT
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.ocr_result import OCRResult
 from app.stages.base import StageResult
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 CREATIVE_FINGERPRINT_SCHEMA = {
     "type": "object",
@@ -105,15 +101,14 @@ class CreativeFingerprintStage:
     ) -> StageResult:
         vision_provider = default_registry.vision()
 
-        analysis_run = AnalysisRun(
+        analysis_run = start_analysis_run(
+            db,
             creative_id=creative.id,
             analysis_type=ANALYSIS_TYPE_CREATIVE_FINGERPRINT,
             provider="openai",
             model_name=vision_provider.model,
+            durable=True,
         )
-        db.add(analysis_run)
-        db.commit()
-        db.refresh(analysis_run)
 
         prompt = CREATIVE_FINGERPRINT_PROMPT
         if blueprint.current_ocr_result_id is not None:
@@ -143,14 +138,7 @@ class CreativeFingerprintStage:
             db.flush()
 
         except Exception as exc:
-            db.rollback()
-            analysis_run.status = STATUS_FAILED
-            analysis_run.error = str(exc)
-            db.commit()
-            return StageResult(succeeded=False, error=str(exc))
+            return mark_failed(db, analysis_run, exc, rollback=True)
 
-        analysis_run.status = STATUS_SUCCEEDED
         blueprint.current_creative_fingerprint_id = fingerprint.id
-        db.commit()
-
-        return StageResult(succeeded=True)
+        return mark_succeeded(db, analysis_run)
