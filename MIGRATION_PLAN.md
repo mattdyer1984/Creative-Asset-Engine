@@ -77,7 +77,7 @@ for new code, none of which touch Phase 2-4's existing models/stages.
 | 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
 | 3 | Async execution boundary (3.1–3.5) | done |
 | 4 | True multi-slide import (4.1–4.4) | done |
-| 5 | **Product Intelligence** (evidence model, listing import, canonical profile) | not started — see detailed section below |
+| 5 | **Product Intelligence** (evidence model, listing import, canonical profile) | in progress (5.1-5.4 done, 5.4 hard-stopped on TikTok Shop per design — see detailed section below) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | not started — demoted; now an enhancement to Product Intelligence's slideshow-evidence source, not a prerequisite for it |
 | 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | not started — unaffected by the revision, pure Creative Intelligence |
 | 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
@@ -183,6 +183,17 @@ eventually:
   during the Phase 2 engineering review): cosmetic, ~20 files, real
   mechanical risk for a naming-only benefit. Revisit once Phase 2.8 lands
   and the "must stay parallel to the old pipeline" constraint is gone.
+- **TikTok Shop Product Source support** (Phase 5.4's spike, 2026-07-22):
+  hard-stopped, not abandoned. Two real paths exist if the user wants to
+  revisit this: (a) a paid anti-bot-bypass/proxy scraping service (real
+  ongoing cost, ToS considerations to weigh explicitly) or (b) TikTok
+  Shop's official Partner API (free, but requires the user to register
+  and OAuth-authorize a specific shop they own - only ever covers their
+  own shop's products, not arbitrary TikTok Shop URLs, which is a
+  materially narrower capability than what the generic fallback provides
+  for every other platform). Either is a deliberate product/business
+  decision for the user to make explicitly, not something to pursue
+  unprompted.
 
 ## Phase 3: Async execution boundary — detailed plan
 
@@ -1056,36 +1067,79 @@ field-level provenance/confidence, without redoing any completed work.
   registered, `import_product_source` has nothing to resolve to.
 - **Expected commit size**: medium.
 
-### 5.4 — TikTok Shop adapter: investigation, then implementation
+### 5.4 — TikTok Shop adapter: investigation spike (done) - hard stop, no adapter built
 
-- **Starts with an explicit spike, not implementation**: fetch a real,
-  public TikTok Shop product listing URL and inspect what's actually
-  retrievable - server-rendered HTML with embedded product data,
-  a client-rendered SPA shell requiring JS execution to see anything
-  useful, or a case for TikTok Shop's official Partner/Open API instead.
-  This determines the *mechanism*, which genuinely isn't known yet (see
-  the honest caveat above) - the rest of this sub-phase's plan is
-  intentionally not fully specified until the spike's findings are in.
-- If plain HTTP + parsing turns out sufficient (embedded JSON in
-  server-rendered HTML, similar in spirit to 5.3 but with TikTok
-  Shop-specific field mapping): a `TikTokShopAdapter` alongside
-  `generic.py`, `matches()` checking TikTok Shop URL patterns/domains,
-  `extract()` mapping TikTok Shop's native field names into the same
-  `NormalizedProductEvidence` shape 5.2 defined - same revision #5
-  discipline as 5.3: map into the existing vocabulary wherever the
-  concept genuinely overlaps, and remember a marketplace listing is
-  likely to expose non-product data (shop rating, units sold, review
-  count) that shouldn't become a canonical field just because it's
-  there - see revision #5's illustrative example above.
-- If it requires rendered-DOM access: evaluate a headless-browser
-  dependency (e.g. Playwright) - real added weight (a new heavy
-  dependency, slower fetches, more moving parts) worth a dedicated
-  design discussion before committing, not a decision to make inside
-  this same sub-phase's implementation work.
-- If it requires TikTok Shop's official API: a credentials/registration
-  step the user would need to complete - a real blocker outside pure
-  engineering, worth surfacing back to the user immediately once
-  confirmed, not worked around silently.
+**Spike findings (2026-07-22), grounded in actually fetching real TikTok
+Shop pages, not assumed:**
+
+- Fetched `https://shop.tiktok.com/us/c` (category browsing) directly:
+  the entire visible page content is a single heading, "Security Check"
+  - no product data, no navigation, nothing else.
+- Found a real, currently-shared individual product URL
+  (`https://shop.tiktok.com/view/product/1729401937517121187`, sourced
+  from a public social-media share, not fabricated) and fetched it
+  directly too: identical result - "Security Check," no product title,
+  price, images, description, JSON-LD, or any embedded JSON of any kind.
+  This rules out the more optimistic hypothesis (that category pages are
+  gated but individual product detail pages might be server-rendered for
+  SEO, common on many e-commerce sites) - both hit the same wall.
+- Independent, third-party corroboration: a commercial TikTok Shop
+  scraper (Apify's "TikTok Shop Scraper") documents that its trending-
+  products feature is slow specifically because "it need[s] to bypass
+  TikTok's captcha." A separate paid scraping-infrastructure vendor
+  (Bright Data) offers a dedicated `web_data_tiktok_shop` tool. Both are
+  strong signals that this is active, general-purpose anti-bot defense,
+  not an artifact of this session's specific fetch.
+- Checked the credentialed path too, not just assumed it would solve
+  this: TikTok Shop's Partner Center API requires a Partner Center
+  account, app registration, **and OAuth authorization from the specific
+  shop owner** whose data is being accessed. This is a seller-managing-
+  their-own-shop API, not a general "look up any public product by URL"
+  API - even with credentials, it would only ever cover shops the user
+  themselves operates, not the general case (competitor listings,
+  inspiration products, arbitrary creator-shared links) the schema.org
+  fallback handles for every other platform. Worth stating plainly: **API
+  credentials would not actually deliver the original ask** (paste any
+  TikTok Shop URL, get evidence) - only a narrower one (pull data for a
+  shop the user owns).
+
+**Conclusion: hard stop, per the standing authorization's explicit
+scenario for exactly this outcome.** Plain HTTP + parsing does not work
+(confirmed, not assumed) - both the category and product-detail cases
+are blocked by an active anti-bot wall, matched by independent evidence
+that bypassing it is itself the hard part serious commercial scrapers
+build entire products around. A headless browser alone is not a
+confident fix either, for the same reason (bot-detection systems
+commonly fingerprint headless browsers too) - evaluating that path
+further would mean evaluating CAPTCHA-bypass/proxy infrastructure, which
+is a real cost and ToS decision, not a coding one. The credentialed
+official-API path exists but doesn't solve the general problem even if
+pursued.
+
+**No `TikTokShopAdapter` was built.** A stub that attempts the same
+blocked fetch and fails would add ceremony without adding real
+capability - functionally identical to what already happens today: a
+TikTok Shop URL falls through to `GenericUrlAdapter` (nothing in
+`PRODUCT_SOURCE_ADAPTERS` currently claims TikTok Shop domains
+specifically), which will itself hit the same wall and correctly record
+a `fetch_status=FETCH_STATUS_FAILED` `ProductSourceImport` - the
+existing, already-tested failure path, not a crash. This is the
+documented "degrade to the generic adapter" fallback the plan called for
+if this scenario occurred, not a new behavior to build.
+
+**No code changes in this sub-phase** - investigation and documentation
+only, per the standing authorization's explicit instruction not to
+attempt a workaround. If a real path forward emerges later (the user
+obtains and wants to use their own shop's Partner API credentials, or
+decides a paid anti-bot-bypass/proxy service is worth the cost and ToS
+tradeoff), that's a fresh design decision for the user to make
+explicitly - not something to revisit unprompted.
+
+~~If plain HTTP + parsing turns out sufficient... a `TikTokShopAdapter`
+alongside `generic.py`...~~ (superseded by the spike above - kept
+struck through, not deleted, so the reasoning that was here before the
+spike ran stays visible for anyone re-reading this history):
+
 - Registered *before* the generic fallback in 5.2's adapter list
   (`matches()` on TikTok Shop domains specifically), so TikTok Shop URLs
   get the purpose-built adapter and everything else still falls through
@@ -1099,6 +1153,10 @@ field-level provenance/confidence, without redoing any completed work.
   from a JS-heavy page).
 - **Expected commit size**: unknown until the spike - flag this
   explicitly rather than guessing a size for unresearched work.
+
+**Actual outcome**: zero code. Commit is documentation-only (this
+section itself), matching "no workaround" rather than any commit size
+estimate above, which assumed code would be written.
 
 ### 5.5 — Canonical merge / profile assembly service
 
@@ -1343,6 +1401,36 @@ into 5.2's (already pushed to this branch) or 5.3's.
   cleanly.
 - Zero behavior change to anything existing - `import_product_source`
   has no caller yet (that's 5.6's job); purely additive.
+- Commit: (see git log)
+
+### Phase 5.4 — TikTok Shop adapter: investigation spike (done, hard stop)
+
+- Fetched `https://shop.tiktok.com/us/c` (category page) and a real,
+  currently-shared individual product URL
+  (`https://shop.tiktok.com/view/product/1729401937517121187`) directly.
+  Both return only a "Security Check" wall - no product data, no
+  JSON-LD, no embedded JSON, nothing to parse.
+- Corroborated independently (not just this session's own fetch): a
+  commercial TikTok Shop scraper documents needing to "bypass TikTok's
+  captcha"; a separate scraping-infrastructure vendor sells a dedicated
+  tool for exactly this platform. Checked the credentialed path too:
+  TikTok Shop's Partner API requires OAuth authorization from the
+  specific shop owner being queried - a seller-manages-their-own-shop
+  API, not a general "look up any product by URL" one, so it wouldn't
+  actually deliver the original capability (arbitrary TikTok Shop URLs)
+  even if pursued.
+- **Conclusion: hard stop, exactly the scenario the standing
+  authorization anticipated.** No workaround attempted (no headless-
+  browser CAPTCHA-bypass, no reverse-engineered internal endpoints). No
+  `TikTokShopAdapter` built - a stub that fails the same way
+  `GenericUrlAdapter` already does for TikTok Shop URLs would add
+  ceremony without adding capability. TikTok Shop URLs correctly fall
+  through to the generic adapter today (already true, not a new change)
+  and correctly record a failed `ProductSourceImport` via the
+  already-tested failure path - degraded, not broken.
+- Zero code changes - investigation and documentation only. Full detail
+  in the "5.4" section above, including exactly what was checked and
+  why the credentialed path doesn't fully solve this either.
 - Commit: (see git log)
 
 ---
