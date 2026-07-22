@@ -171,6 +171,52 @@ class NormalizedProductImage(BaseModel):
     role: str = "gallery"  # e.g. "primary", "gallery"
 
 
+class BundleMemberHint(BaseModel):
+    """
+    One item an adapter believes is a distinct member of a bundle
+    listing - a hint, not a resolved Product. Per the catalogue ADR (see
+    MIGRATION_PLAN.md), the system never auto-creates a Product from
+    parsed content: a human reviews each hint and either links it to an
+    existing Product or creates a new one (Phase 5.10's job). attributes
+    reuses the existing CANONICAL_FIELD_VOCABULARY/ProductAttributeValue
+    shapes - no new vocabulary for bundle members, per revision #5's
+    discipline.
+    """
+
+    label: str
+    attributes: dict[str, NormalizedAttribute] = Field(default_factory=dict)
+
+
+class NormalizedBundleEvidence(BaseModel):
+    """
+    Present only when an adapter detects the listing represents more than
+    one product sold together. title is the bundle's own listing title
+    (e.g. "Bella Vita Luxury Gift Set"), distinct from each member_hint's
+    own label.
+    """
+
+    title: str | None = None
+    member_hints: list[BundleMemberHint] = Field(default_factory=list)
+
+
+class NormalizedListingMetadata(BaseModel):
+    """
+    Marketplace/commercial facts found alongside the product data - price,
+    seller, rating, units sold, shipping. Deliberately NOT run through
+    CANONICAL_FIELD_VOCABULARY/ProductAttributeValue: per the catalogue
+    ADR, these are Listing-level facts, not product attributes, and never
+    become part of Product Intelligence. All optional - most adapters
+    (and most pages) won't expose all of these.
+    """
+
+    price_amount: float | None = None
+    price_currency: str | None = None
+    seller_name: str | None = None
+    rating: float | None = None
+    units_sold: int | None = None
+    shipping_info: str | None = None
+
+
 class NormalizedProductEvidence(BaseModel):
     source_type: str
     source_url: str
@@ -181,6 +227,13 @@ class NormalizedProductEvidence(BaseModel):
     # Loosely typed for v1 - not over-specified before real adapters
     # exist to validate the shape against (see MIGRATION_PLAN.md).
     variants: list[dict] = Field(default_factory=list)
+    # Both additive, Phase 5.9 of the catalogue layer (see
+    # MIGRATION_PLAN.md's frozen catalogue ADR) - zero change to this
+    # class's other fields, the ProductSourceAdapter Protocol, or
+    # extract()'s signature. A listing with no bundle/commercial signal
+    # simply leaves both None, exactly as before Phase 5.9 existed.
+    bundle: NormalizedBundleEvidence | None = None
+    listing: NormalizedListingMetadata | None = None
 
 
 class ProductSourceExtraction(BaseModel):

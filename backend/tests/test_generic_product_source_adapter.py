@@ -41,6 +41,22 @@ JSONLD_GRAPH_HTML = """
 </head><body></body></html>
 """
 
+JSONLD_MULTI_PRODUCT_GRAPH_HTML = """
+<html><head>
+<title>Bella Vita Luxury Gift Set</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@graph": [
+    {"@type": "Organization", "name": "Bella Vita Luxury"},
+    {"@type": "Product", "name": "G.O.A.T. Man", "brand": "Bella Vita Luxury", "color": "Amber"},
+    {"@type": "Product", "name": "CEO Man", "brand": "Bella Vita Luxury", "color": "Black"}
+  ]
+}
+</script>
+</head><body></body></html>
+"""
+
 OPENGRAPH_ONLY_HTML = """
 <html><head>
 <title>Fallback Page Title</title>
@@ -91,6 +107,51 @@ def test_extracts_product_from_at_graph_bundle():
 
     assert result.normalized.title == "Evoband Wristband"
     assert result.normalized.brand == "Evoband"
+
+
+def test_single_product_at_graph_still_has_no_bundle_evidence():
+    """Regression guard: the existing single-product @graph case is unaffected by Phase 5.9."""
+    adapter = _adapter_with_response(JSONLD_GRAPH_HTML)
+    result = adapter.extract("https://shop.example/products/evoband")
+    assert result.normalized.bundle is None
+    assert result.normalized.listing is None
+
+
+def test_detects_bundle_from_multi_product_at_graph():
+    """
+    Phase 5.9's bundle-detection heuristic (see MIGRATION_PLAN.md's frozen
+    catalogue ADR): a @graph with more than one Product entry is treated
+    as a bundle listing.
+    """
+    adapter = _adapter_with_response(JSONLD_MULTI_PRODUCT_GRAPH_HTML)
+    result = adapter.extract("https://shop.example/products/bella-vita-set")
+
+    assert result.normalized.bundle is not None
+    assert result.normalized.bundle.title == "Bella Vita Luxury Gift Set"
+    assert [hint.label for hint in result.normalized.bundle.member_hints] == ["G.O.A.T. Man", "CEO Man"]
+    assert result.normalized.bundle.member_hints[0].attributes["color"].value == ColorValue(label="Amber")
+    assert result.normalized.bundle.member_hints[1].attributes["color"].value == ColorValue(label="Black")
+
+
+def test_bundle_evidence_does_not_promote_one_members_facts_to_the_top_level():
+    """
+    The real point of this design (see generic.py's own docstring): a
+    bundle's top-level title/brand/attributes/images must never look like
+    facts about "the product" when there are really N of them - only
+    bundle.member_hints carries per-member data.
+    """
+    adapter = _adapter_with_response(JSONLD_MULTI_PRODUCT_GRAPH_HTML)
+    result = adapter.extract("https://shop.example/products/bella-vita-set")
+
+    assert result.normalized.brand is None
+    assert result.normalized.attributes == {}
+    assert result.normalized.images == []
+    assert result.raw == {
+        "bundle_members": [
+            {"@type": "Product", "name": "G.O.A.T. Man", "brand": "Bella Vita Luxury", "color": "Amber"},
+            {"@type": "Product", "name": "CEO Man", "brand": "Bella Vita Luxury", "color": "Black"},
+        ]
+    }
 
 
 def test_falls_back_to_opengraph_when_no_jsonld_product():

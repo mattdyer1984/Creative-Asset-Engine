@@ -14,10 +14,13 @@ from pydantic import ValidationError
 
 from app.product_sources.base import (
     CANONICAL_FIELD_VOCABULARY,
+    BundleMemberHint,
     ColorValue,
     DimensionValue,
     ListValue,
     NormalizedAttribute,
+    NormalizedBundleEvidence,
+    NormalizedListingMetadata,
     NormalizedProductEvidence,
     NumberValue,
     ProductSourceExtraction,
@@ -123,6 +126,51 @@ def test_normalized_product_evidence_defaults_are_empty_not_none():
     assert evidence.images == []
     assert evidence.attributes == {}
     assert evidence.variants == []
+
+
+def test_normalized_product_evidence_bundle_and_listing_default_to_none():
+    """
+    Phase 5.9 (catalogue layer, see MIGRATION_PLAN.md's frozen catalogue
+    ADR): both fields are purely additive - a listing with no bundle or
+    commercial signal looks identical to before this sub-phase existed.
+    """
+    evidence = NormalizedProductEvidence(source_type="generic_url", source_url="https://example.com/p")
+    assert evidence.bundle is None
+    assert evidence.listing is None
+
+
+def test_normalized_bundle_evidence_round_trips_member_hints():
+    bundle = NormalizedBundleEvidence(
+        title="Gift Set",
+        member_hints=[
+            BundleMemberHint(
+                label="G.O.A.T. Man",
+                attributes={"brand": NormalizedAttribute(value=TextValue(text="Bella Vita"), confidence=0.9)},
+            ),
+            BundleMemberHint(label="CEO Man"),
+        ],
+    )
+    assert bundle.title == "Gift Set"
+    assert len(bundle.member_hints) == 2
+    assert bundle.member_hints[0].attributes["brand"].value == TextValue(text="Bella Vita")
+    assert bundle.member_hints[1].attributes == {}  # a hint with no extractable attributes is still valid
+
+
+def test_normalized_listing_metadata_all_fields_optional():
+    empty = NormalizedListingMetadata()
+    assert empty.price_amount is None
+    assert empty.seller_name is None
+
+    full = NormalizedListingMetadata(
+        price_amount=29.99,
+        price_currency="USD",
+        seller_name="Widget Co",
+        rating=4.5,
+        units_sold=1200,
+        shipping_info="Free shipping",
+    )
+    assert full.price_amount == 29.99
+    assert full.rating == 4.5
 
 
 # --- Registry dispatch -----------------------------------------------------

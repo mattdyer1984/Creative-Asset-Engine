@@ -2375,4 +2375,57 @@ second-guess preemptively here.
   two new nullable columns; nothing reads or writes them yet.
 - Commit: (see git log)
 
+### Phase 5.9 — Adapter contract: bundle + listing evidence (done)
+
+- `NormalizedProductEvidence` (`app/product_sources/base.py`) gains two
+  new optional fields exactly as planned: `bundle:
+  NormalizedBundleEvidence | None` and `listing: NormalizedListingMetadata
+  | None`. Zero change to the `ProductSourceAdapter` Protocol or
+  `extract()`'s signature. `NormalizedListingMetadata`'s fields
+  (price/seller/rating/units_sold/shipping) are deliberately NOT run
+  through `ProductAttributeValue`/`CANONICAL_FIELD_VOCABULARY` - same
+  reasoning as `Listing`'s own columns (5.8).
+- **Real design refinement made during implementation, not exactly as
+  first planned**: the plan's own text said member hints would cover
+  "entries beyond the first," implicitly treating the first detected
+  Product as special (already represented via the top-level
+  title/brand/attributes/images). Building the actual test for this
+  exposed why that's wrong: it would silently describe one arbitrary
+  member's specific facts (e.g. one bottle's color) as if they were facts
+  about the whole bundle - exactly the failure mode the catalogue ADR's
+  Bundle-philosophy section exists to prevent. Fixed before shipping: when
+  `GenericUrlAdapter` detects 2+ Product entities in one JSON-LD `@graph`,
+  the top-level fields carry only the bundle's own title (page `<title>`
+  fallback) - brand/attributes/images stay empty at that level, and every
+  member (all of them, not "beyond the first") gets one uniform
+  `BundleMemberHint`.
+- `_find_product_jsonld` renamed to `_find_all_product_jsonld` (returns
+  every detected Product entity, not just the first) - the existing
+  single-product call site now takes `[0]` when there's exactly one, so
+  the single-product path (schema.org JSON-LD, `@graph` with one Product,
+  OpenGraph fallback) is byte-for-byte unchanged, verified by all 8
+  pre-existing `test_generic_product_source_adapter.py` tests passing
+  unmodified. Attribute-extraction logic (brand/color/materials) factored
+  into a shared `_attributes_from_jsonld` helper, reused by both the
+  single-product and per-member-hint paths - not a behavior change, a
+  duplication removed while adding the second caller.
+- Bundle-detection heuristic is deliberately narrow, as planned: one
+  signal (multi-`Product` `@graph` JSON-LD). A bundle-shaped listing that
+  doesn't use this pattern simply imports with `bundle=None` - degraded
+  (missed signal), not broken.
+- 6 new tests: 4 in `test_generic_product_source_adapter.py` (single-
+  product `@graph` still has no bundle evidence - regression guard;
+  multi-product `@graph` detected correctly with per-member attributes;
+  top-level fields NOT polluted by one member's facts; `raw` carries all
+  detected entities), 2 in `test_product_sources_base_and_registry.py`
+  (`bundle`/`listing` default to `None`; both new types round-trip).
+- Full suite: 163/163 passing (157 existing + 6 new). Ruff clean on every
+  new/changed file. App boots cleanly, 28 routes (unchanged - no new
+  endpoints this sub-phase).
+- Zero behavior change to anything existing for the single-product
+  path - `GenericUrlAdapter`'s only new behavior is additive (bundle
+  detection), and nothing yet calls the two new evidence fields (that's
+  5.10's job).
+- Commit: (see git log)
+
 ---
