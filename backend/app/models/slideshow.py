@@ -67,3 +67,20 @@ class Slideshow(Base):
     slides: Mapped[list["Slide"]] = relationship(
         back_populates="slideshow", order_by="Slide.slide_index", cascade="all, delete-orphan"
     )
+
+    @property
+    def slide(self) -> "Slide":
+        """
+        The single Slide - a convenience for the new pipeline (Phase 2.4
+        onward), valid only while cardinality stays 1:1 (Phase 2's
+        invariant; true multi-slide import is a later phase). Raises
+        loudly rather than silently picking slides[0] if that invariant
+        is ever violated, since a caller relying on this accessor has no
+        other way to notice.
+        """
+        if len(self.slides) != 1:
+            raise ValueError(
+                f"Slideshow.slide assumes exactly one Slide (Phase 2 invariant); "
+                f"found {len(self.slides)} for slideshow {self.id}"
+            )
+        return self.slides[0]
