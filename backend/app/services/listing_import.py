@@ -223,9 +223,34 @@ def get_pending_member_hints(db: Session, listing_id: str) -> list[dict]:
     resolved, or its current import has no bundle evidence. Read-only -
     never mutates resolution state.
     """
+    bundle = _current_pending_bundle_evidence(db, listing_id)
+    if bundle is None:
+        return []
+    return bundle.get("member_hints", [])
+
+
+def get_pending_bundle_title(db: Session, listing_id: str) -> str | None:
+    """
+    The current unresolved import's adapter-suggested bundle title (see
+    app.product_sources.base.NormalizedBundleEvidence.title), or None if
+    there isn't one - a real gap found while building Phase 5.12's review
+    UI: without this, the "name this bundle" form field would have no
+    sensible default even when the adapter already found a real title
+    (e.g. the page's <title> tag, per generic.py's own fallback). Never
+    authoritative - purely a suggested default the human can override,
+    same as every other adapter-derived hint in this sub-phase.
+    """
+    bundle = _current_pending_bundle_evidence(db, listing_id)
+    if bundle is None:
+        return None
+    title = bundle.get("title")
+    return title if isinstance(title, str) else None
+
+
+def _current_pending_bundle_evidence(db: Session, listing_id: str) -> dict | None:
     listing = db.get(Listing, listing_id)
     if listing is None or listing.resolved_product_id is not None or listing.resolved_bundle_id is not None:
-        return []
+        return None
 
     current_import = db.scalars(
         select(ProductSourceImport).where(
@@ -234,12 +259,9 @@ def get_pending_member_hints(db: Session, listing_id: str) -> list[dict]:
         )
     ).first()
     if current_import is None or not current_import.normalized_json:
-        return []
+        return None
 
-    bundle = current_import.normalized_json.get("bundle")
-    if not bundle:
-        return []
-    return bundle.get("member_hints", [])
+    return current_import.normalized_json.get("bundle")
 
 
 def _get_or_create_listing(db: Session, url: str) -> Listing:

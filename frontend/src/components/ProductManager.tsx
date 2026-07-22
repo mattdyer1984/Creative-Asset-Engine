@@ -186,28 +186,11 @@ function ProductAnalysisPanel({ productId }: { productId: string }) {
         <h4>Product Profile</h4>
         {profile === null ? (
           <p>Loading profile…</p>
-        ) : Object.keys(profile.fields).length === 0 ? (
-          <p className="empty-state">
-            No evidence yet - import a source URL above, or run analysis on a slideshow featuring
-            this product.
-          </p>
         ) : (
-          <div className="field-grid">
-            {Object.entries(profile.fields).map(([fieldName, field]) => (
-              <div key={fieldName} className="field-row profile-field-row">
-                <span className="field-label">{fieldName.replace(/_/g, ' ')}</span>
-                <span className="field-value">
-                  <AttributeValueDisplay value={field.value} />
-                  <span className={`classification-badge classification-${field.classification}`}>
-                    {field.classification}
-                  </span>
-                  <span className="confidence-badge">
-                    {field.source_type} · {Math.round(field.confidence * 100)}%
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
+          <ProductProfileFields
+            profile={profile}
+            emptyMessage="No evidence yet - import a source URL above, or run analysis on a slideshow featuring this product."
+          />
         )}
       </div>
 
@@ -221,11 +204,49 @@ function ProductAnalysisPanel({ productId }: { productId: string }) {
   );
 }
 
+// Renders one ProductProfile's field-grid (Phase 5.7), extracted in
+// Phase 5.12 so the catalogue layer's Bundle view can render each
+// member's profile with the identical renderer - a bundle's "profile" is
+// a list of its members' real profiles, never a new one, per the
+// catalogue ADR's Bundle philosophy, and this component is what makes
+// that concrete on the frontend too.
+export function ProductProfileFields({
+  profile,
+  emptyMessage,
+}: {
+  profile: ProductProfile;
+  emptyMessage: string;
+}) {
+  if (Object.keys(profile.fields).length === 0) {
+    return <p className="empty-state">{emptyMessage}</p>;
+  }
+  return (
+    <div className="field-grid">
+      {Object.entries(profile.fields).map(([fieldName, field]) => (
+        <div key={fieldName} className="field-row profile-field-row">
+          <span className="field-label">{fieldName.replace(/_/g, ' ')}</span>
+          <span className="field-value">
+            <AttributeValueDisplay value={field.value} />
+            <span className={`classification-badge classification-${field.classification}`}>
+              {field.classification}
+            </span>
+            <span className="confidence-badge">
+              {field.source_type} · {Math.round(field.confidence * 100)}%
+            </span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Renders each ProductAttributeValue shape appropriately (Phase 5.7,
 // applying the standing design principle: the typed structure exists
 // specifically so it can be shown as more than a flattened string - a
-// color swatch for ColorValue, not just its label).
-function AttributeValueDisplay({ value }: { value: ProductAttributeValue }) {
+// color swatch for ColorValue, not just its label). Exported in Phase
+// 5.12 so the catalogue layer's Bundle view can render each member's
+// ProductProfile with the exact same renderer, not a duplicate one.
+export function AttributeValueDisplay({ value }: { value: ProductAttributeValue }) {
   switch (value.kind) {
     case 'text':
       return <span>{value.text}</span>;

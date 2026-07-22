@@ -87,7 +87,7 @@ implementation/production limitation.
 | 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
 | 3 | Async execution boundary (3.1–3.5) | done |
 | 4 | True multi-slide import (4.1–4.4) | done |
-| 5 | **Product Intelligence** (evidence model, listing import, canonical profile) | done (5.1-5.7, live-verified — TikTok Shop deliberately unsupported, see 5.4) |
+| 5 | **Product Intelligence** (evidence model, listing import, canonical profile, catalogue layer) | done (5.1-5.12, live-verified — TikTok Shop deliberately unsupported, see 5.4; catalogue layer per the frozen ADR) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
 | 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | not started — unaffected by the revision, pure Creative Intelligence |
 | 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
@@ -2580,6 +2580,86 @@ second-guess preemptively here.
   sub-phase that actually exercises it end-to-end).
 - Zero behavior change to anything existing - new routers, new schemas,
   nothing else touched.
+- Commit: (see git log)
+
+### Phase 5.12 — Frontend: unresolved-listing review + bundle view (done)
+
+**Phase 5 (Product Intelligence, including the catalogue-layer extension
+5.8-5.12) is now complete.**
+
+- New `CatalogueImporter.tsx`: a URL-first import form (mirrors 5.7's
+  per-product form, scoped to `/api/listings/*`), rendering exactly one
+  of three states after import - already-resolved, unresolved-bundle
+  (per-hint existing-product dropdown / new-product name input, a bundle-
+  name field defaulting to the adapter-suggested title), or unresolved-
+  single-product (the same existing/new choice, once). Wired into
+  `App.tsx` right below `ProductManager`.
+- **Real, small gap found and fixed before building the UI, not
+  guessed at**: `ListingDetailRead` had no field for the adapter's
+  suggested bundle title (`NormalizedBundleEvidence.title`, captured
+  since 5.9 but never surfaced) - without it, the "name this bundle"
+  form field would have no sensible default even when the adapter found
+  a real one (e.g. the page's `<title>` tag, per `generic.py`'s own
+  fallback). Fixed additively: new `pending_bundle_title` field, a new
+  `get_pending_bundle_title` service function (sharing a `_current_
+  pending_bundle_evidence` helper with the existing `get_pending_member_
+  hints` rather than duplicating the lookup), one new backend test. Never
+  authoritative - purely a suggested default the human can override, same
+  as every other adapter-derived hint.
+- `ProductManager.tsx` refactored, not rewritten: `AttributeValueDisplay`
+  exported, and the field-grid rendering block extracted into a new
+  exported `ProductProfileFields` component - so the Bundle view renders
+  each member's `ProductProfile` with the **identical** renderer, not a
+  duplicate one, making "a bundle's profile is a list of its members'
+  real profiles" concrete on the frontend too, not just the backend.
+  Zero behavior change to `ProductManager`'s own rendering - confirmed by
+  the live-verification below re-testing the existing per-product flow
+  unchanged.
+- New CSS section (`.catalogue-importer-*`, `.listing-review-*`,
+  `.bundle-review-*`, `.bundle-member-*`, `.bundle-view-*`) matching the
+  existing app's visual language, no new design system introduced.
+- `tsc -b && vite build`: clean. `oxlint`: clean (exit 0).
+- **Live-verified against the real dev server and real dev DB**
+  (backend on :8000, vite dev server proxying to it), three real,
+  distinct scenarios:
+  - **Ordinary single-product path, real network**: imported
+    `books.toscrape.com`'s real "A Light in the Attic" page (same URL
+    Phase 5.7 used) - correctly showed the single-product resolution
+    form (no bundle detected), resolved to a new Product, confirmed the
+    new product propagated live across the entire app (top Products
+    list, every `SlideProductPicker` dropdown) via the existing
+    `onProductsChanged` callback chain - no new propagation code needed.
+  - **Bundle path, genuine HTTP round-trip**: a real, publicly reachable
+    page using this exact markup (multi-`Product` `@graph` JSON-LD) could
+    not be found after real search effort - confirmed, not assumed: web
+    search results explicitly note this pattern is uncommon and actively
+    discouraged by SEO guidance for single-topic product pages, which is
+    itself real corroborating evidence for Phase 5.9's own "deliberately
+    narrow, not exhaustive" framing of the detection heuristic. Rather
+    than fabricate a mocked fixture disguised as a live test, served a
+    small, self-authored two-`Product` `@graph` page over a real local
+    HTTP server and imported it through the actual running app - a
+    genuine HTTP fetch, real `BeautifulSoup`/JSON-LD parsing, real
+    bundle-detection heuristic, real persistence, all through the real
+    stack; only the page's origin (localhost, not the open internet) and
+    authorship differ from an ideal live test, and that distinction is
+    recorded here rather than glossed over.
+  - Confirmed: bundle correctly detected ("This listing looks like a
+    bundle of 2 items"); bundle-name field correctly prefilled from the
+    page's `<title>` tag; mixing resolution modes per member worked
+    live (linked one hint to the real pre-existing "Bellavita" product,
+    left the other as "create new" for "CEO Man"); after submitting,
+    the Bundle view correctly showed **both** members with the identical
+    renderer - Bellavita's real, rich, pre-existing `ProductProfile`
+    (vision-derived data from earlier in this session) rendered in full,
+    CEO Man correctly showing "No evidence yet" - proving
+    `assemble_product_profile` is genuinely reused unmodified per member
+    against real data, not just empty fixtures, exactly as the ADR's
+    Bundle View definition requires.
+  - No console errors at any point across all three scenarios.
+- Zero behavior change to `ProductManager`'s existing per-product flow -
+  confirmed unaffected by both the refactor and the new component
+  existing alongside it.
 - Commit: (see git log)
 
 ---

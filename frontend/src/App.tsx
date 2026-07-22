@@ -3,6 +3,7 @@ import { api, type Product, type Project, type Slideshow } from './api';
 import { ImportPanel } from './components/ImportPanel';
 import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
+import { CatalogueImporter } from './components/CatalogueImporter';
 import './App.css';
 
 function App() {
@@ -140,6 +141,8 @@ function App() {
       </section>
 
       <ProductManager products={products} loading={loadingProducts} onCreated={loadProducts} />
+
+      <CatalogueImporter products={products} onProductsChanged={loadProducts} />
 
       {error && <p className="error">{error}</p>}
 

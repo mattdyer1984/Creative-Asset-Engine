@@ -111,6 +111,64 @@ export interface ProductCreateInput {
   project_id?: string;
 }
 
+// --- Catalogue layer (Phase 5.8+, see MIGRATION_PLAN.md's frozen
+// catalogue ADR) ------------------------------------------------------------
+//
+// Listing sits above Product Intelligence: it owns marketplace/commercial
+// facts and resolves to either a Product or a ProductBundle. Resolution
+// is never automatic - these types/methods exist to support a human
+// reviewing and choosing, never inferring on their own.
+
+export interface Listing {
+  id: string;
+  source_type: string;
+  source_url: string;
+  resolved_product_id: string | null;
+  resolved_bundle_id: string | null;
+  price_amount: number | null;
+  price_currency: string | null;
+  seller_name: string | null;
+  rating: number | null;
+  units_sold: number | null;
+  shipping_info: string | null;
+  created_at: string;
+}
+
+export interface PendingBundleMemberHint {
+  label: string;
+  attributes: Record<string, { value: ProductAttributeValue; confidence: number }>;
+}
+
+export interface ListingDetail extends Listing {
+  pending_bundle_hints: PendingBundleMemberHint[];
+  pending_bundle_title: string | null;
+}
+
+export interface BundleMemberResolutionInput {
+  existing_product_id?: string;
+  new_product_display_name?: string;
+  quantity?: number;
+}
+
+export interface ProductBundle {
+  id: string;
+  project_id: string | null;
+  display_name: string;
+  created_at: string;
+}
+
+export interface BundleMemberProfile {
+  product_id: string;
+  quantity: number;
+  profile: ProductProfile;
+}
+
+export interface BundleView {
+  id: string;
+  display_name: string;
+  members: BundleMemberProfile[];
+}
+
 // CreativeBlueprint and Creative (old /api/creatives/* types) were
 // removed in Phase 2.7 of the Slideshow/Slide migration - superseded by
 // Slideshow/Slide below.
@@ -218,6 +276,56 @@ export const api = {
 
   getProductProfile: (productId: string): Promise<ProductProfile> =>
     fetch(`/api/products/${productId}/profile`).then((res) => handle<ProductProfile>(res)),
+
+  // Catalogue layer (Phase 5.11, see MIGRATION_PLAN.md's frozen catalogue
+  // ADR) - the unknown-URL entry point. Unlike createSourceImport above,
+  // the caller doesn't already know which Product/Bundle a URL is about;
+  // resolution is a separate, always-explicit step via the resolve*
+  // methods below.
+  createListingSourceImport: (url: string): Promise<Listing> =>
+    fetch('/api/listings/source-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    }).then((res) => handle<Listing>(res)),
+
+  getListing: (listingId: string): Promise<ListingDetail> =>
+    fetch(`/api/listings/${listingId}`).then((res) => handle<ListingDetail>(res)),
+
+  resolveListingToExistingProduct: (listingId: string, productId: string): Promise<Listing> =>
+    fetch(`/api/listings/${listingId}/resolve-existing-product`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId }),
+    }).then((res) => handle<Listing>(res)),
+
+  resolveListingToNewProduct: (listingId: string, displayName: string): Promise<Listing> =>
+    fetch(`/api/listings/${listingId}/resolve-new-product`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: displayName }),
+    }).then((res) => handle<Listing>(res)),
+
+  resolveListingToExistingBundle: (listingId: string, bundleId: string): Promise<Listing> =>
+    fetch(`/api/listings/${listingId}/resolve-existing-bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bundle_id: bundleId }),
+    }).then((res) => handle<Listing>(res)),
+
+  resolveListingToNewBundle: (
+    listingId: string,
+    displayName: string,
+    members: BundleMemberResolutionInput[]
+  ): Promise<Listing> =>
+    fetch(`/api/listings/${listingId}/resolve-new-bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: displayName, members }),
+    }).then((res) => handle<Listing>(res)),
+
+  getBundleView: (bundleId: string): Promise<BundleView> =>
+    fetch(`/api/bundles/${bundleId}`).then((res) => handle<BundleView>(res)),
 
   // ---------------------------------------------------------------------
   // Slideshow/Slide (new pipeline), added in Phase 2.6 of the Slideshow/

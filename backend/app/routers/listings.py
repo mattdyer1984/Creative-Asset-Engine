@@ -32,6 +32,7 @@ from app.schemas import (
 )
 from app.services.listing_import import (
     BundleMemberResolution,
+    get_pending_bundle_title,
     get_pending_member_hints,
     import_listing,
     resolve_listing_to_existing_bundle,
@@ -63,6 +64,7 @@ def get_listing(listing_id: str, db: Session = Depends(get_db)) -> ListingDetail
     return ListingDetailRead(
         **ListingRead.model_validate(listing).model_dump(),
         pending_bundle_hints=[PendingBundleMemberHintRead(**hint) for hint in hints],
+        pending_bundle_title=get_pending_bundle_title(db, listing_id),
     )
 
 

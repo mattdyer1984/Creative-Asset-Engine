@@ -120,6 +120,7 @@ def test_get_listing_exposes_pending_bundle_hints(client, monkeypatch):
     body = client.get(f"/api/listings/{listing_id}").json()
 
     assert [hint["label"] for hint in body["pending_bundle_hints"]] == ["G.O.A.T. Man", "CEO Man"]
+    assert body["pending_bundle_title"] == "Bella Vita Luxury Set"
 
 
 def test_get_listing_has_no_pending_hints_for_ordinary_evidence(client, monkeypatch):

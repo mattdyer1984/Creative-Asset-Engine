@@ -138,6 +138,10 @@ class ListingDetailRead(ListingRead):
     """GET /api/listings/{id} - ListingRead plus unresolved member hints, if any."""
 
     pending_bundle_hints: list[PendingBundleMemberHintRead] = []
+    # A suggested default for "name this bundle" - never authoritative,
+    # purely a hint the human can override, same as the member hints
+    # themselves. None when there's no bundle evidence, or none was found.
+    pending_bundle_title: str | None = None
 
 
 class ListingSourceImportRequest(BaseModel):
