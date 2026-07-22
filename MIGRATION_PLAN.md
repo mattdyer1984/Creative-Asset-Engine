@@ -1579,3 +1579,155 @@ documented, deliberate gap pending a future product/business decision
 an oversight.
 
 ---
+
+## Phase 6: Multi per-slide product detection — detailed plan
+
+**Problem.** `ProductAppearance` was designed since Phase 2.1 to support
+zero, one, or several products per slide, but nothing actually exercises
+more than one today - the assign-product API, the three product-related
+Stages, and the blueprint assembly all silently assume exactly one.
+Grounded in reading every actual consumer, not assumed:
+
+- `POST .../assign-product` unassigns *every* existing current
+  `ProductAppearance` for the slide before adding the new one -
+  single-slot semantics baked into the API itself, not just the Stages.
+- `Slide.current_product_appearance` is a singular convenience property
+  (`next(a for a in appearances if a.is_current, None)` - the first
+  match).
+- `SlideProductIsolationStage`, `SlideProductLockProfileStage`, and
+  `SlideRecreationPromptStage` all query for current appearances and
+  take `.first()`.
+- `assemble_slideshow_blueprint`'s `_assemble_slide` actually already
+  lists *every* current appearance (`appearance_reads`, plural) - but
+  then resolves reference images/lock profile only for
+  `current_appearances[0]`'s product. The read side is halfway there
+  already.
+
+**A real judgment call made now, not left as an open question** (per
+the renewed authorization's instruction to lean conservative rather than
+guess on genuine ambiguity while unsupervised): **Recreation Prompt
+stays single-product for this phase.** Making it genuinely multi-product
+raises a materially bigger, harder-to-reverse question - does "recreate
+this slide" mean one prompt per product, or one prompt referencing all
+of them? - that deserves the same kind of real design conversation the
+Product Profile work got, not a guess made alone. This phase's actual,
+deliverable scope is what its own name says: **detection** - Product
+Isolation and Product Lock Profile become genuinely multi-product;
+Recreation Prompt keeps resolving exactly one product (via
+`prominence="primary"` where set, else a deterministic fallback), with
+its docstring updated to say so explicitly rather than leaving it looking
+like an oversight once its two sibling stages change.
+
+### 6.1 — Additive backend: plural product-appearance API + model accessor
+
+- `Slide.current_product_appearances` (new, plural) returns every
+  current appearance - the existing singular `current_product_appearance`
+  stays exactly as-is (still "the first one found"), same non-breaking
+  pattern as Phase 4.1's `Slideshow.primary_slide`.
+- New endpoints, additive alongside the existing `assign-product` (which
+  stays completely unchanged - existing tests/frontend flow unaffected):
+  `POST /api/slideshows/{id}/slides/{slide_id}/products` (body
+  `{product_id}`) adds a new current `ProductAppearance` without
+  clearing existing ones - idempotent (no-ops if a current appearance
+  for that exact product already exists, rather than creating a
+  duplicate). `DELETE /api/slideshows/{id}/slides/{slide_id}/products/
+  {appearance_id}` flips off exactly one appearance, not all.
+- **DB/schema changes**: none - `ProductAppearance` already supports
+  this structurally since Phase 2.1.
+- **Test strategy**: model test for the new plural accessor with 2+
+  appearances; route tests for add (including the idempotent-no-duplicate
+  case) and remove (including removing one of several, confirming the
+  others survive).
+- **Rollback**: revert the two new endpoints; the existing single-slot
+  `assign-product` flow is untouched either way.
+- **Expected commit size**: small-medium.
+
+### 6.2 — Product Isolation + Product Lock Profile stages: loop over every current appearance
+
+- Both stages change from "get one current appearance, process that one
+  product" to "get every current appearance, process each *distinct*
+  product_id once" (dedupe if a slide somehow has two appearances for
+  the same product - run isolation/profiling once per product, not once
+  per appearance row).
+- No schema change needed - each stage's artifacts (`ProductReferenceImage`,
+  `ProductLockProfile`) are already scoped to `product_id`, not `slide_id`,
+  so producing N sets of artifacts for N products on one slide already
+  fits the existing model exactly.
+- The zero-appearance case (today's "no product assigned" failure)
+  stays unchanged - still correct.
+- **Test strategy**: existing single-product tests must keep passing
+  unchanged (looping over a 1-element list is behaviorally identical to
+  today's single-item handling) - new tests specifically construct 2+
+  current appearances via 6.1's new endpoint and confirm both products
+  get isolated/profiled independently.
+- **Rollback**: revert; single-product slides (the only kind
+  constructible before 6.1) are completely unaffected either way.
+- **Expected commit size**: medium.
+
+### 6.3 — Recreation Prompt stage: explicit primary-product resolution
+
+- No change to which product it resolves when there's zero or one
+  current appearance (unchanged). When there are 2+: prefer the one with
+  `prominence="primary"`; if none is marked primary (e.g. two products
+  added via 6.1's new endpoint, which doesn't let the caller set
+  prominence), fall back to the earliest-created current appearance -
+  small, deterministic, well-tested logic, not left to whatever order a
+  query happens to return.
+- Docstring/module comment updated to state this scope boundary
+  explicitly - deliberate, not an oversight, now that its two sibling
+  stages are genuinely multi-product.
+- **Test strategy**: primary-marked-wins-over-others test; no-primary-
+  marked falls back to earliest-created test.
+- **Rollback**: revert; behaves exactly as before 6.1 existed (nothing
+  before this phase could construct the "2+ appearances, no primary"
+  case at all).
+- **Expected commit size**: small.
+
+### 6.4 — Blueprint assembly: every product's results, not just the first
+
+- `_assemble_slide` extended to resolve reference images + lock profile
+  for *every* current appearance's product, not just the first. Real
+  response-shape change to `AssembledSlideBlueprint`: replaces the
+  singular `product_lock_profile`/flat `product_reference_images` fields
+  with a per-product grouping (e.g. `products: list[{product,
+  lock_profile, reference_images}]`) - keeping each product's own data
+  together, rather than flat lists the frontend would have to
+  cross-reference by product_id itself.
+- **This is a breaking API change - lands together with its frontend
+  consumer in the same sub-phase** (6.5, not deferred), same "backend +
+  frontend as one working slice" discipline used throughout Phases 3-5 -
+  landing 6.4 alone would leave the blueprint modal broken.
+- **Test strategy**: route/schema tests for 0/1/2-product slides.
+- **Rollback**: revert 6.4 and 6.5 together (see 6.5).
+- **Expected commit size**: medium.
+
+### 6.5 — Frontend: multi-product picker + multi-product blueprint display
+
+- `SlideProductPicker.tsx`: extends from single-select-plus-unassign to
+  a real add/remove list (each current appearance shown with its own
+  remove control, plus an "add another product" control), using 6.1's
+  new endpoints. The existing single-slot `assign-product` call/UI is
+  not reused here - this is new, additive UI, not a rewrite of the old
+  picker's existing behavior (which some slides may still rely on/keep
+  using for the common single-product case).
+- `SlideshowBlueprintModal.tsx`'s "Product" section renders one
+  sub-section per product from 6.4's regrouped response, instead of one
+  flat section.
+- Live-verify against real data: a slide with 2 assigned products,
+  confirming both get isolated/profiled independently and both render
+  correctly.
+- **Rollback**: revert 6.4+6.5 together; the app reverts to single-
+  product blueprint display, still fully working for that case.
+- **Expected commit size**: medium.
+
+**Risks:** 6.4's response-shape change is the main one - unlike most
+prior additive sub-phases, this one has no way to stay backward-
+compatible without carrying two parallel shapes, which would itself be
+the kind of complexity revision #5's discipline (small, stable
+contracts) argues against carrying elsewhere in this codebase. Landing
+6.4+6.5 together, tested thoroughly, is the mitigation. Deduping by
+product_id in 6.2 is a judgment call worth re-checking against real
+multi-product usage once it exists - documented as a reasonable default,
+not asserted as definitely correct forever.
+
+---
