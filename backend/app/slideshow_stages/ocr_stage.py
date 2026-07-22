@@ -18,8 +18,7 @@ from app.models.analysis_run import ANALYSIS_TYPE_OCR
 from app.models.ocr_result import OCRResult
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.execution import start_analysis_run
-from app.stages.execution import mark_failed, mark_succeeded
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 
 class SlideOCRStage:

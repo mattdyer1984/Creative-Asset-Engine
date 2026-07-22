@@ -145,10 +145,10 @@ export const api = {
     ),
 
   // ---------------------------------------------------------------------
-  // Slideshow/Slide (new pipeline) - Phase 2.6 of the Slideshow/Slide
-  // migration. Deliberately new methods, not modifications of the ones
-  // above: importLocalFiles/listCreatives/etc. still exist and still
-  // work (Phase 2.7 removes them once nothing uses them).
+  // Slideshow/Slide (new pipeline), added in Phase 2.6 of the Slideshow/
+  // Slide migration as new methods alongside the old Creative-pipeline
+  // ones above (rather than modifications of them). The old ones were
+  // removed in Phase 2.7 once nothing used them - see the comments above.
   // ---------------------------------------------------------------------
 
   importSlideshows: (files: File[], projectId?: string): Promise<Slideshow[]> => {

@@ -32,8 +32,7 @@ from app.models.product_appearance import ProductAppearance
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.execution import start_analysis_run
-from app.stages.execution import mark_failed, mark_succeeded
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 from app.storage import save_product_reference_image
 
 ISOLATION_METHOD = "llm_bounding_box_v1"

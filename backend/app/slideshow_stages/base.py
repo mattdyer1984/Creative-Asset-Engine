@@ -1,7 +1,6 @@
 """
-SlideshowAnalysisStage interface - the parallel-pipeline equivalent of
-app.stages.base.AnalysisStage (Phase 2.4 of the Slideshow/Slide
-migration).
+SlideshowAnalysisStage - the Stage interface every analysis stage
+implements.
 
 Operates on a Slideshow directly, rather than a Creative+CreativeBlueprint
 pair: slide-scoped stages (OCR, Product Isolation, Product Lock Profile,
@@ -26,8 +25,18 @@ __all__ = ["StageResult", "SlideshowAnalysisStage"]
 
 
 class SlideshowAnalysisStage(Protocol):
-    name: str  # unique key, matches AnalysisRun.analysis_type - same vocabulary as the old pipeline
+    name: str  # unique key, matches AnalysisRun.analysis_type
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        """Same contract as app.stages.base.AnalysisStage.run - see there for the full docstring."""
+        """
+        - Reads whatever prior-stage outputs it depends on (via
+          slideshow.slide's or slideshow's own current_*_id pointers).
+        - Writes its own new AnalysisRun + Analysis Artifact row(s) -
+          never mutates a previous version.
+        - Updates the one Slide/Slideshow field it owns, if it owns one.
+        - Never raises for expected failure modes (a provider error, a
+          missing prerequisite) - those come back as
+          StageResult(succeeded=False, error=...). Raising is reserved
+          for genuine bugs.
+        """
         ...

@@ -36,8 +36,7 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.execution import start_analysis_run
-from app.stages.execution import mark_failed, mark_succeeded
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 PRODUCT_LOCK_PROFILE_SCHEMA = {
     "type": "object",

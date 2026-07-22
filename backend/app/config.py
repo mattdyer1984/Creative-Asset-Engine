@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     @property
     def storage_dir(self) -> Path:
-        """Root for imported/generated files, organised Project -> Creative -> asset type."""
+        """Root for imported/generated files, organised Project -> Slideshow/Slide -> asset type."""
         return self.data_dir / "storage"
 
     def ensure_directories(self) -> None:

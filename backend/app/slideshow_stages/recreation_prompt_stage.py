@@ -32,8 +32,7 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.recreation_prompt import RecreationPrompt
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.execution import start_analysis_run
-from app.stages.execution import mark_failed, mark_succeeded
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 RECREATION_PROMPT_AI_SCHEMA = {
     "type": "object",

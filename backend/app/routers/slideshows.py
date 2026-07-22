@@ -1,16 +1,13 @@
 """
-Slideshows API (new pipeline) - Phase 2.5 of the Slideshow/Slide
-migration. Parallel equivalent of app.routers.creatives, serving
-/api/slideshows/* - reachable, additive, alongside the still-live
-/api/creatives/* (completely untouched). See the migration roadmap: the
-frontend cuts over in Phase 2.6, and the old surface is removed in
-Phase 2.7.
+Slideshows API - the sole creative-import/analysis surface as of the
+Slideshow/Slide migration (it replaced /api/creatives/*, removed in
+Phase 2.7).
 """
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
@@ -53,11 +50,30 @@ async def import_local_files(
     return slideshows
 
 
+def _with_slide_relationships(stmt):
+    """
+    Eager-loads what SlideshowRead needs to serialize (slides, each
+    slide's product_appearances for current_product_appearance, and each
+    appearance's product) in a fixed small number of queries regardless
+    of row count - without this, iterating N slideshows lazy-loads
+    slides/appearances/products per slideshow. Measured with a fresh
+    session per request (matching production - get_db opens/closes a
+    new session per call, so no request benefits from another request's
+    identity-map cache): 5 slideshows/1 product went from 12 queries to
+    4; 10 slideshows/2 products stayed flat at 4 after this fix.
+    """
+    return stmt.options(
+        selectinload(Slideshow.slides)
+        .selectinload(Slide.product_appearances)
+        .selectinload(ProductAppearance.product)
+    )
+
+
 @router.get("", response_model=list[SlideshowRead])
 def list_slideshows(
     project_id: str | None = None, db: Session = Depends(get_db)
 ) -> list[Slideshow]:
-    stmt = select(Slideshow).order_by(Slideshow.imported_at.desc())
+    stmt = _with_slide_relationships(select(Slideshow)).order_by(Slideshow.imported_at.desc())
     if project_id is not None:
         stmt = stmt.where(Slideshow.project_id == project_id)
     return list(db.scalars(stmt))
@@ -65,7 +81,8 @@ def list_slideshows(
 
 @router.get("/{slideshow_id}", response_model=SlideshowRead)
 def get_slideshow(slideshow_id: str, db: Session = Depends(get_db)) -> Slideshow:
-    slideshow = db.get(Slideshow, slideshow_id)
+    stmt = _with_slide_relationships(select(Slideshow)).where(Slideshow.id == slideshow_id)
+    slideshow = db.scalars(stmt).first()
     if slideshow is None:
         raise HTTPException(status_code=404, detail="Slideshow not found")
     return slideshow

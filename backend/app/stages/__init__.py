@@ -1,12 +1,12 @@
 """
-Analysis Stage abstraction: interface + shared execution helper.
-
-The old pipeline's concrete stages and STAGE_PIPELINE were removed in
-Phase 2.7 of the Slideshow/Slide migration - AnalysisStage/StageResult
-and execution.py's start_analysis_run/mark_failed/mark_succeeded remain
-as shared infrastructure, now used exclusively by app.slideshow_stages.
+Shared stage-execution infrastructure: StageResult (base.py) and
+start_analysis_run/mark_failed/mark_succeeded (execution.py). The old
+pipeline's concrete stages, STAGE_PIPELINE, and the AnalysisStage
+Protocol were removed during the Phase 2 migration and its subsequent
+engineering review - what remains here is used exclusively by
+app.slideshow_stages now.
 """
 
-from app.stages.base import AnalysisStage, StageResult
+from app.stages.base import StageResult
 
-__all__ = ["AnalysisStage", "StageResult"]
+__all__ = ["StageResult"]

@@ -24,8 +24,7 @@ from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.marketing_analysis import MarketingAnalysis
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.execution import start_analysis_run
-from app.stages.execution import mark_failed, mark_succeeded
+from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 MARKETING_ANALYSIS_SCHEMA = {
     "type": "object",

@@ -1,16 +1,19 @@
 """
 ORM models package.
 
-Project, Creative, CreativeBlueprint, AnalysisRun, OCRResult, Product,
-ProductReferenceImage, ProductLockProfile, CreativeFingerprint,
-MarketingAnalysis, and RecreationPrompt exist as of M6 - the full data
-model from the plan (§7) is now complete. Every Analysis Artifact
-follows the same AnalysisArtifactMixin pattern (plan §6.5).
+Slideshow, Slide, and ProductAppearance are the live, authoritative
+entities as of the Slideshow/Slide migration - Project, Product,
+AnalysisRun, OCRResult, ProductReferenceImage, ProductLockProfile,
+CreativeFingerprint, MarketingAnalysis, and RecreationPrompt round out
+the data model. Every Analysis Artifact follows the same
+AnalysisArtifactMixin pattern (plan §6.5).
 
-Slideshow, Slide, and ProductAppearance are new as of Phase 2 of the
-Slideshow/Slide migration (see the migration roadmap) - additive and
-unused until Phase 2.2 (backfill) and beyond. Creative/CreativeBlueprint
-remain the live, authoritative entities until Phase 2.7.
+Creative and CreativeBlueprint are legacy: the old pipeline that wrote
+to them was removed in Phase 2.7, but the models (and their tables)
+remain until Phase 2.8 explicitly drops them - app.services.
+slideshow_backfill still reads Creative to backfill historical data, and
+several artifact tables still carry (now-nullable) legacy creative_id/
+source_creative_id columns pending that same phase.
 """
 
 from app.models.analysis_run import AnalysisRun
