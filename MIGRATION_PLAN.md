@@ -675,9 +675,10 @@ above), not done here.
 
 ## Phase 5: Product Intelligence — architecture direction
 
-**Status: direction confirmed by the user on 2026-07-22 (see the
-resolved question at the end of this section); detailed sub-phase plan
-below is ready for implementation to begin.**
+**Status: direction revised by the user on 2026-07-22 (second pass, see
+"2026-07-22 revision #2" below) - this supersedes the first-pass
+direction that briefly appeared in this section. Detailed sub-phase plan
+below reflects the revision and is ready for implementation to begin.**
 
 **Problem.** `ProductLockProfile` is currently the only thing resembling
 Product Intelligence, and it's a single AI-vision-derived blob: one
@@ -687,58 +688,96 @@ provenance, no confidence, wholesale-replaced on every regeneration
 built by combining multiple evidence sources, each attribute individually
 tagged with where it came from and how trustworthy that source is.
 
-**Recommended shape, reusing existing patterns rather than inventing new
-ones:**
+### 2026-07-22 revision #2: Product Source adapters, not "URL importers"
 
-- **New evidence artifact**: `ProductUrlImport` - same shape discipline
-  as every other artifact (id/is_current/created_at), owned by
-  `product_id`. Records what a product URL import produced: the source
-  URL, fetch status, extracted title/brand, and whatever structured
-  fields schema.org/OpenGraph/page-metadata parsing found.
-  - **Not** forced through the existing `AnalysisRun` table - that model
-    requires non-nullable `provider`/`model_name` (AI-call-specific); a
-    URL fetch isn't an AI call. Worth a small, parallel, purpose-built
-    traceability record instead (mirrors `AnalysisRun`'s shape: id,
-    product_id, source_url, platform, status, error, created_at - just
-    without the AI-specific fields).
-- **`ProductSource` as the evidence-source concept** (user's term,
-  2026-07-22): NOT a `Protocol`+registry with multiple pluggable
-  marketplace adapters from day one (`app/importers/`'s `ImportProvider`
-  pattern was the original inspiration, but building that indirection now
-  - for exactly one real implementation - would itself be the premature
-  abstraction the whole plan has avoided everywhere else). First
-  iteration supports exactly two source types: manual product reference
-  images (already exists - `ProductReferenceImage`/`ProductAppearance`,
-  nothing new needed) and an optional product URL (new). The URL
-  extractor is a single, platform-agnostic code path - schema.org
-  JSON-LD + OpenGraph + page metadata, never a marketplace-specific
-  scraper. Explicitly not building dedicated Shopify/Amazon/TikTok Shop
-  integrations in this phase. `source_type` is stored as a plain string
-  column, not a hardcoded enum requiring a migration to extend - so
-  adding a real second source type later (a credentialed adapter) is
-  additive data, not a schema change, without needing the registry
-  ceremony built preemptively today.
+The first-pass direction (below, kept for its still-valid reasoning
+about artifacts/merge/`ProductReferenceImage`) treated "import a product
+URL" as a single, monolithic, platform-agnostic code path. The user
+refined this: Product Intelligence should think in terms of **Product
+Sources** (TikTok Shop listing, Shopify store, Amazon listing, brand
+website, user-uploaded references, creator slideshows, future generated
+images) - each exposing a **common normalized model** to Product
+Intelligence. The Product Intelligence layer should never need to know
+which platform an attribute came from; that translation belongs inside
+the Product Source adapter, not the merge layer. This also explicitly
+**revises the prior instruction** not to build dedicated platform
+integrations yet: the first production-quality adapter should prioritize
+TikTok Shop (the application's primary use case), with the generic
+schema.org/OpenGraph path demoted from "the only path" to "the fallback
+for any other supported URL."
+
+**What this changes structurally**: normalization moves from the merge
+layer (first-pass 5.3, "map each evidence source into canonical fields
+at read time") to each adapter's own boundary (map to canonical fields
+at *extraction* time). This is a real improvement, not just a rename -
+it means the merge/profile-assembly service never sees a platform-
+specific shape at all, only already-normalized evidence, which is
+exactly what "Product Intelligence should never need to know whether an
+attribute originated from TikTok Shop, Shopify, or Amazon" requires.
+
+**Closest existing precedent, more so than `app/importers/`'s single-
+provider-today `ImportProvider`**: `app/ai_providers/` - a `Protocol`
+per capability, multiple concrete adapters, a registry keyed by config,
+and every adapter normalizing into the *same* response shape regardless
+of which underlying provider produced it. Two real adapters exist from
+day one here (TikTok Shop + generic fallback), so - unlike the first-pass
+reasoning, which correctly avoided building a registry for exactly one
+implementation - the registry/Protocol pattern is now justified, not
+premature.
+
+**Honest technical caveat, not glossed over**: TikTok Shop's public
+listing pages are very likely a JavaScript-rendered SPA, not
+server-rendered HTML with embedded schema.org markup (which is why the
+generic fallback path - simple HTTP GET + HTML parse - works well for
+many Shopify-style storefronts but may not work at all for TikTok Shop).
+Whether a production-quality TikTok Shop adapter needs headless-browser
+rendering, reverse-engineered internal API calls (fragile, ToS-risk), or
+TikTok Shop's official Partner/Open API (most robust, but scoped to
+authenticated sellers managing their own shop in a lot of marketplace
+APIs - not yet confirmed this supports arbitrary third-party listing
+lookup by URL) is **not known yet** - no research has been done, and
+none should be assumed. This is why the TikTok Shop sub-phase below
+starts with an explicit investigation step before any extraction code is
+written, rather than a confident implementation plan.
+
+**Sequencing consequence**: build the shared Product Source contract and
+the generic fallback adapter *first* (lower-risk, well-understood
+mechanism, needed as the safety net regardless of what TikTok Shop
+turns out to require), then tackle TikTok Shop as an explicitly
+higher-uncertainty, separately-scoped sub-phase - so real Product
+Intelligence capability ships via the generic path even if TikTok
+Shop's mechanism takes longer to pin down.
+
+### First-pass direction (2026-07-22, revision #1) - still valid where not superseded
+
+- **New evidence artifact** (renamed in revision #2 - see 5.1 below):
+  same shape discipline as every other artifact (id/is_current/
+  created_at), owned by `product_id`. **Not** forced through the
+  existing `AnalysisRun` table - that model requires non-nullable
+  `provider`/`model_name` (AI-call-specific); a URL fetch isn't an AI
+  call. Worth a small, parallel, purpose-built traceability record
+  instead.
 - **Canonical profile as compute-on-read**: e.g. `assemble_product_profile
   (db, product) -> ProductProfile`, mirroring `assemble_slideshow_
   blueprint` exactly - merges every current evidence artifact for a
   product into a field-level `{value, source, confidence}` view at read
-  time, not a new persisted/versioned entity. Keeps this additive;
-  avoids a premature abstraction. Field-level provenance (not a flat
-  merged blob) is what makes this generation-ready later - a future
-  "compare generated image against the profile, score fidelity per
-  field" step needs exactly this granularity, and nothing here would need
-  redesigning to support it.
-  - Merge/precedence logic (which source wins per field) lives in this
-    new layer's own lookup table, not by changing `ProductLockProfile`'s
-    existing schema - e.g. official listing wins for immutable physical
-    facts (shape, dimensions, capacity, labels, branding, colors,
-    packaging), slideshow evidence wins for what listings can't capture
-    (camera angle, composition, lighting, marketing context).
+  time, not a new persisted/versioned entity. Still correct in revision
+  #2 - only the *input* to this merge changes (already-normalized
+  evidence, not raw platform-specific data). Field-level provenance is
+  what makes this generation-ready later - a future "compare generated
+  image against the profile, score fidelity per field" step needs
+  exactly this granularity.
+  - Merge/precedence logic (which source wins per field) - e.g. official
+    listing wins for immutable physical facts (shape, dimensions,
+    capacity, labels, branding, colors, packaging), slideshow evidence
+    wins for what listings can't capture (camera angle, composition,
+    lighting, marketing context) - still lives in the merge layer, not
+    by changing `ProductLockProfile`'s existing schema.
 - **Extend, don't replace, `ProductReferenceImage`**: it already has
   nullable `source_creative_id`/`source_slide_id` for exactly this
   "which provenance" pattern (Phase 2.3's transitional design). A new
-  nullable `source_product_url_import_id` extends the same pattern for
-  officially-sourced images rather than inventing a separate image
+  nullable `source_product_source_import_id` extends the same pattern
+  for officially-sourced images rather than inventing a separate image
   concept.
 
 **Prospective adjustments this implies for future code (none touch
@@ -757,163 +796,209 @@ already-completed Phase 2-4 work):**
   among several (e.g. "Slideshow-derived, 96% confidence"), not
   something to change until this phase's own frontend sub-phase.
 
-**Resolved (2026-07-22)**: asked which listing platform should get
-first-class support beyond the schema.org/OpenGraph baseline. User's
-answer, in full, confirming and sharpening the recommendation above:
-build around a generic `ProductSource` abstraction rather than any
-specific marketplace; first iteration supports manual reference images
-(already exists) and an optional product URL only; when a URL is
-supplied, extract whatever public product information is available
-(schema.org/OpenGraph/JSON-LD, page metadata), download publicly
-available listing images, and store the URL as an evidence source, not
-a platform-specific implementation; explicitly do not build dedicated
-Shopify/Amazon/TikTok Shop integrations yet; the architecture should
-make adding dedicated adapters easy later without being built
-preemptively now; the objective is not to integrate marketplaces, it's
-to build the most accurate canonical Product Profile from any available
-evidence. This is authoritative for the detailed sub-phase plan below.
-
 ## Phase 5: Product Intelligence — detailed sub-phase plan
 
 **Problem** (same as above, restated for this section's self-
 containment): build a canonical, multi-source Product Profile with
 field-level provenance/confidence, without redoing any completed work.
 
-### 5.1 — Additive schema: `ProductUrlImport` + `ProductReferenceImage` extension
+### 5.1 — Additive schema: `ProductSourceImport` + `ProductReferenceImage` extension
 
-- New model `ProductUrlImport`: `id, product_id (FK), is_current, source_url,
+- New model `ProductSourceImport` (renamed from the first-pass
+  `ProductUrlImport` - "source," not "URL," now that TikTok Shop and the
+  generic fallback are both adapters behind one concept): `id,
+  product_id (FK), is_current, source_type (plain string - "tiktok_shop"
+  | "generic_url" today, extensible without a migration), source_url,
   fetch_status ("succeeded"|"partial"|"failed"), error (nullable),
-  extracted_title (nullable), extracted_brand (nullable), structured_json
-  (whatever schema.org/OG/page-metadata parsing found, in its own native
-  shape - no attempt to remap into canonical fields at write time, see
-  5.3), created_at`. Deliberately NOT built on `AnalysisArtifactMixin`
-  (that mixin requires `analysis_run_id` -> `AnalysisRun`, which itself
-  requires non-nullable `provider`/`model_name` - AI-call-specific,
-  doesn't fit a URL fetch) - its own small, independent set of columns
-  instead, `is_current` scoped to `product_id` following the same
-  convention as every other artifact regardless.
+  raw_response_json (whatever the adapter's underlying fetch actually
+  returned - kept for debugging/reprocessing if normalization logic
+  improves later, not discarded), normalized_json (the common
+  normalized shape - see 5.2 - this is what everything downstream
+  actually consumes), created_at`.
+  - Storing both raw and normalized (not just normalized) is a
+    deliberate choice: if the canonical vocabulary or an adapter's
+    mapping logic needs fixing later, the raw evidence is still there to
+    reprocess without re-fetching.
+  - Still not built on `AnalysisArtifactMixin`/`AnalysisRun` - same
+    reasoning as the first pass.
 - `ProductReferenceImage` gains a new nullable
-  `source_product_url_import_id` FK (third provenance column, alongside
-  the existing `source_creative_id`/`source_slide_id` - same pattern,
-  same reasoning as Phase 2.3).
-- Alembic migration (additive only, SQLite batch mode for the new FK
-  column). New model-level tests only (round-trip, `is_current`
-  scoping) - no behavior change to anything existing.
-- **DB/schema changes**: two additive changes, no data migration needed
-  (nothing existing maps to the new columns/table).
+  `source_product_source_import_id` FK (third provenance column,
+  alongside the existing `source_creative_id`/`source_slide_id`).
+- Alembic migration (additive only). New model-level tests only.
+- **DB/schema changes**: two additive changes, no data migration needed.
 - **Rollback**: downgrade the migration; nothing else references the new
   table/column yet.
-- **Expected commit size**: small (one new model file, one migration,
-  one small test file).
+- **Expected commit size**: small.
 
-### 5.2 — URL extraction service (backend only, no route yet)
+### 5.2 — Shared Product Source contract (Protocol + normalized model + registry, no adapters yet)
 
-- New dependencies: an HTTP client (`httpx` - already a transitive
-  dependency via FastAPI's own stack, promote to a direct dependency)
-  and an HTML parser for JSON-LD `<script type="application/ld+json">`
-  blocks and OpenGraph `<meta property="og:...">` tags (`beautifulsoup4`
-  - neither is in `requirements.txt` today, both need adding).
-- `app/services/product_url_import.py`: `import_product_url(db,
-  product_id, url) -> ProductUrlImport`. Fetches the URL with a sane
-  timeout and response-size limit (this is fetching arbitrary
-  user-supplied URLs - real abuse-surface even in a local single-user
-  app, worth bounding regardless), parses schema.org JSON-LD first,
-  falls back to OpenGraph/basic page metadata (`<title>`,
-  `<meta name="description">`) if no JSON-LD found, downloads any
-  discovered product images and persists them as `ProductReferenceImage`
-  rows (`source_product_url_import_id` set, `isolation_method=
-  "product_url"`) via a new small storage helper mirroring
-  `save_product_reference_image`'s existing pattern. On any failure
-  (unreachable, no parseable data, non-HTML response) creates a
-  `ProductUrlImport` row with `fetch_status="failed"`/`error` set rather
-  than raising - matching the established "the artifact records the
-  attempt, including failures" discipline used everywhere else in this
-  codebase.
-- **Test strategy**: no real network calls in tests - mock the HTTP
-  client/transport and feed it fixture HTML (a small local schema.org
-  Product JSON-LD fixture, an OpenGraph-only fixture, a no-markup
-  fixture, an unreachable-URL case, an oversized-response case). Live
-  verification against a real, real-world product URL happens once in
-  5.5, not repeated per-sub-phase.
-- **API changes**: none yet - this is a service function, not a route.
-- **Rollback**: revert the file; nothing calls it yet.
-- **Expected commit size**: medium (new service + dependencies + fixture-based test suite).
+- `app/product_sources/base.py`: `ProductSourceAdapter` Protocol -
+  `matches(url: str) -> bool` (can this adapter handle this URL) and
+  `extract(url: str) -> NormalizedProductEvidence` (do the fetch +
+  normalize). Mirrors `app/ai_providers/base.py`'s per-capability
+  Protocol pattern.
+- The canonical field vocabulary (the first-pass 5.3's classification
+  work - which fields are immutable/listing-preferred vs contextual/
+  slideshow-preferred) moves here, since it's now a *shared contract*
+  every adapter normalizes into, not something the merge layer infers
+  after the fact.
+- `NormalizedProductEvidence` schema: `source_type, source_url, title,
+  brand, images: list[NormalizedProductImage]` (`url`/bytes + role),
+  `attributes: dict[str, NormalizedAttribute]` (canonical field name ->
+  `{value, confidence}`), `variants` (loosely typed for v1 - not
+  over-specified before real adapters exist to validate the shape
+  against).
+- `app/product_sources/registry.py`: `PRODUCT_SOURCE_ADAPTERS: list[type
+  [ProductSourceAdapter]]`, most-specific-first (TikTok Shop before the
+  generic fallback), `get_product_source_adapter(url) -> 
+  ProductSourceAdapter` - iterates the list, returns the first
+  `matches()` hit. The generic fallback's `matches()` always returns
+  `True`, so it's naturally the catch-all as long as it's last in the
+  list.
+- **No concrete adapters in this sub-phase** - contract and dispatch
+  only, exercised by tests using a trivial fake adapter, not a real one
+  yet.
+- **Test strategy**: registry dispatch tests (URL matching a specific
+  adapter, URL falling through to the generic catch-all, unknown/
+  malformed URL handling).
+- **Rollback**: revert the two new files; nothing depends on them yet.
+- **Expected commit size**: small-medium.
 
-### 5.3 — Canonical field vocabulary + merge service
+### 5.3 — Generic fallback adapter (schema.org / OpenGraph / page metadata)
 
-- Define a small, explicit, documented canonical field set bridging both
-  evidence sources' native vocabularies (e.g. vision-derived
-  `colors.primary` and schema.org `color` both map to canonical
-  `"color"`), plus a per-field classification: which fields are
-  immutable/listing-preferred (shape, dimensions, capacity, labels,
-  branding, colors, packaging) vs contextual/slideshow-preferred (camera
-  angle, composition, lighting, marketing context) - this classification
-  lives entirely in the new merge layer, no changes to
-  `ProductLockProfile`'s existing schema.
+- Built before TikTok Shop deliberately (see "Sequencing consequence"
+  above) - the well-understood mechanism, and the permanent safety net
+  for "any other supported URL" regardless of what TikTok Shop's
+  adapter ends up needing.
+- New dependencies: `httpx` (promote from transitive to direct) and
+  `beautifulsoup4` for HTML parsing (JSON-LD `<script
+  type="application/ld+json">`, OpenGraph `<meta property="og:...">`,
+  basic `<title>`/`<meta name="description">` fallback).
+- `app/product_sources/generic.py`: implements `ProductSourceAdapter`.
+  Bounded fetch (timeout + response-size limit - fetching arbitrary
+  user-supplied URLs is real abuse-surface even in a local single-user
+  app). Normalizes whatever it finds into `NormalizedProductEvidence`
+  directly - no separate raw-to-canonical mapping step elsewhere.
+  `matches()` always `True` (the catch-all).
+- `app/services/product_source_import.py`: `import_product_source(db,
+  product_id, url) -> ProductSourceImport` - resolves the adapter via
+  5.2's registry, calls `extract()`, persists both `raw_response_json`
+  and `normalized_json`, downloads any discovered images into
+  `ProductReferenceImage` rows. On any failure, records
+  `fetch_status="failed"`/`error` rather than raising - the established
+  "the artifact records the attempt, including failures" discipline.
+- **Test strategy**: no real network calls - mock the HTTP transport,
+  feed fixture HTML (schema.org JSON-LD fixture, OpenGraph-only fixture,
+  no-markup fixture, unreachable-URL case, oversized-response case).
+- **Rollback**: revert; the registry in 5.2 simply has no adapters
+  registered, `import_product_source` has nothing to resolve to.
+- **Expected commit size**: medium.
+
+### 5.4 — TikTok Shop adapter: investigation, then implementation
+
+- **Starts with an explicit spike, not implementation**: fetch a real,
+  public TikTok Shop product listing URL and inspect what's actually
+  retrievable - server-rendered HTML with embedded product data,
+  a client-rendered SPA shell requiring JS execution to see anything
+  useful, or a case for TikTok Shop's official Partner/Open API instead.
+  This determines the *mechanism*, which genuinely isn't known yet (see
+  the honest caveat above) - the rest of this sub-phase's plan is
+  intentionally not fully specified until the spike's findings are in.
+- If plain HTTP + parsing turns out sufficient (embedded JSON in
+  server-rendered HTML, similar in spirit to 5.3 but with TikTok
+  Shop-specific field mapping): a `TikTokShopAdapter` alongside
+  `generic.py`, `matches()` checking TikTok Shop URL patterns/domains,
+  `extract()` mapping TikTok Shop's native field names into the same
+  `NormalizedProductEvidence` shape 5.2 defined.
+- If it requires rendered-DOM access: evaluate a headless-browser
+  dependency (e.g. Playwright) - real added weight (a new heavy
+  dependency, slower fetches, more moving parts) worth a dedicated
+  design discussion before committing, not a decision to make inside
+  this same sub-phase's implementation work.
+- If it requires TikTok Shop's official API: a credentials/registration
+  step the user would need to complete - a real blocker outside pure
+  engineering, worth surfacing back to the user immediately once
+  confirmed, not worked around silently.
+- Registered *before* the generic fallback in 5.2's adapter list
+  (`matches()` on TikTok Shop domains specifically), so TikTok Shop URLs
+  get the purpose-built adapter and everything else still falls through
+  to generic.
+- **Test strategy**: depends entirely on the spike's outcome - fixture-
+  based if HTML/JSON parsing, mocked-API-response-based if the official
+  API path, mocked-rendered-DOM if headless-browser. Cannot be fully
+  specified before the spike runs.
+- **Rollback**: revert; TikTok Shop URLs simply fall through to the
+  generic adapter (degraded, not broken - it just won't extract as much
+  from a JS-heavy page).
+- **Expected commit size**: unknown until the spike - flag this
+  explicitly rather than guessing a size for unresearched work.
+
+### 5.5 — Canonical merge / profile assembly service
+
+- Simpler than the first-pass version now that adapters normalize at
+  the boundary (5.2/5.3/5.4) - this layer only does precedence
+  resolution across already-normalized sources, no field-mapping.
 - New Pydantic schema `ProductProfile` (`fields: dict[str,
   ProductProfileField]`, `ProductProfileField = {value, source_type,
   source_id, confidence}`).
 - `app/services/product_profile.py`: `assemble_product_profile(db,
   product) -> ProductProfile` - reads the current `ProductLockProfile`
-  and current `ProductUrlImport` for the product, maps each into
-  canonical fields, resolves conflicts per the classification above.
-  Compute-on-read, mirroring `assemble_slideshow_blueprint` - not a new
-  persisted/versioned entity.
+  (mapped into the same canonical vocabulary - the one existing evidence
+  source that isn't a `ProductSourceImport`, still needs its own mapping
+  step here since it predates this phase) and every current
+  `ProductSourceImport` for the product, resolves conflicts per 5.2's
+  field classification. Compute-on-read, mirroring
+  `assemble_slideshow_blueprint`.
 - **Known simplification, flagged rather than solved here**: the Product
-  Lock Profile Stage doesn't emit per-field confidence today (facts
-  only). Rather than blocking this sub-phase on prompt-engineering work
-  to add it, start with a flat, documented default confidence per source
-  type (e.g. vision evidence = 0.85, a successfully-parsed listing field
-  = 0.98) - real per-field confidence from the vision model is a
-  reasonable fast-follow, not a prerequisite for shipping field-level
-  provenance at all.
-- **Test strategy**: unit tests per merge scenario (listing-only,
-  vision-only, both agreeing, both disagreeing - confirm the documented
-  precedence wins, neither present - field absent from the profile, not
-  a crash).
+  Lock Profile Stage doesn't emit per-field confidence today. Start with
+  a flat, documented default confidence per source type (e.g. vision
+  evidence = 0.85, a successfully-normalized adapter field = 0.98) -
+  real per-field confidence from the vision model is a reasonable
+  fast-follow, not a prerequisite.
+- **Test strategy**: unit tests per merge scenario (single source,
+  agreeing sources, disagreeing sources - confirm documented precedence
+  wins, no sources - field absent, not a crash).
 - **Rollback**: revert the file; nothing calls it yet.
-- **Expected commit size**: medium (vocabulary/classification table +
-  merge logic + a real test matrix).
-
-### 5.4 — API surface
-
-- `POST /api/products/{id}/url-import` - triggers 5.2's service. Runs
-  synchronously (a deliberate, documented departure from Phase 3's
-  "everything backgrounded" pattern - a single HTTP fetch + parse is a
-  fundamentally different operation shape than a multi-provider AI
-  pipeline; revisit if real-world latency proves otherwise, not assumed
-  upfront).
-- `GET /api/products/{id}/profile` - returns 5.3's assembled
-  `ProductProfile`.
-- New route-level tests for both (success, failure surfaced correctly,
-  404 for unknown product).
-- **Rollback**: revert the two routes independently; backend services
-  underneath are unaffected either way.
-- **Expected commit size**: small.
-
-### 5.5 — Frontend: submit URL + view the profile with provenance
-
-- `ProductManager.tsx`'s existing "View Analysis" panel gains a URL
-  input + submit control, and a new profile view rendering each
-  canonical field's value/source/confidence (replacing today's raw
-  `<pre>{JSON.stringify(lockProfile.structured)}</pre>` dump for this
-  purpose - `ProductLockProfile`'s own raw view can stay as a secondary/
-  "raw evidence" detail if useful, but the primary view becomes the
-  merged profile).
-- Live-verify against a real product URL with genuine schema.org/OG
-  markup (not fabricated) - same live-server discipline used for every
-  other phase's frontend sub-phase.
-- **Rollback**: revert; backend keeps working with a client that doesn't
-  expose the new capability - degraded, not broken.
 - **Expected commit size**: medium.
 
-**Risks**: fetching arbitrary user-supplied URLs is new I/O surface for
-this app (timeouts, oversized responses, malformed/hostile HTML,
-SSRF-shaped concerns even in a local single-user context) - 5.2's own
-bounds (timeout, size limit) are the mitigation, not deferred. Field
-vocabulary/classification (5.3) is inherently a judgment call with room
-to be wrong in ways that only show up with real product data - expect to
-revisit the classification table as real profiles get built, not treat
-it as final on first landing.
+### 5.6 — API surface
+
+- `POST /api/products/{id}/source-import` - accepts a URL, resolves the
+  adapter automatically via 5.2's registry (the user never picks a
+  platform manually - matches "Product Intelligence should never need to
+  know" at the ingestion boundary too), triggers 5.3/5.4's extraction.
+  Runs synchronously (a deliberate departure from Phase 3's backgrounded
+  pattern - a single fetch+parse isn't the same operation shape as a
+  multi-provider AI pipeline; revisit if real-world latency proves
+  otherwise).
+- `GET /api/products/{id}/profile` - returns 5.5's assembled
+  `ProductProfile`.
+- New route-level tests (success, failure surfaced correctly, 404 for
+  unknown product).
+- **Rollback**: revert the two routes independently.
+- **Expected commit size**: small.
+
+### 5.7 — Frontend: submit a source URL + view the profile with provenance
+
+- `ProductManager.tsx`'s existing "View Analysis" panel gains a URL
+  input + submit control (no platform picker - the backend resolves the
+  adapter), and a new profile view rendering each canonical field's
+  value/source/confidence (replacing today's raw `<pre>{JSON.stringify
+  (lockProfile.structured)}</pre>` dump for this purpose).
+- Live-verify against both a real TikTok Shop listing URL and a real
+  generic-fallback-eligible URL (genuine URLs, not fabricated) - same
+  live-server discipline used for every other phase's frontend
+  sub-phase.
+- **Rollback**: revert; backend keeps working with a client that doesn't
+  expose the new capability.
+- **Expected commit size**: medium.
+
+**Risks**: fetching arbitrary user-supplied URLs is new I/O surface
+(timeouts, oversized responses, malformed/hostile HTML, SSRF-shaped
+concerns even locally) - 5.3's bounds are the mitigation for the generic
+path; 5.4's mechanism (and therefore its own risk profile) is unknown
+until its spike runs. Field vocabulary/classification (5.2) is a
+judgment call with room to be wrong in ways that only show up with real
+product data - expect to revisit it as real profiles get built.
 
 ---
