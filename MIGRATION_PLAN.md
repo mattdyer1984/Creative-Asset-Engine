@@ -184,4 +184,37 @@ same exposure the synchronous path already had.
 Reports are appended here as each sub-phase completes, in addition to
 being in the git commit messages themselves.
 
+### Phase 3.1 — Background-execution infrastructure (done)
+
+- Added `app/services/background_execution.py`
+  (`run_pipeline_in_background`, `run_stage_in_background`) — not wired
+  into any route yet.
+- **Real bug caught during verification, fixed before it could bite**:
+  `app.dependency_overrides[get_db]` (how `tests/conftest.py`'s `client`
+  fixture isolates test DBs) only redirects the request-scoped session
+  FastAPI injects via `Depends`. It does nothing for code that opens its
+  own session directly — which is exactly what background execution has
+  to do, since a request-scoped session is closed by the time a
+  `BackgroundTasks` callback runs. Left as originally written, Phase 3.2's
+  first test run would have silently written into the real dev SQLite
+  file on disk instead of the per-test throwaway one. Fixed by (a) having
+  `background_execution.py` look up `app.db.SessionLocal` via module
+  attribute access at call time instead of `from app.db import
+  SessionLocal` at import time, and (b) `tests/conftest.py`'s `db_session`
+  fixture now also monkeypatches `app.db.SessionLocal` to the same
+  per-test engine it already builds — automatically covering every
+  existing test that uses `db_session` (directly or via `client`), no
+  per-test-file changes needed.
+- 6 new tests in `tests/test_background_execution.py`; one of them
+  initially had a flawed premise (asserted "the other session's write is
+  invisible without refresh" on an object that hadn't been loaded into
+  the test session's identity map yet, so the assertion was really just
+  testing a fresh query) — caught by the test actually failing, not
+  assumed correct; rewritten to force the object into memory before the
+  background run so staleness is genuinely observable.
+- Full suite: 66/66 passing (60 pre-existing + 6 new). Ruff clean.
+- Zero behavior change to any existing endpoint — this sub-phase is pure
+  additive infrastructure, exercised only by its own tests.
+- Commit: (see git log)
+
 ---

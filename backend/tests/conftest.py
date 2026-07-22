@@ -41,13 +41,23 @@ def isolated_storage_dir(monkeypatch, tmp_path):
 
 
 @pytest.fixture()
-def db_session():
+def db_session(monkeypatch):
+    """
+    Also monkeypatches app.db.SessionLocal to this same per-test engine -
+    app.dependency_overrides[get_db] (see the `client` fixture in
+    test_slideshow_blueprint_api.py and friends) only redirects the
+    request-scoped session FastAPI injects via Depends(get_db); anything
+    that opens its own session directly against app.db.SessionLocal (e.g.
+    app.services.background_execution, Phase 3+) would otherwise silently
+    hit the real dev database on disk instead of this throwaway one.
+    """
     tmp_dir = tempfile.mkdtemp()
     db_path = Path(tmp_dir) / "test.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
 
     SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+    monkeypatch.setattr("app.db.SessionLocal", SessionLocal)
     session = SessionLocal()
     try:
         yield session
