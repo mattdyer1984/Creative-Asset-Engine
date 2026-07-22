@@ -675,9 +675,9 @@ above), not done here.
 
 ## Phase 5: Product Intelligence — architecture direction
 
-**Status: direction revised three times by the user on 2026-07-22 (see
-revisions #2-#4 below) - each supersedes/refines what came before it.
-Detailed sub-phase plan below reflects all three and is ready for
+**Status: direction revised four times by the user on 2026-07-22 (see
+revisions #2-#5 below) - each supersedes/refines what came before it.
+Detailed sub-phase plan below reflects all four and is ready for
 implementation to begin.**
 
 ### Standing design principle (2026-07-22, revision #4 - applies throughout implementation, not a one-time change)
@@ -696,6 +696,46 @@ implementation (each sub-phase below), not something that changes the
 sub-phase structure itself. One concrete change it does drive now (not
 deferred - see 5.2/5.5): field values need enough structure to be
 machine-comparable, not just human-readable strings - see below.
+
+### Standing design principle (2026-07-22, revision #5 - vocabulary discipline, applies throughout implementation)
+
+The canonical vocabulary (5.2) should stay intentionally small and
+stable. Adapters normalize *into* the existing vocabulary wherever
+possible - a new canonical field is added only when it represents a
+genuinely new product concept the existing model cannot express, not
+because one adapter's source happens to expose a field that doesn't map
+cleanly. Long-term value comes from normalization quality, not
+vocabulary size - a vocabulary that grows by one field per adapter
+stops being canonical at all.
+
+**Concrete consequence - exactly two destinations for anything an
+adapter extracts, no third option**: it either maps to an existing
+canonical field, or it goes into `ProductSourceImport.raw_response_json`
+(5.1 - already planned to be kept, not discarded) and stays there. No
+semi-structured "extras" bucket gets added as an escape hatch - that
+would just relocate the same sprawl the vocabulary itself is meant to
+avoid. Adding a genuinely new canonical field stays possible, but should
+be rare and deliberate, not a per-adapter default.
+
+**Illustrative example** (not a real finding - no TikTok Shop research
+has happened yet, see 5.4): a marketplace listing is more likely than a
+generic product page to expose data that *isn't* a product attribute at
+all - shop rating, units sold, review count. That's marketplace
+metadata, not something the Product Profile should model even as a new
+field - it stays in `raw_response_json` or gets dropped, regardless of
+how source-specific or "new" it looks.
+
+**Concrete effect on 5.2's initial vocabulary**: seeded from exactly the
+fields already named across this conversation, not speculatively
+expanded - immutable: brand, product/category type, shape, dimensions,
+capacity, materials, colors, labels/branding text, packaging;
+contextual: camera/viewing angle, composition, lighting, background,
+props, marketing context/emotional positioning. The vocabulary module's
+own docstring records this discipline directly (map into existing fields
+first; new fields are rare and deliberate; unmapped data goes to
+`raw_response_json`, never a new field just to fit it in) so it's
+visible to whoever - including a future me - touches this file next, not
+only recorded in this planning doc.
 
 **Problem.** `ProductLockProfile` is currently the only thing resembling
 Product Intelligence, and it's a single AI-vision-derived blob: one
@@ -878,6 +918,12 @@ field-level provenance/confidence, without redoing any completed work.
   type each is preferred from during merge) moves here, since it's now a
   *shared contract* every adapter normalizes into, not something the
   merge layer infers after the fact.
+  - **Governed by revision #5's vocabulary discipline** (see above): the
+    initial field list is exactly the fields already named across this
+    conversation - deliberately not expanded speculatively to anticipate
+    every field a future adapter might someday expose. Adding a field
+    later is a rare, deliberate act requiring a genuinely new product
+    concept, not a per-adapter convenience.
   - **Refinement (2026-07-22, revision #3)**: the vocabulary is also
     where each field's **semantic classification** - `immutable` (a
     physical product attribute: brand, dimensions, labels, packaging,
@@ -959,7 +1005,12 @@ field-level provenance/confidence, without redoing any completed work.
   user-supplied URLs is real abuse-surface even in a local single-user
   app). Normalizes whatever it finds into `NormalizedProductEvidence`
   directly - no separate raw-to-canonical mapping step elsewhere.
-  `matches()` always `True` (the catch-all).
+  `matches()` always `True` (the catch-all). Follows revision #5's
+  discipline: schema.org's own standard Product properties (name, brand,
+  color, material, etc.) map onto the existing vocabulary field-for-
+  field in the common case - anything schema.org exposes that doesn't
+  map stays in `raw_response_json`, it doesn't become a reason to add a
+  new canonical field on this adapter's say-so alone.
 - `app/services/product_source_import.py`: `import_product_source(db,
   product_id, url) -> ProductSourceImport` - resolves the adapter via
   5.2's registry, calls `extract()`, persists both `raw_response_json`
@@ -989,7 +1040,12 @@ field-level provenance/confidence, without redoing any completed work.
   Shop-specific field mapping): a `TikTokShopAdapter` alongside
   `generic.py`, `matches()` checking TikTok Shop URL patterns/domains,
   `extract()` mapping TikTok Shop's native field names into the same
-  `NormalizedProductEvidence` shape 5.2 defined.
+  `NormalizedProductEvidence` shape 5.2 defined - same revision #5
+  discipline as 5.3: map into the existing vocabulary wherever the
+  concept genuinely overlaps, and remember a marketplace listing is
+  likely to expose non-product data (shop rating, units sold, review
+  count) that shouldn't become a canonical field just because it's
+  there - see revision #5's illustrative example above.
 - If it requires rendered-DOM access: evaluate a headless-browser
   dependency (e.g. Playwright) - real added weight (a new heavy
   dependency, slower fetches, more moving parts) worth a dedicated
