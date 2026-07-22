@@ -258,6 +258,25 @@ eventually:
   (should adding a second product ever demote the first to "secondary"
   automatically, or does that require explicit user action, e.g. a
   "make primary" control in the picker?) - not guessed at here.
+- **Product Isolation/Lock Profile/Creative Fingerprint still only
+  operate on `slideshow.primary_slide`** (found while scoping Phase 7,
+  2026-07-22): Phase 7.1 widens only `OCRStage` to run across every
+  slide, deliberately not the other three per-slide stages - each
+  additional widened stage means N vision/AI calls per multi-slide
+  slideshow instead of one, a real cost/design tradeoff not required for
+  Narrative Pass specifically. Revisit once there's a concrete need to
+  analyze products/visual style across every slide, not just the first.
+- **Narrative Structure (Phase 7.2) is text-only, not vision-based**
+  (found while scoping Phase 7, 2026-07-22): classifies each slide's
+  narrative beat (hook/story/reveal/proof/CTA) from that slide's OCR
+  text alone, reusing the existing `TextGenerationProvider` rather than
+  building a new multi-image AI-provider capability
+  (`VisionAnalysisProvider.analyze_creative` only takes one image today -
+  confirmed by reading `app/ai_providers/base.py`). A slide with no
+  on-screen text gets an honest `unclassifiable` beat, not a guess. Real
+  fix needs vision input (either a new multi-image provider capability,
+  or per-slide Creative Fingerprint once that's widened per the item
+  above) - genuine AI-provider design work, not attempted here.
 
 ## Phase 3: Async execution boundary — detailed plan
 
@@ -2661,5 +2680,220 @@ second-guess preemptively here.
   confirmed unaffected by both the refactor and the new component
   existing alongside it.
 - Commit: (see git log)
+
+---
+
+## Phase 7: Narrative pass with dependency-aware staleness — architecture direction
+
+**Status**: no prior detailed-planning history existed for this phase
+(unlike every other phase, which had at least a first-pass direction
+note) - the phase-list entry was a one-line placeholder from the original
+pre-Phase-5-revision numbering. This section derives the actual scope
+from the frozen architecture vision's own words plus a direct reading of
+the current pipeline code, per the standing "plan before code"
+discipline and the explicit delegated authority to make this call
+without pausing to ask.
+
+**What "Narrative pass" means, grounded in the frozen vision's own
+text** (see "Frozen architecture vision" near the top of this document):
+"narrative structure (hook, story, reveal, proof, CTA) is analyzed at
+the slideshow level, independently of per-slide asset detection." This
+is categorically different from the already-shipped `MarketingAnalysis`
+(Phase 2.4d) - confirmed by reading its actual stage code, not assumed:
+`MarketingAnalysisStage` generates one freeform `narrative_text` blob
+from a *single* slide's (`primary_slide`'s) Creative Fingerprint alone -
+no structure, no per-slide breakdown, no sequence awareness at all. A
+true hook/story/reveal/proof/CTA analysis requires looking at the
+*sequence* of slides - fundamentally different from and complementary
+to Marketing Analysis's single-slide "why does this design work"
+summary, not a replacement for it.
+
+**Real prerequisite gap found while scoping this, not assumed**: every
+per-slide Stage today - `SlideOCRStage`, `SlideProductIsolationStage`,
+`SlideProductLockProfileStage`, `SlideCreativeFingerprintStage` - reads
+`slideshow.primary_slide` only, even after Phase 4 (true multi-slide
+import) made `slideshow.slides` a real ordered list. Confirmed by reading
+every stage file directly. This isn't a new limitation Phase 7
+introduces - it's a load-bearing gap that's been sitting unaddressed
+since Phase 2.6/4 (a frontend docstring even flagged it, expecting "Phase
+5" to fix it, before Phase 5 got redirected entirely to Product
+Intelligence by the 2026-07-22 revision). A sequence-aware Narrative Pass
+is impossible without per-slide data across *all* slides, so fixing this
+is this phase's real first sub-phase, not scope creep.
+
+**Scope decision, made deliberately narrow (mirrors Phase 6.2's
+precedent of choosing the honestly-deliverable scope over a bigger,
+riskier one)**: fixing "every stage operates on primary_slide only" for
+*all four* per-slide stages is a materially bigger, more expensive change
+(each additional stage widened to multi-slide means N vision/AI calls
+per slideshow instead of one, with its own cost and design questions) and
+isn't required for Narrative Pass specifically. **Only `OCRStage` gets
+widened to all slides in this phase** - the minimum real prerequisite.
+Widening Product Isolation/Lock Profile/Creative Fingerprint to
+multi-slide is logged under "Suggested future improvements," not
+attempted here.
+
+**Narrative Structure's own design, chosen to avoid new AI-provider
+work**: a vision-based "look at every slide image together" pass would
+need a genuinely new AI-provider capability (`VisionAnalysisProvider.
+analyze_creative` takes exactly one image, confirmed by reading
+`app/ai_providers/base.py` - no multi-image capability exists today).
+Rather than build that (real, undesigned AI-provider interface work,
+same category this project has deferred before - see Phase 6's
+product-targeted-isolation entry in "Suggested future improvements"),
+Narrative Structure is designed as **text-only**, reusing the *already-
+existing* `TextGenerationProvider` (exactly what Marketing Analysis
+already uses) - it classifies each slide's narrative role from that
+slide's OCR structured text alone (headline/CTA/dialogue, already
+extracted and role-tagged by OCR), in slide-index order. **Documented
+limitation, not solved here**: a slide with no on-screen text has
+nothing for this pass to classify from - it gets an honest
+"unclassifiable" beat, not a guessed one, matching this project's
+standing "honest gap over plausible-looking wrong data" discipline. A
+real fix needs vision input, logged as future work alongside the
+per-slide-stage widening above.
+
+**Dependency graph, derived from reading actual current code, not
+invented**:
+
+| Stage | Depends on |
+|---|---|
+| `ocr` | none |
+| `product_isolation` | none (depends on product assignment, not another stage) |
+| `product_lock_profile` | `product_isolation` (uses its current reference images at generation time) |
+| `creative_fingerprint` | `ocr` (reads it as enrichment context if present - confirmed in the stage's own docstring) |
+| `marketing_analysis` | `creative_fingerprint` |
+| `narrative_structure` (new) | `ocr` (all slides) |
+| `recreation_prompt` | `product_lock_profile`, `creative_fingerprint` |
+
+**Real gap found in this graph**: `RecreationPrompt` already records
+which `product_lock_profile_id`/`creative_fingerprint_id` it was built
+from (existing FKs) - but `MarketingAnalysis` has **no**
+`creative_fingerprint_id` column at all, confirmed by reading its model.
+It can't be checked for staleness without first recording what it was
+built from. Fixing this is a real, small, additive prerequisite
+sub-phase, not new functionality.
+
+**What staleness means concretely**: an artifact is stale if the
+upstream artifact it recorded as its input is no longer the *current*
+one for that slide/slideshow - e.g. Recreation Prompt was built from
+Creative Fingerprint version A, but Creative Fingerprint has since been
+regenerated to version B; the Recreation Prompt is now stale relative to
+the slide's current state, even though its own content hasn't changed.
+Compute-on-read (`is_stale`), same philosophy as `assemble_slideshow_
+blueprint` itself - never a persisted flag that could itself go stale.
+
+## Phase 7: Narrative pass with dependency-aware staleness — detailed sub-phase plan
+
+### 7.1 — Extend OCR Stage to run across every slide
+
+- `SlideOCRStage.run()` changes from `slide = slideshow.primary_slide` to
+  iterating `slideshow.slides`, running OCR once per slide, writing each
+  slide's own `current_ocr_result_id` - the schema already supports this
+  (`Slide.current_ocr_result_id` has been a per-slide column since Phase
+  2.1); this is purely an orchestration-logic change; **zero migration
+  needed**.
+- One slide's OCR failure: fails the whole stage (matches existing
+  single-slide failure semantics - `AnalysisRun`/`mark_failed` already
+  record exactly which attempt failed) rather than silently skipping a
+  slide, consistent with "honest failure over silent partial data."
+- **Test strategy**: existing single-slide-slideshow tests must keep
+  passing unchanged (regression guard - a 1-slide slideshow behaves
+  identically to today). New tests: a real multi-slide slideshow (Phase
+  4's grouped import) gets OCR on every slide, each with its own
+  `current_ocr_result_id`; one slide's OCR failure fails the stage
+  cleanly.
+- **Rollback**: revert; slideshows revert to primary-slide-only OCR,
+  same as before this sub-phase.
+- **Expected commit size**: small.
+
+### 7.2 — Narrative Structure stage (new)
+
+- New model `NarrativeStructure` (slideshow-scoped, mirrors
+  `MarketingAnalysis`/`RecreationPrompt`'s shape): `id, analysis_run_id,
+  slideshow_id, is_current, structured_json` (per-slide beats +
+  overall arc summary), `ocr_result_ids_json` (the list of OCR result
+  IDs, one per slide, it was built from - the provenance staleness in
+  7.4 needs). New migration, additive only.
+- New `NarrativeStructureStage`: text-only (`TextGenerationProvider`,
+  same capability Marketing Analysis already uses - no new AI-provider
+  work), reads every slide's current OCR result in `slide_index` order,
+  prompts for a per-slide `beat` classification (`hook` | `story` |
+  `reveal` | `proof` | `cta` | `other` | `unclassifiable`) plus a short
+  overall arc summary. A slide with no OCR text (or OCR that failed)
+  gets `unclassifiable`, not a guess.
+- Added to `SLIDESHOW_STAGE_PIPELINE` after `marketing_analysis` (no
+  ordering dependency on it either way - grouped there for pipeline
+  readability, both being slideshow-scoped narrative-adjacent stages).
+- **Test strategy**: single-slide slideshow (regression-shaped, still
+  produces one beat), real multi-slide slideshow with distinct OCR text
+  per slide (confirms per-slide beat classification, not one blob),
+  a slide with empty OCR text produces `unclassifiable`, missing-OCR
+  prerequisite failure (mirrors every other stage's prerequisite-check
+  pattern).
+- **Rollback**: revert; nothing else depends on this stage yet.
+- **Expected commit size**: medium.
+
+### 7.3 — Provenance backfill: `MarketingAnalysis.creative_fingerprint_id`
+
+- New nullable FK column (nullable since existing rows have no way to
+  backfill which fingerprint they were actually built from - additive,
+  not a data migration). `MarketingAnalysisStage` sets it going forward
+  from the fingerprint it already reads.
+- **Test strategy**: new `MarketingAnalysis` rows record the id; existing
+  rows (`None`) don't crash the staleness check in 7.4 - a `None`
+  provenance means "can't determine staleness," not "stale" or "fresh."
+- **Rollback**: revert; column drops, nothing else depends on it yet.
+- **Expected commit size**: small.
+
+### 7.4 — Dependency-aware staleness
+
+- New `app/services/staleness.py`: the `STAGE_DEPENDENCIES` graph
+  (the table above, as data) plus `is_stale(artifact, ...)` /
+  `stale_because(artifact, ...)` compute-on-read functions - one per
+  artifact type, since each records its provenance differently (FK
+  columns vs. a JSON id list for Narrative Structure).
+- Wired into `assemble_slideshow_blueprint`: every dependent artifact in
+  the response (`product_lock_profile`, `creative_fingerprint`,
+  `marketing_analysis`, `narrative_structure`, `recreation_prompt`) gains
+  `is_stale: bool` and `stale_because: list[str]` (which upstream
+  dependency moved on) fields on its `*Read` schema.
+- **Test strategy**: unit tests per dependency pair (fresh - upstream
+  unchanged since generation; stale - upstream regenerated since;
+  unknown - `None` provenance, e.g. a pre-7.3 `MarketingAnalysis` row);
+  route-level test confirming the blueprint response carries the new
+  fields correctly for a real rerun-and-go-stale sequence.
+- **Rollback**: revert; the blueprint response loses the two new fields,
+  nothing else depends on them yet (until 7.5).
+- **Expected commit size**: medium.
+
+### 7.5 — Frontend: narrative beats + staleness indicators
+
+- `SlideshowBlueprintModal.tsx`: a new "Narrative Structure" section
+  showing each slide's beat (as a badge, e.g. next to the existing
+  slide selector) and the overall arc summary; every existing section
+  with a dependency (Product, Creative Fingerprint, Marketing Analysis,
+  Recreation Prompt) gains a small "stale" indicator (reusing the
+  existing `classification-badge`-style visual language, not a new
+  design system) when `is_stale` is true, with its existing rerun button
+  doubling as the fix.
+- Live-verify against a real multi-slide slideshow: confirm distinct
+  per-slide beats render, confirm rerunning an upstream stage (e.g.
+  Creative Fingerprint) makes a downstream one (Recreation Prompt)
+  visibly flip to stale without regenerating it.
+- **Rollback**: revert; blueprint modal reverts to no staleness/beat
+  display, still fully functional otherwise.
+- **Expected commit size**: medium.
+
+**Risks**: 7.2's text-only design is the main one - a slideshow that's
+entirely on-screen-text-free will get all-`unclassifiable` beats, a real
+but honestly-declared gap (see the architecture direction above), not
+a silent wrong answer. 7.1's widening to all slides means OCR now runs N
+times instead of once per multi-slide slideshow - a real, modest cost
+increase, acceptable for OCR specifically (cheap relative to vision/
+generation calls) but part of why the other three per-slide stages are
+deliberately NOT widened in this phase.
+
+## Phase 7 reports log
 
 ---
