@@ -389,3 +389,131 @@ the UI for the first time since they were added in Phase 2 - the whole
 point of this phase.
 
 ---
+
+## Phase 4: True multi-slide import — detailed plan
+
+**Problem.** Since Phase 2, every `Slideshow` has exactly one `Slide` -
+`Slideshow.slide` (the convenience accessor every stage uses) actively
+enforces this by raising if it's ever violated. Real TikTok Shop
+slideshows have multiple images. The schema (`Slide.slide_index` +
+`slideshow_id` FK) has supported N slides since Phase 2.1; nothing has
+ever exercised that.
+
+**Scope, grounded in an actual code read (not assumed)**: this phase is
+narrower than it first looks. Checked every consumer of the 1:1
+assumption before writing this plan:
+
+- `app/services/slideshow_blueprint.py`'s `assemble_slideshow_blueprint`
+  **already** does `[_assemble_slide(db, slide) for slide in
+  slideshow.slides]` - it iterates every slide, not `slides[0]`. The
+  blueprint API is already N-slide-correct today.
+- `list_analysis_runs` and `get_slide_file` in the router already operate
+  on `slideshow.slides`/an explicit `slide_id`, not the 1:1 accessor.
+- The only real blocker is `Slideshow.slide` itself (raises if
+  `len(slides) != 1`) and its 6 call sites - one in each stage file,
+  always as the very first line of `run()`.
+- The import path (`app/services/slideshow_import.py` +
+  `app/importers/local_file.py`) only ever produces one `Slide` per
+  `Slideshow` - `LocalFileImporter.import_source` returns a flat
+  `list[MarketingCreative]`, one per uploaded file, and
+  `import_slideshows` maps each 1:1 to its own `Slideshow`.
+- `app/storage.py`'s `save_creative_original` is already keyed by the
+  Slide's own id, not the Slideshow's - multi-slide storage needs no
+  changes.
+
+**Deliberately NOT in scope for this phase** (this is the load-bearing
+judgment call, not a blocking ambiguity - see reasoning below): the 6
+analysis stages continue operating on a single "primary" slide only, not
+looping over every slide. That's genuinely a separate, later concern -
+the roadmap already names it as its own phase (Phase 5, "optional multi
+per-slide product detection"), which only makes sense as a later phase if
+Phase 4 doesn't already do it. Rewriting all 6 stages plus the
+orchestrator to loop per-slide is a materially bigger, riskier change
+than "let a Slideshow legitimately have N slides" - bundling them would
+violate "small, testable, production-safe refactors."
+
+**A real design call made here, not left as an open question**: multi-
+file-select in the import UI currently produces N independent Slideshows
+(one per file) - this is almost certainly how today's real dev data (4
+"independent" slideshow cards, imported close together) came to exist.
+Silently changing multi-select to always group into one Slideshow would
+retroactively reinterpret that existing behavior and could break the
+"bulk-import many unrelated single-image ads at once" use case the tool
+already supports. Resolution: keep that default completely unchanged:
+add multi-slide grouping as an explicit, additional, opt-in choice (off
+by default) - purely additive, matches the same judgment already applied
+to storage.py's naming and the slideshow_stages package split.
+
+### 4.1 — Rename/relax `Slideshow.slide` → `Slideshow.primary_slide`
+
+- Rename the property; behavior changes from "raise if `len(slides) !=
+  1`" to "return `slides[0]`, raise only if `slides` is empty" (a
+  Slideshow should never have zero slides - that invariant stays
+  enforced). For every Slideshow that exists today (all still exactly
+  1:1, since 4.2 hasn't landed yet), this returns the exact same value as
+  before - zero behavior change until multi-slide import actually exists.
+- Update all 6 stage files' `slide = slideshow.slide` →
+  `slide = slideshow.primary_slide`, and update each stage's own
+  docstring/comments that reference `.slide` by name.
+- Existing test suite should pass completely unchanged (same values,
+  different property name) - this sub-phase's own tests just need one
+  new characterization test proving `primary_slide` returns `slides[0]`
+  once a slideshow has 2+ slides (impossible to construct via the API
+  yet, but constructible directly via the ORM in a test).
+- Rollback: revert the rename; nothing else changed.
+
+### 4.2 — Opt-in multi-slide grouping on import
+
+- `import_slideshows` gains a new parameter (e.g. `group_as_one:
+  bool = False`). When `True`, all `MarketingCreative`s returned by the
+  importer become Slides (`slide_index` 0..N-1) on a single new
+  `Slideshow`, instead of N independent Slideshows. Default `False`
+  preserves every existing call site and every existing test unchanged.
+  `ImportProvider`/`LocalFileImporter` untouched - grouping is a concern
+  of `import_slideshows` alone, not the provider interface (no premature
+  abstraction for hypothetical future providers' own grouping needs).
+- `POST /api/slideshows/import` gains a matching optional form field.
+- New tests: grouped import produces one Slideshow with N ordered Slides;
+  ungrouped (default) behavior is provably unchanged (existing tests
+  already cover this, but add one explicit regression test naming the
+  invariant).
+- Rollback: revert; default-off means nothing already-imported is
+  affected either way.
+
+### 4.3 — Frontend: expose the grouping choice
+
+- `ImportPanel.tsx` gains an explicit, clearly-labeled opt-in control
+  (default off) - exact wording/placement decided during implementation,
+  not prescribed here.
+- `api.ts`'s `importSlideshows` passes the flag through.
+- Rollback: revert; backend default already matches old behavior so no
+  backend change is needed to roll back the frontend alone.
+
+### 4.4 — Frontend: minimal multi-slide rendering (not a full carousel)
+
+- `SlideshowGrid.tsx`: cards for a multi-slide Slideshow show a small
+  indicator (e.g. slide count) alongside the existing single thumbnail -
+  explicitly NOT a filmstrip/carousel (that's Phase 7, "frontend
+  consolidation" - already named as its own phase in the original plan
+  for exactly this reason).
+- `SlideshowBlueprintModal.tsx`: currently hardcoded to `blueprint.slides
+  [0]` throughout - needs at minimum a slide selector (e.g. "Slide 1 of
+  3" with prev/next) so a multi-slide slideshow's per-slide data
+  (already returned by the backend, per the scope note above) isn't
+  simply invisible in the UI. Still minimal - no redesign of the
+  section layout itself, just making which slide's data is showing
+  switchable.
+- Live-verify: import 2+ real files with grouping enabled, confirm the
+  grid badge and modal's slide selector both work against real data.
+- Rollback: revert; 4.1-4.3 alone leave grouped multi-slide Slideshows
+  importable but with only slide 0's data visible in the UI - degraded,
+  not broken (the data itself is safe, GET /blueprint already returns
+  it).
+
+**Risks:** none of this touches AI provider calls, migrations, or
+existing single-slide behavior - the entire phase is additive/opt-in by
+construction. The main risk is scope creep into Phase 5's territory
+(actually running stages per-slide) or Phase 7's (a real carousel) -
+guarded against explicitly above by naming what's deliberately excluded.
+
+---
