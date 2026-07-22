@@ -53,7 +53,7 @@ def _create_product(client) -> str:
 def test_source_import_succeeds(client, monkeypatch):
     product_id = _create_product(client)
     # brand set, not just title - a bare title alone is FETCH_STATUS_PARTIAL
-    # (see app.services.product_source_import._fetch_status_for), too weak
+    # (see app.services.product_source_import.fetch_status_for_evidence), too weak
     # a signal on its own to count as "real product evidence was found".
     evidence = NormalizedProductEvidence(
         source_type="generic_url", source_url="https://shop.example/p", title="Widget", brand="Acme"

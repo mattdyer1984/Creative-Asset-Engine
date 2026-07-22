@@ -2428,4 +2428,83 @@ second-guess preemptively here.
   5.10's job).
 - Commit: (see git log)
 
+### Phase 5.10 — Listing resolution service (done)
+
+- New `app/services/listing_import.py`: `import_listing(db, url) ->
+  Listing` (get-or-create by `source_url`, per the ADR's identity
+  section - re-importing the same URL updates the same `Listing`, not a
+  new one, verified by a dedicated test), plus four resolution functions:
+  `resolve_listing_to_existing_product`, `resolve_listing_to_new_product`,
+  `resolve_listing_to_existing_bundle`, `resolve_listing_to_new_bundle`
+  (paired existing/new naming for both product and bundle, rather than
+  the plan's originally-sketched four names, for symmetry - same
+  capability, clearer contrast between "human is instructing" vs.
+  "human is creating something new").
+- **Real bug found and fixed before it shipped, not caught by the plan's
+  own prose**: `fetch_status_for_evidence` (promoted from a private
+  helper in `product_source_import.py` to a shared one, reused here) only
+  checked `brand`/`attributes`/`images` - exactly the three fields Phase
+  5.9 deliberately leaves empty for bundle evidence (see that phase's own
+  report). A successfully-detected bundle would have been silently
+  misreported as `FETCH_STATUS_PARTIAL`, contradicting the fact that real
+  evidence (the member hints) was genuinely found. Fixed by also checking
+  `evidence.bundle and evidence.bundle.member_hints`; caught by writing
+  the dedicated regression test before shipping, not after.
+- **Scope decision made explicit, not silently narrowed**: bundle member
+  resolution is atomic (`resolve_listing_to_new_bundle` takes every
+  member's resolution in one call via a small `BundleMemberResolution`
+  dataclass - `existing_product_id` or `new_product_display_name`,
+  exactly one set), not the per-hint incremental flow the plan's prose
+  sketched. No real UI/API consumer exists yet to validate what
+  incremental resolution should look like (that's 5.11/5.12's job) -
+  building genuine incremental state tracking before there's a concrete
+  need would be exactly the kind of speculative complexity this project
+  avoids elsewhere. Documented in the module's own docstring as a scope
+  note, revisit if 5.12's real UI exposes a concrete need.
+- Resolving to a `Product` backfills `product_id` onto every
+  `ProductSourceImport` scoped to that `Listing`, so Phase 5.5's existing
+  merge service picks the evidence up completely unchanged - no new code
+  needed there, verified directly by test. Resolving to a `ProductBundle`
+  deliberately does **not** backfill `product_id` anywhere (verified by a
+  dedicated test) - a bundle listing's evidence describes the whole
+  bundle, not any one member, so there is no single correct `product_id`
+  to backfill it to; each member's own Profile is assembled independently
+  from that member's own evidence, never from the bundle listing's
+  evidence directly, matching the ADR's Bundle View design exactly.
+- Guard rails, all tested: resolving an already-resolved `Listing`
+  raises; resolving to a nonexistent `Product`/`ProductBundle`/`Listing`
+  raises; a member resolution with both fields set, or neither, raises.
+- Reference-image download for `Listing`-scoped evidence is explicitly
+  out of scope for this sub-phase (documented in the module's own
+  docstring) - `ProductReferenceImage.product_id` stays non-nullable, so
+  there's nothing to attach an image to before resolution, and a
+  bundle-resolved `Listing` has no single product to attach one to
+  afterward either. Left as a documented gap.
+- A minor mistake caught and fixed before it ran: an initial draft used
+  `dataclasses.field(default_factory=list)` as a *plain function's*
+  default value (that's only valid inside a `@dataclass` field
+  definition) - fixed by making `member_resolutions` a required
+  parameter instead, which was the correct choice anyway since a bundle
+  needs at least one member and the function already rejects an empty
+  list.
+- 15 new tests (`tests/test_listing_import_service.py`): unresolved-
+  listing creation, get-or-create-by-URL, commercial-fact denormalization,
+  failure-is-recorded-not-raised, the bundle/`fetch_status` regression
+  above, both existing-product and new-product resolution (plus the
+  product_id backfill), both existing-bundle and new-bundle resolution
+  (plus the *no* backfill), a mixed existing+new bundle-member
+  resolution, and all four guard-rail rejection paths.
+- `fetch_status_for_evidence`'s promotion from private to shared also
+  needed one stale test-comment fix (`test_products_source_import_and_
+  profile_api.py`, no behavior change) and confirmed unchanged behavior
+  via all pre-existing `test_product_source_import_service.py`/`test_
+  products_source_import_and_profile_api.py` tests passing unmodified.
+- Full suite: 178/178 passing (163 existing + 15 new). Ruff clean on
+  every new/changed file. App boots cleanly, 28 routes (unchanged - no
+  new endpoints this sub-phase, that's 5.11's job).
+- Zero behavior change to the existing per-product import flow (Phase
+  5.3/5.6) - `import_product_source` itself untouched beyond the shared
+  helper's rename.
+- Commit: (see git log)
+
 ---

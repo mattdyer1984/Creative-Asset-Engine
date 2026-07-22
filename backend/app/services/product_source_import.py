@@ -26,7 +26,7 @@ genuinely just a bot-detection wall - GenericUrlAdapter has no error to
 raise, but nothing useful was extracted either (no title, no attributes,
 no images). Marking that FETCH_STATUS_SUCCEEDED would be misleading - a
 user importing such a URL would reasonably read "succeeded" as "real
-data was found." See _fetch_status_for below.
+data was found." See fetch_status_for_evidence below.
 """
 
 import httpx
@@ -69,7 +69,7 @@ def import_product_source(
         product_id=product_id,
         source_type=extraction.normalized.source_type,
         source_url=url,
-        fetch_status=_fetch_status_for(extraction.normalized),
+        fetch_status=fetch_status_for_evidence(extraction.normalized),
         raw_response_json=extraction.raw,
         normalized_json=extraction.normalized.model_dump(mode="json"),
     )
@@ -86,7 +86,7 @@ def import_product_source(
     return import_row
 
 
-def _fetch_status_for(evidence: NormalizedProductEvidence) -> str:
+def fetch_status_for_evidence(evidence: NormalizedProductEvidence) -> str:
     """
     See the module docstring's note on FETCH_STATUS_PARTIAL. Deliberately
     excludes `title` alone from counting as "found something": a bare
@@ -96,8 +96,24 @@ def _fetch_status_for(evidence: NormalizedProductEvidence) -> str:
     `brand`/`attributes` only ever come from real structured markup
     (JSON-LD); `images` is a step above a bare title too, whether from
     JSON-LD or OpenGraph.
+
+    Promoted from a private helper to a shared one, and extended to also
+    check `bundle`, in Phase 5.10 (catalogue layer, see MIGRATION_PLAN.md's
+    frozen catalogue ADR) - a real gap found before it shipped: bundle
+    evidence (Phase 5.9) deliberately leaves the top-level
+    brand/attributes/images empty (see app.product_sources.generic's own
+    docstring on why), so a successfully-detected bundle would have been
+    misreported as FETCH_STATUS_PARTIAL without this check, even though
+    real evidence (the member hints) was genuinely found. Used by both
+    the existing per-product import (below) and app.services.listing_import
+    (Phase 5.10).
     """
-    found_anything = bool(evidence.brand or evidence.attributes or evidence.images)
+    found_anything = bool(
+        evidence.brand
+        or evidence.attributes
+        or evidence.images
+        or (evidence.bundle and evidence.bundle.member_hints)
+    )
     return FETCH_STATUS_SUCCEEDED if found_anything else FETCH_STATUS_PARTIAL
 
 
