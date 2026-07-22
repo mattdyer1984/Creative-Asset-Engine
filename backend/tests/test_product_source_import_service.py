@@ -79,6 +79,27 @@ def test_successful_import_persists_raw_and_normalized(db_session, monkeypatch):
     assert result.error is None
 
 
+def test_a_200_response_with_nothing_extractable_is_partial_not_succeeded(db_session, monkeypatch):
+    """
+    Found via live testing against a real TikTok Shop URL (Phase 5.7):
+    an HTTP 200 response that's genuinely just a bot-detection wall has
+    no error to raise, but extracted no title/brand/attributes/images
+    either - marking that FETCH_STATUS_SUCCEEDED would misleadingly
+    imply real product evidence was found.
+    """
+    from app.models.product_source_import import FETCH_STATUS_PARTIAL
+
+    product = _make_product(db_session)
+    evidence = NormalizedProductEvidence(
+        source_type="generic_url", source_url="https://shop.example/blocked", title=None
+    )
+    _register_fake(monkeypatch, _FakeSucceedingAdapter(evidence))
+
+    result = import_product_source(db_session, product.id, "https://shop.example/blocked")
+
+    assert result.fetch_status == FETCH_STATUS_PARTIAL
+
+
 def test_failed_extraction_records_failed_import_not_an_exception(db_session, monkeypatch):
     product = _make_product(db_session)
     _register_fake(monkeypatch, _FakeFailingAdapter())

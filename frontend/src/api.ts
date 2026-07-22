@@ -44,6 +44,68 @@ export interface Product {
   created_at: string;
 }
 
+// --- Product Intelligence (Phase 5, see MIGRATION_PLAN.md) -----------------
+//
+// Mirrors app/product_sources/base.py's ProductAttributeValue discriminated
+// union exactly - the standing design principle (revision #4) is that the
+// Product Profile is a canonical contract, not a UI convenience, so this
+// stays a real typed union here too rather than collapsing to a string.
+
+export interface TextValue {
+  kind: 'text';
+  text: string;
+}
+
+export interface DimensionValue {
+  kind: 'dimension';
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  unit: string;
+}
+
+export interface ColorValue {
+  kind: 'color';
+  label: string;
+  hex: string | null;
+}
+
+export interface NumberValue {
+  kind: 'number';
+  value: number;
+  unit: string | null;
+}
+
+export interface ListValue {
+  kind: 'list';
+  items: string[];
+}
+
+export type ProductAttributeValue = TextValue | DimensionValue | ColorValue | NumberValue | ListValue;
+
+export interface ProductProfileField {
+  value: ProductAttributeValue;
+  source_type: string;
+  source_id: string;
+  confidence: number;
+  classification: 'immutable' | 'contextual';
+}
+
+export interface ProductProfile {
+  product_id: string;
+  fields: Record<string, ProductProfileField>;
+}
+
+export interface ProductSourceImport {
+  id: string;
+  source_type: string;
+  source_url: string;
+  fetch_status: 'succeeded' | 'partial' | 'failed';
+  error: string | null;
+  is_current: boolean;
+  created_at: string;
+}
+
 export interface ProductCreateInput {
   display_name: string;
   project_id?: string;
@@ -143,6 +205,19 @@ export const api = {
     fetch(`/api/products/${productId}/lock-profile`).then((res) =>
       handle<ProductLockProfile>(res)
     ),
+
+  // Product Intelligence (Phase 5.6, see MIGRATION_PLAN.md). Synchronous
+  // (200, not 202) - a single fetch+parse is done by the time the response
+  // is sent, unlike Slideshow analysis's backgrounded pipeline.
+  createSourceImport: (productId: string, url: string): Promise<ProductSourceImport> =>
+    fetch(`/api/products/${productId}/source-import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    }).then((res) => handle<ProductSourceImport>(res)),
+
+  getProductProfile: (productId: string): Promise<ProductProfile> =>
+    fetch(`/api/products/${productId}/profile`).then((res) => handle<ProductProfile>(res)),
 
   // ---------------------------------------------------------------------
   // Slideshow/Slide (new pipeline), added in Phase 2.6 of the Slideshow/

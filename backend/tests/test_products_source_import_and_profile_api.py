@@ -52,7 +52,12 @@ def _create_product(client) -> str:
 
 def test_source_import_succeeds(client, monkeypatch):
     product_id = _create_product(client)
-    evidence = NormalizedProductEvidence(source_type="generic_url", source_url="https://shop.example/p", title="Widget")
+    # brand set, not just title - a bare title alone is FETCH_STATUS_PARTIAL
+    # (see app.services.product_source_import._fetch_status_for), too weak
+    # a signal on its own to count as "real product evidence was found".
+    evidence = NormalizedProductEvidence(
+        source_type="generic_url", source_url="https://shop.example/p", title="Widget", brand="Acme"
+    )
     _register_fake(monkeypatch, _FakeAdapter(evidence=evidence))
 
     response = client.post(f"/api/products/{product_id}/source-import", json={"url": "https://shop.example/p"})
@@ -62,6 +67,23 @@ def test_source_import_succeeds(client, monkeypatch):
     assert body["fetch_status"] == "succeeded"
     assert body["source_type"] == "generic_url"
     assert body["error"] is None
+
+
+def test_source_import_with_only_a_title_is_partial(client, monkeypatch):
+    """
+    Companion to test_source_import_succeeds - a bare title with no
+    brand/attributes/images (e.g. a bot-detection interstitial's page
+    title, confirmed live against a real TikTok Shop URL in Phase 5.7)
+    is marked partial, not succeeded.
+    """
+    product_id = _create_product(client)
+    evidence = NormalizedProductEvidence(source_type="generic_url", source_url="https://shop.example/p", title="Security Check")
+    _register_fake(monkeypatch, _FakeAdapter(evidence=evidence))
+
+    response = client.post(f"/api/products/{product_id}/source-import", json={"url": "https://shop.example/p"})
+
+    assert response.status_code == 200
+    assert response.json()["fetch_status"] == "partial"
 
 
 def test_source_import_surfaces_failure_without_500ing(client, monkeypatch):

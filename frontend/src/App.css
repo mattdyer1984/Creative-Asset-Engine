@@ -310,6 +310,98 @@ section h2 {
   word-break: break-word;
 }
 
+/* Product Intelligence (Phase 5, see MIGRATION_PLAN.md) */
+
+.source-import-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.source-import-form input {
+  flex: 1;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.source-import-form button {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.product-profile {
+  margin-bottom: 0.75rem;
+}
+
+.product-profile h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.profile-field-row .field-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.classification-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.classification-immutable {
+  background: #e8f0ff;
+  color: #2554c7;
+}
+
+.classification-contextual {
+  background: #fff2e0;
+  color: #b5680b;
+}
+
+.confidence-badge {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.attribute-color-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.raw-evidence-details {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.raw-evidence-details summary {
+  cursor: pointer;
+  margin-bottom: 0.35rem;
+}
+
 .product-picker {
   display: flex;
   flex-wrap: wrap;

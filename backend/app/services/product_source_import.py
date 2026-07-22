@@ -17,6 +17,16 @@ primary value of a Product Source fetch is the structured evidence
 (title/brand/attributes), images are a secondary enrichment. A failed
 image is simply skipped, not retried or surfaced as a partial-fetch
 status (no caller has needed that granularity yet).
+
+fetch_status=FETCH_STATUS_PARTIAL vs. FETCH_STATUS_SUCCEEDED: found via
+live testing against a real TikTok Shop URL (Phase 5.4's spike, then
+Phase 5.7's live-verification), not anticipated in the original plan.
+The HTTP fetch itself can succeed (200 OK) against a page that is
+genuinely just a bot-detection wall - GenericUrlAdapter has no error to
+raise, but nothing useful was extracted either (no title, no attributes,
+no images). Marking that FETCH_STATUS_SUCCEEDED would be misleading - a
+user importing such a URL would reasonably read "succeeded" as "real
+data was found." See _fetch_status_for below.
 """
 
 import httpx
@@ -25,9 +35,11 @@ from sqlalchemy.orm import Session
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import (
     FETCH_STATUS_FAILED,
+    FETCH_STATUS_PARTIAL,
     FETCH_STATUS_SUCCEEDED,
     ProductSourceImport,
 )
+from app.product_sources.base import NormalizedProductEvidence
 from app.product_sources.registry import get_product_source_adapter
 from app.storage import save_product_reference_image
 
@@ -57,7 +69,7 @@ def import_product_source(
         product_id=product_id,
         source_type=extraction.normalized.source_type,
         source_url=url,
-        fetch_status=FETCH_STATUS_SUCCEEDED,
+        fetch_status=_fetch_status_for(extraction.normalized),
         raw_response_json=extraction.raw,
         normalized_json=extraction.normalized.model_dump(mode="json"),
     )
@@ -72,6 +84,21 @@ def import_product_source(
     db.commit()
     db.refresh(import_row)
     return import_row
+
+
+def _fetch_status_for(evidence: NormalizedProductEvidence) -> str:
+    """
+    See the module docstring's note on FETCH_STATUS_PARTIAL. Deliberately
+    excludes `title` alone from counting as "found something": a bare
+    page `<title>` is present even on pages that are genuinely just a
+    bot-detection wall (confirmed live - TikTok Shop's "Security Check"
+    interstitial has one) or a 404, so it's too weak a signal on its own.
+    `brand`/`attributes` only ever come from real structured markup
+    (JSON-LD); `images` is a step above a bare title too, whether from
+    JSON-LD or OpenGraph.
+    """
+    found_anything = bool(evidence.brand or evidence.attributes or evidence.images)
+    return FETCH_STATUS_SUCCEEDED if found_anything else FETCH_STATUS_PARTIAL
 
 
 def _persist_failed_import(db: Session, product_id: str, url: str, exc: Exception) -> ProductSourceImport:
