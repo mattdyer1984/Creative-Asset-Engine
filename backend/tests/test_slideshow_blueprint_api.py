@@ -103,14 +103,78 @@ def test_rerun_unknown_slideshow_404s(client):
     assert response.status_code == 404
 
 
+def test_rerun_returns_202_and_queued_immediately(client, monkeypatch):
+    """
+    POST .../rerun (Phase 3.3 - async execution boundary, see
+    MIGRATION_PLAN.md) mirrors /analyze: schedules the stage in the
+    background and returns as soon as status flips to "queued" - content
+    assertions belong on a separate GET /blueprint call, see the next two
+    tests.
+    """
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
+
+    response = client.post(f"/api/slideshows/{slideshow_id}/stages/ocr/rerun")
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "queued"
+
+
+def test_rerun_rejects_a_second_trigger_while_in_progress(client):
+    """Same new failure mode as /analyze (Phase 3.3) - see the equivalent /analyze test."""
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+
+    from app.db import SessionLocal
+    from app.models.slideshow import STATUS_ANALYZING, Slideshow
+
+    db = SessionLocal()
+    slideshow = db.get(Slideshow, slideshow_id)
+    slideshow.status = STATUS_ANALYZING
+    db.commit()
+    db.close()
+
+    response = client.post(f"/api/slideshows/{slideshow_id}/stages/ocr/rerun")
+    assert response.status_code == 409
+
+
+def test_rerun_atomically_claims_the_row_under_real_concurrency(client):
+    """Same real bug/fix as analyze's equivalent test (Phase 3.3 shares the exact same claim logic)."""
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+
+    import app.db
+    from app.routers.slideshows import rerun_stage
+
+    results = []
+    barrier = threading.Barrier(2)
+
+    def call():
+        db = app.db.SessionLocal()
+        try:
+            barrier.wait()
+            try:
+                rerun_stage(slideshow_id, "ocr", BackgroundTasks(), db=db)
+                results.append(202)
+            except HTTPException as exc:
+                results.append(exc.status_code)
+        finally:
+            db.close()
+
+    threads = [threading.Thread(target=call) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert sorted(results) == [202, 409]
+
+
 def test_rerun_ocr_populates_blueprint_and_returns_it(client, monkeypatch):
     slideshow_id, _, _ = _import_slideshow_with_product(client)
 
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
 
-    response = client.post(f"/api/slideshows/{slideshow_id}/stages/ocr/rerun")
-    assert response.status_code == 200
-    body = response.json()
+    client.post(f"/api/slideshows/{slideshow_id}/stages/ocr/rerun")
+    body = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
 
     assert body["status"] == "ready"
     slide = body["slides"][0]
@@ -126,9 +190,8 @@ def test_rerun_reflects_failure_in_the_assembled_blueprint(client, monkeypatch):
     monkeypatch.setattr(
         "app.slideshow_stages.recreation_prompt_stage.default_registry", FakeAIProviderRegistry()
     )
-    response = client.post(f"/api/slideshows/{slideshow_id}/stages/recreation_prompt/rerun")
-    assert response.status_code == 200
-    body = response.json()
+    client.post(f"/api/slideshows/{slideshow_id}/stages/recreation_prompt/rerun")
+    body = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
 
     assert body["status"] == "failed"
     assert body["failed_stage"] == "recreation_prompt"

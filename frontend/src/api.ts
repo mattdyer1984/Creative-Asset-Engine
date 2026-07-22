@@ -185,12 +185,12 @@ export const api = {
       handle<AssembledSlideshowBlueprint>(res)
     ),
 
-  rerunSlideshowStage: (
-    slideshowId: string,
-    stageName: string
-  ): Promise<AssembledSlideshowBlueprint> =>
+  // Same shape as analyzeSlideshow (Phase 3.3 - see MIGRATION_PLAN.md):
+  // schedules the stage in the background and returns immediately with
+  // status=queued, not the finished blueprint.
+  rerunSlideshowStage: (slideshowId: string, stageName: string): Promise<Slideshow> =>
     fetch(`/api/slideshows/${slideshowId}/stages/${stageName}/rerun`, { method: 'POST' }).then(
-      (res) => handle<AssembledSlideshowBlueprint>(res)
+      (res) => handle<Slideshow>(res)
     ),
 
   // productId: null unassigns.

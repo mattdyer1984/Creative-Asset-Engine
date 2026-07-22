@@ -91,8 +91,13 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     setBusyAction(stageName);
     setError(null);
     try {
-      const result = await api.rerunSlideshowStage(slideshowId, stageName);
-      setBlueprint(result);
+      // Same reasoning as handleAnalyzeAll (Phase 3.3 - mirrors 3.2):
+      // rerunSlideshowStage now returns immediately once status flips to
+      // "queued", so re-fetch instead of trusting the response body -
+      // the polling effect above (already generic, not tied to which
+      // action triggered it) takes over from there.
+      await api.rerunSlideshowStage(slideshowId, stageName);
+      load();
       onChanged();
     } catch (err) {
       setError((err as Error).message);
@@ -102,6 +107,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   };
 
   const slide = blueprint?.slides[0];
+  const runInFlight = blueprint?.status === 'queued' || blueprint?.status === 'analyzing';
 
   return (
     <div className="blueprint-backdrop" onClick={onClose}>
@@ -139,17 +145,9 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <button
                   className="analyze-all-button"
                   onClick={handleAnalyzeAll}
-                  disabled={
-                    busyAction !== null ||
-                    blueprint.status === 'queued' ||
-                    blueprint.status === 'analyzing'
-                  }
+                  disabled={busyAction !== null || runInFlight}
                 >
-                  {busyAction === '__all__' ||
-                  blueprint.status === 'queued' ||
-                  blueprint.status === 'analyzing'
-                    ? 'Analyzing…'
-                    : 'Analyze / Re-run All'}
+                  {busyAction === '__all__' || runInFlight ? 'Analyzing…' : 'Analyze / Re-run All'}
                 </button>
               </div>
             </header>
@@ -168,12 +166,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               error={blueprint.failed_stage === 'product_lock_profile' ? blueprint.failed_stage_error : null}
               rerunLabel="Regenerate profile"
               onRerun={() => handleRerun('product_lock_profile')}
-              busy={busyAction === 'product_lock_profile'}
+              busy={busyAction === 'product_lock_profile' || runInFlight}
               extraAction={
                 <button
                   className="rerun-button secondary"
                   onClick={() => handleRerun('product_isolation')}
-                  disabled={busyAction !== null}
+                  disabled={busyAction !== null || runInFlight}
                 >
                   {busyAction === 'product_isolation' ? 'Re-cropping…' : 'Re-crop product image'}
                 </button>
@@ -206,7 +204,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               error={blueprint.failed_stage === 'creative_fingerprint' ? blueprint.failed_stage_error : null}
               rerunLabel="Regenerate fingerprint"
               onRerun={() => handleRerun('creative_fingerprint')}
-              busy={busyAction === 'creative_fingerprint'}
+              busy={busyAction === 'creative_fingerprint' || runInFlight}
             >
               {slide.creative_fingerprint && (
                 <CreativeFingerprintFields structured={slide.creative_fingerprint.structured} />
@@ -220,7 +218,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               error={blueprint.failed_stage === 'marketing_analysis' ? blueprint.failed_stage_error : null}
               rerunLabel="Regenerate analysis"
               onRerun={() => handleRerun('marketing_analysis')}
-              busy={busyAction === 'marketing_analysis'}
+              busy={busyAction === 'marketing_analysis' || runInFlight}
             >
               {blueprint.marketing_analysis && (
                 <p className="narrative-text">{blueprint.marketing_analysis.narrative_text}</p>
@@ -234,7 +232,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               error={blueprint.failed_stage === 'ocr' ? blueprint.failed_stage_error : null}
               rerunLabel="Re-run OCR"
               onRerun={() => handleRerun('ocr')}
-              busy={busyAction === 'ocr'}
+              busy={busyAction === 'ocr' || runInFlight}
             >
               {slide.ocr_result && (
                 <>
@@ -262,7 +260,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               error={blueprint.failed_stage === 'recreation_prompt' ? blueprint.failed_stage_error : null}
               rerunLabel="Regenerate prompt"
               onRerun={() => handleRerun('recreation_prompt')}
-              busy={busyAction === 'recreation_prompt'}
+              busy={busyAction === 'recreation_prompt' || runInFlight}
               extraAction={
                 blueprint.recreation_prompt ? (
                   <CopyJsonButton data={blueprint.recreation_prompt.structured} />

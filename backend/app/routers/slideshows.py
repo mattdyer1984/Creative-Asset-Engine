@@ -22,10 +22,9 @@ from app.schemas import (
     AssignSlideProductRequest,
     SlideshowRead,
 )
-from app.services.background_execution import run_pipeline_in_background
+from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
-from app.slideshow_stages.orchestrator import default_slideshow_orchestrator
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
 
 router = APIRouter(prefix="/api/slideshows", tags=["slideshows"])
@@ -155,23 +154,41 @@ def get_slideshow_blueprint(
 _STAGE_NAMES = {stage.name for stage in SLIDESHOW_STAGE_PIPELINE}
 
 
-@router.post("/{slideshow_id}/stages/{stage_name}/rerun", response_model=AssembledSlideshowBlueprint)
+@router.post("/{slideshow_id}/stages/{stage_name}/rerun", response_model=SlideshowRead, status_code=202)
 def rerun_stage(
-    slideshow_id: str, stage_name: str, db: Session = Depends(get_db)
-) -> AssembledSlideshowBlueprint:
-    slideshow = db.get(Slideshow, slideshow_id)
-    if slideshow is None:
-        raise HTTPException(status_code=404, detail="Slideshow not found")
-
+    slideshow_id: str, stage_name: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+) -> Slideshow:
+    """
+    Schedules a single stage rerun in the background (Phase 3.3 of the
+    async execution boundary work - see MIGRATION_PLAN.md), mirroring
+    analyze_slideshow's approach exactly: same atomic UPDATE ... WHERE
+    claim (see that function's docstring for why a plain read-then-write
+    isn't safe under concurrent requests), same 202 + SlideshowRead
+    response shape, same polling contract via GET .../blueprint.
+    """
     if stage_name not in _STAGE_NAMES:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown stage '{stage_name}'. Known stages: {sorted(_STAGE_NAMES)}",
         )
 
-    default_slideshow_orchestrator.run_single_stage(db, slideshow, stage_name)
-    db.refresh(slideshow)
-    return assemble_slideshow_blueprint(db, slideshow)
+    result = db.execute(
+        update(Slideshow)
+        .where(Slideshow.id == slideshow_id, Slideshow.status.notin_((STATUS_QUEUED, STATUS_ANALYZING)))
+        .values(status=STATUS_QUEUED)
+    )
+    db.commit()
+
+    if result.rowcount == 0:
+        if db.get(Slideshow, slideshow_id) is None:
+            raise HTTPException(status_code=404, detail="Slideshow not found")
+        raise HTTPException(status_code=409, detail="Analysis already in progress")
+
+    slideshow = db.get(Slideshow, slideshow_id)
+
+    background_tasks.add_task(run_stage_in_background, slideshow_id, stage_name)
+
+    return slideshow
 
 
 @router.get("/{slideshow_id}/analysis-runs", response_model=list[AnalysisRunRead])

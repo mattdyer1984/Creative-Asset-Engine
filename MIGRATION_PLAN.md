@@ -273,4 +273,44 @@ rather than "add polling" (already done here).
   clean.
 - Commit: (see git log)
 
+### Phase 3.3 — Wire `/stages/{stage_name}/rerun` to background execution (done)
+
+Exact same shape as 3.2, applied to the single-stage rerun endpoint - same
+atomic `UPDATE ... WHERE` claim (reused the identical pattern, no new bug
+this time since 3.2 already found and fixed it), same `202` +
+`SlideshowRead`, same background-scheduling. `default_slideshow_
+orchestrator` import removed from the router - no longer used directly by
+either endpoint now that both go through `app.services.
+background_execution`.
+
+- Backend: `rerun_stage` claims atomically, schedules `run_stage_in_
+  background`, returns `202` + `SlideshowRead`. New `409` matching
+  `/analyze`'s.
+- Added `test_rerun_atomically_claims_the_row_under_real_concurrency`
+  (same two-real-threads pattern as `/analyze`'s equivalent test) -
+  confirms the same fix covers this endpoint too.
+- Frontend: `api.ts`'s `rerunSlideshowStage` return type → `Slideshow`.
+  `SlideshowBlueprintModal`'s `handleRerun` re-fetches instead of trusting
+  the response body, reusing the *same* polling effect already added in
+  3.2 (it's generic - keyed off `blueprint.status`, not which action
+  triggered it - so nothing needed duplicating). Every rerun button
+  (including the "Re-crop product image" secondary action) is now also
+  disabled while any run is in flight (`runInFlight`), not just its own
+  specific `busyAction` - previously only the triggering button disabled
+  itself, which would have let a second stage's rerun button be clicked
+  while the first was still running.
+- Live-verified end-to-end against the real dev server: clicked "Re-run
+  OCR" in the blueprint modal, confirmed a single `202` (no double-fire),
+  and confirmed the resulting UI state - this slideshow already had a
+  real, successful OCR result from before (`is_current`), and the new
+  failed attempt (no API key, same as 3.2's check) correctly left that
+  prior result on screen while showing the new failure banner above it -
+  proving the "never overwrite on failure" contract survives the async
+  rewrite, not just the happy path.
+- Also re-verified the atomic-claim fix's concurrent-request behavior
+  live against this endpoint specifically (`202` + `409`), matching 3.2.
+- Full suite: 72/72 passing. Ruff clean. Frontend `tsc`/`oxlint`/`build`
+  clean.
+- Commit: (see git log)
+
 ---
