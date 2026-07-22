@@ -8,6 +8,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.services.product_profile import ProductProfile
+
 
 class ProjectCreate(BaseModel):
     name: str
@@ -99,6 +101,99 @@ class ProductSourceImportRead(BaseModel):
     error: str | None
     is_current: bool
     created_at: datetime
+
+
+class ListingRead(BaseModel):
+    """Phase 5.11 of the catalogue layer, see MIGRATION_PLAN.md's frozen catalogue ADR."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    source_type: str
+    source_url: str
+    resolved_product_id: str | None
+    resolved_bundle_id: str | None
+    price_amount: float | None
+    price_currency: str | None
+    seller_name: str | None
+    rating: float | None
+    units_sold: int | None
+    shipping_info: str | None
+    created_at: datetime
+
+
+class PendingBundleMemberHintRead(BaseModel):
+    """
+    A raw pass-through of one adapter-suggested bundle member (see
+    app.product_sources.base.BundleMemberHint) for a human to review -
+    never itself a resolved Product, per the catalogue ADR's identity
+    section (resolution is never automatic).
+    """
+
+    label: str
+    attributes: dict
+
+
+class ListingDetailRead(ListingRead):
+    """GET /api/listings/{id} - ListingRead plus unresolved member hints, if any."""
+
+    pending_bundle_hints: list[PendingBundleMemberHintRead] = []
+
+
+class ListingSourceImportRequest(BaseModel):
+    url: str
+
+
+class ListingResolveExistingProductRequest(BaseModel):
+    product_id: str
+
+
+class ListingResolveNewProductRequest(BaseModel):
+    display_name: str
+
+
+class ListingResolveExistingBundleRequest(BaseModel):
+    bundle_id: str
+
+
+class BundleMemberResolutionRequest(BaseModel):
+    """Exactly one of the two product fields must be set - mirrors app.services.listing_import.BundleMemberResolution."""
+
+    existing_product_id: str | None = None
+    new_product_display_name: str | None = None
+    quantity: int = 1
+
+
+class ListingResolveNewBundleRequest(BaseModel):
+    display_name: str
+    members: list[BundleMemberResolutionRequest]
+
+
+class ProductBundleRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str | None
+    display_name: str
+    created_at: datetime
+
+
+class BundleMemberProfileRead(BaseModel):
+    """
+    One member's real, unmodified atomic ProductProfile - the catalogue
+    ADR's Bundle View definition: a bundle's "profile" is a list of its
+    members' real profiles, never a new merge/vocabulary of its own.
+    """
+
+    product_id: str
+    quantity: int
+    profile: ProductProfile
+
+
+class BundleViewRead(BaseModel):
+    id: str
+    display_name: str
+    members: list[BundleMemberProfileRead]
 
 
 class CreativeFingerprintRead(BaseModel):

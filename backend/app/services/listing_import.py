@@ -214,6 +214,34 @@ def _resolve_member_product_id(db: Session, resolution: BundleMemberResolution) 
     raise ValueError("A member resolution must set exactly one of the two product fields, not neither")
 
 
+def get_pending_member_hints(db: Session, listing_id: str) -> list[dict]:
+    """
+    The current unresolved import's bundle member hints (label + raw
+    attribute dict, see app.product_sources.base.BundleMemberHint), for
+    display in a review UI (Phase 5.11's GET /api/listings/{id}, Phase
+    5.12's frontend) - or an empty list if the Listing is already
+    resolved, or its current import has no bundle evidence. Read-only -
+    never mutates resolution state.
+    """
+    listing = db.get(Listing, listing_id)
+    if listing is None or listing.resolved_product_id is not None or listing.resolved_bundle_id is not None:
+        return []
+
+    current_import = db.scalars(
+        select(ProductSourceImport).where(
+            ProductSourceImport.listing_id == listing_id,
+            ProductSourceImport.is_current.is_(True),
+        )
+    ).first()
+    if current_import is None or not current_import.normalized_json:
+        return []
+
+    bundle = current_import.normalized_json.get("bundle")
+    if not bundle:
+        return []
+    return bundle.get("member_hints", [])
+
+
 def _get_or_create_listing(db: Session, url: str) -> Listing:
     listing = db.scalars(select(Listing).where(Listing.source_url == url)).first()
     if listing is not None:

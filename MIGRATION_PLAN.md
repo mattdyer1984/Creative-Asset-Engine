@@ -174,6 +174,28 @@ for an extended period. This does not change any of the boundaries
 above — those are self-imposed, not enforced by the permission dialog,
 and remain in force regardless of app-level permission mode.
 
+**2026-07-22: "Senior Project Manager" framing, made explicit.** The
+per-call approval prompts became a real bottleneck for unattended work -
+the user wants zero stops for ordinary engineering judgment while away,
+not just the Phase 5-specific carve-outs above. Made explicit rather than
+re-derived each session: full authority over all Regular-category
+work-architecture calls, schema/API design, test strategy, mid-
+implementation bug fixes, commit boundaries, sub-phase sequencing,
+writing and revising this plan document itself - proceed and report,
+never pause to ask. This is not a new grant so much as a formal statement
+of what every phase this session already did in practice (5.8-5.10 each
+involved real design decisions and bug fixes made and executed without
+asking first). The fixed boundaries from the original grant are
+unchanged by this and are not "conservative defaults to reconsider" -
+they are the actual edge of delegated authority: no `git push`/PR, no
+Phase 2.8, no implementation on Phases 9-11, nothing in the standing
+safety rules' Prohibited/Explicit-permission-required categories. Note
+for whoever (including a future me) re-reads this cold: the per-tool-call
+prompts the user was hitting are the Claude Code app's own permission
+mode, external to this document and outside this agent's control to
+change from within a session - this entry records delegated *decision*
+authority, not a mechanism for suppressing the app's own approval UI.
+
 ## Open questions
 
 _(none currently open - see resolved questions in the Phase 5 detailed
@@ -2505,6 +2527,59 @@ second-guess preemptively here.
 - Zero behavior change to the existing per-product import flow (Phase
   5.3/5.6) - `import_product_source` itself untouched beyond the shared
   helper's rename.
+- Commit: (see git log)
+
+### Phase 5.11 — API surface for listings/bundles (done)
+
+- New `app/routers/listings.py` (`/api/listings`): `POST .../source-import`
+  (200, same synchronous-fetch reasoning as the existing per-product
+  endpoint), `GET .../{id}` (returns `ListingDetailRead` - `ListingRead`
+  plus `pending_bundle_hints`, populated only when unresolved with
+  bundle evidence), and the four resolve-* endpoints
+  (`resolve-existing-product`, `resolve-new-product`,
+  `resolve-existing-bundle`, `resolve-new-bundle`), named to match 5.10's
+  service function names exactly rather than the plan's original sketch.
+- New `app/routers/bundles.py` (`/api/bundles`): `GET .../{id}` only -
+  bundles are created via `resolve-new-bundle`, never directly here. Calls
+  5.5's `assemble_product_profile` once per member, completely unmodified
+  - no new merge logic anywhere in this router, per the ADR's Bundle View
+  definition.
+- Error-handling convention, consistent across every new endpoint: 404
+  when the path's `listing_id`/`bundle_id` itself doesn't exist (checked
+  directly in the router, same pattern as every other router in this
+  codebase); 400 for every other domain violation (unknown
+  product/bundle in the request body, already-resolved listing,
+  malformed member resolution) - 5.10's `ValueError`s, caught and
+  translated here.
+- New schemas in `app/schemas.py`: `ListingRead`, `ListingDetailRead`,
+  `PendingBundleMemberHintRead`, the four resolve-* request schemas,
+  `ProductBundleRead`, `BundleMemberProfileRead`, `BundleViewRead`.
+  `BundleMemberProfileRead.profile` is `app.services.product_profile.
+  ProductProfile` imported directly (no forward-ref needed -
+  `product_profile.py` doesn't import `schemas.py`, confirmed before
+  adding the import, no circular-import risk).
+- New `get_pending_member_hints(db, listing_id)` in `listing_import.py` -
+  reads the current unresolved import's `normalized_json["bundle"]` for
+  display; read-only, never mutates resolution state.
+- 15 new route-level tests (`tests/test_listings_and_bundles_api.py`):
+  source-import success/failure/commercial-fact-denormalization, pending-
+  hints exposure (present for bundle evidence, empty for ordinary),
+  both product resolve paths (success, unknown-product 400, unknown-
+  listing 404), already-resolved rejection, empty-members rejection,
+  unknown-bundle 404, resolve-existing-bundle, and - matching the plan's
+  own stated test strategy exactly - a full end-to-end bundle flow:
+  import a bundle-shaped fixture, resolve one hint to an existing product
+  and one to a new one, `GET /api/bundles/{id}` returns both real member
+  profiles (not mocked at the profile-assembly level, only at adapter
+  resolution, same discipline as every other Product Intelligence test).
+- Full suite: 193/193 passing (178 existing + 15 new). Ruff clean. App
+  boots cleanly, 35 routes (was 28 - 7 new: 6 on `/api/listings`, 1 on
+  `/api/bundles`).
+- Live-verification against the real dev server deferred to 5.12, same
+  precedent as 5.6→5.7 (backend-API sub-phase, then the frontend
+  sub-phase that actually exercises it end-to-end).
+- Zero behavior change to anything existing - new routers, new schemas,
+  nothing else touched.
 - Commit: (see git log)
 
 ---
