@@ -31,8 +31,8 @@ session transcripts for the full reasoning):
 | 1 | Orthogonal reliability fixes (1.1–1.4) | done |
 | 2 | Entity split: Creative → Slideshow + Slide (2.1–2.7) | done, reviewed |
 | 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
-| 3 | Async execution boundary | in progress |
-| 4 | True multi-slide import | not started |
+| 3 | Async execution boundary (3.1–3.5) | done |
+| 4 | True multi-slide import | in progress |
 | 5 | Optional multi per-slide product detection | not started |
 | 6 | Narrative pass with dependency-aware staleness | not started |
 | 7 | Frontend consolidation | not started |
@@ -76,6 +76,21 @@ and remain in force regardless of app-level permission mode.
 ## Open questions
 
 _(none yet)_
+
+## Suggested future improvements
+
+Non-blocking items noticed along the way, deliberately deferred rather
+than fixed in the phase that found them - not urgent, but worth a look
+eventually:
+
+- **Startup reconciler for interrupted background runs** (found during
+  Phase 3.5): a process restart mid-analysis leaves a `Slideshow` stuck
+  in `queued`/`analyzing` forever. Pre-existing failure-mode class (the
+  old synchronous path had the equivalent gap), not a Phase 3 regression.
+- **`app.slideshow_stages` → `app.stages` package rename** (considered
+  during the Phase 2 engineering review): cosmetic, ~20 files, real
+  mechanical risk for a naming-only benefit. Revisit once Phase 2.8 lands
+  and the "must stay parallel to the old pipeline" constraint is gone.
 
 ## Phase 3: Async execution boundary — detailed plan
 
@@ -312,5 +327,65 @@ background_execution`.
 - Full suite: 72/72 passing. Ruff clean. Frontend `tsc`/`oxlint`/`build`
   clean.
 - Commit: (see git log)
+
+### Phase 3.4 — Polling UX polish + cleanup (done, no changes needed)
+
+Original scope (add polling) was already folded into 3.2/3.3. Did a final
+review pass looking specifically for: rough edges in disabled-state
+consistency (already handled - every rerun button and the Analyze All
+button share the same `runInFlight` guard), stale comments referencing
+the old synchronous behavior (swept the whole `app/`/`src/` tree for
+"runs synchronously" / "blocking behavior" / "blocks the request" -
+zero hits), and anything left half-migrated (checked `SlideshowGrid.tsx`'s
+own analyze button/state machine specifically - it disables itself during
+the POST itself via local `analyzingIds` state, then disappears entirely
+once status flips to queued/analyzing since `ANALYZABLE_STATUSES` no
+longer includes those - no gap where a truly-in-flight run's button is
+still clickable). No code changes were needed - this sub-phase is a
+verification step, not an implementation one.
+
+### Phase 3.5 — Test migration completion, live verification, hardening
+
+Live verification (against the real dev server, not just `TestClient`)
+already happened inline as part of 3.2 and 3.3, including the concurrency
+bug/fix - see those reports above rather than a separate pass here, since
+by the time 3.3 finished there was nothing meaningfully left to verify
+live that hadn't already been. What remains from the original 3.5 scope:
+
+- **Documented, not fixed**: a process restart mid-analysis (or
+  mid-single-stage-rerun) leaves a `Slideshow` stuck in `queued`/
+  `analyzing` status with no automatic recovery - nothing reconciles
+  "an AnalysisRun/background task that was interrupted by a crash" back
+  to a terminal state on the next startup. This is not a new regression
+  from going async: the old synchronous path had the equivalent failure
+  mode (a killed request left status wherever the last commit inside the
+  stage left it, with the same lack of automatic recovery). Worth a
+  startup reconciler eventually (e.g. any `AnalysisRun` with `status=
+  pending` older than some threshold at boot time gets marked failed, and
+  its `Slideshow`/`Slide` un-stuck) - not implemented now, since it's a
+  pre-existing gap, not something this phase introduced, and this is a
+  single-user local desktop-style app where a mid-analysis crash-then-
+  restart is a rare, recoverable-by-hand ("click Retry again") situation.
+  Listed under Suggested Future Improvements at the end of this phase.
+- SQLite single-writer contention under concurrent background writes
+  across *different* slideshows (not the same-row race the atomic claim
+  fixes): reasoned about, not separately load-tested - SQLite serializes
+  writer transactions regardless of which row/table they touch, and every
+  stage already writes via short, promptly-committed transactions (this
+  was already true before Phase 3; nothing here changes each stage's own
+  transaction shape). The two live concurrency tests already performed
+  (analyze and rerun, each racing two requests against the *same*
+  slideshow) exercise this same serialization mechanism, just narrowed to
+  the same row - sufficient confidence for this app's realistic
+  concurrency level (one local user), not worth a dedicated multi-
+  slideshow load test.
+- Full backend suite: 72/72 passing (final count, unchanged since 3.3 -
+  no code changed in 3.4/3.5). Ruff clean. Frontend `tsc`/`oxlint`/`build`
+  clean.
+
+**Phase 3 (async execution boundary) is complete.** `Slideshow.status`'s
+`queued`/`analyzing` states are now real, observable, and reachable from
+the UI for the first time since they were added in Phase 2 - the whole
+point of this phase.
 
 ---
