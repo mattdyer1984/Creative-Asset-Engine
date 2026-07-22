@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.ai_providers import registry as ai_provider_registry
 from app.config import settings
-from app.routers import creatives, products, projects
+from app.routers import creatives, products, projects, slideshows
 
 settings.ensure_directories()
 
@@ -41,6 +41,9 @@ app = FastAPI(title="Creative Asset Engine", version="0.1.0", lifespan=lifespan)
 app.include_router(projects.router)
 app.include_router(products.router)
 app.include_router(creatives.router)
+# New pipeline (Phase 2.5 of the Slideshow/Slide migration) - additive,
+# alongside creatives.router above, which remains completely untouched.
+app.include_router(slideshows.router)
 
 
 @app.get("/api/health")
