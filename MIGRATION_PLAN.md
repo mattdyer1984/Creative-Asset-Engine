@@ -2322,4 +2322,57 @@ second-guess preemptively here.
 
 ## Phase 5.8+ reports log
 
+### Phase 5.8 — Additive schema: Listing, ProductBundle, ProductBundleMember (done)
+
+- New models: `Listing` (`app/models/listing.py`), `ProductBundle`
+  (`app/models/product_bundle.py`), `ProductBundleMember`
+  (`app/models/product_bundle_member.py`) - exactly as specified in the
+  frozen catalogue ADR. Commercial fields on `Listing`
+  (price/seller/rating/units_sold/shipping) are plain nullable columns,
+  deliberately not run through `CANONICAL_FIELD_VOCABULARY` - see the
+  model's own docstring for why.
+- **Real gap found during implementation, not anticipated in the ADR's
+  own prose**: the ADR's Non-goals section left "how does
+  `ProductSourceImport` relate to `Listing`" as a deliberate open
+  implementation decision. Writing the actual test for "a fetch made
+  before we know what it represents" exposed that `product_id` was still
+  non-nullable - a Listing-scoped import genuinely can't know its Product
+  yet (per the ADR, resolution is never automatic), so the row couldn't
+  be persisted at all under the original plan's schema. Fixed by also
+  relaxing `ProductSourceImport.product_id` to nullable in the same
+  migration, backfilled once a human resolves the owning `Listing` (Phase
+  5.10's job) - at which point Phase 5.5's existing merge service picks
+  the row up completely unchanged, no new code needed there. This was
+  caught and fixed *before* the migration was applied to the real dev DB
+  (downgraded, fixed, re-tested, re-applied) - not shipped-then-patched.
+- `ProductSourceImport` gains the new nullable `listing_id` FK alongside
+  its existing `product_id` - the already-shipped
+  `POST /api/products/{id}/source-import` flow (Phase 5.6) is completely
+  untouched, verified by the existing `test_product_source_import_model.py`
+  suite passing unchanged.
+- Migration `d3bafd6a4965`: full discipline applied twice (once before
+  the `product_id` fix was found, once after) - real dev DB backed up
+  first, upgrade/downgrade tested on an isolated scratch copy
+  (`CAE_DATA_DIR`), content-diff verified (all 15 existing tables' row
+  counts identical before/after both the upgrade and the downgrade),
+  then applied to the real dev DB and re-verified the same way. Batch
+  mode used for the `product_source_imports` ALTER (SQLite requirement,
+  same as 37e53bed7ec8).
+- 10 new model-level tests (`tests/test_catalogue_layer_model.py`):
+  unresolved `Listing` round-trip, resolves-to-product, resolves-to-bundle,
+  two Listings resolving to the same Product (the actual point of Listing
+  existing separately from Product), `ProductBundleMember` with
+  quantity>1 (the multipack case, free from the existing shape - no new
+  entity needed), a real multi-distinct-member bundle, quantity default,
+  and the two new `ProductSourceImport` states (`listing_id` set with
+  `product_id=None` vs. both set).
+- Full suite: 157/157 passing (146 existing + 10 new + 1 pre-existing
+  `test_product_source_import_model.py` file unaffected). Ruff clean on
+  every new/changed file (11 pre-existing baseline findings elsewhere,
+  unrelated - see Phase 6.1's report). App boots cleanly, 28 routes
+  (unchanged - no new endpoints this sub-phase, purely additive schema).
+- Zero behavior change to anything existing - three new, empty tables and
+  two new nullable columns; nothing reads or writes them yet.
+- Commit: (see git log)
+
 ---

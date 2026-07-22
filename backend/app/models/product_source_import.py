@@ -21,6 +21,28 @@ still there to reprocess without re-fetching. Both are nullable since a
 failed fetch (fetch_status=FETCH_STATUS_FAILED) may have no raw response
 at all (e.g. the URL was unreachable) and therefore nothing to normalize
 either.
+
+listing_id (Phase 5.8 of the catalogue layer, see MIGRATION_PLAN.md's
+frozen catalogue ADR) is a new, nullable, purely additive FK to Listing -
+used only by the new unknown-URL/bundle-aware import path (Phase 5.10+).
+The existing product_id-direct flow (the already-shipped
+POST /api/products/{id}/source-import, Phase 5.6) is completely
+unaffected by any of this: it always sets product_id immediately, exactly
+as before. This is a deliberate implementation choice the ADR itself left
+open (see its Non-goals section) rather than a redesign - extend, don't
+replace, same pattern as every other provenance column in this codebase.
+
+product_id relaxes from NOT NULL to nullable in the same migration that
+adds listing_id, for a real reason (not a broadening for its own sake): a
+Listing-scoped import (Phase 5.10) is created *before* resolution - the
+whole point of Listing is that "which Product is this" isn't known yet
+at fetch time, and per the catalogue ADR that resolution is never
+automatic. product_id is backfilled once a human resolves the Listing to
+a Product (at which point this row behaves exactly like one created
+through the existing direct flow, and Phase 5.5's merge service picks it
+up unchanged, with no new code needed there). Every row the existing
+direct flow writes still always supplies product_id immediately, so
+nothing about today's behavior changes.
 """
 
 from datetime import datetime
@@ -40,7 +62,8 @@ class ProductSourceImport(Base):
     __tablename__ = "product_source_imports"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
+    product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id"), nullable=True)
+    listing_id: Mapped[str | None] = mapped_column(ForeignKey("listings.id"), nullable=True)
     is_current: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Plain string, not a hardcoded enum - a future adapter (e.g. a real
