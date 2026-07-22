@@ -20,6 +20,21 @@ could.
 
 RECREATION_PROMPT_AI_SCHEMA duplicated from the old stage, same
 self-containment reasoning as the other new stages.
+
+Phase 6 (multi per-slide product detection, see MIGRATION_PLAN.md) made
+assigning multiple products to one slide possible. Unlike Product
+Isolation/Lock Profile (Phase 6.2), which reject 2+-product slides
+outright because their provider calls have no way to target a specific
+product, a recreation prompt is inherently single-subject - the prompt
+describes one product being recreated. Rather than fail a multi-product
+slide entirely, this stage resolves a single *primary* product to write
+the prompt around: the appearance with prominence == "primary" if
+exactly one exists, otherwise the earliest-created current appearance
+(deterministic, not an arbitrary query-order pick). This is a scope
+boundary, not a full solution - a slide with several equally-important
+products still only gets one recreation prompt, built around whichever
+product resolves as primary. Broader multi-product recreation-prompt
+support is future work, not attempted here.
 """
 
 from sqlalchemy.orm import Session
@@ -33,6 +48,22 @@ from app.models.recreation_prompt import RecreationPrompt
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+
+def _resolve_primary_appearance(
+    current_appearances: list[ProductAppearance],
+) -> ProductAppearance | None:
+    """
+    Picks the single ProductAppearance a recreation prompt should be
+    built around, per the docstring above: prefer the one explicitly
+    marked prominence == "primary" (ties broken by earliest-created);
+    otherwise fall back to the earliest-created current appearance.
+    """
+    if not current_appearances:
+        return None
+    primary_marked = [a for a in current_appearances if a.prominence == "primary"]
+    candidates = primary_marked or current_appearances
+    return min(candidates, key=lambda a: (a.created_at, a.id))
 
 RECREATION_PROMPT_AI_SCHEMA = {
     "type": "object",
@@ -91,14 +122,7 @@ class SlideRecreationPromptStage:
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide
 
-        current_appearance = (
-            db.query(ProductAppearance)
-            .filter(
-                ProductAppearance.slide_id == slide.id,
-                ProductAppearance.is_current.is_(True),
-            )
-            .first()
-        )
+        current_appearance = _resolve_primary_appearance(slide.current_product_appearances)
         lock_profile = None
         if current_appearance is not None:
             lock_profile = (

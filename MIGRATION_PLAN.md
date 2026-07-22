@@ -1857,3 +1857,38 @@ undesigned, logged as future work).
 - Commit: (see git log)
 
 ---
+
+### Phase 6.3 — Recreation Prompt explicit primary-product resolution (done)
+
+- Unlike Product Isolation/Lock Profile (Phase 6.2), a recreation prompt
+  doesn't fail outright on a multi-product slide - a prompt is inherently
+  single-subject, so the stage now resolves one *primary* product to
+  build it around instead of picking whichever appearance an unordered
+  `.first()` query happened to return.
+- New `_resolve_primary_appearance()`: prefers the current appearance with
+  `prominence == "primary"` (ties broken by earliest `created_at`, then
+  `id`, for determinism); falls back to the earliest-created current
+  appearance if none is marked primary. Replaces the old direct
+  `db.query(ProductAppearance)...first()` call - single-product slides
+  are unaffected (one appearance in, that same appearance out).
+  `slide.current_product_appearances` (the Phase 6.1 plural accessor) is
+  now the entry point instead of a fresh query.
+- This is an explicit scope boundary, documented in the module docstring:
+  a slide with several equally-important products still only gets one
+  recreation prompt, built around whichever one resolves as primary.
+  Broader multi-product recreation-prompt support is future work.
+- 9 new tests: 5 pure unit tests of `_resolve_primary_appearance` against
+  lightweight fake appearances (empty list, single item, primary-beats-
+  creation-order, fallback-to-earliest-created, tie-among-primaries), plus
+  1 integration test building a real two-product slide (Lock Profiles
+  persisted directly, since Phase 6.2 made the stage itself reject multi-
+  product slides) and asserting the resulting RecreationPrompt references
+  the *primary* product's Lock Profile, not the secondary one. All 6 prior
+  tests pass completely unchanged.
+- Full suite: 145/145 passing (139 existing + 6 new: 5 unit tests of
+  `_resolve_primary_appearance` plus the 1 multi-product integration
+  test). Ruff clean. App boots cleanly, 28 routes (unchanged - no new
+  endpoints).
+- Commit: (see git log)
+
+---
