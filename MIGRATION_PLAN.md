@@ -23,6 +23,50 @@ session transcripts for the full reasoning):
 3. Implementation gets there through small, testable, production-safe
    refactors — no future abstractions before they're needed.
 
+### 2026-07-22 revision: three independent systems
+
+After Phase 4 landed, the user refined the vision further. The engine is
+no longer framed as "analyze TikTok slideshows" - it's three systems:
+
+1. **Product Intelligence** - a canonical Product Profile, built by
+   combining evidence from multiple sources (official listing, Shopify/
+   Amazon/TikTok Shop pages, official images, user-uploaded references,
+   creator slideshows, future generated images), each attribute tagged
+   with its source and a confidence score. An official Product URL, when
+   supplied, becomes authoritative for immutable physical facts (shape,
+   dimensions, capacity, labels, branding, official colors, packaging);
+   slideshows continue to supply what listings can't (camera angle,
+   composition, lighting, marketing context, persuasion, emotional
+   positioning). These complement rather than compete.
+2. **Creative Intelligence** - understanding why a slideshow sells a
+   product. This is what Phases 2-4 already built (Slideshow/Slide,
+   OCR, Creative Fingerprint, Marketing Analysis, Recreation Prompt).
+3. **Generation Engine** (future, not started) - generate an original
+   slideshow that preserves the marketing strategy while remaining
+   visually original. Explicitly out of scope for now, but Product
+   Intelligence is being designed so the eventual validation loop
+   (generate → analyze → compare against the canonical Product Profile →
+   measure fidelity → regenerate if below threshold) doesn't require a
+   second architectural redesign later.
+
+**Key finding from reviewing the existing roadmap against this**: old
+Phase 5 ("multi per-slide product detection") and Product Intelligence
+are orthogonal, not sequential. Old Phase 5 is about *breadth* (more
+slides analyzed); Product Intelligence is about *depth* (more evidence
+*sources* combined). Product Intelligence's first real increment doesn't
+need per-slide detection first - it can ship using the existing
+single-slide vision evidence as one input alongside a new listing-import
+input. This is why Product Intelligence moves ahead of old Phase 5 in
+the renumbered list below, rather than replacing it.
+
+**No structural changes to already-completed work (Phases 0-4).**
+`Product`, `ProductLockProfile`, `ProductReferenceImage`,
+`ProductAppearance`, and the whole Slideshow/Slide/async/multi-slide
+foundation all remain correct as-is - they become *inputs* to Product
+Intelligence, not things to redo. See "Phase 5: Product Intelligence"
+below for the specific, entirely prospective adjustments this implies
+for new code, none of which touch Phase 2-4's existing models/stages.
+
 ## Phase list
 
 | # | Phase | Status |
@@ -33,17 +77,33 @@ session transcripts for the full reasoning):
 | 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
 | 3 | Async execution boundary (3.1–3.5) | done |
 | 4 | True multi-slide import (4.1–4.4) | done |
-| 5 | Optional multi per-slide product detection | in progress |
-| 6 | Narrative pass with dependency-aware staleness | not started |
-| 7 | Frontend consolidation | not started |
-| 8 | PerformanceRecord (additive) | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
-| 9 | Pattern v0 (trivial candidate capture) | **same as 8** |
-| 10 | Pattern curation lifecycle + ContextEfficacy + search | **same as 8** |
+| 5 | **Product Intelligence** (evidence model, listing import, canonical profile) | not started — see detailed section below |
+| 6 | Multi per-slide product detection *(was Phase 5)* | not started — demoted; now an enhancement to Product Intelligence's slideshow-evidence source, not a prerequisite for it |
+| 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | not started — unaffected by the revision, pure Creative Intelligence |
+| 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
+| 9 | PerformanceRecord (additive) *(was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
+| 10 | Pattern v0 (trivial candidate capture) *(was Phase 9)* | **same as 9** |
+| 11 | Pattern curation lifecycle + ContextEfficacy + search *(was Phase 10)* | **same as 9** — now understood to sit above both Product and Creative Intelligence, not just Creative |
+| — | **Generation Engine** | future, unnumbered — depends on Phase 5's canonical Product Profile existing; explicitly not started
 
 ## Standing authorization (granted 2026-07-21/22, user away for an
 extended, unspecified period)
 
-Permitted without further chat confirmation, for Phases 3–7 only:
+**2026-07-22 update: the user has since returned and paused this
+blanket authorization** to revisit the long-term architecture (see the
+"three independent systems" revision above) before any further phases
+proceed. Phases 3 and 4 were already completed under the original
+authorization and remain shipped. For every phase from here on
+(renumbered Phase 5 onward), the default reverts to the normal
+plan-then-confirm discipline (same as how Phase 2 itself originally got
+a dedicated plan-only round before any code) - no autonomous
+implementation resumes until the user has reviewed the revised roadmap
+and a phase's detailed sub-phase plan. The rest of this section is kept
+as a historical record of what the original blanket authorization
+covered, not a currently-active grant.
+
+Originally permitted without further chat confirmation, for Phases 3–7
+(pre-revision numbering) only:
 - Writing detailed sub-phase plans.
 - Implementing, testing, and committing small sub-phases to the
   `phase-2-slideshow-migration` branch, following the same discipline as
@@ -75,7 +135,13 @@ and remain in force regardless of app-level permission mode.
 
 ## Open questions
 
-_(none yet)_
+- **(2026-07-22, Phase 5 planning)** Beyond the recommended
+  schema.org/OpenGraph-based first importer (platform-agnostic, low
+  risk), which specific listing platform(s) should get first-class,
+  credentialed support (Shopify Admin API, Amazon Product Advertising
+  API, TikTok Shop API)? This is a product/business priority call for
+  the user, not something to guess at - affects which sub-phase of
+  Phase 5 comes first once its detailed plan is written.
 
 ## Suggested future improvements
 
@@ -606,6 +672,96 @@ genuinely hold more than one Slide, end to end - imported, stored,
 returned by the blueprint API, and at least minimally visible in the UI -
 while every existing single-file import continues to behave exactly as
 before. Per this phase's own explicit scope note, actually running the
-analysis Stages per-slide is Phase 5's job, not done here.
+analysis Stages per-slide is a later phase's job (renumbered to Phase 6
+in the 2026-07-22 roadmap revision - see "Frozen architecture vision"
+above), not done here.
+
+---
+
+## Phase 5: Product Intelligence — architecture direction
+
+**Status: direction only, per explicit instruction - do not implement
+until this is confirmed and a detailed sub-phase plan (same rigor as
+Phases 3/4's) has been written and reviewed.** This section records the
+architecture recommendation from the 2026-07-22 roadmap revision, not an
+implementation plan yet.
+
+**Problem.** `ProductLockProfile` is currently the only thing resembling
+Product Intelligence, and it's a single AI-vision-derived blob: one
+evidence source (crops from `slideshow.primary_slide`), no per-field
+provenance, no confidence, wholesale-replaced on every regeneration
+(`is_current` flips old→false). The goal is a canonical Product Profile
+built by combining multiple evidence sources, each attribute individually
+tagged with where it came from and how trustworthy that source is.
+
+**Recommended shape, reusing existing patterns rather than inventing new
+ones:**
+
+- **New evidence artifact**: `ProductListingImport` (or similar) -
+  same shape discipline as every other artifact (id/is_current/created_at,
+  `AnalysisArtifactMixin`-style), owned by `product_id`. Records what an
+  official listing import produced: title, brand, specifications, official
+  images, variants, source URL/platform, fetched_at.
+  - **Not** forced through the existing `AnalysisRun` table - that model
+    requires non-nullable `provider`/`model_name` (AI-call-specific); a
+    URL fetch isn't an AI call. Worth a small, parallel, purpose-built
+    traceability record instead (mirrors `AnalysisRun`'s shape: id,
+    product_id, source_url, platform, status, error, created_at - just
+    without the AI-specific fields).
+- **New importer family**: `ProductListingImporter` Protocol + registry,
+  mirroring `app/importers/`'s existing `ImportProvider` pattern exactly
+  (a new module, not a modification of the existing one - `LocalFileImporter`
+  stays untouched). Notably, `app/importers/base.py`'s own docstring
+  already names "Amazon/Shopify product pages" as an anticipated future
+  import source - this was in the original architecture plan, never built.
+  - **First concrete adapter recommendation**: target schema.org/OpenGraph
+    Product markup (platform-agnostic - most e-commerce sites, including
+    Shopify storefronts, already emit this) rather than a bespoke scraper
+    for one platform first. Amazon/TikTok Shop have real ToS/anti-bot
+    friction and would need official APIs/credentials - treat those as a
+    later, explicit, opt-in choice, not the first adapter.
+- **Canonical profile as compute-on-read**: e.g. `assemble_product_profile
+  (db, product) -> ProductProfile`, mirroring `assemble_slideshow_
+  blueprint` exactly - merges every current evidence artifact for a
+  product into a field-level `{value, source, confidence}` view at read
+  time, not a new persisted/versioned entity. Keeps this additive;
+  avoids a premature abstraction. Field-level provenance (not a flat
+  merged blob) is what makes this generation-ready later - a future
+  "compare generated image against the profile, score fidelity per
+  field" step needs exactly this granularity, and nothing here would need
+  redesigning to support it.
+  - Merge/precedence logic (which source wins per field) lives in this
+    new layer's own lookup table, not by changing `ProductLockProfile`'s
+    existing schema - e.g. official listing wins for immutable physical
+    facts (shape, dimensions, capacity, labels, branding, colors,
+    packaging), slideshow evidence wins for what listings can't capture
+    (camera angle, composition, lighting, marketing context).
+- **Extend, don't replace, `ProductReferenceImage`**: it already has
+  nullable `source_creative_id`/`source_slide_id` for exactly this
+  "which provenance" pattern (Phase 2.3's transitional design). A new
+  nullable `source_listing_import_id` extends the same pattern for
+  officially-sourced images rather than inventing a separate image
+  concept.
+
+**Prospective adjustments this implies for future code (none touch
+already-completed Phase 2-4 work):**
+- The Product Lock Profile Stage doesn't currently emit per-field
+  confidence at all (today's schema is facts only). Getting real
+  per-field confidence out of the vision model is new work this phase
+  needs to design, not something already available.
+- Once a canonical profile exists, Recreation Prompt should eventually
+  read from it instead of `ProductLockProfile` directly, for better
+  fidelity on immutable facts. Flagged as a fast-follow within this
+  phase, not a blocker to starting it.
+- `ProductManager.tsx`'s existing "View Analysis" panel currently shows
+  `ProductLockProfile.structured` as if it were settled fact - once a
+  canonical profile exists, this should show it as one evidence source
+  among several (e.g. "Slideshow-derived, 96% confidence"), not
+  something to change until this phase's own frontend sub-phase.
+
+**Open question for the user, not resolved here** (see "Open questions"
+below): which listing platform should the first real adapter target,
+beyond the schema.org/OpenGraph baseline recommended above? This is a
+product/business priority call, not a technical one.
 
 ---
