@@ -183,6 +183,23 @@ class NormalizedProductEvidence(BaseModel):
     variants: list[dict] = Field(default_factory=list)
 
 
+class ProductSourceExtraction(BaseModel):
+    """
+    extract()'s return type. Bundles the raw fetch result alongside the
+    normalized evidence - discovered as a real gap while implementing
+    5.3, not anticipated when this Protocol was first sketched:
+    ProductSourceImport.raw_response_json (Phase 5.1) needs "whatever the
+    adapter's underlying fetch literally returned," and extract() only
+    returning NormalizedProductEvidence would force the caller to fetch
+    the URL a second time (or the adapter to expose its raw result some
+    other way) just to populate that column. Bundling both in one return
+    value means each URL is fetched exactly once.
+    """
+
+    raw: dict
+    normalized: NormalizedProductEvidence
+
+
 # --- Adapter protocol --------------------------------------------------------
 
 
@@ -191,7 +208,7 @@ class ProductSourceAdapter(Protocol):
         """Can this adapter handle this URL? The generic fallback always returns True."""
         ...
 
-    def extract(self, url: str) -> NormalizedProductEvidence:
+    def extract(self, url: str) -> ProductSourceExtraction:
         """
         Fetch and normalize. Raises on failure (network error, unparseable
         response) - the caller (Phase 5.3's import_product_source) is

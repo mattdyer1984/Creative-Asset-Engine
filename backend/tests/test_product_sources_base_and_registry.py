@@ -19,6 +19,7 @@ from app.product_sources.base import (
     NormalizedAttribute,
     NormalizedProductEvidence,
     NumberValue,
+    ProductSourceExtraction,
     TextValue,
     validate_attribute_value,
 )
@@ -101,6 +102,18 @@ def test_validate_attribute_value_rejects_unknown_field():
         validate_attribute_value("shop_rating", NumberValue(value=4.8))
 
 
+# --- ProductSourceExtraction (extract()'s return type) ---------------------
+
+
+def test_product_source_extraction_bundles_raw_and_normalized():
+    extraction = ProductSourceExtraction(
+        raw={"@type": "Product", "name": "Widget"},
+        normalized=NormalizedProductEvidence(source_type="generic_url", source_url="https://example.com/p"),
+    )
+    assert extraction.raw == {"@type": "Product", "name": "Widget"}
+    assert extraction.normalized.source_type == "generic_url"
+
+
 # --- NormalizedProductEvidence --------------------------------------------
 
 
@@ -118,16 +131,20 @@ class _FakeSpecificAdapter:
     def matches(self, url: str) -> bool:
         return "specific-platform.example" in url
 
-    def extract(self, url: str) -> NormalizedProductEvidence:
-        return NormalizedProductEvidence(source_type="fake_specific", source_url=url)
+    def extract(self, url: str) -> ProductSourceExtraction:
+        return ProductSourceExtraction(
+            raw={}, normalized=NormalizedProductEvidence(source_type="fake_specific", source_url=url)
+        )
 
 
 class _FakeGenericAdapter:
     def matches(self, url: str) -> bool:
         return True
 
-    def extract(self, url: str) -> NormalizedProductEvidence:
-        return NormalizedProductEvidence(source_type="fake_generic", source_url=url)
+    def extract(self, url: str) -> ProductSourceExtraction:
+        return ProductSourceExtraction(
+            raw={}, normalized=NormalizedProductEvidence(source_type="fake_generic", source_url=url)
+        )
 
 
 @pytest.fixture()
