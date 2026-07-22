@@ -32,6 +32,7 @@ ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE = "product_lock_profile"
 ANALYSIS_TYPE_CREATIVE_FINGERPRINT = "creative_fingerprint"
 ANALYSIS_TYPE_MARKETING_ANALYSIS = "marketing_analysis"
 ANALYSIS_TYPE_RECREATION_PROMPT = "recreation_prompt"
+ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
 
 STATUS_PENDING = "pending"
 STATUS_SUCCEEDED = "succeeded"

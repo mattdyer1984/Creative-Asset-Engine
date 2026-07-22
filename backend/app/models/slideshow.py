@@ -49,6 +49,9 @@ class Slideshow(Base):
     # from Slide instead - see app.models.slide.
     current_marketing_analysis_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     current_recreation_prompt_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - additive,
+    # same pattern as the two pointers above.
+    current_narrative_structure_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     last_failed_stage: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_failed_stage_error: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.marketing_analysis import MarketingAnalysis
+from app.models.narrative_structure import NarrativeStructure
 from app.models.ocr_result import OCRResult
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
@@ -40,6 +41,7 @@ from app.schemas import (
     AssembledSlideshowBlueprint,
     CreativeFingerprintRead,
     MarketingAnalysisRead,
+    NarrativeStructureRead,
     OCRResultRead,
     ProductLockProfileRead,
     RecreationPromptRead,
@@ -141,6 +143,18 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
         if row is not None:
             marketing_analysis = MarketingAnalysisRead.model_validate(row)
 
+    narrative_structure = None
+    if slideshow.current_narrative_structure_id:
+        row = db.get(NarrativeStructure, slideshow.current_narrative_structure_id)
+        if row is not None:
+            narrative_structure = NarrativeStructureRead(
+                id=row.id,
+                schema_version=row.schema_version,
+                is_current=row.is_current,
+                structured=row.structured_json,
+                created_at=row.created_at,
+            )
+
     recreation_prompt = None
     if slideshow.current_recreation_prompt_id:
         row = db.get(RecreationPrompt, slideshow.current_recreation_prompt_id)
@@ -165,6 +179,7 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
         source_references=slideshow.source_references_json,
         slides=slides,
         marketing_analysis=marketing_analysis,
+        narrative_structure=narrative_structure,
         recreation_prompt=recreation_prompt,
         failed_stage=slideshow.last_failed_stage,
         failed_stage_error=slideshow.last_failed_stage_error,

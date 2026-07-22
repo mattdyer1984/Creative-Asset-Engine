@@ -177,7 +177,16 @@ def _assert_matches_marketing_analysis_shape(result: dict) -> None:
 
 
 class FakeTextGenerationProvider:
-    """Returns a canned narrative dict, or raises."""
+    """
+    Returns a canned dict for TextGenerationProvider.generate(), or
+    raises - shared by both real consumers (Marketing Analysis and, since
+    Phase 7.2, Narrative Structure - see MIGRATION_PLAN.md), which expect
+    different response shapes. The shape guard only applies to this
+    class's own default canned result (marketing-analysis-shaped, its
+    original and only purpose) - an explicitly supplied `result` is
+    trusted as-is, since it's now the caller's job to match whichever
+    consumer/schema they're actually faking.
+    """
 
     model = "fake-text-model"
     provider = "openai"
@@ -192,7 +201,7 @@ class FakeTextGenerationProvider:
                 "product rather than a new market entrant."
             )
         }
-        if raise_error is None:
+        if raise_error is None and result is None:
             _assert_matches_marketing_analysis_shape(self._result)
         self._raise_error = raise_error
         # Records the most recent call's prompt_spec, so tests can assert

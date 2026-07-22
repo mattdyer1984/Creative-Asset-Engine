@@ -36,6 +36,7 @@ from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.listing import Listing
 from app.models.marketing_analysis import MarketingAnalysis
+from app.models.narrative_structure import NarrativeStructure
 from app.models.ocr_result import OCRResult
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
@@ -64,6 +65,7 @@ __all__ = [
     "ProductBundleMember",
     "CreativeFingerprint",
     "MarketingAnalysis",
+    "NarrativeStructure",
     "RecreationPrompt",
     "Slideshow",
     "Slide",

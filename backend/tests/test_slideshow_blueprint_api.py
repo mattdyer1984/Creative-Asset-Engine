@@ -19,7 +19,7 @@ from app.main import app
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
 from app.models.product_lock_profile import ProductLockProfile
 from app.stages.execution import start_analysis_run
-from tests.fakes import FakeAIProviderRegistry, FakeVisionAnalysisProvider
+from tests.fakes import FakeAIProviderRegistry, FakeTextGenerationProvider, FakeVisionAnalysisProvider
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 
 
@@ -352,6 +352,17 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     monkeypatch.setattr(
         "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
     )
+    # Narrative Structure (Phase 7.2) shares TextGenerationProvider with
+    # Marketing Analysis but expects a different response shape - its own
+    # fake registry, not the shared-shape one above.
+    monkeypatch.setattr(
+        "app.slideshow_stages.narrative_structure_stage.default_registry",
+        FakeAIProviderRegistry(
+            text_generation_provider=FakeTextGenerationProvider(
+                result={"slides": [{"slide_index": 0, "beat": "hook"}], "arc_summary": "A short arc."}
+            )
+        ),
+    )
     monkeypatch.setattr(
         "app.slideshow_stages.recreation_prompt_stage.default_registry", FakeAIProviderRegistry()
     )
@@ -370,6 +381,11 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     assert product["product_lock_profile"] is not None
     assert slide["creative_fingerprint"] is not None
     assert blueprint["marketing_analysis"] is not None
+    assert blueprint["narrative_structure"] is not None
+    assert blueprint["narrative_structure"]["structured"]["slides"] == [
+        {"slide_id": slide["id"], "slide_index": 0, "beat": "hook"}
+    ]
+    assert blueprint["narrative_structure"]["structured"]["arc_summary"] == "A short arc."
     assert blueprint["recreation_prompt"] is not None
     assert blueprint["recreation_prompt"]["structured"]["product_lock_reference"][
         "product_lock_profile_id"

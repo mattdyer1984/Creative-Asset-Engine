@@ -231,6 +231,18 @@ class RecreationPromptRead(BaseModel):
     created_at: datetime
 
 
+class NarrativeStructureRead(BaseModel):
+    """Phase 7.2 of the Narrative pass, see MIGRATION_PLAN.md - structured is {slides, arc_summary}."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    schema_version: str
+    is_current: bool
+    structured: dict
+    created_at: datetime
+
+
 class OCRResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -390,6 +402,7 @@ class AssembledSlideshowBlueprint(BaseModel):
     slides: list[AssembledSlideBlueprint]
 
     marketing_analysis: MarketingAnalysisRead | None = None
+    narrative_structure: NarrativeStructureRead | None = None
     recreation_prompt: RecreationPromptRead | None = None
 
     failed_stage: str | None = None

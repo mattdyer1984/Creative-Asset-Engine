@@ -2923,4 +2923,77 @@ deliberately NOT widened in this phase.
   1-slide slideshow's blueprint/pipeline output is identical to before.
 - Commit: (see git log)
 
+### Phase 7.2 — Narrative Structure stage (done)
+
+- New model `NarrativeStructure` (slideshow-scoped, mirrors
+  `MarketingAnalysis`/`RecreationPrompt`'s shape via
+  `AnalysisArtifactMixin`): `structured_json` (`{slides: [{slide_id,
+  slide_index, beat}], arc_summary}`), `ocr_result_ids_json` (one OCR
+  result id per slide, in slide order - the exact provenance Phase 7.4's
+  staleness check needs). New `Slideshow.current_narrative_structure_id`
+  pointer, same plain-String pattern as the two existing ones. New
+  migration `19b5c9909b3e`, additive only (no batch mode needed - a plain
+  nullable column add, not an ALTER requiring a new FK constraint) -
+  full backup/scratch-copy/round-trip discipline applied before touching
+  the real dev DB.
+- New `SlideshowNarrativeStructureStage`: text-only
+  (`TextGenerationProvider`, the same capability Marketing Analysis
+  already uses - zero new AI-provider work), added to
+  `SLIDESHOW_STAGE_PIPELINE` after Marketing Analysis. Slides with no
+  current OCR result or empty OCR text are never sent to the AI and are
+  force-assigned `unclassifiable` by the stage's own code - not left to
+  the model to self-report - verified by a dedicated test that gives the
+  fake AI a plausible-but-wrong answer for an unsent slide and confirms
+  the stage ignores it. If literally no slide has any OCR text, the whole
+  stage fails cleanly ("No OCR text available on any slide yet"),
+  mirroring every other stage's prerequisite-check pattern.
+- `NarrativeStructureRead` schema + `AssembledSlideshowBlueprint.
+  narrative_structure` field added to the blueprint response in this
+  same sub-phase, matching how every other stage's artifact has always
+  landed alongside its stage (not deferred to a later API sub-phase) -
+  `assemble_slideshow_blueprint` resolves it from `slideshow.
+  current_narrative_structure_id` exactly like Marketing Analysis/
+  Recreation Prompt already do.
+- **Real gap found and fixed while wiring the full pipeline, not
+  anticipated in the plan's prose**: adding a 7th stage to
+  `SLIDESHOW_STAGE_PIPELINE` broke the two existing "run the entire real
+  pipeline" tests (`test_default_pipeline_runs_all_six_stages` in
+  `test_slideshow_orchestrator.py`, `test_blueprint_reflects_full_
+  pipeline_results` in `test_slideshow_blueprint_api.py`) - both iterate
+  a fixed list of stage modules to monkeypatch and didn't know about the
+  new one. Fixed by patching `narrative_structure_stage`'s own registry
+  in both. Renamed the orchestrator test to `..._all_seven_stages` and
+  added assertions for the new pointer, rather than just silencing the
+  failure.
+- **A second real gap found in shared test infrastructure**:
+  `FakeTextGenerationProvider` (`tests/fakes.py`) had a hardcoded shape
+  guard asserting every canned result matches `MARKETING_ANALYSIS_SCHEMA`
+  exactly (`{"narrative": str}`) - correct when Marketing Analysis was
+  the only real consumer of `TextGenerationProvider`, now wrong now that
+  Narrative Structure is a second consumer with a different real schema.
+  Fixed by scoping the guard to the class's own default canned result
+  only (its original purpose) - an explicitly supplied `result=` is
+  trusted as the caller's responsibility, since it's now genuinely
+  ambiguous which of two schemas a fake author intends. Confirmed no
+  existing test relied on the guard firing on a custom `result=` before
+  making this change.
+- 5 new tests (`tests/test_slide_narrative_structure_stage.py`): missing-
+  OCR-everywhere prerequisite failure, single-slide gets one beat,
+  real multi-slide slideshow gets distinct per-slide beats (not one
+  blob), the no-OCR-text-forces-unclassifiable regression guard described
+  above, rerun produces a new version and flips the previous one's
+  `is_current`. Plus 1 new assertion added to the existing full-pipeline
+  blueprint test confirming `narrative_structure` appears correctly in
+  the response.
+- Full suite: 200/200 passing (195 existing + 5 new). Ruff clean on every
+  new/changed file (11 pre-existing baseline findings elsewhere,
+  unrelated). App boots cleanly, 35 routes (unchanged - no new endpoints
+  this sub-phase, the artifact is read via the existing blueprint
+  endpoint). Pipeline confirmed to run all 7 stages in the correct order
+  via direct inspection.
+- Zero behavior change to the single-slide, no-narrative-structure-yet
+  case beyond gaining the new stage itself - every other artifact's
+  assembly/response shape is untouched.
+- Commit: (see git log)
+
 ---
