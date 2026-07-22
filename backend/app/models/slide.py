@@ -47,3 +47,14 @@ class Slide(Base):
 
     slideshow: Mapped["Slideshow"] = relationship(back_populates="slides")
     product_appearances: Mapped[list["ProductAppearance"]] = relationship(back_populates="slide")
+
+    @property
+    def current_product_appearance(self) -> "ProductAppearance | None":
+        """
+        The slide's current ProductAppearance, if any - a convenience for
+        API responses that need "is a product assigned, and which one"
+        without a separate query (e.g. the Slideshow list view, for UI
+        parity with the old Creative.product denormalization). Phase 2
+        invariant: at most one current appearance per slide.
+        """
+        return next((a for a in self.product_appearances if a.is_current), None)

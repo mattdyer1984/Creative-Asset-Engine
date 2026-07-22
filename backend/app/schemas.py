@@ -188,6 +188,18 @@ class AssembledCreativeBlueprint(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class SlideProductAppearanceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    product_id: str
+    product: ProductRead | None
+    prominence: str
+    confidence: float
+    is_current: bool
+    created_at: datetime
+
+
 class SlideRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -197,6 +209,9 @@ class SlideRead(BaseModel):
     original_filename: str
     source_type: str
     source_locator: str
+    # Convenience denormalization (via Slide.current_product_appearance)
+    # for UI parity with the old CreativeRead.product.
+    current_product_appearance: SlideProductAppearanceRead | None = None
 
 
 class SlideshowRead(BaseModel):
@@ -211,18 +226,6 @@ class SlideshowRead(BaseModel):
 
 class AssignSlideProductRequest(BaseModel):
     product_id: str | None  # null unassigns
-
-
-class SlideProductAppearanceRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    product_id: str
-    product: ProductRead | None
-    prominence: str
-    confidence: float
-    is_current: bool
-    created_at: datetime
 
 
 class SlideProductReferenceImageRead(BaseModel):
