@@ -3,9 +3,10 @@ Tests for app.product_sources.base (the shared Protocol, typed value
 union, and canonical vocabulary) and app.product_sources.registry (URL
 dispatch) - Phase 5.2 of Product Intelligence, see MIGRATION_PLAN.md.
 
-No concrete adapters exist yet (that's 5.3/5.4) - registry tests use
-trivial fake adapters defined locally, exercising exactly the dispatch
-contract real adapters will need to satisfy.
+Registry dispatch tests use trivial fake adapters defined locally (not
+the real GenericUrlAdapter Phase 5.3 registered) to keep this file
+focused on the contract/dispatch mechanics - GenericUrlAdapter's own
+behavior is covered by tests/test_generic_product_source_adapter.py.
 """
 
 import pytest
@@ -171,6 +172,14 @@ def test_registry_raises_a_clear_error_if_nothing_matches(monkeypatch):
         get_product_source_adapter("https://unmatched.example/x")
 
 
-def test_real_registry_is_empty_until_5_3_and_5_4_land():
-    """Documents the current, honest state - no concrete adapters exist yet."""
-    assert PRODUCT_SOURCE_ADAPTERS == []
+def test_real_registry_has_the_generic_fallback_registered_last():
+    """
+    Phase 5.3 registered GenericUrlAdapter as the catch-all. Phase 5.4
+    (TikTok Shop) will insert itself before it, not after - this test
+    pins down "generic stays last" so that ordering mistake would fail
+    loudly here rather than silently making TikTok Shop URLs fall
+    through to the wrong adapter once 5.4 lands.
+    """
+    from app.product_sources.generic import GenericUrlAdapter
+
+    assert PRODUCT_SOURCE_ADAPTERS[-1] is GenericUrlAdapter

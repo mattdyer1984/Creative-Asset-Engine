@@ -13,13 +13,16 @@ checks its own domain/URL patterns; the generic fallback's matches()
 always returns True, so it only ever wins when nothing more specific
 did - which requires it to stay last in this list.
 
-No concrete adapters registered yet - Phase 5.3 (generic) and 5.4
-(TikTok Shop) add themselves here as they land.
+Phase 5.4 (TikTok Shop) inserts itself before GenericUrlAdapter once it
+lands - its matches() will check TikTok Shop URL patterns specifically.
 """
 
 from app.product_sources.base import ProductSourceAdapter
+from app.product_sources.generic import GenericUrlAdapter
 
-PRODUCT_SOURCE_ADAPTERS: list[type[ProductSourceAdapter]] = []
+PRODUCT_SOURCE_ADAPTERS: list[type[ProductSourceAdapter]] = [
+    GenericUrlAdapter,
+]
 
 
 def get_product_source_adapter(url: str) -> ProductSourceAdapter:

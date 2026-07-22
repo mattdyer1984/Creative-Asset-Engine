@@ -1285,4 +1285,64 @@ product data - expect to revisit it as real profiles get built.
   wired up to it yet.
 - Commit: (see git log)
 
+### Contract fix (done, between 5.2 and 5.3)
+
+`ProductSourceAdapter.extract()` changed from returning
+`NormalizedProductEvidence` alone to `ProductSourceExtraction{raw,
+normalized}` - a real gap found while starting 5.3, not caught when 5.2
+was written: `ProductSourceImport.raw_response_json` (5.1) needs the raw
+fetch result, and the original signature would have forced either a
+second fetch per URL or some other way to smuggle raw data out. Fixed
+before any adapter was built on top of it. Separate commit, not folded
+into 5.2's (already pushed to this branch) or 5.3's.
+
+### Phase 5.3 — Generic fallback adapter (done)
+
+- `app/product_sources/generic.py`: `GenericUrlAdapter` -
+  schema.org JSON-LD first (including `@graph`-bundled JSON-LD, a common
+  real-world pattern), OpenGraph/page-`<title>` fallback if no JSON-LD
+  `Product` block is found. Bounded fetch (10s timeout, 5MB response cap,
+  streamed so the cap is enforced during download, not after). Injectable
+  `httpx.BaseTransport` in the constructor so tests never hit real
+  network.
+- `app/services/product_source_import.py`: `import_product_source(db,
+  product_id, url)` - resolves the adapter via the registry, persists
+  both raw and normalized data, downloads discovered images into
+  `ProductReferenceImage` rows (`isolation_method="product_url"`,
+  `analysis_run_id=None`). Any failure (unreachable URL, adapter error)
+  records a `ProductSourceImport` with `fetch_status=FETCH_STATUS_FAILED`
+  and the error message rather than raising - the same "the artifact
+  records the attempt" discipline used everywhere else. A single image
+  failing to download does not fail the whole import - it's just
+  skipped, since the primary value is the structured evidence, images
+  are secondary enrichment (documented as a deliberate choice, not an
+  oversight).
+- `GenericUrlAdapter` registered in `PRODUCT_SOURCE_ADAPTERS` (the list
+  was empty since 5.2) - the one existing "registry is still empty" test
+  from 5.2 was replaced with one asserting the generic adapter stays
+  *last*, so Phase 5.4 registering TikTok Shop in the wrong position
+  would fail loudly rather than silently misrouting TikTok Shop URLs to
+  the generic adapter.
+- New dependencies added to `requirements.txt`: `httpx==0.28.1` (was
+  already present transitively via FastAPI's stack, promoted to direct)
+  and `beautifulsoup4==4.15.0` (new).
+- **Test strategy exactly as planned**: no real network calls anywhere.
+  `GenericUrlAdapter`'s own parsing tested via `httpx.MockTransport` with
+  fixture HTML (schema.org JSON-LD, `@graph`-bundled JSON-LD, OpenGraph-
+  only, no-markup, malformed-JSON-LD-still-falls-back, unreachable URL,
+  4xx status, oversized response). `import_product_source`'s
+  orchestration tested against a fake adapter (fast, no HTTP mocking
+  needed for adapter resolution - that's what
+  `test_generic_product_source_adapter.py` already covers); its own
+  image-download logic tested separately with a real `MockTransport`,
+  including the "one image fails, import still succeeds" path.
+- 25 new tests across 3 files (9 adapter, 7 service, 9 updated/added in
+  the base/registry file - one from 5.2 replaced, not just added to).
+  Full suite: 111/111 passing (96 existing + entries above). Ruff clean
+  (same 10 pre-existing F821 false positives, unrelated). App boots
+  cleanly.
+- Zero behavior change to anything existing - `import_product_source`
+  has no caller yet (that's 5.6's job); purely additive.
+- Commit: (see git log)
+
 ---
