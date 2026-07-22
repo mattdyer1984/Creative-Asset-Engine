@@ -6,12 +6,23 @@ Parallel equivalent of app.stages.product_isolation_stage.
 ProductIsolationStage. Behavior is intentionally identical to the old
 stage for Phase 2 - still requires exactly one product to be associated
 with the slide, still fails if the provider detects zero products.
-Genuinely optional/multi-product detection is Phase 5, not this one.
 
 The one real difference: "is a product assigned" is answered by
 querying for a current ProductAppearance on the slide, replacing
 Creative.product_id's single direct FK - see Phase 2.4's design note in
 the migration roadmap.
+
+Phase 6 (multi per-slide product detection, see MIGRATION_PLAN.md) made
+assigning *multiple* products to one slide possible (via the new
+POST .../slides/{id}/products endpoint), but deliberately does NOT make
+this stage isolate each one automatically - isolate_product takes a
+whole slide image and a generic, non-targeted prompt, with no way to
+tell it *which* assigned product to focus on. Calling it once per
+product would just return the same detection twice, mislabeled under
+two different product_ids - silently wrong data, worse than an honest
+failure. A slide with 2+ current appearances fails clearly instead (see
+_MULTI_PRODUCT_ERROR below) - real product-targeted isolation is future
+work, logged in MIGRATION_PLAN.md, not guessed at here.
 
 _crop_bounding_boxes is deliberately duplicated from the old stage
 rather than shared, to keep this sub-phase from touching any file the
@@ -28,7 +39,6 @@ from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_ISOLATION
-from app.models.product_appearance import ProductAppearance
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
@@ -43,26 +53,29 @@ ISOLATION_METHOD = "llm_bounding_box_v1"
 CROP_PADDING_FRACTION = 0.05
 
 
+_MULTI_PRODUCT_ERROR = (
+    "Multiple products assigned to this slide - automated per-product isolation isn't "
+    "implemented yet. Each product's isolation must currently be generated from a slide "
+    "where it's the only one assigned."
+)
+
+
 class SlideProductIsolationStage:
     name = "product_isolation"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide
 
-        current_appearance = (
-            db.query(ProductAppearance)
-            .filter(
-                ProductAppearance.slide_id == slide.id,
-                ProductAppearance.is_current.is_(True),
-            )
-            .first()
-        )
-        if current_appearance is None:
+        current_appearances = slide.current_product_appearances
+        if not current_appearances:
             return StageResult(
                 succeeded=False,
                 error="No product assigned to this slide - assign one before running Product Isolation.",
             )
-        product_id = current_appearance.product_id
+        distinct_product_ids = {a.product_id for a in current_appearances}
+        if len(distinct_product_ids) > 1:
+            return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
+        product_id = current_appearances[0].product_id
 
         isolation_provider = default_registry.isolation()
 

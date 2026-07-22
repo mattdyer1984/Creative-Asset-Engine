@@ -6,10 +6,34 @@ mirrors tests/test_product_lock_profile_stage.py's coverage.
 from sqlalchemy import select
 
 from app.models.analysis_run import STATUS_SUCCEEDED, AnalysisRun
+from app.models.product import Product
+from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
 from app.slideshow_stages.product_isolation_stage import SlideProductIsolationStage
-from app.slideshow_stages.product_lock_profile_stage import SlideProductLockProfileStage
+from app.slideshow_stages.product_lock_profile_stage import (
+    _MULTI_PRODUCT_ERROR,
+    SlideProductLockProfileStage,
+)
 from tests.fakes import FakeAIProviderRegistry, FakeProductIsolationProvider
+
+
+def _add_second_current_appearance(db_session, slideshow_with_product):
+    """Mirrors tests/test_slide_product_isolation_stage.py's helper of the same name."""
+    second_product = Product(display_name="Second Product")
+    db_session.add(second_product)
+    db_session.flush()
+
+    slide = slideshow_with_product.primary_slide
+    db_session.add(
+        ProductAppearance(
+            slide_id=slide.id,
+            product_id=second_product.id,
+            prominence="secondary",
+            confidence=1.0,
+            is_current=True,
+        )
+    )
+    db_session.commit()
 
 
 def test_fails_gracefully_without_a_product_assigned(db_session, slideshow_with_slide, monkeypatch):
@@ -133,3 +157,26 @@ def test_no_current_product_lock_profile_pointer_on_slide_or_slideshow(
     """
     assert not hasattr(slideshow_with_product.primary_slide, "current_product_lock_profile_id")
     assert not hasattr(slideshow_with_product, "current_product_lock_profile_id")
+
+
+def test_fails_clearly_with_multiple_distinct_products_assigned(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Phase 6.2: a slide with 2+ distinct current products fails with an
+    explicit, honest error rather than silently generating the same
+    profile twice under two different product_ids (see
+    MIGRATION_PLAN.md's Phase 6.2 plan revision for why looping wasn't
+    safe to implement).
+    """
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
+    )
+    _add_second_current_appearance(db_session, slideshow_with_product)
+
+    stage = SlideProductLockProfileStage()
+    result = stage.run(db_session, slideshow_with_product)
+
+    assert result.succeeded is False
+    assert result.error == _MULTI_PRODUCT_ERROR
+    assert db_session.scalars(select(AnalysisRun)).first() is None

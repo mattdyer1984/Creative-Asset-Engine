@@ -1807,3 +1807,53 @@ undesigned, logged as future work).
 - Commit: (see git log)
 
 ---
+
+### Phase 6.2 — Product Isolation + Product Lock Profile stages reject multi-product slides honestly (done)
+
+- Original plan ("loop over every current appearance, process each
+  distinct product") was found unsafe before any code was written: neither
+  `isolation_provider.isolate_product(image_bytes)` nor
+  `vision_provider.analyze_creative(...)` takes any parameter to target or
+  disambiguate which assigned product to focus on - calling either twice
+  for two different products would produce the same (or near-identical)
+  result both times, mislabeled under two different `product_id`s. A
+  naive box-to-appearance zip was considered and rejected too (no
+  correspondence guarantee, could silently attach the wrong crop to the
+  wrong product). This finding was documented and the plan revised
+  *before* implementation, in its own commit (`b414818`).
+- Corrected, safe scope actually implemented: both
+  `SlideProductIsolationStage` and `SlideProductLockProfileStage` now read
+  `slide.current_product_appearances` (plural, from 6.1) instead of a
+  single `.first()`-queried appearance. A slide with exactly one distinct
+  current `product_id` behaves identically to before (byte-for-byte same
+  code path, just resolved via the plural accessor). A slide with 2+
+  distinct current `product_id`s now fails clearly and immediately - each
+  stage has its own `_MULTI_PRODUCT_ERROR` message naming the stage
+  ("...automated per-product isolation isn't implemented yet..." /
+  "...automated per-product profiling isn't implemented yet...") - before
+  any provider call or `AnalysisRun` is even created, so no partial/
+  misleading artifact is ever written.
+- `product_lock_profile_stage.py`'s now-unused
+  `from app.models.product_appearance import ProductAppearance` import was
+  removed (grep-verified no other reference remains in the file); both
+  module docstrings updated to explain the Phase 6 scope decision and
+  point at MIGRATION_PLAN.md.
+- 2 new tests (one per stage): a second `ProductAppearance` for a distinct
+  product is added to the existing `slideshow_with_product` fixture's
+  slide, and the stage is asserted to fail with the exact
+  `_MULTI_PRODUCT_ERROR` string and to have created zero `AnalysisRun`
+  rows. All prior single-product tests for both stages pass completely
+  unchanged (proving the single-product path is genuinely untouched, not
+  just re-tested).
+- Full suite: 139/139 passing (137 existing + 2 new). Ruff clean on all
+  four changed/added files. App boots cleanly, 28 routes (unchanged - no
+  new endpoints this sub-phase, only stage-internal logic).
+- Added "product-targeted isolation/profiling for multi-product slides"
+  to "Suggested future improvements": real fix needs region-hinted or
+  reference-image-hinted provider calls (`isolate_product`/
+  `analyze_creative` would need a way to say "focus on this area" or
+  "focus on the product that looks like this reference image") - genuine
+  AI-provider design work, not attempted here.
+- Commit: (see git log)
+
+---

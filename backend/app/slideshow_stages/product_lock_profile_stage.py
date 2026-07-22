@@ -23,6 +23,16 @@ rather than imported from it, same reasoning as
 _crop_bounding_boxes in the new Product Isolation stage: keeps this
 package fully self-contained so Phase 2.7 can delete the old stage files
 without this package needing to change.
+
+Phase 6 (multi per-slide product detection, see MIGRATION_PLAN.md) made
+assigning multiple products to one slide possible, but deliberately does
+NOT make this stage profile each one automatically - the vision call
+below takes a whole slide image and a generic "the featured product"
+prompt, with no way to target a specific assigned product. A slide with
+2+ current appearances fails clearly (see _MULTI_PRODUCT_ERROR below)
+instead of silently producing the same profile twice under two different
+product_ids - real product-targeted profiling is future work, logged in
+MIGRATION_PLAN.md, not guessed at here.
 """
 
 from pathlib import Path
@@ -31,7 +41,6 @@ from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
-from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
@@ -124,6 +133,12 @@ PRODUCT_LOCK_PROFILE_SCHEMA = {
     "additionalProperties": False,
 }
 
+_MULTI_PRODUCT_ERROR = (
+    "Multiple products assigned to this slide - automated per-product profiling isn't "
+    "implemented yet. Each product's Lock Profile must currently be generated from a slide "
+    "where it's the only one assigned."
+)
+
 PRODUCT_LOCK_PROFILE_PROMPT = (
     "Analyze the featured product in this marketing image and produce a "
     "detailed, structured description covering its category, type, shape "
@@ -142,20 +157,16 @@ class SlideProductLockProfileStage:
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide
 
-        current_appearance = (
-            db.query(ProductAppearance)
-            .filter(
-                ProductAppearance.slide_id == slide.id,
-                ProductAppearance.is_current.is_(True),
-            )
-            .first()
-        )
-        if current_appearance is None:
+        current_appearances = slide.current_product_appearances
+        if not current_appearances:
             return StageResult(
                 succeeded=False,
                 error="No product assigned to this slide - assign one before generating a Product Lock Profile.",
             )
-        product_id = current_appearance.product_id
+        distinct_product_ids = {a.product_id for a in current_appearances}
+        if len(distinct_product_ids) > 1:
+            return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
+        product_id = current_appearances[0].product_id
 
         vision_provider = default_registry.vision()
 
