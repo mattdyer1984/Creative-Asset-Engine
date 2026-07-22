@@ -194,6 +194,25 @@ eventually:
   for every other platform). Either is a deliberate product/business
   decision for the user to make explicitly, not something to pursue
   unprompted.
+- **Product-targeted isolation/profiling for multi-product slides**
+  (found while implementing Phase 6.2, 2026-07-22): `isolate_product`
+  and `analyze_creative`'s Product Lock Profile prompt both take a whole
+  slide image and a generic, non-targeted "the featured product"
+  framing - there's no way to tell either provider *which* of several
+  assigned products to focus on. Phase 6 ships assigning/tracking
+  multiple products per slide (6.1, 6.4, 6.5); it deliberately does NOT
+  ship automated per-product isolation/profiling for the 2+-products
+  case, since faking it (calling the same generic prompt twice, or
+  guessing which detected bounding box belongs to which product) would
+  silently produce plausible-looking but wrong data - worse than the
+  honest gap. Real fix needs either region-hinted isolation (seed the
+  call with a specific area of the image to focus on, e.g. from a
+  manually-drawn or previously-detected bounding box) or reference-
+  image-hinted profiling (seed the vision call with "does this look like
+  <product's existing reference image>?") - both are real AI-provider
+  interface design work, not an orchestration-loop change, and belong in
+  their own phase once there's a real multi-product use case to design
+  against, not guessed at here.
 
 ## Phase 3: Async execution boundary — detailed plan
 
@@ -1642,24 +1661,54 @@ like an oversight once its two sibling stages change.
   `assign-product` flow is untouched either way.
 - **Expected commit size**: small-medium.
 
-### 6.2 — Product Isolation + Product Lock Profile stages: loop over every current appearance
+### 6.2 — Product Isolation + Product Lock Profile stages: revised scope (real gap found during implementation)
 
-- Both stages change from "get one current appearance, process that one
-  product" to "get every current appearance, process each *distinct*
-  product_id once" (dedupe if a slide somehow has two appearances for
-  the same product - run isolation/profiling once per product, not once
-  per appearance row).
-- No schema change needed - each stage's artifacts (`ProductReferenceImage`,
-  `ProductLockProfile`) are already scoped to `product_id`, not `slide_id`,
-  so producing N sets of artifacts for N products on one slide already
-  fits the existing model exactly.
+**The original plan above ("loop over every current appearance, process
+each distinct product") turned out not to actually work, and would have
+silently produced wrong data if built as written - caught by reading the
+provider call sites carefully before writing the loop, not after.**
+
+Both `isolation_provider.isolate_product(image_bytes)` and
+`vision_provider.analyze_creative(image_bytes=..., prompt_spec={"prompt":
+PRODUCT_LOCK_PROFILE_PROMPT, ...})` take the whole slide image and a
+generic, non-targeted prompt ("the featured product") - there is no way
+to tell either provider *which* of several assigned products to focus
+on. Calling either one twice for two different assigned products would
+not produce two different results - it would produce the same
+(or near-identical, given LLM non-determinism) crop/profile twice,
+mislabeled under two different `product_id`s. Naively zipping N detected
+bounding boxes against N assigned products in whatever order each
+happens to come back was considered and rejected too - there's no
+correspondence guarantee between detection order and assignment order,
+so this would silently attach the wrong crop to the wrong product just
+as easily as the right one. Both would violate the standing design
+principle harder than not having the feature at all: the Product Profile
+is a canonical contract, and plausible-looking wrong data is worse than
+an honest gap.
+
+**Revised, honest scope**: single-product slides (today's only real
+case, and still the overwhelming majority even after 6.1) behave exactly
+as before - zero change. A slide with 2+ current appearances gets a
+clear, specific, honest failure from both stages
+("Multiple products assigned to this slide - automated per-product
+isolation/profiling isn't implemented yet; each product's Lock Profile
+must currently be generated from a slide where it's the only one
+assigned") instead of either crashing or silently writing incorrect
+data. This is not a smaller version of the original goal so much as a
+different, safer one: Phase 6's real, honestly-deliverable value is
+letting multiple products be *assigned and tracked* per slide (6.1, 6.4,
+6.5) - genuinely automating *detection and profiling* for more than one
+product per slide needs product-targeted isolation/profiling (e.g.
+region-hinted or reference-image-hinted provider calls), which is real,
+undesigned AI-provider work belonging in its own future phase, not a
+guess made here. Logged under "Suggested future improvements" below.
+- No schema change needed either way.
 - The zero-appearance case (today's "no product assigned" failure)
   stays unchanged - still correct.
 - **Test strategy**: existing single-product tests must keep passing
-  unchanged (looping over a 1-element list is behaviorally identical to
-  today's single-item handling) - new tests specifically construct 2+
-  current appearances via 6.1's new endpoint and confirm both products
-  get isolated/profiled independently.
+  unchanged. New tests: 2+ current appearances (via 6.1's endpoint)
+  produces the new, specific "multiple products assigned" failure from
+  both stages, not a crash and not silently-wrong data.
 - **Rollback**: revert; single-product slides (the only kind
   constructible before 6.1) are completely unaffected either way.
 - **Expected commit size**: medium.
@@ -1725,10 +1774,11 @@ prior additive sub-phases, this one has no way to stay backward-
 compatible without carrying two parallel shapes, which would itself be
 the kind of complexity revision #5's discipline (small, stable
 contracts) argues against carrying elsewhere in this codebase. Landing
-6.4+6.5 together, tested thoroughly, is the mitigation. Deduping by
-product_id in 6.2 is a judgment call worth re-checking against real
-multi-product usage once it exists - documented as a reasonable default,
-not asserted as definitely correct forever.
+6.4+6.5 together, tested thoroughly, is the mitigation. See 6.2 above
+for the real scope revision found while implementing it - multi-product
+*assignment/tracking* ships this phase, multi-product *automated
+isolation/profiling* does not (needs product-targeted provider calls,
+undesigned, logged as future work).
 
 ## Phase 6 reports log
 
