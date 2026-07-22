@@ -89,7 +89,7 @@ implementation/production limitation.
 | 4 | True multi-slide import (4.1–4.4) | done |
 | 5 | **Product Intelligence** (evidence model, listing import, canonical profile, catalogue layer) | done (5.1-5.12, live-verified — TikTok Shop deliberately unsupported, see 5.4; catalogue layer per the frozen ADR) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
-| 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | in progress (7.1-7.4 done, live-verified; 7.5 frontend remaining) |
+| 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | done (7.1-7.5, live-verified) |
 | 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
 | 9 | PerformanceRecord (additive) *(was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
 | 10 | Pattern v0 (trivial candidate capture) *(was Phase 9)* | **same as 9** |
@@ -3078,6 +3078,71 @@ deliberately NOT widened in this phase.
 - Zero behavior change to any artifact's actual content - `is_stale`/
   `stale_because` are purely additive response fields; a client that
   ignores them sees byte-identical behavior to before.
+- Commit: (see git log)
+
+### Phase 7.5 — Frontend: narrative beats + staleness indicators (done)
+
+- `frontend/src/api.ts`: added `is_stale`/`stale_because` (both optional,
+  matching the backend's own defaulting for pre-7.4 callers) to
+  `ProductLockProfile`, `CreativeFingerprintData`, `MarketingAnalysisData`,
+  `RecreationPromptData`; new `NarrativeStructureData` type and
+  `AssembledSlideshowBlueprint.narrative_structure` field (both existed
+  on the backend since 7.2/7.4 but were never added to the frontend
+  contract - a real gap found while wiring this sub-phase, not a
+  regression).
+- `SlideshowBlueprintModal.tsx`: new `StaleBadge` component (reuses the
+  existing `classification-badge` visual language per the plan, new
+  `.stale-badge` color modifier in `App.css`) rendered next to a
+  section's title whenever that artifact `is_stale`, with the specific
+  upstream stage name(s) as a hover tooltip; wired into all 5 dependent
+  sections (Product Lock Profile, Creative Fingerprint, Marketing
+  Analysis, Recreation Prompt, and the new Narrative Structure section
+  itself). New "Narrative Structure" `BlueprintSection` (arc summary +
+  a per-slide beat list, current slide bolded) inserted between
+  Marketing Analysis and OCR Text, matching pipeline order. A small
+  `.beat-badge` next to the existing slide-selector's "Slide X of Y"
+  label shows the current slide's own beat at a glance without opening
+  the new section.
+- **Real infrastructure gap found and fixed while live-verifying, not
+  anticipated in the plan**: `vite.config.ts`'s dev proxy still
+  hardcoded `target: 'http://127.0.0.1:8000'`, stale from before
+  `.claude/launch.json`'s backend config was moved to port 8321 earlier
+  in this session - every `/api` call from `npm run dev` was silently
+  502ing. Fixed by pointing the proxy at 8321 to match the already-
+  correct launch config; also found and stopped an orphaned `vite`
+  process from a prior session still holding port 5173.
+- **Live verification**: real OpenAI-backed reruns weren't available in
+  this environment (no API key configured, confirmed via the app's own
+  real error banner: "No API key found for provider 'openai'" - the
+  same failure-surfacing path every other stage already uses, so this
+  incidentally re-confirmed that path still works correctly for the two
+  newest stage names). Entering credentials is out of scope for
+  autonomous work, so real end-to-end AI generation wasn't exercised
+  here. Instead verified via a client-side `fetch` interception in the
+  live browser tab (visual QA only, never touches persisted data) that
+  fed the real blueprint response through with realistic
+  `narrative_structure`/`is_stale`/`stale_because` values: confirmed via
+  direct DOM inspection that the Narrative Structure section renders the
+  arc summary and a correctly-labeled, correctly-highlighted beat list;
+  that Marketing Analysis and Recreation Prompt both show a `stale`
+  badge with an accurate, correctly-joined "Out of date since ..."
+  tooltip (Recreation Prompt's showing both of its two dependencies);
+  that Product Lock Profile shows its own stale badge; and that Creative
+  Fingerprint - deliberately left fresh in the mock - shows no badge at
+  all, confirming the badge is conditional and not always-on. Two live
+  rerun attempts against the real backend (both failing cleanly on the
+  missing API key, as intended) transiently flipped a real dev
+  slideshow's status to `failed`; confirmed via direct sqlite3
+  inspection that its artifact pointers were untouched (matching the
+  non-destructive-failure guarantee every stage already provides) and
+  restored its `status`/`last_failed_stage`/`last_failed_stage_error`
+  columns to their prior values before finishing.
+- `npx tsc --noEmit`, `npm run lint` (oxlint), and `npm run build` all
+  clean.
+- Zero behavior change for any pre-7.4 artifact or any slideshow that
+  hasn't run Narrative Structure yet - `is_stale`/`stale_because` are
+  optional on every frontend type and the new section's empty state
+  ("Not generated yet.") matches every other section's.
 - Commit: (see git log)
 
 ---

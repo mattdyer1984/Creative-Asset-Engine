@@ -11,7 +11,7 @@ export default defineConfig({
     // files directly from FastAPI (see backend/app/main.py).
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: 'http://127.0.0.1:8321',
         changeOrigin: true,
       },
     },

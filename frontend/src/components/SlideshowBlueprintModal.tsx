@@ -21,7 +21,18 @@ const STAGE_LABELS: Record<string, string> = {
   product_lock_profile: 'Product Lock Profile',
   creative_fingerprint: 'Creative Fingerprint',
   marketing_analysis: 'Marketing Analysis',
+  narrative_structure: 'Narrative Structure',
   recreation_prompt: 'Recreation Prompt',
+};
+
+const BEAT_LABELS: Record<string, string> = {
+  hook: 'Hook',
+  story: 'Story',
+  reveal: 'Reveal',
+  proof: 'Proof',
+  cta: 'CTA',
+  other: 'Other',
+  unclassifiable: 'Unclassifiable',
 };
 
 /**
@@ -117,6 +128,9 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     : 0;
   const slide = blueprint?.slides[clampedSlideIndex];
   const runInFlight = blueprint?.status === 'queued' || blueprint?.status === 'analyzing';
+  const currentBeat = slide
+    ? blueprint?.narrative_structure?.structured.slides.find((s) => s.slide_id === slide.id)?.beat
+    : undefined;
 
   return (
     <div className="blueprint-backdrop" onClick={onClose}>
@@ -174,6 +188,9 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 </button>
                 <span>
                   Slide {clampedSlideIndex + 1} of {blueprint.slides.length}
+                  {currentBeat && (
+                    <span className="beat-badge">{BEAT_LABELS[currentBeat] ?? currentBeat}</span>
+                  )}
                 </span>
                 <button
                   onClick={() =>
@@ -248,7 +265,13 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                       </div>
                     )}
                     {product.product_lock_profile ? (
-                      <ProductLockProfileFields structured={product.product_lock_profile.structured} />
+                      <>
+                        <StaleBadge
+                          isStale={product.product_lock_profile.is_stale}
+                          staleBecause={product.product_lock_profile.stale_because}
+                        />
+                        <ProductLockProfileFields structured={product.product_lock_profile.structured} />
+                      </>
                     ) : (
                       <p className="empty-state">Lock Profile not generated yet.</p>
                     )}
@@ -265,6 +288,8 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               rerunLabel="Regenerate fingerprint"
               onRerun={() => handleRerun('creative_fingerprint')}
               busy={busyAction === 'creative_fingerprint' || runInFlight}
+              isStale={slide.creative_fingerprint?.is_stale}
+              staleBecause={slide.creative_fingerprint?.stale_because}
             >
               {slide.creative_fingerprint && (
                 <CreativeFingerprintFields structured={slide.creative_fingerprint.structured} />
@@ -279,9 +304,37 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               rerunLabel="Regenerate analysis"
               onRerun={() => handleRerun('marketing_analysis')}
               busy={busyAction === 'marketing_analysis' || runInFlight}
+              isStale={blueprint.marketing_analysis?.is_stale}
+              staleBecause={blueprint.marketing_analysis?.stale_because}
             >
               {blueprint.marketing_analysis && (
                 <p className="narrative-text">{blueprint.marketing_analysis.narrative_text}</p>
+              )}
+            </BlueprintSection>
+
+            <BlueprintSection
+              title="Narrative Structure"
+              generated={blueprint.narrative_structure !== null}
+              failed={blueprint.failed_stage === 'narrative_structure'}
+              error={blueprint.failed_stage === 'narrative_structure' ? blueprint.failed_stage_error : null}
+              rerunLabel="Regenerate structure"
+              onRerun={() => handleRerun('narrative_structure')}
+              busy={busyAction === 'narrative_structure' || runInFlight}
+              isStale={blueprint.narrative_structure?.is_stale}
+              staleBecause={blueprint.narrative_structure?.stale_because}
+            >
+              {blueprint.narrative_structure && (
+                <>
+                  <p className="narrative-text">{blueprint.narrative_structure.structured.arc_summary}</p>
+                  <ul className="narrative-beat-list">
+                    {blueprint.narrative_structure.structured.slides.map((s) => (
+                      <li key={s.slide_id} className={s.slide_id === slide.id ? 'current-slide-beat' : undefined}>
+                        <span className="field-label">Slide {s.slide_index + 1}</span>
+                        <span className="beat-badge">{BEAT_LABELS[s.beat] ?? s.beat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </BlueprintSection>
 
@@ -321,6 +374,8 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               rerunLabel="Regenerate prompt"
               onRerun={() => handleRerun('recreation_prompt')}
               busy={busyAction === 'recreation_prompt' || runInFlight}
+              isStale={blueprint.recreation_prompt?.is_stale}
+              staleBecause={blueprint.recreation_prompt?.stale_because}
               extraAction={
                 blueprint.recreation_prompt ? (
                   <CopyJsonButton data={blueprint.recreation_prompt.structured} />
@@ -347,6 +402,8 @@ function BlueprintSection({
   onRerun,
   busy,
   extraAction,
+  isStale,
+  staleBecause,
   children,
 }: {
   title: string;
@@ -357,12 +414,17 @@ function BlueprintSection({
   onRerun: () => void;
   busy: boolean;
   extraAction?: React.ReactNode;
+  isStale?: boolean;
+  staleBecause?: string[];
   children?: React.ReactNode;
 }) {
   return (
     <section className="blueprint-section">
       <div className="blueprint-section-header">
-        <h3>{title}</h3>
+        <h3>
+          {title}
+          {generated && <StaleBadge isStale={isStale} staleBecause={staleBecause} />}
+        </h3>
         <div className="blueprint-section-actions">
           {extraAction}
           <button className="rerun-button" onClick={onRerun} disabled={busy}>
@@ -373,6 +435,26 @@ function BlueprintSection({
       {failed && error && <p className="section-error">{error}</p>}
       {generated ? children : !failed && <p className="empty-state">Not generated yet.</p>}
     </section>
+  );
+}
+
+/**
+ * Phase 7.5 (see MIGRATION_PLAN.md) - reuses the existing
+ * classification-badge visual language rather than inventing a new one.
+ * staleBecause names the upstream stage(s) that moved on since this
+ * artifact was generated - shown as a title tooltip since the badge
+ * itself has no room for prose.
+ */
+function StaleBadge({ isStale, staleBecause }: { isStale?: boolean; staleBecause?: string[] }) {
+  if (!isStale) return null;
+  const reasons = (staleBecause ?? []).map((s) => STAGE_LABELS[s] ?? s).join(', ');
+  return (
+    <span
+      className="classification-badge stale-badge"
+      title={reasons ? `Out of date since ${reasons} last ran` : 'Out of date'}
+    >
+      stale
+    </span>
   );
 }
 

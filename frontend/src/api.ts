@@ -35,6 +35,12 @@ export interface ProductLockProfile {
   structured: Record<string, unknown>;
   reference_image_ids: string[];
   created_at: string;
+  // Phase 7.4 (dependency-aware staleness, see MIGRATION_PLAN.md) -
+  // computed on every fetch, never persisted; defaults match the
+  // backend's ProductLockProfileRead defaults for callers (e.g.
+  // GET /api/products/{id}/lock-profile) that predate this field.
+  is_stale?: boolean;
+  stale_because?: string[];
 }
 
 export interface Product {
@@ -188,6 +194,8 @@ export interface CreativeFingerprintData {
   is_current: boolean;
   structured: Record<string, unknown>;
   created_at: string;
+  is_stale?: boolean;
+  stale_because?: string[];
 }
 
 export interface MarketingAnalysisData {
@@ -195,6 +203,8 @@ export interface MarketingAnalysisData {
   is_current: boolean;
   narrative_text: string;
   created_at: string;
+  is_stale?: boolean;
+  stale_because?: string[];
 }
 
 export interface RecreationPromptData {
@@ -205,6 +215,23 @@ export interface RecreationPromptData {
   creative_fingerprint_id: string;
   structured: Record<string, unknown>;
   created_at: string;
+  is_stale?: boolean;
+  stale_because?: string[];
+}
+
+// Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - structured is
+// {slides: [{slide_id, slide_index, beat}], arc_summary}.
+export interface NarrativeStructureData {
+  id: string;
+  schema_version: string;
+  is_current: boolean;
+  structured: {
+    slides: { slide_id: string; slide_index: number; beat: string }[];
+    arc_summary: string;
+  };
+  created_at: string;
+  is_stale?: boolean;
+  stale_because?: string[];
 }
 
 // AssembledCreativeBlueprint (old /api/creatives/*'s single-response
@@ -488,6 +515,7 @@ export interface AssembledSlideshowBlueprint {
   source_references: Record<string, unknown>;
   slides: AssembledSlideBlueprint[];
   marketing_analysis: MarketingAnalysisData | null;
+  narrative_structure: NarrativeStructureData | null;
   recreation_prompt: RecreationPromptData | null;
   failed_stage: string | null;
   failed_stage_error: string | null;
