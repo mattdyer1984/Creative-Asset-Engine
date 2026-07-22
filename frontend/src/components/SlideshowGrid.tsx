@@ -18,12 +18,14 @@ const STATUS_LABELS: Record<string, string> = {
   failed: 'Failed',
 };
 
-// Statuses from which triggering analysis makes sense. "analyzing" is
-// excluded since the pipeline runs synchronously within the request
-// that set it - by the time the UI re-renders, it's already ready/failed
-// (unchanged reasoning from the old CreativeGrid - async execution is a
-// separate, later phase).
-const ANALYZABLE_STATUSES = new Set(['imported', 'queued', 'failed']);
+// Statuses from which triggering analysis makes sense. "queued" and
+// "analyzing" are both excluded - as of Phase 3.2 (async execution
+// boundary, see MIGRATION_PLAN.md) these are real, observable states a
+// background run can sit in for a while, not transient ones that are
+// already ready/failed by the time the UI re-renders - triggering a
+// second run while one is already in flight is rejected by the backend
+// with 409 anyway, so this just keeps the button from offering it.
+const ANALYZABLE_STATUSES = new Set(['imported', 'failed']);
 
 /**
  * New-pipeline equivalent of CreativeGrid.tsx. Renders one card per

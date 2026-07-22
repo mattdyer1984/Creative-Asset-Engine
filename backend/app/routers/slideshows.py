@@ -4,9 +4,9 @@ Slideshow/Slide migration (it replaced /api/creatives/*, removed in
 Phase 2.7).
 """
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
@@ -15,13 +15,14 @@ from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
 from app.models.slide import Slide
-from app.models.slideshow import Slideshow
+from app.models.slideshow import STATUS_ANALYZING, STATUS_QUEUED, Slideshow
 from app.schemas import (
     AnalysisRunRead,
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
     SlideshowRead,
 )
+from app.services.background_execution import run_pipeline_in_background
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
 from app.slideshow_stages.orchestrator import default_slideshow_orchestrator
@@ -99,22 +100,46 @@ def get_slide_file(
     return FileResponse(slide.stored_file_path)
 
 
-@router.post("/{slideshow_id}/analyze", response_model=AssembledSlideshowBlueprint)
+@router.post("/{slideshow_id}/analyze", response_model=SlideshowRead, status_code=202)
 def analyze_slideshow(
-    slideshow_id: str, db: Session = Depends(get_db)
-) -> AssembledSlideshowBlueprint:
+    slideshow_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+) -> Slideshow:
     """
-    Runs the full new Stage pipeline synchronously - same blocking
-    behavior as the old /api/creatives/{id}/analyze (async execution is
-    a separate, later phase, not this one).
-    """
-    slideshow = db.get(Slideshow, slideshow_id)
-    if slideshow is None:
-        raise HTTPException(status_code=404, detail="Slideshow not found")
+    Schedules the full Stage pipeline to run in the background (Phase 3.2
+    of the async execution boundary work - see MIGRATION_PLAN.md) instead
+    of blocking the request for the pipeline's full duration. Returns as
+    soon as status flips to "queued" - 202 Accepted, not 200, since unlike
+    every other endpoint in this router the work described by the request
+    is deliberately not done yet when the response is sent. Poll
+    GET .../blueprint (or the slideshow list) to observe progress through
+    queued -> analyzing -> ready|failed.
 
-    default_slideshow_orchestrator.run_full_pipeline(db, slideshow)
-    db.refresh(slideshow)
-    return assemble_slideshow_blueprint(db, slideshow)
+    Claims the row with a single atomic UPDATE ... WHERE status NOT IN
+    (...) rather than a separate read-then-write - caught live (via two
+    genuinely concurrent requests against a real running server, not just
+    TestClient) doing it as a plain read-check-then-write: two overlapping
+    requests could both read the pre-queued status before either had
+    committed, and both would pass the guard. SQLite serializes writer
+    transactions, so the second of two concurrent UPDATEs against the
+    same row always sees the first one's already-committed result.
+    """
+    result = db.execute(
+        update(Slideshow)
+        .where(Slideshow.id == slideshow_id, Slideshow.status.notin_((STATUS_QUEUED, STATUS_ANALYZING)))
+        .values(status=STATUS_QUEUED)
+    )
+    db.commit()
+
+    if result.rowcount == 0:
+        if db.get(Slideshow, slideshow_id) is None:
+            raise HTTPException(status_code=404, detail="Slideshow not found")
+        raise HTTPException(status_code=409, detail="Analysis already in progress")
+
+    slideshow = db.get(Slideshow, slideshow_id)
+
+    background_tasks.add_task(run_pipeline_in_background, slideshow_id)
+
+    return slideshow
 
 
 @router.get("/{slideshow_id}/blueprint", response_model=AssembledSlideshowBlueprint)

@@ -8,8 +8,10 @@ test_products_api.py in Phase 2.7 for the same reason.
 """
 
 import io
+import threading
 
 import pytest
+from fastapi import BackgroundTasks, HTTPException
 from fastapi.testclient import TestClient
 
 from app.db import get_db
@@ -134,21 +136,112 @@ def test_rerun_reflects_failure_in_the_assembled_blueprint(client, monkeypatch):
     assert body["recreation_prompt"] is None
 
 
+def test_analyze_returns_202_and_queued_immediately(client, monkeypatch):
+    """
+    POST /analyze (Phase 3.2 - async execution boundary, see
+    MIGRATION_PLAN.md) schedules the pipeline in the background and
+    returns as soon as status flips to "queued" - the response body
+    reflects that pre-background-run state (verified: FastAPI serializes
+    the response_model before BackgroundTasks run), not the pipeline's
+    eventual outcome. Content assertions belong on a separate GET
+    /blueprint call - see the next two tests.
+    """
+    slideshow_id = _import_slideshow(client)
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
+
+    response = client.post(f"/api/slideshows/{slideshow_id}/analyze")
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "queued"
+
+
+def test_analyze_rejects_a_second_trigger_while_in_progress(client):
+    """
+    New failure mode introduced by going async (Phase 3.2): two overlapping
+    /analyze calls used to be impossible (the first request's own thread
+    was the lock). Directly setting status to simulate "already running",
+    since TestClient's synchronous background-task execution means a real
+    race can't be reproduced through the HTTP layer in a test.
+    """
+    slideshow_id = _import_slideshow(client)
+
+    from app.db import SessionLocal
+    from app.models.slideshow import STATUS_ANALYZING, Slideshow
+
+    db = SessionLocal()
+    slideshow = db.get(Slideshow, slideshow_id)
+    slideshow.status = STATUS_ANALYZING
+    db.commit()
+    db.close()
+
+    response = client.post(f"/api/slideshows/{slideshow_id}/analyze")
+    assert response.status_code == 409
+
+
+def test_analyze_atomically_claims_the_row_under_real_concurrency(client):
+    """
+    Reproduces, deterministically, a real bug a live test against an
+    actual running server (not just TestClient) caught: the first version
+    of /analyze's guard was a plain read-then-write (read status, check
+    it, then set status=queued and commit) - two genuinely concurrent
+    requests could both read the pre-queued status before either had
+    committed, so both would pass the guard and both get 202.
+
+    Deliberately does NOT go through the `client` fixture's shared
+    db_session for the concurrent calls themselves - the fixture's
+    override_get_db always yields that one shared Session object, which
+    isn't safe to call from two threads at once and wouldn't reproduce
+    the actual bug anyway (production's real race is between two
+    independent Sessions/connections against the same SQLite file, via
+    app.db.SessionLocal per-request - see app.db.get_db). Calls the route
+    function directly with its own Session per thread instead, which
+    faithfully reproduces that shape.
+    """
+    slideshow_id = _import_slideshow(client)
+
+    import app.db
+    from app.routers.slideshows import analyze_slideshow
+
+    results = []
+    barrier = threading.Barrier(2)
+
+    def call():
+        db = app.db.SessionLocal()
+        try:
+            barrier.wait()
+            try:
+                analyze_slideshow(slideshow_id, BackgroundTasks(), db=db)
+                results.append(202)
+            except HTTPException as exc:
+                results.append(exc.status_code)
+        finally:
+            db.close()
+
+    threads = [threading.Thread(target=call) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert sorted(results) == [202, 409]
+
+
 def test_analyze_surfaces_prerequisite_failure_with_no_product_assigned(client, monkeypatch):
     """
     Importing a slideshow and clicking Analyze WITHOUT assigning a
     product first: OCR succeeds, then Product Isolation fails its
-    prerequisite check before creating any AnalysisRun - /analyze's
-    response must still name exactly what failed.
+    prerequisite check before creating any AnalysisRun - a subsequent GET
+    /blueprint must name exactly what failed (the POST /analyze response
+    itself no longer carries analysis content - see
+    test_analyze_returns_202_and_queued_immediately).
     """
     slideshow_id = _import_slideshow(client)
     # Deliberately no assign-product call.
 
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
 
-    response = client.post(f"/api/slideshows/{slideshow_id}/analyze")
-    assert response.status_code == 200
-    body = response.json()
+    client.post(f"/api/slideshows/{slideshow_id}/analyze")
+    body = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
 
     assert body["status"] == "failed"
     assert body["failed_stage"] == "product_isolation"
@@ -197,8 +290,8 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     )
 
     response = client.post(f"/api/slideshows/{slideshow_id}/analyze")
-    assert response.status_code == 200
-    assert response.json()["status"] == "ready"
+    assert response.status_code == 202
+    assert response.json()["status"] == "queued"
 
     blueprint = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
     assert blueprint["status"] == "ready"

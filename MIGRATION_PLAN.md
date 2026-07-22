@@ -217,4 +217,60 @@ being in the git commit messages themselves.
   additive infrastructure, exercised only by its own tests.
 - Commit: (see git log)
 
+### Phase 3.2 — Wire `/analyze` to background execution (done)
+
+Scope grew beyond the original plan's split (backend-only 3.2, frontend
+polling deferred to 3.4): landing the backend change alone would have
+left the app in a genuinely broken intermediate state (the modal calling
+`setBlueprint()` on a response shape that no longer matched), violating
+the "app still runs after every sub-phase" invariant. Folded the matching
+frontend change into this sub-phase instead - each of 3.2/3.3 is now a
+complete, working vertical slice. 3.4 is repurposed as polish/cleanup
+rather than "add polling" (already done here).
+
+- Backend: `POST /analyze` now claims the row atomically (see below),
+  schedules `run_pipeline_in_background` via `BackgroundTasks`, and
+  returns `SlideshowRead` with `202 Accepted` instead of blocking for the
+  full pipeline and returning `AssembledSlideshowBlueprint`. New `409` if
+  analysis is already in progress.
+- **Real concurrency bug caught by live testing, not by the unit test
+  suite**: verified against the actual running server (not just
+  `TestClient`) with two genuinely concurrent `POST /analyze` calls -
+  both came back `202`. The first implementation used a plain
+  read-status-then-write, which races: two overlapping requests can both
+  read the pre-queued status before either commits. Fixed with a single
+  atomic `UPDATE ... WHERE status NOT IN (queued, analyzing)`, checking
+  `rowcount` to distinguish "claimed it" / "already in progress" / "404".
+  Re-verified live after the fix: `202` + `409`, consistently. Added a
+  matching pytest (`test_analyze_atomically_claims_the_row_under_real_
+  concurrency`) using two real threads with independent DB sessions
+  against the route function directly - the existing `client` fixture's
+  shared session isn't thread-safe to call concurrently and wouldn't
+  have reproduced this anyway (see that test's docstring). Ran 5x locally
+  with no flakiness.
+- Frontend: `api.ts`'s `analyzeSlideshow` return type → `Slideshow`.
+  `SlideshowBlueprintModal` re-fetches instead of trusting the POST
+  response body, and polls (1.5s) while status is queued/analyzing.
+  `App.tsx` gained a silent (no loading-spinner-flash) list refresh,
+  polling the same way, so the grid view reflects progress without
+  requiring the modal to be open. `SlideshowGrid.tsx`'s `ANALYZABLE_
+  STATUSES` no longer includes `queued` (a real, sustained state now,
+  not a transient one) and its stale "analyzing is unreachable" comment
+  is corrected.
+- Live-verified end-to-end against the real dev server/data (not just
+  `TestClient`): clicked Retry, watched `202` → background run → the
+  grid's own poll picking up the eventual `failed` status (this
+  environment has no OpenAI API key configured, so the pipeline fails
+  cleanly at OCR's "no API key" check - confirms the full async plumbing
+  without spending real API cost). One caveat: because that failure is
+  near-instant locally, this specific check didn't observe the *recurring*
+  1.5s poll tick actually firing mid-flight (only the immediate
+  post-trigger refresh) - the interval/cleanup logic itself is simple and
+  type-checked/linted/built cleanly, but a slow-running analysis (a real
+  provider key) is the more complete way to observe that specific detail,
+  not done here.
+- Full suite: 69/69 passing. Ruff clean. Frontend `tsc`/`oxlint`/`build`
+  clean.
+- Commit: (see git log)
+
 ---

@@ -62,8 +62,13 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     setBusyAction('__all__');
     setError(null);
     try {
-      const result = await api.analyzeSlideshow(slideshowId);
-      setBlueprint(result);
+      // analyzeSlideshow now returns immediately once status flips to
+      // "queued" (Phase 3.2 - see MIGRATION_PLAN.md) rather than the
+      // finished blueprint, so re-fetch to pick up that status; the
+      // polling effect below takes over from there while it's
+      // queued/analyzing.
+      await api.analyzeSlideshow(slideshowId);
+      load();
       onChanged();
     } catch (err) {
       setError((err as Error).message);
@@ -71,6 +76,16 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
       setBusyAction(null);
     }
   };
+
+  // Poll while a background analysis is in flight (Phase 3.2) - re-runs
+  // whenever blueprint.status changes, so it naturally stops once the
+  // pipeline reaches ready/failed.
+  useEffect(() => {
+    if (blueprint?.status !== 'queued' && blueprint?.status !== 'analyzing') return;
+    const interval = setInterval(load, 1500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideshowId, blueprint?.status]);
 
   const handleRerun = async (stageName: string) => {
     setBusyAction(stageName);
@@ -124,9 +139,17 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <button
                   className="analyze-all-button"
                   onClick={handleAnalyzeAll}
-                  disabled={busyAction !== null}
+                  disabled={
+                    busyAction !== null ||
+                    blueprint.status === 'queued' ||
+                    blueprint.status === 'analyzing'
+                  }
                 >
-                  {busyAction === '__all__' ? 'Analyzing…' : 'Analyze / Re-run All'}
+                  {busyAction === '__all__' ||
+                  blueprint.status === 'queued' ||
+                  blueprint.status === 'analyzing'
+                    ? 'Analyzing…'
+                    : 'Analyze / Re-run All'}
                 </button>
               </div>
             </header>

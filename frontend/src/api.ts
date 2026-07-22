@@ -169,9 +169,15 @@ export const api = {
   slideFileUrl: (slideshowId: string, slideId: string): string =>
     `/api/slideshows/${slideshowId}/slides/${slideId}/file`,
 
-  analyzeSlideshow: (slideshowId: string): Promise<AssembledSlideshowBlueprint> =>
+  // Schedules analysis in the background and returns as soon as status
+  // flips to "queued" (202 Accepted) - Phase 3.2 of the async execution
+  // boundary work (see MIGRATION_PLAN.md). No longer returns the full
+  // blueprint, since none of its analysis content exists yet at this
+  // point - callers should poll getSlideshowBlueprint/listSlideshows
+  // while status is "queued"/"analyzing".
+  analyzeSlideshow: (slideshowId: string): Promise<Slideshow> =>
     fetch(`/api/slideshows/${slideshowId}/analyze`, { method: 'POST' }).then((res) =>
-      handle<AssembledSlideshowBlueprint>(res)
+      handle<Slideshow>(res)
     ),
 
   getSlideshowBlueprint: (slideshowId: string): Promise<AssembledSlideshowBlueprint> =>

@@ -43,11 +43,36 @@ function App() {
       .finally(() => setLoadingSlideshows(false));
   };
 
+  // Silent refresh (no loading-spinner flash) - used by the polling
+  // effect below, which ticks every 1.5s while anything is queued/
+  // analyzing and would otherwise flicker the grid on every tick.
+  const refreshSlideshowsSilently = () => {
+    api.listSlideshows().then(setSlideshows).catch((err) => setError(err.message));
+  };
+
   useEffect(() => {
     loadProjects();
     loadProducts();
     loadSlideshows();
   }, []);
+
+  // Poll while a background analysis is in flight anywhere in the list
+  // (Phase 3.2 of the async execution boundary work - see
+  // MIGRATION_PLAN.md) so cards reach ready/failed without the user
+  // needing to open a slideshow's blueprint modal (which has its own,
+  // separate poller for the single slideshow it's showing). Depends on
+  // the derived boolean, not `slideshows` itself, so the interval isn't
+  // torn down and recreated on every single tick's update - only when
+  // "is anything in flight" actually flips.
+  const anySlideshowInFlight = slideshows.some(
+    (s) => s.status === 'queued' || s.status === 'analyzing'
+  );
+  useEffect(() => {
+    if (!anySlideshowInFlight) return;
+    const interval = setInterval(refreshSlideshowsSilently, 1500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anySlideshowInFlight]);
 
   // Product assignment changes a Slide's current_product_appearance, so
   // the Slideshow list needs reloading too - not just the Product list.
