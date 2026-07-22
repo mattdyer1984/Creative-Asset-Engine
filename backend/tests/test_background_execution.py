@@ -28,7 +28,7 @@ def test_run_pipeline_in_background_succeeds(db_session, slideshow_with_slide, m
     # that OCR's write, made through the background wrapper's own
     # session, is visible from db_session (same underlying test DB) -
     # proving the two sessions share state correctly.
-    assert slideshow_with_slide.slide.current_ocr_result_id is not None
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
     assert slideshow_with_slide.status == STATUS_FAILED
     assert slideshow_with_slide.last_failed_stage == "product_isolation"
 
@@ -47,7 +47,7 @@ def test_run_stage_in_background_reruns_single_stage(db_session, slideshow_with_
 
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.status == STATUS_READY
-    assert slideshow_with_slide.slide.current_ocr_result_id is not None
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
 
 
 def test_run_stage_in_background_marks_failed_on_provider_error(db_session, slideshow_with_slide, monkeypatch):
@@ -79,7 +79,7 @@ def test_background_session_is_independent_of_the_test_session(db_session, slide
     """
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
 
-    slide = slideshow_with_slide.slide
+    slide = slideshow_with_slide.primary_slide
     assert slide.current_ocr_result_id is None
 
     run_stage_in_background(slideshow_with_slide.id, "ocr")

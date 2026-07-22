@@ -516,4 +516,30 @@ construction. The main risk is scope creep into Phase 5's territory
 (actually running stages per-slide) or Phase 7's (a real carousel) -
 guarded against explicitly above by naming what's deliberately excluded.
 
+## Phase 4 reports log
+
+### Phase 4.1 — Rename/relax `Slideshow.slide` → `primary_slide` (done)
+
+- Renamed the property, relaxed the guard to "raise only if zero Slides"
+  (was "raise unless exactly one"). Updated all 6 stage files' call sites
+  plus `slideshow_stages/base.py`'s docstrings.
+- Also renamed the same 6 test files' usages (`slideshow_with_slide.
+  slide` → `.primary_slide`) - macOS's BSD `sed` silently no-ops on `\b`
+  word-boundary patterns (a GNU extension it doesn't support), so an
+  initial `sed -E 's/\.slide\b/.../'` pass across the 6 test files did
+  nothing and was caught by checking the actual file content rather than
+  trusting the exit code - redone with Python's `re` module instead,
+  which does support `\b`, confirmed by counting real substitutions per
+  file (3/3/3/6/9/8) before proceeding.
+- New `tests/test_slideshow_model.py`: 3 tests, including the one new
+  behavior no prior test exercised - `primary_slide` returning
+  `slides[0]` when a Slideshow genuinely has 2+ Slides (constructed
+  directly via the ORM, since the import API can't produce that yet -
+  4.2's job).
+- Full suite: 75/75 passing (72 + 3 new). Ruff clean (same 10 pre-existing
+  F821 false positives, now naming `primary_slide` instead of `slide`).
+- Zero behavior change for any Slideshow that exists today - every one is
+  still exactly 1:1 until 4.2 lands.
+- Commit: (see git log)
+
 ---

@@ -22,14 +22,14 @@ def test_slide_ocr_stage_succeeds_and_updates_slide(db_session, slideshow_with_s
     assert result.succeeded is True
     assert result.error is None
 
-    db_session.refresh(slideshow_with_slide.slide)
-    ocr_result_id = slideshow_with_slide.slide.current_ocr_result_id
+    db_session.refresh(slideshow_with_slide.primary_slide)
+    ocr_result_id = slideshow_with_slide.primary_slide.current_ocr_result_id
     assert ocr_result_id is not None
 
     ocr_result = db_session.get(OCRResult, ocr_result_id)
     assert ocr_result.raw_text == "Fresh Squeezed. Zero Sugar Added."
     assert ocr_result.is_current is True
-    assert ocr_result.slide_id == slideshow_with_slide.slide.id
+    assert ocr_result.slide_id == slideshow_with_slide.primary_slide.id
     assert ocr_result.creative_id is None  # new pipeline never writes the legacy FK
     assert ocr_result.structured_blocks_json[0]["role"] == "headline"
 
@@ -37,7 +37,7 @@ def test_slide_ocr_stage_succeeds_and_updates_slide(db_session, slideshow_with_s
     assert analysis_run.status == STATUS_SUCCEEDED
     assert analysis_run.analysis_type == "ocr"
     assert analysis_run.model_name == "fake-ocr-model"
-    assert analysis_run.slide_id == slideshow_with_slide.slide.id
+    assert analysis_run.slide_id == slideshow_with_slide.primary_slide.id
     assert analysis_run.creative_id is None
 
 
@@ -53,8 +53,8 @@ def test_slide_ocr_stage_fails_gracefully_on_provider_error(db_session, slidesho
     assert result.succeeded is False
     assert "provider timed out" in result.error
 
-    db_session.refresh(slideshow_with_slide.slide)
-    assert slideshow_with_slide.slide.current_ocr_result_id is None
+    db_session.refresh(slideshow_with_slide.primary_slide)
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is None
 
     runs = list(db_session.scalars(select(AnalysisRun)))
     assert len(runs) == 1
@@ -69,14 +69,14 @@ def test_slide_ocr_stage_is_independently_rerunnable(db_session, slideshow_with_
 
     stage = SlideOCRStage()
     stage.run(db_session, slideshow_with_slide)
-    first_ocr_result_id = slideshow_with_slide.slide.current_ocr_result_id
+    first_ocr_result_id = slideshow_with_slide.primary_slide.current_ocr_result_id
 
     fake_registry._ocr_provider = FakeOCRProvider(
         extraction=OCRExtraction(raw_text="Updated text", structured_blocks=[])
     )
     stage.run(db_session, slideshow_with_slide)
-    db_session.refresh(slideshow_with_slide.slide)
-    second_ocr_result_id = slideshow_with_slide.slide.current_ocr_result_id
+    db_session.refresh(slideshow_with_slide.primary_slide)
+    second_ocr_result_id = slideshow_with_slide.primary_slide.current_ocr_result_id
 
     assert second_ocr_result_id != first_ocr_result_id
 

@@ -56,7 +56,7 @@ class SlideshowMarketingAnalysisStage:
     name = "marketing_analysis"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.slide
+        slide = slideshow.primary_slide
 
         if slide.current_creative_fingerprint_id is None:
             return StageResult(

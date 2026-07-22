@@ -92,7 +92,7 @@ class SlideCreativeFingerprintStage:
     name = "creative_fingerprint"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.slide
+        slide = slideshow.primary_slide
         vision_provider = default_registry.vision()
 
         analysis_run = start_analysis_run(

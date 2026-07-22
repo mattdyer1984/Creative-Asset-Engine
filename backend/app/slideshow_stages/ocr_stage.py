@@ -25,7 +25,7 @@ class SlideOCRStage:
     name = "ocr"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.slide
+        slide = slideshow.primary_slide
         ocr_provider = default_registry.ocr()
 
         analysis_run = start_analysis_run(

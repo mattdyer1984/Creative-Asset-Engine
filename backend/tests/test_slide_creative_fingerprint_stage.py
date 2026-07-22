@@ -47,7 +47,7 @@ def test_succeeds_and_updates_slide(db_session, slideshow_with_slide, monkeypatc
 
     assert result.succeeded is True
 
-    slide = slideshow_with_slide.slide
+    slide = slideshow_with_slide.primary_slide
     db_session.refresh(slide)
     fingerprint_id = slide.current_creative_fingerprint_id
     assert fingerprint_id is not None
@@ -111,7 +111,7 @@ def test_fails_gracefully_on_provider_error(db_session, slideshow_with_slide, mo
     assert result.succeeded is False
     assert "provider timed out" in result.error
 
-    slide = slideshow_with_slide.slide
+    slide = slideshow_with_slide.primary_slide
     db_session.refresh(slide)
     assert slide.current_creative_fingerprint_id is None
 
@@ -127,7 +127,7 @@ def test_rerun_produces_new_version(db_session, slideshow_with_slide, monkeypatc
 
     stage = SlideCreativeFingerprintStage()
     stage.run(db_session, slideshow_with_slide)
-    slide = slideshow_with_slide.slide
+    slide = slideshow_with_slide.primary_slide
     db_session.refresh(slide)
     first_id = slide.current_creative_fingerprint_id
 

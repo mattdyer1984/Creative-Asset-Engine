@@ -39,7 +39,7 @@ def test_succeeds_without_reference_images_yet(db_session, slideshow_with_produc
 
     assert result.succeeded is True
 
-    product_id = slideshow_with_product.slide.product_appearances[0].product_id
+    product_id = slideshow_with_product.primary_slide.product_appearances[0].product_id
     profile = db_session.scalars(
         select(ProductLockProfile).where(ProductLockProfile.product_id == product_id)
     ).one()
@@ -53,7 +53,7 @@ def test_succeeds_without_reference_images_yet(db_session, slideshow_with_produc
     analysis_run = db_session.get(AnalysisRun, profile.analysis_run_id)
     assert analysis_run.status == STATUS_SUCCEEDED
     assert analysis_run.analysis_type == "product_lock_profile"
-    assert analysis_run.slide_id == slideshow_with_product.slide.id
+    assert analysis_run.slide_id == slideshow_with_product.primary_slide.id
 
 
 def test_snapshots_current_reference_images(db_session, slideshow_with_product, monkeypatch):
@@ -68,7 +68,7 @@ def test_snapshots_current_reference_images(db_session, slideshow_with_product, 
     SlideProductIsolationStage().run(db_session, slideshow_with_product)
     SlideProductLockProfileStage().run(db_session, slideshow_with_product)
 
-    product_id = slideshow_with_product.slide.product_appearances[0].product_id
+    product_id = slideshow_with_product.primary_slide.product_appearances[0].product_id
     profile = db_session.scalars(
         select(ProductLockProfile).where(ProductLockProfile.product_id == product_id)
     ).first()
@@ -93,7 +93,7 @@ def test_snapshots_all_current_images_when_isolation_produces_multiple_crops(
     SlideProductIsolationStage().run(db_session, slideshow_with_product)
     SlideProductLockProfileStage().run(db_session, slideshow_with_product)
 
-    product_id = slideshow_with_product.slide.product_appearances[0].product_id
+    product_id = slideshow_with_product.primary_slide.product_appearances[0].product_id
     profile = db_session.scalars(
         select(ProductLockProfile).where(ProductLockProfile.product_id == product_id)
     ).first()
@@ -109,7 +109,7 @@ def test_rerun_produces_new_version(db_session, slideshow_with_product, monkeypa
     stage.run(db_session, slideshow_with_product)
     stage.run(db_session, slideshow_with_product)
 
-    product_id = slideshow_with_product.slide.product_appearances[0].product_id
+    product_id = slideshow_with_product.primary_slide.product_appearances[0].product_id
     all_profiles = list(
         db_session.scalars(
             select(ProductLockProfile).where(ProductLockProfile.product_id == product_id)
@@ -131,5 +131,5 @@ def test_no_current_product_lock_profile_pointer_on_slide_or_slideshow(
     product_id. This test exists so that regressing this design decision
     (re-adding such a pointer) breaks loudly.
     """
-    assert not hasattr(slideshow_with_product.slide, "current_product_lock_profile_id")
+    assert not hasattr(slideshow_with_product.primary_slide, "current_product_lock_profile_id")
     assert not hasattr(slideshow_with_product, "current_product_lock_profile_id")

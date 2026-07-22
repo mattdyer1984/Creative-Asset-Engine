@@ -22,7 +22,7 @@ def test_full_pipeline_succeeds(db_session, slideshow_with_slide, monkeypatch):
 
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.status == STATUS_READY
-    assert slideshow_with_slide.slide.current_ocr_result_id is not None
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
 
 
 def test_full_pipeline_marks_failed_on_stage_failure(db_session, slideshow_with_slide, monkeypatch):
@@ -36,7 +36,7 @@ def test_full_pipeline_marks_failed_on_stage_failure(db_session, slideshow_with_
 
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.status == STATUS_FAILED
-    assert slideshow_with_slide.slide.current_ocr_result_id is None
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is None
 
 
 def test_full_pipeline_return_value_names_the_failed_stage(db_session, slideshow_with_slide, monkeypatch):
@@ -79,7 +79,7 @@ def test_failure_isolation_earlier_stage_output_untouched(db_session, slideshow_
 
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.status == STATUS_FAILED
-    assert slideshow_with_slide.slide.current_ocr_result_id is not None
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
 
 
 def test_run_single_stage_reruns_in_isolation(db_session, slideshow_with_slide, monkeypatch):
@@ -88,14 +88,14 @@ def test_run_single_stage_reruns_in_isolation(db_session, slideshow_with_slide, 
     orchestrator = SlideshowOrchestrator(stages=[SlideOCRStage()])
     orchestrator.run_full_pipeline(db_session, slideshow_with_slide)
     db_session.refresh(slideshow_with_slide)
-    first_id = slideshow_with_slide.slide.current_ocr_result_id
+    first_id = slideshow_with_slide.primary_slide.current_ocr_result_id
 
     result = orchestrator.run_single_stage(db_session, slideshow_with_slide, "ocr")
 
     db_session.refresh(slideshow_with_slide)
     assert result.succeeded is True
     assert slideshow_with_slide.status == STATUS_READY
-    assert slideshow_with_slide.slide.current_ocr_result_id != first_id
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id != first_id
 
 
 def test_rerunning_upstream_stage_alone_does_not_touch_downstream_artifacts(
@@ -125,7 +125,7 @@ def test_rerunning_upstream_stage_alone_does_not_touch_downstream_artifacts(
     orchestrator.run_full_pipeline(db_session, slideshow_with_slide)
 
     db_session.refresh(slideshow_with_slide)
-    original_fingerprint_id = slideshow_with_slide.slide.current_creative_fingerprint_id
+    original_fingerprint_id = slideshow_with_slide.primary_slide.current_creative_fingerprint_id
     original_marketing_analysis_id = slideshow_with_slide.current_marketing_analysis_id
     assert original_fingerprint_id is not None
     assert original_marketing_analysis_id is not None
@@ -133,7 +133,7 @@ def test_rerunning_upstream_stage_alone_does_not_touch_downstream_artifacts(
     orchestrator.run_single_stage(db_session, slideshow_with_slide, "creative_fingerprint")
 
     db_session.refresh(slideshow_with_slide)
-    new_fingerprint_id = slideshow_with_slide.slide.current_creative_fingerprint_id
+    new_fingerprint_id = slideshow_with_slide.primary_slide.current_creative_fingerprint_id
     assert new_fingerprint_id != original_fingerprint_id
 
     assert slideshow_with_slide.current_marketing_analysis_id == original_marketing_analysis_id
@@ -167,7 +167,7 @@ def test_default_pipeline_runs_all_six_stages(db_session, slideshow_with_product
     orchestrator.run_full_pipeline(db_session, slideshow_with_product)
 
     db_session.refresh(slideshow_with_product)
-    slide = slideshow_with_product.slide
+    slide = slideshow_with_product.primary_slide
     assert slideshow_with_product.status == STATUS_READY
     assert slide.current_ocr_result_id is not None
     assert slide.current_creative_fingerprint_id is not None

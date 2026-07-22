@@ -40,7 +40,7 @@ def test_succeeds_and_crops_reference_image(db_session, slideshow_with_product, 
 
     assert result.succeeded is True
 
-    slide = slideshow_with_product.slide
+    slide = slideshow_with_product.primary_slide
     reference_images = list(
         db_session.scalars(
             select(ProductReferenceImage).where(
@@ -86,7 +86,7 @@ def test_rerun_produces_new_version_and_flips_previous(db_session, slideshow_wit
     stage.run(db_session, slideshow_with_product)
     stage.run(db_session, slideshow_with_product)
 
-    product_id = slideshow_with_product.slide.product_appearances[0].product_id
+    product_id = slideshow_with_product.primary_slide.product_appearances[0].product_id
     all_images = list(
         db_session.scalars(
             select(ProductReferenceImage).where(ProductReferenceImage.product_id == product_id)
@@ -111,7 +111,7 @@ def test_multiple_crops_are_all_persisted_and_current(db_session, slideshow_with
     result = stage.run(db_session, slideshow_with_product)
 
     assert result.succeeded is True
-    slide = slideshow_with_product.slide
+    slide = slideshow_with_product.primary_slide
     images = list(
         db_session.scalars(
             select(ProductReferenceImage).where(ProductReferenceImage.source_slide_id == slide.id)

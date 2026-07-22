@@ -47,7 +47,7 @@ class SlideProductIsolationStage:
     name = "product_isolation"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.slide
+        slide = slideshow.primary_slide
 
         current_appearance = (
             db.query(ProductAppearance)

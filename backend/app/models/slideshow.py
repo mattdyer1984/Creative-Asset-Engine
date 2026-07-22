@@ -69,18 +69,24 @@ class Slideshow(Base):
     )
 
     @property
-    def slide(self) -> "Slide":
+    def primary_slide(self) -> "Slide":
         """
-        The single Slide - a convenience for the new pipeline (Phase 2.4
-        onward), valid only while cardinality stays 1:1 (Phase 2's
-        invariant; true multi-slide import is a later phase). Raises
-        loudly rather than silently picking slides[0] if that invariant
-        is ever violated, since a caller relying on this accessor has no
-        other way to notice.
+        The Slide the analysis Stages read/write (always slides[0]) -
+        renamed from the old `.slide` (Phase 2-2.7's 1:1-only accessor,
+        which raised if a Slideshow ever had more than one Slide) as part
+        of Phase 4 (true multi-slide import, see MIGRATION_PLAN.md).
+
+        Deliberately still single-slide-scoped, not a loop over every
+        Slide: Phase 4's own scope is "a Slideshow can legitimately have
+        N Slides," not "the Stages analyze every Slide" - that's Phase
+        5's job (optional multi per-slide product detection). Every
+        existing Slideshow is still exactly 1:1 until Phase 4.2's import
+        grouping lands, so this returns the exact same value `.slide`
+        did for every Slideshow that exists today.
+
+        Only raises if `slides` is empty - a Slideshow should never have
+        zero Slides, that invariant is still worth enforcing loudly.
         """
-        if len(self.slides) != 1:
-            raise ValueError(
-                f"Slideshow.slide assumes exactly one Slide (Phase 2 invariant); "
-                f"found {len(self.slides)} for slideshow {self.id}"
-            )
+        if not self.slides:
+            raise ValueError(f"Slideshow {self.id} has no Slides")
         return self.slides[0]
