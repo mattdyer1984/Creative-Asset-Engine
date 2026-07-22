@@ -542,4 +542,28 @@ guarded against explicitly above by naming what's deliberately excluded.
   still exactly 1:1 until 4.2 lands.
 - Commit: (see git log)
 
+### Phase 4.2 — Opt-in multi-slide grouping on import (done)
+
+- `import_slideshows` gained `group_as_one: bool = False`. Factored the
+  per-slide persistence logic (create row, flush for an id, save the
+  file, set `stored_file_path`) out into a shared `_persist_slide`
+  helper used by both the existing 1:1 path and the new grouped path,
+  rather than duplicating it.
+- Grouped Slideshow's own `source_references_json` can't sensibly carry
+  one file's `source_locator`/`raw_metadata` when there are N different
+  files - each Slide already carries its own (unchanged); the Slideshow
+  level now records just the shared `source_type` and a
+  `grouped_slide_count`.
+- `POST /api/slideshows/import` gained a matching `group_as_one` form
+  field, default `False`.
+- New `tests/test_slideshow_import_grouping.py` (4 tests): default
+  behavior explicitly proven unchanged (3 files → 3 independent
+  Slideshows, both with `group_as_one` unset and explicitly `false`),
+  grouped behavior (3 files → 1 Slideshow with 3 ordered Slides, each
+  file actually persisted to disk - checked via a follow-up GET of each
+  Slide's file, not just the DB rows), and the single-file degenerate
+  case.
+- Full suite: 79/79 passing (75 + 4 new). Ruff clean.
+- Commit: (see git log)
+
 ---

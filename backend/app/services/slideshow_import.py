@@ -3,9 +3,16 @@ Slideshow import orchestration (new pipeline) - Phase 2.5 of the
 Slideshow/Slide migration. Parallel equivalent of
 app.services.creative_import.import_creatives.
 
-Persists each imported MarketingCreative as its own independent
-Slideshow + single Slide, matching Phase 2's cardinality-preserving
-scope - true multi-file-as-one-slideshow import is Phase 4, not this one.
+By default persists each imported MarketingCreative as its own
+independent Slideshow + single Slide (batch = independent items, same as
+the old pipeline) - Phase 2's cardinality-preserving scope. Phase 4 (true
+multi-slide import, see MIGRATION_PLAN.md) adds `group_as_one`: an
+explicit, default-off opt-in that instead persists every MarketingCreative
+in the batch as Slides (slide_index 0..N-1) on a single Slideshow.
+Deliberately NOT the default - multi-file-select today means "N unrelated
+items," a real, already-relied-on behavior (see MIGRATION_PLAN.md's Phase
+4 plan for the reasoning); grouping is something the caller opts into,
+not something inferred from "more than one file was selected."
 
 Reuses app.storage.save_creative_original unchanged (keyed by an
 arbitrary id used only as a folder name, so a Slide's id works exactly
@@ -31,19 +38,48 @@ def import_slideshows(
     source_type: str,
     source_config: dict,
     project_id: str | None,
+    group_as_one: bool = False,
 ) -> list[Slideshow]:
     """
-    Resolve the requested Import Provider, run it, and persist every
-    MarketingCreative it returns as its own independent Slideshow (with
-    one Slide) - batch = independent items, same as the old pipeline.
+    Resolve the requested Import Provider, run it, and persist what it
+    returns either as N independent Slideshows (default) or, if
+    `group_as_one` is set, as a single Slideshow with N ordered Slides.
     """
     importer = get_importer(source_type)
     marketing_creatives = importer.import_source(source_config)
+
+    if group_as_one:
+        if not marketing_creatives:
+            return []
+        return [_persist_marketing_creatives_as_one_slideshow(db, marketing_creatives, project_id)]
 
     return [
         _persist_marketing_creative(db, mc, project_id)
         for mc in marketing_creatives
     ]
+
+
+def _persist_slide(
+    db: Session, slideshow_id: str, slide_index: int, marketing_creative: MarketingCreative
+) -> Slide:
+    slide = Slide(
+        slideshow_id=slideshow_id,
+        slide_index=slide_index,
+        original_filename=marketing_creative.original_filename,
+        source_type=marketing_creative.source_type,
+        source_locator=marketing_creative.source_locator,
+        raw_metadata_json=marketing_creative.raw_metadata,
+        # placeholder; replaced below once we have the generated id
+        stored_file_path="",
+    )
+    db.add(slide)
+    db.flush()  # assigns slide.id without committing yet
+
+    stored_path = save_creative_original(
+        slide.id, marketing_creative.original_filename, marketing_creative.image_bytes
+    )
+    slide.stored_file_path = str(stored_path)
+    return slide
 
 
 def _persist_marketing_creative(
@@ -63,23 +99,36 @@ def _persist_marketing_creative(
     db.add(slideshow)
     db.flush()  # assigns slideshow.id without committing yet
 
-    slide = Slide(
-        slideshow_id=slideshow.id,
-        slide_index=0,
-        original_filename=marketing_creative.original_filename,
-        source_type=marketing_creative.source_type,
-        source_locator=marketing_creative.source_locator,
-        raw_metadata_json=marketing_creative.raw_metadata,
-        # placeholder; replaced below once we have the generated id
-        stored_file_path="",
-    )
-    db.add(slide)
-    db.flush()  # assigns slide.id without committing yet
+    _persist_slide(db, slideshow.id, 0, marketing_creative)
 
-    stored_path = save_creative_original(
-        slide.id, marketing_creative.original_filename, marketing_creative.image_bytes
+    db.commit()
+    db.refresh(slideshow)
+    return slideshow
+
+
+def _persist_marketing_creatives_as_one_slideshow(
+    db: Session,
+    marketing_creatives: list[MarketingCreative],
+    project_id: str | None,
+) -> Slideshow:
+    first = marketing_creatives[0]
+    slideshow = Slideshow(
+        project_id=project_id,
+        imported_at=first.imported_at,
+        source_references_json={
+            # No single source_locator/raw_metadata makes sense for a
+            # multi-file group - each Slide already carries its own (see
+            # _persist_slide); this just records the shared source_type
+            # and how many Slides came from this one import.
+            "source_type": first.source_type,
+            "grouped_slide_count": len(marketing_creatives),
+        },
     )
-    slide.stored_file_path = str(stored_path)
+    db.add(slideshow)
+    db.flush()  # assigns slideshow.id without committing yet
+
+    for index, marketing_creative in enumerate(marketing_creatives):
+        _persist_slide(db, slideshow.id, index, marketing_creative)
 
     db.commit()
     db.refresh(slideshow)

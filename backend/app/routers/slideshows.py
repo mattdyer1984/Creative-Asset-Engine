@@ -34,8 +34,17 @@ router = APIRouter(prefix="/api/slideshows", tags=["slideshows"])
 async def import_local_files(
     files: list[UploadFile] = File(...),
     project_id: str | None = Form(default=None),
+    group_as_one: bool = Form(default=False),
     db: Session = Depends(get_db),
 ) -> list[Slideshow]:
+    """
+    group_as_one (Phase 4 - true multi-slide import, see
+    MIGRATION_PLAN.md): default False preserves the existing behavior
+    (every file becomes its own independent Slideshow). Set True to
+    import all files in this one request as a single Slideshow's ordered
+    Slides instead - an explicit choice, never inferred from "more than
+    one file was selected."
+    """
     if project_id is not None and db.get(Project, project_id) is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -46,6 +55,7 @@ async def import_local_files(
         source_type="local_file",
         source_config={"files": file_payload},
         project_id=project_id,
+        group_as_one=group_as_one,
     )
     return slideshows
 
