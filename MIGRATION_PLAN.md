@@ -675,10 +675,10 @@ above), not done here.
 
 ## Phase 5: Product Intelligence — architecture direction
 
-**Status: direction revised by the user on 2026-07-22 (second pass, see
-"2026-07-22 revision #2" below) - this supersedes the first-pass
-direction that briefly appeared in this section. Detailed sub-phase plan
-below reflects the revision and is ready for implementation to begin.**
+**Status: direction revised twice by the user on 2026-07-22 (see
+revision #2 and revision #3 below) - each supersedes/refines what came
+before it. Detailed sub-phase plan below reflects both revisions and is
+ready for implementation to begin.**
 
 **Problem.** `ProductLockProfile` is currently the only thing resembling
 Product Intelligence, and it's a single AI-vision-derived blob: one
@@ -686,7 +686,8 @@ evidence source (crops from `slideshow.primary_slide`), no per-field
 provenance, no confidence, wholesale-replaced on every regeneration
 (`is_current` flips old→false). The goal is a canonical Product Profile
 built by combining multiple evidence sources, each attribute individually
-tagged with where it came from and how trustworthy that source is.
+tagged with where it came from, how trustworthy that source is, and
+whether it's expected to stay fixed or vary between creatives.
 
 ### 2026-07-22 revision #2: Product Source adapters, not "URL importers"
 
@@ -747,6 +748,25 @@ turns out to require), then tackle TikTok Shop as an explicitly
 higher-uncertainty, separately-scoped sub-phase - so real Product
 Intelligence capability ships via the generic path even if TikTok
 Shop's mechanism takes longer to pin down.
+
+### 2026-07-22 revision #3: semantic classification is part of the field, not inferred
+
+One more refinement before implementation begins: every canonical field
+in `CANONICAL_FIELD_VOCABULARY` (5.2) now *requires* a semantic
+classification - `immutable` (a physical product attribute: brand,
+dimensions, labels, packaging, colours, shape, etc.) or `contextual`
+(creative information expected to vary between creatives: lighting,
+composition, camera angle, props, background, emotional positioning,
+etc.) - declared by the vocabulary itself, not inferred later from which
+source happened to win a merge conflict. `ProductProfileField` (5.5) now
+carries this `classification` as a real, visible output field alongside
+`value`/`source`/`confidence` - not just an internal detail the merge
+layer consults. This is what lets a future Generation/Validation engine
+distinguish "must never change" attributes from "expected to vary"
+ones directly from the profile, without re-deriving the distinction
+itself. Purely additive to this not-yet-implemented phase's own design -
+nothing in Phases 0-4 is touched. See 5.2 and 5.5 below for the concrete
+mechanics.
 
 ### First-pass direction (2026-07-22, revision #1) - still valid where not superseded
 
@@ -837,16 +857,37 @@ field-level provenance/confidence, without redoing any completed work.
   `extract(url: str) -> NormalizedProductEvidence` (do the fetch +
   normalize). Mirrors `app/ai_providers/base.py`'s per-capability
   Protocol pattern.
-- The canonical field vocabulary (the first-pass 5.3's classification
-  work - which fields are immutable/listing-preferred vs contextual/
-  slideshow-preferred) moves here, since it's now a *shared contract*
-  every adapter normalizes into, not something the merge layer infers
-  after the fact.
+- The canonical field vocabulary (which fields exist, and which source
+  type each is preferred from during merge) moves here, since it's now a
+  *shared contract* every adapter normalizes into, not something the
+  merge layer infers after the fact.
+  - **Refinement (2026-07-22, revision #3)**: the vocabulary is also
+    where each field's **semantic classification** - `immutable` (a
+    physical product attribute: brand, dimensions, labels, packaging,
+    colours, shape, etc.) or `contextual` (creative information expected
+    to vary between creatives: lighting, composition, camera angle,
+    props, background, emotional positioning, etc.) - is declared, as a
+    required property of the field definition itself, not inferred at
+    merge time or left as an implicit side effect of "which source type
+    is preferred." Concretely: `CANONICAL_FIELD_VOCABULARY: dict[str,
+    FieldDefinition]` where `FieldDefinition` is a small, mandatory-
+    fields dataclass/NamedTuple (`classification: Literal["immutable",
+    "contextual"]`, plus the existing preferred-source-type
+    classification) - declaring a new canonical field without a
+    classification should be a type error, not a silent gap, so "defined
+    by the vocabulary" is enforced, not just documented convention.
+  - This is purely additive to the phase's own not-yet-implemented
+    design (5.2 hasn't been built yet) - no completed work (Phases 0-4)
+    touches this vocabulary, and nothing here changes `ProductLockProfile`
+    or any other existing model.
 - `NormalizedProductEvidence` schema: `source_type, source_url, title,
   brand, images: list[NormalizedProductImage]` (`url`/bytes + role),
   `attributes: dict[str, NormalizedAttribute]` (canonical field name ->
-  `{value, confidence}`), `variants` (loosely typed for v1 - not
-  over-specified before real adapters exist to validate the shape
+  `{value, confidence}` - classification is *not* repeated here, since
+  it's a property of the canonical field name itself, looked up from the
+  vocabulary once at final profile assembly (5.5), not duplicated across
+  every adapter's per-source output), `variants` (loosely typed for v1 -
+  not over-specified before real adapters exist to validate the shape
   against).
 - `app/product_sources/registry.py`: `PRODUCT_SOURCE_ADAPTERS: list[type
   [ProductSourceAdapter]]`, most-specific-first (TikTok Shop before the
@@ -940,15 +981,27 @@ field-level provenance/confidence, without redoing any completed work.
   resolution across already-normalized sources, no field-mapping.
 - New Pydantic schema `ProductProfile` (`fields: dict[str,
   ProductProfileField]`, `ProductProfileField = {value, source_type,
-  source_id, confidence}`).
+  source_id, confidence, classification}`).
+  - **Refinement (2026-07-22, revision #3)**: `classification`
+    (`"immutable"` | `"contextual"`) is a real, visible field on every
+    `ProductProfileField` in the API response - not just an internal
+    detail the merge layer consults to pick a winner. Populated by a
+    direct lookup into 5.2's `CANONICAL_FIELD_VOCABULARY` for that
+    field's name at assembly time - never inferred from which source
+    won, never computed per-request. This is what lets a future
+    Generation/Validation engine (or the UI) filter/distinguish "must
+    never change" attributes from "expected to vary between creatives"
+    ones without re-deriving that distinction itself.
 - `app/services/product_profile.py`: `assemble_product_profile(db,
   product) -> ProductProfile` - reads the current `ProductLockProfile`
   (mapped into the same canonical vocabulary - the one existing evidence
   source that isn't a `ProductSourceImport`, still needs its own mapping
   step here since it predates this phase) and every current
   `ProductSourceImport` for the product, resolves conflicts per 5.2's
-  field classification. Compute-on-read, mirroring
-  `assemble_slideshow_blueprint`.
+  preferred-source-type-per-classification rule (immutable fields prefer
+  listing/URL evidence, contextual fields prefer slideshow evidence),
+  and stamps each resulting field with its classification from the
+  vocabulary. Compute-on-read, mirroring `assemble_slideshow_blueprint`.
 - **Known simplification, flagged rather than solved here**: the Product
   Lock Profile Stage doesn't emit per-field confidence today. Start with
   a flat, documented default confidence per source type (e.g. vision
