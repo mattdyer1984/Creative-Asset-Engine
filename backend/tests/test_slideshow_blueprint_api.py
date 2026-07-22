@@ -392,6 +392,69 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     ] == product["product_lock_profile"]["id"]
 
 
+def test_blueprint_reflects_staleness_after_an_upstream_rerun(client, monkeypatch):
+    """
+    Phase 7.4 (dependency-aware staleness, see MIGRATION_PLAN.md) - a real
+    rerun-and-go-stale sequence through the actual HTTP surface, not just
+    app.services.staleness's unit tests in isolation. Runs the full
+    pipeline to a ready state, then reruns only Creative Fingerprint
+    (which both Marketing Analysis and Recreation Prompt depend on) and
+    confirms the blueprint's downstream artifacts flip stale without
+    their own content changing - Recreation Prompt's own stale reasons
+    stay scoped to creative_fingerprint (its Product Lock Profile
+    dependency is untouched), Marketing Analysis likewise.
+    """
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.narrative_structure_stage.default_registry",
+        FakeAIProviderRegistry(
+            text_generation_provider=FakeTextGenerationProvider(
+                result={"slides": [{"slide_index": 0, "beat": "hook"}], "arc_summary": "A short arc."}
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.recreation_prompt_stage.default_registry", FakeAIProviderRegistry()
+    )
+
+    client.post(f"/api/slideshows/{slideshow_id}/analyze")
+
+    fresh = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
+    assert fresh["slides"][0]["creative_fingerprint"]["is_stale"] is False
+    assert fresh["marketing_analysis"]["is_stale"] is False
+    assert fresh["recreation_prompt"]["is_stale"] is False
+    recreation_prompt_id = fresh["recreation_prompt"]["id"]
+
+    # Rerun only Creative Fingerprint - everything downstream of it should
+    # go stale, everything else (e.g. OCR, Product Lock Profile) shouldn't.
+    client.post(f"/api/slideshows/{slideshow_id}/stages/creative_fingerprint/rerun")
+
+    after = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
+    assert after["slides"][0]["creative_fingerprint"]["is_stale"] is False
+    assert after["marketing_analysis"]["is_stale"] is True
+    assert after["marketing_analysis"]["stale_because"] == ["creative_fingerprint"]
+    assert after["recreation_prompt"]["is_stale"] is True
+    assert after["recreation_prompt"]["stale_because"] == ["creative_fingerprint"]
+    # The stale Recreation Prompt row itself hasn't been touched/regenerated.
+    assert after["recreation_prompt"]["id"] == recreation_prompt_id
+    assert after["slides"][0]["products"][0]["product_lock_profile"]["is_stale"] is False
+
+
 def test_blueprint_regroups_artifacts_per_product_on_a_multi_product_slide(client, db_session):
     """
     Phase 6.4: the actual point of the regrouping - a slide with 2

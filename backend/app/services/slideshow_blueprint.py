@@ -20,6 +20,12 @@ first one silently. This is a breaking response-shape change (the old
 flat product_appearances/product_reference_images/product_lock_profile
 fields are gone), landed together with its frontend consumer (Phase 6.5)
 in the same slice per the plan.
+
+Phase 7.4 (dependency-aware staleness, see MIGRATION_PLAN.md) wires
+app.services.staleness's compute-on-read checks into every dependent
+artifact's *Read schema here - is_stale/stale_because are never ORM
+columns, always computed fresh on every assembly, same compute-on-read
+philosophy as this whole module.
 """
 
 from sqlalchemy import select
@@ -48,6 +54,13 @@ from app.schemas import (
     SlideProductAppearanceRead,
     SlideProductReferenceImageRead,
 )
+from app.services.staleness import (
+    creative_fingerprint_staleness,
+    marketing_analysis_staleness,
+    narrative_structure_staleness,
+    product_lock_profile_staleness,
+    recreation_prompt_staleness,
+)
 
 
 def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
@@ -68,12 +81,15 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
     if slide.current_creative_fingerprint_id:
         row = db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
         if row is not None:
+            staleness = creative_fingerprint_staleness(db, row)
             creative_fingerprint = CreativeFingerprintRead(
                 id=row.id,
                 schema_version=row.schema_version,
                 is_current=row.is_current,
                 structured=row.structured_json,
                 created_at=row.created_at,
+                is_stale=staleness.is_stale,
+                stale_because=staleness.stale_because,
             )
 
     current_appearances = list(
@@ -120,6 +136,7 @@ def _assemble_slide_product(
     ).first()
     product_lock_profile = None
     if lock_profile_row is not None:
+        staleness = product_lock_profile_staleness(db, lock_profile_row)
         product_lock_profile = ProductLockProfileRead(
             id=lock_profile_row.id,
             schema_version=lock_profile_row.schema_version,
@@ -127,6 +144,8 @@ def _assemble_slide_product(
             structured=lock_profile_row.structured_json,
             reference_image_ids=lock_profile_row.reference_image_ids_json,
             created_at=lock_profile_row.created_at,
+            is_stale=staleness.is_stale,
+            stale_because=staleness.stale_because,
         )
 
     return AssembledSlideProductBlueprint(
@@ -141,24 +160,37 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
     if slideshow.current_marketing_analysis_id:
         row = db.get(MarketingAnalysis, slideshow.current_marketing_analysis_id)
         if row is not None:
-            marketing_analysis = MarketingAnalysisRead.model_validate(row)
+            staleness = marketing_analysis_staleness(db, row)
+            marketing_analysis = MarketingAnalysisRead(
+                id=row.id,
+                is_current=row.is_current,
+                narrative_text=row.narrative_text,
+                creative_fingerprint_id=row.creative_fingerprint_id,
+                created_at=row.created_at,
+                is_stale=staleness.is_stale,
+                stale_because=staleness.stale_because,
+            )
 
     narrative_structure = None
     if slideshow.current_narrative_structure_id:
         row = db.get(NarrativeStructure, slideshow.current_narrative_structure_id)
         if row is not None:
+            staleness = narrative_structure_staleness(db, row)
             narrative_structure = NarrativeStructureRead(
                 id=row.id,
                 schema_version=row.schema_version,
                 is_current=row.is_current,
                 structured=row.structured_json,
                 created_at=row.created_at,
+                is_stale=staleness.is_stale,
+                stale_because=staleness.stale_because,
             )
 
     recreation_prompt = None
     if slideshow.current_recreation_prompt_id:
         row = db.get(RecreationPrompt, slideshow.current_recreation_prompt_id)
         if row is not None:
+            staleness = recreation_prompt_staleness(db, row)
             recreation_prompt = RecreationPromptRead(
                 id=row.id,
                 schema_version=row.schema_version,
@@ -167,6 +199,8 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
                 creative_fingerprint_id=row.creative_fingerprint_id,
                 structured=row.structured_json,
                 created_at=row.created_at,
+                is_stale=staleness.is_stale,
+                stale_because=staleness.stale_because,
             )
 
     slides = [_assemble_slide(db, slide) for slide in slideshow.slides]

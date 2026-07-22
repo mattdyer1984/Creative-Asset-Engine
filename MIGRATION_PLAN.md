@@ -89,7 +89,7 @@ implementation/production limitation.
 | 4 | True multi-slide import (4.1–4.4) | done |
 | 5 | **Product Intelligence** (evidence model, listing import, canonical profile, catalogue layer) | done (5.1-5.12, live-verified — TikTok Shop deliberately unsupported, see 5.4; catalogue layer per the frozen ADR) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
-| 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | not started — unaffected by the revision, pure Creative Intelligence |
+| 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | in progress (7.1-7.4 done, live-verified; 7.5 frontend remaining) |
 | 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
 | 9 | PerformanceRecord (additive) *(was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
 | 10 | Pattern v0 (trivial candidate capture) *(was Phase 9)* | **same as 9** |
@@ -3023,6 +3023,61 @@ deliberately NOT widened in this phase.
 - Zero behavior change to anything existing beyond the one new column -
   every pre-7.3 `MarketingAnalysis` row and every consumer of it
   continues to work exactly as before.
+- Commit: (see git log)
+
+### Phase 7.4 — Dependency-aware staleness (done)
+
+- **Real prerequisite gap found while implementing, not anticipated in
+  the architecture-direction doc**: the dependency graph declared
+  `creative_fingerprint: ["ocr"]`, but `CreativeFingerprint` had no
+  column recording which OCR result it actually read - no way to check
+  that edge at all. Fixed inline (not spun into a new sub-phase), same
+  pattern as 7.3's `MarketingAnalysis.creative_fingerprint_id` fix: new
+  nullable `CreativeFingerprint.ocr_result_id` FK, `SlideCreativeFingerprintStage`
+  now records the OCR result it actually incorporated (`None` when none
+  existed yet). Migration `4b599e19a719`, batch mode (new FK constraint),
+  full backup/scratch-copy/round-trip discipline applied before touching
+  the real dev DB.
+- New `app/services/staleness.py`: `STAGE_DEPENDENCIES` graph (data,
+  documentation of every edge) plus 5 compute-on-read functions, one per
+  artifact type since each records its provenance differently -
+  `product_lock_profile_staleness`/`narrative_structure_staleness`
+  compare a recorded id set/list against a freshly-queried current one,
+  `creative_fingerprint_staleness`/`marketing_analysis_staleness` walk a
+  single FK and check `is_current`, `recreation_prompt_staleness` checks
+  both of its two dependencies independently and reports both if both
+  moved. `None`/missing provenance is always `is_stale=False` ("unknown",
+  never asserted as either fresh or stale) - the same tolerance Phase
+  7.3 built in.
+- Wired into `assemble_slideshow_blueprint`'s 5 artifact-construction
+  sites: every dependent `*Read` schema now carries real `is_stale`/
+  `stale_because` values instead of the schema's own `False`/`[]`
+  defaults. `MarketingAnalysisRead` switched from `model_validate(row)`
+  to explicit field-by-field construction (matching the other 4) since
+  the two new fields aren't real ORM columns and `model_validate` only
+  pulls matching attribute names.
+- 13 new unit tests (`tests/test_staleness_service.py`): fresh/stale/
+  unknown for every one of the 5 dependency edges, including both of
+  Recreation Prompt's dependencies going stale independently and
+  together. 1 new route-level test
+  (`test_blueprint_reflects_staleness_after_an_upstream_rerun` in
+  `test_slideshow_blueprint_api.py`) runs the real 7-stage pipeline to a
+  ready state, reruns only Creative Fingerprint via the actual HTTP
+  rerun endpoint, and confirms through a real GET /blueprint that
+  Marketing Analysis and Recreation Prompt both flip
+  `is_stale=True`/`stale_because=["creative_fingerprint"]` without being
+  regenerated themselves (same row id), while unrelated artifacts
+  (Product Lock Profile, the fingerprint's own fresh state after rerun)
+  stay unaffected - the actual end-to-end behavior the whole sub-phase
+  exists to deliver, not just the isolated comparison functions.
+- Full suite: 215/215 passing (201 existing + 13 staleness-service +
+  1 route-level). Ruff clean on every new/changed file (11 pre-existing
+  baseline findings elsewhere in untouched model files, unrelated -
+  confirmed by running ruff scoped to just this sub-phase's files).
+  App boots cleanly.
+- Zero behavior change to any artifact's actual content - `is_stale`/
+  `stale_because` are purely additive response fields; a client that
+  ignores them sees byte-identical behavior to before.
 - Commit: (see git log)
 
 ---

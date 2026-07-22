@@ -71,6 +71,9 @@ def test_incorporates_ocr_text_as_context_when_available(db_session, slideshow_w
         "app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry()
     )
     SlideOCRStage().run(db_session, slideshow_with_slide)
+    slide = slideshow_with_slide.primary_slide
+    db_session.refresh(slide)
+    ocr_result_id = slide.current_ocr_result_id
 
     fake_vision = FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
     monkeypatch.setattr(
@@ -82,6 +85,12 @@ def test_incorporates_ocr_text_as_context_when_available(db_session, slideshow_w
 
     assert fake_vision.last_prompt_spec is not None
     assert "Fresh Squeezed. Zero Sugar Added." in fake_vision.last_prompt_spec["prompt"]
+
+    db_session.refresh(slide)
+    fingerprint = db_session.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+    # Phase 7.4 (Narrative pass, see MIGRATION_PLAN.md): records exactly
+    # which OCR result was actually incorporated.
+    assert fingerprint.ocr_result_id == ocr_result_id
 
 
 def test_proceeds_without_ocr_text_if_none_exists_yet(db_session, slideshow_with_slide, monkeypatch):
@@ -96,6 +105,11 @@ def test_proceeds_without_ocr_text_if_none_exists_yet(db_session, slideshow_with
 
     assert result.succeeded is True
     assert "OCR" not in fake_vision.last_prompt_spec["prompt"]
+
+    slide = slideshow_with_slide.primary_slide
+    db_session.refresh(slide)
+    fingerprint = db_session.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+    assert fingerprint.ocr_result_id is None
 
 
 def test_fails_gracefully_on_provider_error(db_session, slideshow_with_slide, monkeypatch):

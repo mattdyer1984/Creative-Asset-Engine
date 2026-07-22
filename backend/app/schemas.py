@@ -75,6 +75,11 @@ class ProductLockProfileRead(BaseModel):
     structured: dict
     reference_image_ids: list[str]
     created_at: datetime
+    # Phase 7.4 (dependency-aware staleness, see MIGRATION_PLAN.md) -
+    # computed, not an ORM column; always explicitly supplied by whichever
+    # service assembles this response, never left to model_validate.
+    is_stale: bool = False
+    stale_because: list[str] = []
 
 
 class ProductSourceImportRequest(BaseModel):
@@ -208,6 +213,8 @@ class CreativeFingerprintRead(BaseModel):
     is_current: bool
     structured: dict
     created_at: datetime
+    is_stale: bool = False
+    stale_because: list[str] = []
 
 
 class MarketingAnalysisRead(BaseModel):
@@ -220,6 +227,8 @@ class MarketingAnalysisRead(BaseModel):
     # created before this field existed; "staleness unknown," not "fresh".
     creative_fingerprint_id: str | None = None
     created_at: datetime
+    is_stale: bool = False
+    stale_because: list[str] = []
 
 
 class RecreationPromptRead(BaseModel):
@@ -232,6 +241,8 @@ class RecreationPromptRead(BaseModel):
     creative_fingerprint_id: str
     structured: dict
     created_at: datetime
+    is_stale: bool = False
+    stale_because: list[str] = []
 
 
 class NarrativeStructureRead(BaseModel):
@@ -244,6 +255,8 @@ class NarrativeStructureRead(BaseModel):
     is_current: bool
     structured: dict
     created_at: datetime
+    is_stale: bool = False
+    stale_because: list[str] = []
 
 
 class OCRResultRead(BaseModel):

@@ -11,6 +11,13 @@ CREATIVE_FINGERPRINT_SCHEMA/PROMPT are duplicated from the old stage
 rather than imported from it, same reasoning as the other new stages:
 keeps this package fully self-contained so Phase 2.7 can delete the old
 stage files cleanly.
+
+Phase 7.4 (Narrative pass, see MIGRATION_PLAN.md) added
+CreativeFingerprint.ocr_result_id, recording which OCR result was
+actually incorporated into the prompt (None if OCR wasn't available or
+had no text) - a real gap found while building that sub-phase's
+staleness service, same category as MarketingAnalysis.
+creative_fingerprint_id (7.3).
 """
 
 from pathlib import Path
@@ -105,10 +112,12 @@ class SlideCreativeFingerprintStage:
         )
 
         prompt = CREATIVE_FINGERPRINT_PROMPT
+        used_ocr_result_id = None
         if slide.current_ocr_result_id is not None:
             ocr_result = db.get(OCRResult, slide.current_ocr_result_id)
             if ocr_result is not None and ocr_result.raw_text:
                 prompt += f"\n\nText detected in the image via OCR: {ocr_result.raw_text}"
+                used_ocr_result_id = ocr_result.id
 
         try:
             image_bytes = Path(slide.stored_file_path).read_bytes()
@@ -126,6 +135,7 @@ class SlideCreativeFingerprintStage:
             fingerprint = CreativeFingerprint(
                 analysis_run_id=analysis_run.id,
                 slide_id=slide.id,
+                ocr_result_id=used_ocr_result_id,
                 structured_json=result,
             )
             db.add(fingerprint)
