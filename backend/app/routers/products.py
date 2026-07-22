@@ -5,6 +5,11 @@ M3 added create/list/get. M4 adds read-only views onto the two Analysis
 Artifacts a Product owns (ProductReferenceImage, ProductLockProfile) -
 enough to verify the Product Isolation and Product Lock Profile Stages
 worked, ahead of the proper assembled Blueprint view in M7.
+
+Phase 5.6 of Product Intelligence (see MIGRATION_PLAN.md) adds
+source-import (submit a URL, get evidence) and profile (the assembled,
+canonical, multi-source view) - the API surface for everything Phase
+5.1-5.5 built.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,13 +21,18 @@ from app.db import get_db
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
 from app.schemas import (
     ProductCreate,
     ProductLockProfileRead,
     ProductRead,
     ProductReferenceImageRead,
+    ProductSourceImportRead,
+    ProductSourceImportRequest,
 )
+from app.services.product_profile import ProductProfile, assemble_product_profile
+from app.services.product_source_import import import_product_source
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
@@ -100,3 +110,31 @@ def get_current_lock_profile(product_id: str, db: Session = Depends(get_db)) -> 
         reference_image_ids=profile.reference_image_ids_json,
         created_at=profile.created_at,
     )
+
+
+@router.post("/{product_id}/source-import", response_model=ProductSourceImportRead)
+def create_source_import(
+    product_id: str, payload: ProductSourceImportRequest, db: Session = Depends(get_db)
+) -> ProductSourceImport:
+    """
+    Submits a Product Source URL - the adapter is resolved automatically
+    from the URL itself (Phase 5.2's registry), the caller never picks a
+    platform. Runs synchronously: a single fetch+parse is a different
+    operation shape than Phase 3's multi-provider AI pipelines, not the
+    same "always background it" case (see MIGRATION_PLAN.md's Phase 5.6).
+    Returns 200, not 202 - unlike /analyze, the work described by this
+    request really is done by the time the response is sent.
+    """
+    if db.get(Product, product_id) is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return import_product_source(db, product_id, payload.url)
+
+
+@router.get("/{product_id}/profile", response_model=ProductProfile)
+def get_product_profile(product_id: str, db: Session = Depends(get_db)) -> ProductProfile:
+    product = db.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return assemble_product_profile(db, product)

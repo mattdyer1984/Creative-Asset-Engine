@@ -75,6 +75,32 @@ class ProductLockProfileRead(BaseModel):
     created_at: datetime
 
 
+class ProductSourceImportRequest(BaseModel):
+    """Phase 5.6 of Product Intelligence, see MIGRATION_PLAN.md - the only input POST /source-import needs."""
+
+    url: str
+
+
+class ProductSourceImportRead(BaseModel):
+    """
+    Phase 5.6. Returns the ProductSourceImport row itself (not the
+    assembled profile - that's the separate GET .../profile endpoint) so
+    the caller can see success/failure and the error message directly,
+    matching create_product/create_project's "return what you just
+    created" convention.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    source_type: str
+    source_url: str
+    fetch_status: str
+    error: str | None
+    is_current: bool
+    created_at: datetime
+
+
 class CreativeFingerprintRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

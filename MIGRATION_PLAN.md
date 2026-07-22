@@ -1479,4 +1479,36 @@ into 5.2's (already pushed to this branch) or 5.3's.
   has no caller yet (that's 5.6's job).
 - Commit: (see git log)
 
+### Phase 5.6 — API surface (done)
+
+- `POST /api/products/{id}/source-import` (`ProductSourceImportRequest
+  {url}` → `ProductSourceImportRead`, `200` not `202` - unlike
+  `/analyze`, a single fetch+parse really is done by the time the
+  response is sent, exactly the deliberate-departure reasoning the plan
+  called for) - resolves the adapter automatically, returns the
+  `ProductSourceImport` row itself (success or failure, matching
+  `create_product`/`create_project`'s "return what you just created"
+  convention) rather than the assembled profile.
+- `GET /api/products/{id}/profile` → `ProductProfile` directly (no
+  separate `*Read` schema needed - `ProductProfile`/`ProductProfileField`
+  from `app/services/product_profile.py` already are Pydantic models;
+  FastAPI doesn't care which module a `response_model` is imported
+  from).
+- 6 new route-level tests: success, failure surfaces cleanly (no 500),
+  404 on both endpoints for an unknown product, empty profile for a
+  product with no evidence yet, and profile correctly reflecting a
+  successful import end-to-end through the real route → service →
+  merge chain (not mocked at the profile-assembly level, only at
+  adapter resolution - same "no real network calls" discipline as
+  every other sub-phase, via the same `get_product_source_adapter`
+  monkeypatch point 5.3/5.5's tests already established).
+- Full suite: 124/124 passing (118 existing + 6 new). Ruff clean (same
+  10 pre-existing F821 false positives). App boots cleanly, 26 routes
+  registered (was 24).
+- Zero behavior change to anything existing - two new endpoints, nothing
+  else touched. Live-verification against a real product URL (not
+  mocked) deferred to 5.7 as originally planned, alongside the frontend
+  that will actually trigger it.
+- Commit: (see git log)
+
 ---
