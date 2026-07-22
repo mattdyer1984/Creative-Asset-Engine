@@ -67,6 +67,16 @@ Intelligence, not things to redo. See "Phase 5: Product Intelligence"
 below for the specific, entirely prospective adjustments this implies
 for new code, none of which touch Phase 2-4's existing models/stages.
 
+**2026-07-22: catalogue layer frozen.** Real data (a live bundle listing)
+exposed that atomic `Product` can't honestly represent a multi-item
+listing. A dedicated ADR ("ADR: Catalogue layer for Product
+Intelligence," further down this document) settled `Listing` (marketplace
+identity/commercial facts) and `ProductBundle` (composition of `Product`s)
+as additive entities sitting *above* Product Intelligence, with zero
+change to `Product`/`ProductProfile`/`CANONICAL_FIELD_VOCABULARY`. Locked
+as the architectural baseline - not to be revisited without a concrete
+implementation/production limitation.
+
 ## Phase list
 
 | # | Phase | Status |
@@ -1612,6 +1622,154 @@ an oversight.
 
 ---
 
+## ADR: Catalogue layer for Product Intelligence (2026-07-22, frozen baseline)
+
+**Status: locked.** Confirmed by the user as the architectural baseline for
+all future catalogue work. Do not revisit or redesign unless real
+implementation work or production data exposes a concrete limitation -
+this section records the *design* decision; the detailed sub-phase plan
+implementing it lives further down ("Phase 5: Product Intelligence -
+Catalogue layer extension").
+
+**Context.** Live data (a real, live-verified TikTok Shop listing for a
+two-bottle BellaVita fragrance set) proved the atomic-`Product`
+assumption breaks for bundles - a single `ProductLockProfile` was
+awkwardly describing two physically distinct bottles as one object. This
+ADR is the result of a multi-round design conversation (Bundle -> Listing
+-> "is this really just bundles, or a broader catalogue?") that converged
+on a stable model *before* any code was written, per this project's
+standing "plan before code" discipline.
+
+### 1. Final catalogue model
+
+```
+Marketplace URL
+     |
+     v
+  Listing --owns (history)--> ProductSourceImport --> Evidence
+     |
+     +-resolves to (exactly one)-+
+                                  v
+                    +-------------+-------------+
+                  Product                     Bundle --has members--> Product (xN)
+                    |                            |
+                    v                            v
+              ProductProfile              Bundle View
+           (Product Intelligence,      (list of member
+              unchanged)                ProductProfiles)
+```
+
+| Entity | Responsibility |
+|---|---|
+| `Listing` | One marketplace's specific sellable page: commercial facts (price, seller, rating, units sold, shipping, source URL) + the resolution pointer to what it represents |
+| `ProductSourceImport` | One fetch attempt's raw + normalized evidence, versioned (`is_current`) per `Listing` - history, not identity |
+| `Product` | Canonical atomic physical-product truth (unchanged from Phase 5) |
+| `ProductBundle` | Declares that N `Product`s are sold together as one unit; pure composition, no attributes of its own |
+| `ProductBundleMember` | Join: which products, and how many of each, compose a `ProductBundle` |
+
+**Ownership boundary**: Marketplace Ingestion owns *how things are sold*
+(`Listing`, `ProductSourceImport`, price/seller/rating). Product
+Intelligence owns *what things are and how they physically relate*
+(`Product`, `ProductBundle`, `ProductProfile`). Nothing crosses that line
+in either direction.
+
+### 2. Identity
+
+- `Product` / `ProductBundle`: opaque generated id, no natural key -
+  deliberate, since "are these the same product" is exactly the hard,
+  unautomated matching problem below.
+- `Listing`: naturally identified by `(source_type, normalized
+  source_url)`. Re-fetching the same URL updates the same `Listing`, not
+  a new one.
+- `ProductSourceImport`: no independent identity - "the nth fetch of this
+  Listing," not a thing with its own meaning.
+
+A `Listing` resolves to exactly one of `resolved_product_id` /
+`resolved_bundle_id`. Two `Listing`s should resolve to the same
+`Product`/`ProductBundle` **only on explicit human confirmation** - never
+automatically, even for a high-confidence-looking match (GTIN/barcode, exact
+brand+title). A false-positive automatic merge corrupts a `Product`'s
+evidence with a different physical object's data - strictly worse than a
+missed duplicate a human can still fix later. The only *non*-inferred
+resolution is the case where a human has already navigated to a specific
+`Product` before supplying a URL - that's accepting an instruction, not
+inferring identity, and may resolve immediately.
+
+### 3. Evidence flow
+
+`Marketplace URL -> Listing -> ProductSourceImport -> Evidence -> Product
+Intelligence -> Product Profile`. Everything from "Evidence" onward is
+unchanged Phase 5 machinery (5.2/5.3/5.5/5.6) - this ADR's entire
+contribution sits upstream of it. The fork for `ProductBundle` happens at
+`Listing`'s resolution step, never inside Product Intelligence itself.
+
+### 4. Marketplace independence
+
+The same `Product`/`ProductBundle` can be sold on TikTok Shop, Amazon, and
+Shopify simultaneously as three `Listing`s resolving to one `Product` - no
+duplication, since identity lives on `Product`, not any `Listing`. Adding
+a marketplace means adding an adapter that produces more `Listing`s;
+`Product`/`ProductBundle`/Product Intelligence are never touched.
+Marketplace data never enters Product Intelligence for a structural
+reason, not a policy one: `CANONICAL_FIELD_VOCABULARY` stays closed to
+physical-product concepts by its own standing discipline (revision #5),
+and `assemble_product_profile` only ever queries `Product`-scoped
+evidence - `Listing` fields are never in that code path's reach.
+
+### 5. Bundle philosophy
+
+`ProductBundle` is a composition relationship, not a `Product` subtype -
+`Product`'s vocabulary is deliberately single-valued
+(`ColorValue`/`DimensionValue`, one value per physical object), and a
+bundle of differently-colored/shaped items has no honest single answer for
+those fields. A "Bundle View" is therefore not a new persisted or
+vocabulary-bearing thing - it's a read-time composition of each member's
+real, unmodified `ProductProfile` (reusing 5.5's merge machinery once per
+member), never a new merge/precedence system and never a new vocabulary.
+
+### 6. `CatalogItem`: considered and rejected
+
+A thin `CatalogItem` identity+discriminator table (so `Listing` needs only
+one FK regardless of how many resolvable types eventually exist) was
+seriously considered and initially leaned toward, then rejected on
+closer inspection: every candidate "third resolves-to type" named across
+the design conversation (Variant, Multipack, Gift Set, Subscription)
+turned out to reduce to either "a `Product` plus an extra relationship"
+(Variant) or "a `ProductBundle` special case" (Multipack, Gift Set) or "a
+`Listing`-level fact, not a composition concept" (Subscription) - i.e.
+exactly two resolves-to types are evidenced today, with no concrete third
+one. **Decision: two nullable FKs on `Listing`** (`resolved_product_id`,
+`resolved_bundle_id`), not `CatalogItem`. Revisit only if a genuine third
+type appears that is neither of the two reductions above - the migration
+to `CatalogItem` at that point is a well-understood, additive,
+low-risk shape (same kind of change this project has executed
+repeatedly), not something worth paying for speculatively now.
+
+### 7. Non-goals (explicitly deferred, not decided)
+
+- Variants / product families - named as a plausible future shape, not
+  designed.
+- Subscriptions as a catalogue concept - would be a `Listing` fact if ever
+  built.
+- Automatic cross-marketplace entity resolution/dedup - always
+  human-confirmed; GTIN/barcode auto-*suggestion* (never auto-merge) is a
+  possible future refinement, not decided.
+- **How already-shipped `ProductSourceImport` rows/flow (keyed by
+  `product_id`) relate to the new `Listing`-owned model** - this ADR
+  describes the target conceptual shape only; resolved as an
+  implementation decision in the sub-phase plan below (kept additive: the
+  existing `product_id`-direct flow stays untouched, a new nullable
+  `listing_id` FK is added alongside it for the new path - this is
+  filling a gap the ADR deliberately left open, not revisiting the ADR's
+  design conclusions).
+- Any resolution/review UI (bundle member-hints, pending `Listing`s) -
+  real, non-trivial future work.
+- Listing price/rating history over time (snapshot vs. time-series) -
+  unresolved.
+- Any change to the future Generation/Validation Engine design.
+
+---
+
 ## Phase 6: Multi per-slide product detection — detailed plan
 
 **Problem.** `ProductAppearance` was designed since Phase 2.1 to support
@@ -1994,5 +2152,174 @@ Frontend (6.5):
   server on :5173) alongside the existing `backend` entry, so future
   frontend live-verification doesn't need an ad hoc setup.
 - Commits: (see git log)
+
+---
+
+## Phase 5: Product Intelligence — Catalogue layer extension (5.8+) — detailed sub-phase plan
+
+Implements the frozen ADR above. Numbered as a continuation of Phase 5
+(not a new top-level phase) since it's genuinely an extension of Product
+Intelligence's boundary, not a new concern - same reasoning Phase 6.2's
+mid-implementation revision used to stay under Phase 6 rather than
+spawning a new number. Same discipline as every other sub-phase this
+project has shipped: small, additive, tested, live-verified where it
+touches a real endpoint, one sub-phase per commit.
+
+**Naming**: `ProductBundle`/`ProductBundleMember` (matching this
+codebase's existing `Product*`-prefixed convention for anything in this
+domain); `Listing` stays unprefixed (it's marketplace-scoped, not
+product-scoped - matches the ADR's own terminology exactly).
+
+**Implementation decision not settled by the ADR (its own Non-goals section
+left this open deliberately)**: `ProductSourceImport.product_id` and the
+existing `POST /api/products/{id}/source-import` flow are **left
+completely untouched** - zero risk to shipped Phase 5 work, zero
+migration of existing rows. A new nullable `listing_id` FK is added
+alongside the existing `product_id`, used only by the new
+unknown-URL/bundle-aware import path (5.10+). Same "extend, don't
+replace" pattern used for every other provenance column in this
+codebase (`ProductReferenceImage`'s three FKs, etc.).
+
+### 5.8 — Additive schema: `Listing`, `ProductBundle`, `ProductBundleMember`
+
+- New model `Listing`: `id, source_type, source_url (unique), resolved_product_id
+  (nullable FK), resolved_bundle_id (nullable FK), price_amount (nullable),
+  price_currency (nullable), seller_name (nullable), rating (nullable),
+  units_sold (nullable), shipping_info (nullable), created_at`. Not built
+  on `AnalysisArtifactMixin` (same reasoning as `ProductSourceImport` -
+  this isn't an AI analysis run).
+- New model `ProductBundle`: `id, display_name, project_id (nullable FK,
+  mirroring `Product`'s own optional project scoping), created_at`.
+- New model `ProductBundleMember`: `id, bundle_id (FK), product_id (FK),
+  quantity (default 1), created_at`.
+- `ProductSourceImport` gains a new nullable `listing_id` FK, additive
+  alongside the existing `product_id` (see decision above) - existing
+  rows/behavior completely unaffected.
+- Alembic migration (additive only - 3 new tables, 1 new nullable
+  column). Full discipline: real dev DB backup, upgrade/downgrade tested
+  on an isolated scratch copy first, content-diff verified, then applied
+  to the real dev DB and re-verified.
+- **Test strategy**: model-level tests only (construct each new model,
+  confirm FK relationships, confirm `ProductSourceImport` still works
+  with `listing_id=None` exactly as before). No wiring to any
+  service/route yet - mirrors Phase 5.1/5.2/6.1's "additive schema first,
+  zero behavior change" pattern.
+- **Rollback**: downgrade the migration; nothing references the new
+  tables/column yet.
+- **Expected commit size**: small-medium.
+
+### 5.9 — Adapter contract: bundle + listing evidence (additive fields only)
+
+- `NormalizedProductEvidence` (in `app/product_sources/base.py`) gains two
+  new **optional** fields: `bundle: NormalizedBundleEvidence | None` and
+  `listing: NormalizedListingMetadata | None`. Zero change to the
+  `ProductSourceAdapter` Protocol or `extract()`'s signature - every
+  existing adapter (`GenericUrlAdapter`) and every existing test is
+  unaffected; both fields simply default to `None`.
+- `NormalizedBundleEvidence = {title: str, member_hints:
+  list[BundleMemberHint]}`, `BundleMemberHint = {label: str, attributes:
+  dict[str, NormalizedAttribute]}` - member hints reuse the existing
+  `CANONICAL_FIELD_VOCABULARY`/`ProductAttributeValue` types, per
+  revision #5's discipline (no new vocabulary for bundle members).
+- `NormalizedListingMetadata = {price_amount, price_currency, seller_name,
+  rating, units_sold, shipping_info}` (all optional).
+- `GenericUrlAdapter` gains a first, deliberately narrow bundle-detection
+  heuristic: a JSON-LD `@graph` containing multiple `Product` entries
+  (the adapter already parses `@graph`-bundled JSON-LD from 5.3) is a
+  natural, low-effort signal - populate `evidence.bundle` from those
+  entries when found. Not exhaustive; a listing with no such signal
+  simply has `bundle=None`, same as today.
+- **Test strategy**: fixture HTML with multi-`Product` `@graph` JSON-LD ->
+  `evidence.bundle` populated correctly; existing single-product fixtures
+  from 5.3 continue to produce `bundle=None` unchanged (regression guard).
+- **Rollback**: revert; adapters simply stop populating the two new
+  fields, nothing downstream depends on them yet.
+- **Expected commit size**: small-medium.
+
+### 5.10 — Listing resolution service
+
+- New `app/services/listing_import.py`: `import_listing(db, url) ->
+  Listing` - resolves the adapter (5.2's registry, unchanged), persists a
+  `Listing` (get-or-create by `source_url`) and a `ProductSourceImport`
+  scoped to it via `listing_id`, denormalizes `evidence.listing`'s fields
+  onto the `Listing` row.
+- Resolution branch: if `evidence.bundle` is `None`, evidence describes an
+  ordinary single product - **do not auto-create a `Product`**; the
+  `Listing` stays unresolved until a human links it to an existing
+  `Product` or creates a new one (same conservative stance as the bundle
+  case - the ADR's identity section is explicit that resolving anything
+  from parsed content is inference, never automatic, regardless of
+  whether it turns out to be one item or several).
+- If `evidence.bundle` is present: member hints are persisted (on the
+  `ProductSourceImport.normalized_json`, not a new table - no schema
+  needed) as unresolved; a human reviews and links/creates each member
+  `Product`, at which point a `ProductBundleMember` row is created and,
+  once all hints are resolved, the `Listing.resolved_bundle_id` is set.
+- New functions: `resolve_listing_to_product(db, listing_id, product_id)`,
+  `resolve_listing_to_new_product(db, listing_id, display_name)`,
+  `resolve_listing_to_bundle(db, listing_id, bundle_id, member_product_ids)`,
+  `create_bundle_from_listing(db, listing_id, display_name,
+  member_product_ids)`.
+- **Test strategy**: unit tests per resolution path (ordinary product,
+  bundle with all hints pre-resolved, bundle with some hints unresolved),
+  get-or-create-by-URL behavior (re-importing the same URL updates the
+  same `Listing`, doesn't duplicate), failure path (`fetch_status=failed`
+  recorded, no resolution attempted).
+- **Rollback**: revert the file; nothing calls it yet.
+- **Expected commit size**: medium.
+
+### 5.11 — API surface
+
+- `POST /api/listings/source-import {url}` -> `ListingRead` (200, same
+  synchronous-fetch reasoning as the existing product-scoped endpoint).
+- `POST /api/listings/{id}/resolve-product {product_id}`,
+  `POST /api/listings/{id}/resolve-new-product {display_name}`,
+  `POST /api/listings/{id}/resolve-bundle {bundle_id, member_product_ids}`,
+  `POST /api/listings/{id}/create-bundle {display_name,
+  member_product_ids}`.
+- `GET /api/bundles/{id}` -> bundle view: `{id, display_name, members:
+  [{product_id, profile: ProductProfile}]}` - calls 5.5's existing
+  `assemble_product_profile` once per member, unmodified, per the ADR's
+  Bundle View definition (no new merge logic).
+- `GET /api/listings/{id}` -> `ListingRead` with resolution status +
+  unresolved member hints if any.
+- New route-level tests: success/failure/404 per endpoint, an end-to-end
+  bundle flow (import a bundle-shaped fixture -> resolve each hint to a
+  new/existing product -> `GET /api/bundles/{id}` returns real member
+  profiles).
+- **Rollback**: revert the routes independently; nothing else depends on
+  them.
+- **Expected commit size**: medium.
+
+### 5.12 — Frontend: unresolved-listing review + bundle view
+
+- New minimal UI: submit a URL without picking a product first (mirrors
+  5.7's existing per-product URL form, but scoped to `/api/listings/*`),
+  a review list for unresolved `Listing`s showing member hints with
+  link-existing/create-new controls per hint, and a Bundle view rendering
+  each member's real `ProductProfile` (reusing 5.7's existing
+  `AttributeValueDisplay` component per member, not a new renderer).
+- Live-verify against a real bundle-shaped listing (a real, publicly
+  reachable multi-`Product` JSON-LD page, not fabricated) - same
+  live-server discipline as every other frontend sub-phase.
+- **Rollback**: revert; the per-product flow (5.7) keeps working
+  unaffected either way.
+- **Expected commit size**: medium-large - this is the sub-phase most
+  likely to reveal a real UX gap in the "surface, don't auto-link" design
+  once it's actually used, per the ADR's own instruction to revisit only
+  on a concrete limitation found through real implementation.
+
+**Risks**: 5.9's bundle-detection heuristic is deliberately narrow
+(one signal: multi-`Product` `@graph` JSON-LD) - real bundle listings that
+don't use that pattern will simply import as an ordinary unresolved
+single-product `Listing`, not crash or misbehave, just miss the bundle
+signal (degraded, not broken, matching this project's established
+fallback discipline). 5.10's "don't auto-create Product" stance is the
+main design bet carried over from the ADR - if it proves too much manual
+work in practice, that's the kind of concrete limitation the ADR
+explicitly says should trigger revisiting it, not something to
+second-guess preemptively here.
+
+## Phase 5.8+ reports log
 
 ---
