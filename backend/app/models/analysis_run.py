@@ -6,6 +6,14 @@ The artifact itself (OCRResult, etc.) records WHAT was produced and holds
 its own analysis_run_id pointing back here — the relating direction is
 artifact -> run, not run -> artifact, since some stages (Product
 Isolation) produce more than one artifact row per run.
+
+Transitional (Phase 2.3 of the Slideshow/Slide migration): creative_id,
+slide_id, and slideshow_id all exist, all nullable. A run's slide_id is
+populated for slide-scoped analysis_types (ocr, product_isolation,
+product_lock_profile, creative_fingerprint); slideshow_id for
+slideshow-scoped ones (marketing_analysis, recreation_prompt) - mirroring
+exactly which artifact table each analysis_type's own Phase 2.3 split
+uses. creative_id remains authoritative until Phase 2.7.
 """
 
 from datetime import datetime
@@ -34,7 +42,9 @@ class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    creative_id: Mapped[str] = mapped_column(ForeignKey("creatives.id"), nullable=False)
+    creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
+    slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
+    slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
     analysis_type: Mapped[str] = mapped_column(String(32), nullable=False)
 
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
