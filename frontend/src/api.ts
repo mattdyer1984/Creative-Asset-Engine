@@ -49,29 +49,9 @@ export interface ProductCreateInput {
   project_id?: string;
 }
 
-export interface CreativeBlueprint {
-  id: string;
-  status: string;
-  current_ocr_result_id: string | null;
-  current_product_lock_profile_id: string | null;
-  current_creative_fingerprint_id: string | null;
-  current_marketing_analysis_id: string | null;
-  current_recreation_prompt_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Creative {
-  id: string;
-  project_id: string | null;
-  product_id: string | null;
-  product: Product | null;
-  original_filename: string;
-  source_type: string;
-  source_locator: string;
-  imported_at: string;
-  blueprint: CreativeBlueprint;
-}
+// CreativeBlueprint and Creative (old /api/creatives/* types) were
+// removed in Phase 2.7 of the Slideshow/Slide migration - superseded by
+// Slideshow/Slide below.
 
 export interface OCRResult {
   id: string;
@@ -79,16 +59,6 @@ export interface OCRResult {
   is_current: boolean;
   raw_text: string;
   structured_blocks: { text: string; role: string }[];
-  created_at: string;
-}
-
-export interface AnalysisRun {
-  id: string;
-  analysis_type: string;
-  provider: string;
-  model_name: string;
-  status: string;
-  error: string | null;
   created_at: string;
 }
 
@@ -117,26 +87,9 @@ export interface RecreationPromptData {
   created_at: string;
 }
 
-export interface AssembledCreativeBlueprint {
-  id: string;
-  status: string;
-  original_filename: string;
-  source_type: string;
-  source_locator: string;
-  imported_at: string;
-  project_id: string | null;
-  product_id: string | null;
-  product: Product | null;
-  source_references: Record<string, unknown>;
-  ocr_result: OCRResult | null;
-  product_reference_images: ProductReferenceImage[];
-  product_lock_profile: ProductLockProfile | null;
-  creative_fingerprint: CreativeFingerprintData | null;
-  marketing_analysis: MarketingAnalysisData | null;
-  recreation_prompt: RecreationPromptData | null;
-  failed_stage: string | null;
-  failed_stage_error: string | null;
-}
+// AssembledCreativeBlueprint (old /api/creatives/*'s single-response
+// view) was removed in Phase 2.7 of the Slideshow/Slide migration -
+// superseded by AssembledSlideshowBlueprint below.
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -157,62 +110,13 @@ export const api = {
       body: JSON.stringify(input),
     }).then((res) => handle<Project>(res)),
 
-  // Import one or more local files as independent Creatives. projectId is
-  // optional - a Creative does not require a Project (see plan §1, §6).
-  importLocalFiles: (files: File[], projectId?: string): Promise<Creative[]> => {
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-    if (projectId) formData.append('project_id', projectId);
-    return fetch('/api/creatives/import', {
-      method: 'POST',
-      body: formData,
-    }).then((res) => handle<Creative[]>(res));
-  },
-
-  listCreatives: (projectId?: string): Promise<Creative[]> => {
-    const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
-    return fetch(`/api/creatives${query}`).then((res) => handle<Creative[]>(res));
-  },
-
-  creativeFileUrl: (creativeId: string): string => `/api/creatives/${creativeId}/file`,
-
-  analyzeCreative: (creativeId: string): Promise<AssembledCreativeBlueprint> =>
-    fetch(`/api/creatives/${creativeId}/analyze`, { method: 'POST' }).then((res) =>
-      handle<AssembledCreativeBlueprint>(res)
-    ),
-
-  getCreativeBlueprint: (creativeId: string): Promise<AssembledCreativeBlueprint> =>
-    fetch(`/api/creatives/${creativeId}/blueprint`).then((res) =>
-      handle<AssembledCreativeBlueprint>(res)
-    ),
-
-  rerunStage: (creativeId: string, stageName: string): Promise<AssembledCreativeBlueprint> =>
-    fetch(`/api/creatives/${creativeId}/stages/${stageName}/rerun`, { method: 'POST' }).then(
-      (res) => handle<AssembledCreativeBlueprint>(res)
-    ),
-
-  getOcrResult: (creativeId: string): Promise<OCRResult> =>
-    fetch(`/api/creatives/${creativeId}/ocr-result`).then((res) => handle<OCRResult>(res)),
-
-  getCreativeFingerprint: (creativeId: string): Promise<CreativeFingerprintData> =>
-    fetch(`/api/creatives/${creativeId}/creative-fingerprint`).then((res) =>
-      handle<CreativeFingerprintData>(res)
-    ),
-
-  getMarketingAnalysis: (creativeId: string): Promise<MarketingAnalysisData> =>
-    fetch(`/api/creatives/${creativeId}/marketing-analysis`).then((res) =>
-      handle<MarketingAnalysisData>(res)
-    ),
-
-  getRecreationPrompt: (creativeId: string): Promise<RecreationPromptData> =>
-    fetch(`/api/creatives/${creativeId}/recreation-prompt`).then((res) =>
-      handle<RecreationPromptData>(res)
-    ),
-
-  listAnalysisRuns: (creativeId: string): Promise<AnalysisRun[]> =>
-    fetch(`/api/creatives/${creativeId}/analysis-runs`).then((res) =>
-      handle<AnalysisRun[]>(res)
-    ),
+  // importLocalFiles/listCreatives/creativeFileUrl/analyzeCreative/
+  // getCreativeBlueprint/rerunStage/getOcrResult/getCreativeFingerprint/
+  // getMarketingAnalysis/getRecreationPrompt/listAnalysisRuns (old
+  // /api/creatives/* methods) were removed in Phase 2.7 of the
+  // Slideshow/Slide migration - superseded by importSlideshows/
+  // listSlideshows/slideFileUrl/analyzeSlideshow/getSlideshowBlueprint/
+  // rerunSlideshowStage further down this file.
 
   createProduct: (input: ProductCreateInput): Promise<Product> =>
     fetch('/api/products', {
@@ -224,13 +128,8 @@ export const api = {
   listProducts: (): Promise<Product[]> =>
     fetch('/api/products').then((res) => handle<Product[]>(res)),
 
-  // product_id: null unassigns.
-  assignProduct: (creativeId: string, productId: string | null): Promise<Creative> =>
-    fetch(`/api/creatives/${creativeId}/assign-product`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId }),
-    }).then((res) => handle<Creative>(res)),
+  // assignProduct (old, Creative-level) was removed in Phase 2.7 -
+  // superseded by assignSlideProduct further down this file.
 
   listReferenceImages: (productId: string): Promise<ProductReferenceImage[]> =>
     fetch(`/api/products/${productId}/reference-images`).then((res) =>

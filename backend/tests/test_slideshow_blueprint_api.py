@@ -1,7 +1,10 @@
 """
-API-level tests for the new /api/slideshows/* surface (Phase 2.5 of the
-Slideshow/Slide migration) - mirrors tests/test_creative_blueprint_api.py's
-coverage of the old /api/creatives/* surface.
+API-level tests for the /api/slideshows/* surface. Originally written in
+Phase 2.5 of the Slideshow/Slide migration to mirror
+tests/test_creative_blueprint_api.py's coverage of the old
+/api/creatives/* surface (removed in Phase 2.7, along with that test
+file); the product-assignment tests below were moved here from
+test_products_api.py in Phase 2.7 for the same reason.
 """
 
 import io
@@ -211,26 +214,51 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     ] == slide["product_lock_profile"]["id"]
 
 
-def test_old_creatives_surface_is_completely_unaffected(client, monkeypatch):
+def test_assign_and_unassign_product_on_slide(client):
     """
-    Direct proof, not just an assertion by inspection: importing and
-    analyzing via the OLD /api/creatives/* surface still works exactly
-    as before, completely independent of the new /api/slideshows/*
-    surface added in this same phase.
+    New-pipeline equivalent of the old
+    test_assign_and_unassign_product_on_creative (moved from
+    test_products_api.py in Phase 2.7 along with the old endpoint it
+    tested) - assignment now creates/flips a ProductAppearance on a
+    Slide instead of setting Creative.product_id directly.
     """
-    from io import BytesIO
+    product = client.post("/api/products", json={"display_name": "Sunrise Orange Juice"}).json()
+    slideshow_id = _import_slideshow(client)
+    slide = client.get(f"/api/slideshows/{slideshow_id}").json()["slides"][0]
+    assert slide["current_product_appearance"] is None
 
-    from PIL import Image
+    assign_response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide['id']}/assign-product",
+        json={"product_id": product["id"]},
+    )
+    assert assign_response.status_code == 200
+    assigned_slide = assign_response.json()["slides"][0]
+    assert assigned_slide["current_product_appearance"]["product_id"] == product["id"]
+    assert assigned_slide["current_product_appearance"]["product"]["display_name"] == "Sunrise Orange Juice"
 
-    buffer = BytesIO()
-    Image.new("RGB", (300, 300), color=(180, 120, 60)).save(buffer, format="JPEG")
-    creative = client.post(
-        "/api/creatives/import",
-        files={"files": ("old.jpg", BytesIO(buffer.getvalue()), "image/jpeg")},
-    ).json()[0]
+    unassign_response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide['id']}/assign-product",
+        json={"product_id": None},
+    )
+    assert unassign_response.json()["slides"][0]["current_product_appearance"] is None
 
-    monkeypatch.setattr("app.stages.ocr_stage.default_registry", FakeAIProviderRegistry())
-    response = client.post(f"/api/creatives/{creative['id']}/stages/ocr/rerun")
 
-    assert response.status_code == 200
-    assert response.json()["ocr_result"]["raw_text"] == "Fresh Squeezed. Zero Sugar Added."
+def test_assigning_unknown_product_404s(client):
+    """New-pipeline equivalent of the old test of the same name, moved from test_products_api.py."""
+    slideshow_id = _import_slideshow(client)
+    slide_id = client.get(f"/api/slideshows/{slideshow_id}").json()["slides"][0]["id"]
+
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_id}/assign-product",
+        json={"product_id": "does-not-exist"},
+    )
+    assert response.status_code == 404
+
+
+def test_assigning_product_to_unknown_slide_404s(client):
+    slideshow_id = _import_slideshow(client)
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/does-not-exist/assign-product",
+        json={"product_id": None},
+    )
+    assert response.status_code == 404
