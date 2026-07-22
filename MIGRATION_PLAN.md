@@ -1,0 +1,187 @@
+# Creative Asset Engine — Migration Roadmap
+
+This document is the durable record of the architecture vision, the phased
+plan to get there, and the standing authorization for autonomous work. It
+exists so the plan survives independently of any one chat session — read
+this first if picking the work back up cold.
+
+## Frozen architecture vision
+
+Decided and frozen across three rounds of review (see git history / prior
+session transcripts for the full reasoning):
+
+1. **Slideshow, not Creative, is the primary entity.** A Slideshow has
+   independent Slides; product detection is optional per slide (a slide can
+   have zero, one, or multiple products); narrative structure (hook, story,
+   reveal, proof, CTA) is analyzed at the slideshow level, independently of
+   per-slide asset detection.
+2. **The long-term canonical reusable object is a "Persuasion Pattern"**,
+   not a slideshow — a higher-level abstraction extracted from many
+   slideshows, searchable across products/industries/audiences. Slideshows
+   and their artifacts are the evidence base a pattern is extracted from,
+   not the end product.
+3. Implementation gets there through small, testable, production-safe
+   refactors — no future abstractions before they're needed.
+
+## Phase list
+
+| # | Phase | Status |
+|---|-------|--------|
+| 0 | Characterization safety net | done |
+| 1 | Orthogonal reliability fixes (1.1–1.4) | done |
+| 2 | Entity split: Creative → Slideshow + Slide (2.1–2.7) | done, reviewed |
+| 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
+| 3 | Async execution boundary | in progress |
+| 4 | True multi-slide import | not started |
+| 5 | Optional multi per-slide product detection | not started |
+| 6 | Narrative pass with dependency-aware staleness | not started |
+| 7 | Frontend consolidation | not started |
+| 8 | PerformanceRecord (additive) | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
+| 9 | Pattern v0 (trivial candidate capture) | **same as 8** |
+| 10 | Pattern curation lifecycle + ContextEfficacy + search | **same as 8** |
+
+## Standing authorization (granted 2026-07-21/22, user away for an
+extended, unspecified period)
+
+Permitted without further chat confirmation, for Phases 3–7 only:
+- Writing detailed sub-phase plans.
+- Implementing, testing, and committing small sub-phases to the
+  `phase-2-slideshow-migration` branch, following the same discipline as
+  Phase 1/2: after every sub-phase the app still runs, tests pass, DB
+  stays migratable, and the previous commit is a safe rollback point.
+- Local `git commit` on this branch.
+
+Explicitly NOT permitted without the user present, regardless of tool
+permission mode:
+- `git push`, opening a PR, or any action visible outside this machine.
+- Phase 2.8 (destructive schema drop).
+- Any implementation work on Phases 8–10 (new product surface, not
+  refactors — needs real design sign-off, not unilateral judgment calls
+  made while unsupervised).
+- Anything in the "Prohibited" or "Explicit permission required"
+  categories of the standing safety rules (credentials, deletions of user
+  data outside this repo, financial actions, etc. — none of which are
+  expected to come up in this codebase, noted for completeness).
+
+If a genuine design ambiguity comes up that materially affects the
+architecture (not just an implementation detail), stop and log it in the
+"Open questions" section below rather than guessing.
+
+**2026-07-22: user enabled the Claude Code app's "bypass permissions
+mode"** (stops per-tool-call confirmation prompts) before stepping away
+for an extended period. This does not change any of the boundaries
+above — those are self-imposed, not enforced by the permission dialog,
+and remain in force regardless of app-level permission mode.
+
+## Open questions
+
+_(none yet)_
+
+## Phase 3: Async execution boundary — detailed plan
+
+**Problem.** `POST /api/slideshows/{id}/analyze` and
+`.../stages/{name}/rerun` currently call the orchestrator inline and block
+the request for the full duration of a (potentially multi-minute,
+multi-provider-call) pipeline run. `Slideshow.status` already has an
+`analyzing` state, but it's currently unreachable from the outside — by
+the time any response comes back, the slideshow is already `ready` or
+`failed` (see the now-corrected comment this used to have in
+`frontend/src/components/SlideshowGrid.tsx`).
+
+**Empirical finding that shapes the whole plan:** verified via a throwaway
+script that FastAPI's `TestClient` runs `BackgroundTasks` to completion
+*before* `client.post(...)` returns (Starlette drives the ASGI call,
+including scheduled background tasks, to completion within the test
+call). This means the existing test suite mostly keeps working unchanged
+even after moving to background execution — tests don't need real
+polling/waiting logic, just re-fetching the blueprint by GET afterward
+instead of trusting the analyze/rerun response body for content. Real
+production traffic (uvicorn) behaves differently: the HTTP response
+really is sent before the background task runs, so the frontend genuinely
+needs to poll.
+
+### 3.1 — Background-execution infrastructure (additive, zero behavior change)
+
+- New `app/services/background_execution.py`: `run_pipeline_in_background`
+  and `run_stage_in_background`, each opening its own `SessionLocal()`
+  (a request-scoped session can't be reused after the response is sent),
+  loading the `Slideshow` fresh, delegating to the existing
+  `SlideshowOrchestrator`, and closing the session in a `finally`.
+- Not wired into any route. No API/DB/behavior change to anything.
+- New unit tests call the helpers directly and assert the same status
+  transitions as calling the orchestrator directly (this is a wrapper,
+  the orchestrator's own logic/tests are unchanged).
+- Rollback: delete the new file. Nothing else references it yet.
+
+### 3.2 — Wire `/analyze` to background execution
+
+- Add a guard: if `slideshow.status` is already `queued` or `analyzing`,
+  return `409 Conflict` rather than starting a second overlapping run —
+  this failure mode was impossible before (the request thread itself was
+  the lock) and is new now that two requests can race.
+- Otherwise: set `status = queued` synchronously (so the response reflects
+  it), commit, schedule `run_pipeline_in_background` via FastAPI's
+  `BackgroundTasks`, and return `SlideshowRead` (not
+  `AssembledSlideshowBlueprint` — there's nothing new to assemble yet).
+  This is a deliberate, documented response-shape change.
+- Test migration: existing tests asserting on the analyze response body's
+  *analysis content* switch to asserting on `status == "queued"` from the
+  response, then a separate `GET .../blueprint` call for content
+  (`TestClient`'s synchronous background-task execution means the content
+  is already there by then).
+- Rollback: revert this commit; 3.1's helper stays dormant/unused.
+
+### 3.3 — Wire `/stages/{stage_name}/rerun` to background execution
+
+- Same pattern as 3.2, applied to the single-stage rerun endpoint.
+- Rollback: revert independently of 3.2.
+
+### 3.4 — Frontend polling
+
+- `frontend/src/api.ts`: `analyzeSlideshow`/`rerunSlideshowStage` return
+  types change from `AssembledSlideshowBlueprint` to `Slideshow`.
+- `SlideshowBlueprintModal`/`SlideshowGrid`: after triggering
+  analyze/rerun, poll (`getSlideshowBlueprint` on an interval, e.g. 1.5s)
+  while status is `queued`/`analyzing`; stop on `ready`/`failed`.
+- Remove/update the comment in `SlideshowGrid.tsx` that currently
+  (accurately, pre-3.2/3.3) describes `analyzing` as unreachable — it
+  becomes reachable and meaningful once this sub-phase lands.
+- Rollback: revert; backend keeps working with a client that doesn't poll
+  (it would just show a stale "queued" state until manually refreshed —
+  degraded but not broken).
+
+### 3.5 — Test migration completion, live verification, hardening
+
+- Full backend suite green.
+- New test: 409 when re-triggering analysis on an already-analyzing
+  slideshow (set status directly, then call the endpoint, to exercise the
+  guard without needing real concurrency).
+- Live verification: start the real dev server (not just `TestClient`)
+  and drive an actual import + analyze through the browser, confirming
+  the UI shows "Analyzing…" and updates via polling — `TestClient`'s
+  synchronous background-task execution means the test suite alone cannot
+  prove the real async path works.
+- Document as a known, pre-existing (not newly introduced) limitation: a
+  process restart mid-analysis leaves a slideshow stuck in `analyzing`
+  status with no automatic recovery. Not fixing this now (no reconciler
+  exists for the old synchronous path either, which had the equivalent
+  failure mode of a killed request) — noted as a suggested future
+  improvement, not a Phase 3 blocker.
+
+**Risks:** SQLite single-writer contention under concurrent background
+writes — mitigated by the existing pattern of short, per-stage
+transactions (already true of every stage today, unchanged by this
+phase). Silent background-task failure (an exception inside a
+`BackgroundTasks` callback doesn't propagate anywhere by default) — the
+existing per-stage `try/except` + `mark_failed` already writes failure
+state to the DB before any exception would occur, so a stage's own
+failures still surface correctly in `Slideshow.status`; only a bug in the
+orchestrator/wrapper itself outside those try blocks would fail silently,
+same exposure the synchronous path already had.
+
+## Phase reports log
+
+Reports are appended here as each sub-phase completes, in addition to
+being in the git commit messages themselves.
+
+---
