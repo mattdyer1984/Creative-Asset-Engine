@@ -1236,4 +1236,53 @@ product data - expect to revisit it as real profiles get built.
 - Zero behavior change to anything existing - purely additive schema.
 - Commit: (see git log)
 
+### Phase 5.2 — Shared Product Source contract (done)
+
+- New `app/product_sources/` package: `base.py` (the `ProductAttributeValue`
+  discriminated union - `TextValue`/`DimensionValue`/`ColorValue`/
+  `NumberValue`/`ListValue`, tagged by a `kind` literal field so
+  `NormalizedAttribute.value` resolves to the right concrete type from
+  raw dict data, not just accepts anything; `CANONICAL_FIELD_VOCABULARY`;
+  `NormalizedProductEvidence`/`NormalizedAttribute`/
+  `NormalizedProductImage`; `ProductSourceAdapter` Protocol) and
+  `registry.py` (`PRODUCT_SOURCE_ADAPTERS` + `get_product_source_adapter
+  (url)`, dispatch by `matches()`, most-specific-first).
+- **One simplification made during implementation, reasoned through
+  explicitly rather than following the plan's prose literally**: the
+  plan's `FieldDefinition` mentioned "preferred-source-type-per-
+  classification" as its own vocabulary property. Implemented without
+  it - with exactly two evidence categories today (URL-sourced,
+  vision-sourced), "prefer listing evidence for immutable fields, vision
+  evidence for contextual ones" already follows directly from
+  `classification` alone; storing it a second time per field would be
+  exactly the vocabulary bloat revision #5 exists to prevent. Noted in
+  `base.py`'s own comment for whoever builds 5.5's merge service.
+- Seeded the vocabulary with exactly the 15 fields named across the
+  Phase 5 planning conversation (9 immutable, 6 contextual) - a test
+  (`test_vocabulary_seeded_from_exactly_the_fields_already_named`)
+  pins this down explicitly, so an accidental future expansion shows up
+  as a failing test, not a silent drift.
+- `images: list[NormalizedProductImage]` on the evidence shape carries
+  URLs only, not raw bytes - downloading is 5.3's `import_product_
+  source` service's job, keeping `extract()` a pure fetch+parse
+  contract adapters don't each have to duplicate.
+- **No concrete adapters yet** - `PRODUCT_SOURCE_ADAPTERS` is
+  deliberately empty; a real call to `get_product_source_adapter` would
+  correctly raise until 5.3 registers the generic fallback. Registry
+  dispatch tests use two trivial fake adapters defined locally in the
+  test file.
+- 13 new tests: typed-value round-trip/discrimination, confidence bounds
+  (0.0-1.0) enforced, vocabulary composition pinned down, `validate_
+  attribute_value` accepts matching shapes and rejects both mismatched
+  shapes and unknown field names, evidence defaults are empty collections
+  not `None`, registry dispatch (specific match, generic fallback,
+  unmatched-URL error path), and one test documenting the real registry
+  is still empty.
+- Full suite: 95/95 passing (82 existing + 13 new). Ruff clean (same 10
+  pre-existing F821 false positives as always - SQLAlchemy string
+  forward-refs, unrelated to this sub-phase). App boots cleanly.
+- Zero behavior change to anything existing - new package, nothing
+  wired up to it yet.
+- Commit: (see git log)
+
 ---
