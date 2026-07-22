@@ -1198,4 +1198,42 @@ until its spike runs. Field vocabulary/classification (5.2) is a
 judgment call with room to be wrong in ways that only show up with real
 product data - expect to revisit it as real profiles get built.
 
+## Phase 5 reports log
+
+### Phase 5.1 — Additive schema (done)
+
+- New `ProductSourceImport` model (`app/models/product_source_import.py`)
+  - not built on `AnalysisArtifactMixin`, same reasoning documented in
+  the plan (a URL fetch isn't an AI analysis run). `ProductReferenceImage`
+  gained `source_product_source_import_id` (third provenance column).
+- **Real gap found during implementation, not anticipated in the
+  plan's prose**: `ProductReferenceImage` uses `AnalysisArtifactMixin`,
+  which requires a non-nullable `analysis_run_id`. A URL-sourced
+  reference image has no `AnalysisRun` to point at - same problem
+  `ProductSourceImport` itself was designed around, but the plan's "just
+  add a nullable provenance column" description didn't account for the
+  *existing* non-nullable column that would block inserting such a row
+  at all. Fixed precisely: overrode `analysis_run_id` to nullable on
+  `ProductReferenceImage` specifically (SQLAlchemy declarative lets a
+  subclass shadow a mixin's column), leaving the mixin itself - and
+  every other artifact type using it - untouched.
+- Migration `37e53bed7ec8`: full discipline applied - real dev DB backed
+  up first, `upgrade()`/`downgrade()` both tested on an isolated scratch
+  copy (`CAE_DATA_DIR`) before touching the real DB, content-diff
+  verified byte-for-byte identical data before and after (all 4 existing
+  `product_reference_images` rows, plus row counts on 5 other tables).
+  One benign finding: the round-tripped schema's `CREATE TABLE` text
+  differs cosmetically (FK constraint declaration order) from the
+  original - a known SQLite batch-mode artifact (Alembic rebuilds the
+  table under the hood), not a real difference; data and all column
+  definitions confirmed identical regardless.
+  Applied to the real dev DB and re-verified the same way.
+- 4 new model-level tests (`tests/test_product_source_import_model.py`),
+  mirroring `test_slideshow_model.py`'s style for Phase 4.1's equivalent
+  additive-schema change.
+- Full suite: 82/82 passing (78 existing + 4 new). Ruff clean. App boots
+  cleanly with the new model registered.
+- Zero behavior change to anything existing - purely additive schema.
+- Commit: (see git log)
+
 ---

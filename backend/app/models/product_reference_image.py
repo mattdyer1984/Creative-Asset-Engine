@@ -20,6 +20,23 @@ image this particular crop came from - provenance, not ownership (plan
 Transitional (Phase 2.3 of the Slideshow/Slide migration): both
 source_creative_id and source_slide_id exist, both nullable - see
 OCRResult's docstring for why.
+
+source_product_source_import_id (Phase 5.1 of Product Intelligence, see
+MIGRATION_PLAN.md) is a third, equally-nullable provenance column for
+images sourced from a Product Source (a URL import - the generic
+schema.org/OpenGraph fallback, or a platform-specific adapter) rather
+than cropped from a creative. Reuses this table rather than inventing a
+separate "official image" concept, exactly like source_slide_id reused
+it instead of inventing a new one for the new pipeline in Phase 2.3.
+
+analysis_run_id (from AnalysisArtifactMixin) is overridden here to be
+nullable, unlike every other artifact that uses the mixin - a Product
+Source fetch isn't an AI call, so a URL-sourced row has no AnalysisRun
+to point at (same reasoning as ProductSourceImport itself not using this
+mixin at all). Rows produced by the Product Isolation Stage continue to
+always populate it; only URL-sourced rows leave it null. The mixin
+itself stays unchanged for the other five artifact types, which remain
+exclusively AI-analysis-derived and should keep requiring a real run.
 """
 
 from sqlalchemy import ForeignKey, String
@@ -32,8 +49,13 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 class ProductReferenceImage(Base, AnalysisArtifactMixin):
     __tablename__ = "product_reference_images"
 
+    analysis_run_id: Mapped[str | None] = mapped_column(ForeignKey("analysis_runs.id"), nullable=True)
+
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
     source_creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
     source_slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
+    source_product_source_import_id: Mapped[str | None] = mapped_column(
+        ForeignKey("product_source_imports.id"), nullable=True
+    )
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     isolation_method: Mapped[str] = mapped_column(String(64), nullable=False)

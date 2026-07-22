@@ -8,6 +8,13 @@ CreativeFingerprint, MarketingAnalysis, and RecreationPrompt round out
 the data model. Every Analysis Artifact follows the same
 AnalysisArtifactMixin pattern (plan §6.5).
 
+ProductSourceImport (Phase 5.1 of Product Intelligence, see
+MIGRATION_PLAN.md) is the one artifact-like model that deliberately does
+NOT use AnalysisArtifactMixin - it records a Product Source URL fetch,
+not an AI analysis run, so it has no AnalysisRun to point at. See its own
+docstring, and ProductReferenceImage's, for how this affected that
+table's normally-mixin-enforced analysis_run_id.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -26,6 +33,7 @@ from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
 from app.models.recreation_prompt import RecreationPrompt
 from app.models.slide import Slide
@@ -40,6 +48,7 @@ __all__ = [
     "Product",
     "ProductReferenceImage",
     "ProductLockProfile",
+    "ProductSourceImport",
     "CreativeFingerprint",
     "MarketingAnalysis",
     "RecreationPrompt",
