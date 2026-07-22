@@ -675,10 +675,27 @@ above), not done here.
 
 ## Phase 5: Product Intelligence — architecture direction
 
-**Status: direction revised twice by the user on 2026-07-22 (see
-revision #2 and revision #3 below) - each supersedes/refines what came
-before it. Detailed sub-phase plan below reflects both revisions and is
-ready for implementation to begin.**
+**Status: direction revised three times by the user on 2026-07-22 (see
+revisions #2-#4 below) - each supersedes/refines what came before it.
+Detailed sub-phase plan below reflects all three and is ready for
+implementation to begin.**
+
+### Standing design principle (2026-07-22, revision #4 - applies throughout implementation, not a one-time change)
+
+The Product Profile is not a UI convenience - it is the canonical
+representation of the product that future systems depend on. Every
+design decision in Phase 5 (and any later work that touches the profile)
+should assume it will be consumed by: the **Generation Engine** (to
+preserve immutable product characteristics), the **Validation Engine**
+(to compare generated outputs against the canonical product and measure
+fidelity), and **future Product Sources** (additional adapters, not
+built yet). **Where UI simplicity and profile semantic correctness
+conflict, optimize for the profile - the UI can always adapt later.**
+This is a standing tiebreaker for judgment calls made *during*
+implementation (each sub-phase below), not something that changes the
+sub-phase structure itself. One concrete change it does drive now (not
+deferred - see 5.2/5.5): field values need enough structure to be
+machine-comparable, not just human-readable strings - see below.
 
 **Problem.** `ProductLockProfile` is currently the only thing resembling
 Product Intelligence, and it's a single AI-vision-derived blob: one
@@ -880,15 +897,37 @@ field-level provenance/confidence, without redoing any completed work.
     design (5.2 hasn't been built yet) - no completed work (Phases 0-4)
     touches this vocabulary, and nothing here changes `ProductLockProfile`
     or any other existing model.
+  - **Refinement (2026-07-22, revision #4 - standing design principle)**:
+    a field's `value` is not a bare string. The Validation Engine's whole
+    job is comparing a generated output against the canonical product
+    and measuring fidelity - comparing free-text strings ("red" vs.
+    "crimson") is fragile in a way comparing structured values isn't. A
+    small, closed `ProductAttributeValue` union (not an open-ended type
+    system - exactly the shapes implied by the fields already discussed:
+    `TextValue{text}`, `DimensionValue{length, width, height, unit}`,
+    `ColorValue{label, hex}` (both a human label and a machine-comparable
+    hex/RGB where extractable - a Validation Engine needs the latter, a
+    human reading the profile needs the former, neither alone is
+    enough), `NumberValue{value, unit}`, `ListValue{items}`) replaces a
+    bare string/`Any`. The vocabulary declares which shape each canonical
+    field expects, so every adapter normalizing into e.g. `"color"`
+    produces the same shape regardless of source - which is also what
+    keeps this consistent for *future* Product Source adapters (the
+    third consumer named in the standing principle above): a new adapter
+    knows exactly what shape to produce for each field it can populate,
+    not by convention but by the vocabulary's own declared type. Exact
+    per-field type assignment (which of the five shapes each canonical
+    field uses) is implementation-time work for this sub-phase, not
+    exhaustively enumerated here.
 - `NormalizedProductEvidence` schema: `source_type, source_url, title,
   brand, images: list[NormalizedProductImage]` (`url`/bytes + role),
   `attributes: dict[str, NormalizedAttribute]` (canonical field name ->
-  `{value, confidence}` - classification is *not* repeated here, since
-  it's a property of the canonical field name itself, looked up from the
-  vocabulary once at final profile assembly (5.5), not duplicated across
-  every adapter's per-source output), `variants` (loosely typed for v1 -
-  not over-specified before real adapters exist to validate the shape
-  against).
+  `{value: ProductAttributeValue, confidence}` - classification is *not*
+  repeated here, since it's a property of the canonical field name
+  itself, looked up from the vocabulary once at final profile assembly
+  (5.5), not duplicated across every adapter's per-source output),
+  `variants` (loosely typed for v1 - not over-specified before real
+  adapters exist to validate the shape against).
 - `app/product_sources/registry.py`: `PRODUCT_SOURCE_ADAPTERS: list[type
   [ProductSourceAdapter]]`, most-specific-first (TikTok Shop before the
   generic fallback), `get_product_source_adapter(url) -> 
@@ -980,8 +1019,12 @@ field-level provenance/confidence, without redoing any completed work.
   the boundary (5.2/5.3/5.4) - this layer only does precedence
   resolution across already-normalized sources, no field-mapping.
 - New Pydantic schema `ProductProfile` (`fields: dict[str,
-  ProductProfileField]`, `ProductProfileField = {value, source_type,
-  source_id, confidence, classification}`).
+  ProductProfileField]`, `ProductProfileField = {value:
+  ProductAttributeValue, source_type, source_id, confidence,
+  classification}` - `value` reuses 5.2's typed union, not a bare
+  string, for the same reason: this response is what the Validation
+  Engine eventually diffs a generated output against, and a structured
+  `ColorValue{hex}` is comparable in a way a free-text string isn't).
   - **Refinement (2026-07-22, revision #3)**: `classification`
     (`"immutable"` | `"contextual"`) is a real, visible field on every
     `ProductProfileField` in the API response - not just an internal
@@ -1025,7 +1068,12 @@ field-level provenance/confidence, without redoing any completed work.
   multi-provider AI pipeline; revisit if real-world latency proves
   otherwise).
 - `GET /api/products/{id}/profile` - returns 5.5's assembled
-  `ProductProfile`.
+  `ProductProfile`, serializing `ProductAttributeValue`'s full typed
+  structure (e.g. `ColorValue{label, hex}`), not a flattened display
+  string - the API is the Generation/Validation Engine's future contract
+  as much as it's the frontend's, per the standing design principle
+  above; the frontend can flatten for display, the API response
+  shouldn't pre-flatten on its behalf.
 - New route-level tests (success, failure surfaced correctly, 404 for
   unknown product).
 - **Rollback**: revert the two routes independently.
@@ -1036,8 +1084,17 @@ field-level provenance/confidence, without redoing any completed work.
 - `ProductManager.tsx`'s existing "View Analysis" panel gains a URL
   input + submit control (no platform picker - the backend resolves the
   adapter), and a new profile view rendering each canonical field's
-  value/source/confidence (replacing today's raw `<pre>{JSON.stringify
-  (lockProfile.structured)}</pre>` dump for this purpose).
+  value/source/confidence/classification (replacing today's raw
+  `<pre>{JSON.stringify(lockProfile.structured)}</pre>` dump for this
+  purpose).
+- **Applying the standing design principle here**: render each typed
+  `ProductAttributeValue` shape appropriately (e.g. a color swatch next
+  to the hex for `ColorValue`, not just its label) rather than
+  collapsing every value to a display string before it reaches the
+  component - if a future sub-phase needs a change here, it should be
+  because the UI wants to show the existing structure differently, not
+  because the structure was flattened away in 5.5/5.6 to make this
+  sub-phase easier.
 - Live-verify against both a real TikTok Shop listing URL and a real
   generic-fallback-eligible URL (genuine URLs, not fabricated) - same
   live-server discipline used for every other phase's frontend
