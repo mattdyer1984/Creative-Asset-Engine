@@ -12,6 +12,13 @@ Slideshow's module docstring.
 
 MARKETING_ANALYSIS_SCHEMA/PROMPT_TEMPLATE duplicated from the old stage,
 same self-containment reasoning as the other new stages.
+
+Phase 7.3 (Narrative pass, see MIGRATION_PLAN.md) added
+MarketingAnalysis.creative_fingerprint_id, recording which Creative
+Fingerprint version this was actually generated from - a real gap fix
+(the artifact was generated from the fingerprint but never recorded
+which one), and the prerequisite Phase 7.4's dependency-aware staleness
+check needs.
 """
 
 import json
@@ -102,6 +109,7 @@ class SlideshowMarketingAnalysisStage:
             marketing_analysis = MarketingAnalysis(
                 analysis_run_id=analysis_run.id,
                 slideshow_id=slideshow.id,
+                creative_fingerprint_id=fingerprint.id,
                 narrative_text=result["narrative"],
             )
             db.add(marketing_analysis)

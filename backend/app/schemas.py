@@ -216,6 +216,9 @@ class MarketingAnalysisRead(BaseModel):
     id: str
     is_current: bool
     narrative_text: str
+    # Phase 7.3 (Narrative pass, see MIGRATION_PLAN.md) - None for rows
+    # created before this field existed; "staleness unknown," not "fresh".
+    creative_fingerprint_id: str | None = None
     created_at: datetime
 
 

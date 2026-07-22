@@ -11,6 +11,18 @@ accordingly.
 Transitional (Phase 2.3 of the Slideshow/Slide migration): both
 creative_id and slideshow_id exist, both nullable - see OCRResult's
 docstring for why.
+
+creative_fingerprint_id (Phase 7.3 of the Narrative pass, see
+MIGRATION_PLAN.md) is a real gap fix, not new functionality: this
+artifact is generated *from* a CreativeFingerprint but, unlike
+RecreationPrompt (which has always recorded its own two upstream
+versions - see that model's docstring), never recorded which one. A
+real prerequisite for Phase 7.4's dependency-aware staleness check -
+you can't tell whether an artifact is stale relative to its input
+without first knowing which input version produced it. Nullable because
+existing rows have no way to be backfilled with the truth (the actual
+fingerprint used at generation time isn't recoverable after the fact) -
+a `None` here means "staleness unknown," not "fresh" or "stale."
 """
 
 from sqlalchemy import ForeignKey, Text
@@ -25,4 +37,7 @@ class MarketingAnalysis(Base, AnalysisArtifactMixin):
 
     creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
     slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
+    creative_fingerprint_id: Mapped[str | None] = mapped_column(
+        ForeignKey("creative_fingerprints.id"), nullable=True
+    )
     narrative_text: Mapped[str] = mapped_column(Text, nullable=False)

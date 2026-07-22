@@ -2996,4 +2996,33 @@ deliberately NOT widened in this phase.
   assembly/response shape is untouched.
 - Commit: (see git log)
 
+### Phase 7.3 — Provenance backfill: `MarketingAnalysis.creative_fingerprint_id` (done)
+
+- New nullable FK column, exactly as planned: `MarketingAnalysisStage`
+  now records which `CreativeFingerprint` it actually read when creating
+  each row. Migration `15210f8f4d89`, batch mode (adding a column with a
+  new FK constraint, same requirement as 37e53bed7ec8/d3bafd6a4965) -
+  full backup/scratch-copy/round-trip discipline applied, including
+  confirming both existing `marketing_analyses` rows correctly stay
+  `None` after upgrade (nothing to truthfully backfill them with) and the
+  column/constraint cleanly disappear on downgrade.
+- `MarketingAnalysisRead` gained the field too (`None` for pre-7.3 rows,
+  same nullable, `from_attributes`-compatible pattern as everywhere else)
+  - `assemble_slideshow_blueprint` needed no code change, since it
+    already builds this schema via `model_validate(row)`.
+- 2 new tests: the stage's own success test now also asserts the
+  recorded id matches the slide's actual current fingerprint; a
+  dedicated test constructs a legacy-shaped row (no
+  `creative_fingerprint_id` supplied) and confirms it round-trips as
+  `None` cleanly, not a data-integrity error - exactly the tolerance
+  Phase 7.4's staleness check needs (`None` means "unknown", never
+  "stale" or "fresh").
+- Full suite: 201/201 passing (200 existing + 1 new test file entry,
+  plus 1 assertion added to an existing test). Ruff clean. App boots
+  cleanly, 35 routes (unchanged - no new endpoints).
+- Zero behavior change to anything existing beyond the one new column -
+  every pre-7.3 `MarketingAnalysis` row and every consumer of it
+  continues to work exactly as before.
+- Commit: (see git log)
+
 ---

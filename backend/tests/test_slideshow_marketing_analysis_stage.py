@@ -51,6 +51,9 @@ def test_succeeds_and_updates_slideshow(db_session, slideshow_with_slide, monkey
     assert ma.slideshow_id == slideshow_with_slide.id
     assert ma.creative_id is None
     assert ma.narrative_text
+    # Phase 7.3 (Narrative pass, see MIGRATION_PLAN.md): records exactly
+    # which Creative Fingerprint version this was generated from.
+    assert ma.creative_fingerprint_id == slideshow_with_slide.primary_slide.current_creative_fingerprint_id
 
     analysis_run = db_session.get(AnalysisRun, ma.analysis_run_id)
     assert analysis_run.analysis_type == "marketing_analysis"
@@ -89,6 +92,38 @@ def test_fails_gracefully_on_provider_error(db_session, slideshow_with_slide, mo
 
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.current_marketing_analysis_id is None
+
+
+def test_legacy_row_with_no_recorded_fingerprint_round_trips_fine(db_session, slideshow_with_slide):
+    """
+    A pre-Phase-7.3 row has no way to be truthfully backfilled with which
+    fingerprint it came from - None must round-trip cleanly, not be
+    treated as a data-integrity problem. This is exactly the tolerance
+    Phase 7.4's staleness check depends on (None means "unknown", not a
+    crash).
+    """
+    from app.models.analysis_run import ANALYSIS_TYPE_MARKETING_ANALYSIS, STATUS_SUCCEEDED, AnalysisRun
+
+    analysis_run = AnalysisRun(
+        slideshow_id=slideshow_with_slide.id,
+        analysis_type=ANALYSIS_TYPE_MARKETING_ANALYSIS,
+        provider="fake",
+        model_name="fake",
+        status=STATUS_SUCCEEDED,
+    )
+    db_session.add(analysis_run)
+    db_session.flush()
+
+    legacy_row = MarketingAnalysis(
+        analysis_run_id=analysis_run.id,
+        slideshow_id=slideshow_with_slide.id,
+        narrative_text="Pre-existing narrative, no recorded provenance.",
+    )
+    db_session.add(legacy_row)
+    db_session.commit()
+    db_session.refresh(legacy_row)
+
+    assert legacy_row.creative_fingerprint_id is None
 
 
 def test_rerun_produces_new_version(db_session, slideshow_with_slide, monkeypatch):
