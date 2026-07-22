@@ -78,7 +78,7 @@ for new code, none of which touch Phase 2-4's existing models/stages.
 | 3 | Async execution boundary (3.1–3.5) | done |
 | 4 | True multi-slide import (4.1–4.4) | done |
 | 5 | **Product Intelligence** (evidence model, listing import, canonical profile) | done (5.1-5.7, live-verified — TikTok Shop deliberately unsupported, see 5.4) |
-| 6 | Multi per-slide product detection *(was Phase 5)* | not started — demoted; now an enhancement to Product Intelligence's slideshow-evidence source, not a prerequisite for it |
+| 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
 | 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | not started — unaffected by the revision, pure Creative Intelligence |
 | 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
 | 9 | PerformanceRecord (additive) *(was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
