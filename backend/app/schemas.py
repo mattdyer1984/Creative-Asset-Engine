@@ -70,10 +70,21 @@ class AssignProductRequest(BaseModel):
 
 
 class ProductReferenceImageRead(BaseModel):
+    """
+    Used by GET /api/products/{id}/reference-images - a permanent,
+    Product-scoped endpoint unrelated to the Slideshow/Slide migration.
+    source_creative_id became nullable in Phase 2.3 (the new pipeline's
+    Product Isolation stage populates source_slide_id instead - see
+    SlideProductReferenceImageRead), so this must accept null too:
+    without this, this endpoint 500s (ResponseValidationError) the
+    moment any reference image created by the new pipeline exists for a
+    product - reproduced and confirmed before this fix.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    source_creative_id: str
+    source_creative_id: str | None
     isolation_method: str
     is_current: bool
     created_at: datetime
