@@ -60,8 +60,32 @@ def test_add_two_different_products_both_stay_current(client):
     client.post(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products", json={"product_id": product_b})
 
     blueprint = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
-    product_ids = {a["product_id"] for a in blueprint["slides"][0]["product_appearances"]}
+    product_ids = {p["appearance"]["product_id"] for p in blueprint["slides"][0]["products"]}
     assert product_ids == {product_a, product_b}
+
+
+def test_slide_read_exposes_the_plural_current_product_appearances(client):
+    """
+    Phase 6.5: SlideRead.current_product_appearances (plural, additive
+    alongside the unchanged singular current_product_appearance) lets the
+    frontend build a real multi-product picker without fetching the full
+    assembled blueprint.
+    """
+    slideshow_id, slide_id = _import_slideshow(client)
+    product_a = _create_product(client, "A")
+    product_b = _create_product(client, "B")
+
+    client.post(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products", json={"product_id": product_a})
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products", json={"product_id": product_b}
+    )
+
+    slide = response.json()["slides"][0]
+    plural_ids = {a["product_id"] for a in slide["current_product_appearances"]}
+    assert plural_ids == {product_a, product_b}
+    # Unchanged singular field still returns exactly one (whichever the
+    # underlying property picks) - proving this is genuinely additive.
+    assert slide["current_product_appearance"]["product_id"] in plural_ids
 
 
 def test_adding_the_same_product_twice_is_idempotent_not_a_duplicate(client):
@@ -72,8 +96,8 @@ def test_adding_the_same_product_twice_is_idempotent_not_a_duplicate(client):
     client.post(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products", json={"product_id": product_id})
 
     blueprint = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
-    appearances = blueprint["slides"][0]["product_appearances"]
-    assert len(appearances) == 1
+    products = blueprint["slides"][0]["products"]
+    assert len(products) == 1
 
 
 def test_add_product_unknown_product_404s(client):
@@ -103,19 +127,19 @@ def test_remove_one_appearance_leaves_the_others(client):
 
     # SlideshowRead/SlideRead only expose the singular current_product_
     # appearance - the full list (with each appearance's own id) is only
-    # on the assembled blueprint's product_appearances.
+    # on the assembled blueprint's per-slide products list.
     blueprint_before = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
     appearance_b_id = next(
-        a["id"]
-        for a in blueprint_before["slides"][0]["product_appearances"]
-        if a["product_id"] == product_b
+        p["appearance"]["id"]
+        for p in blueprint_before["slides"][0]["products"]
+        if p["appearance"]["product_id"] == product_b
     )
 
     response = client.delete(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products/{appearance_b_id}")
 
     assert response.status_code == 200
     blueprint = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
-    remaining = {a["product_id"] for a in blueprint["slides"][0]["product_appearances"]}
+    remaining = {p["appearance"]["product_id"] for p in blueprint["slides"][0]["products"]}
     assert remaining == {product_a}
 
 
@@ -144,4 +168,4 @@ def test_assign_product_flow_is_completely_unaffected(client):
 
     assert response.json()["slides"][0]["current_product_appearance"]["product_id"] == product_b
     blueprint = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
-    assert len(blueprint["slides"][0]["product_appearances"]) == 1
+    assert len(blueprint["slides"][0]["products"]) == 1

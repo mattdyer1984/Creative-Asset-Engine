@@ -427,12 +427,29 @@ section h2 {
   cursor: pointer;
 }
 
+.assigned-product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .assigned-product {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.75rem;
   color: #157a41;
   background: #d9f2e3;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
+}
+
+.assigned-product .unassign-button {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
 }
 
 .unassign-button {
@@ -642,6 +659,39 @@ section h2 {
   line-height: 1.5;
   color: #333;
   margin: 0;
+}
+
+/* Phase 6.5 (multi per-slide product detection, see MIGRATION_PLAN.md) -
+   one of these per product in the blueprint's Products section, so a
+   multi-product slide's artifacts render distinctly instead of merged. */
+.product-subsection {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.product-subsection:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.product-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
+
+.prominence-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #157a41;
+  background: #d9f2e3;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
 }
 
 /* Field grid - the "spec sheet" layout for structured artifacts */

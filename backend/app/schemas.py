@@ -196,6 +196,12 @@ class SlideRead(BaseModel):
     # Convenience denormalization (via Slide.current_product_appearance)
     # for UI parity with the old CreativeRead.product.
     current_product_appearance: SlideProductAppearanceRead | None = None
+    # Phase 6.5 (multi per-slide product detection, see MIGRATION_PLAN.md):
+    # exposes Slide.current_product_appearances (plural, added in 6.1) so
+    # the frontend can build a real add/remove multi-product picker
+    # without fetching the full assembled blueprint - added alongside the
+    # unchanged singular field above, same non-breaking pattern.
+    current_product_appearances: list[SlideProductAppearanceRead] = []
 
 
 class SlideshowRead(BaseModel):
@@ -241,6 +247,21 @@ class SlideProductReferenceImageRead(BaseModel):
     created_at: datetime
 
 
+class AssembledSlideProductBlueprint(BaseModel):
+    """
+    One product's full artifact set on a single slide - Phase 6.4 of
+    multi per-slide product detection, see MIGRATION_PLAN.md. Replaces
+    the old flat product_reference_images/product_lock_profile fields on
+    AssembledSlideBlueprint, which silently only ever populated data for
+    current_appearances[0] - a slide with 2+ current products now gets
+    one of these per product, not just the first one.
+    """
+
+    appearance: SlideProductAppearanceRead
+    product_reference_images: list[SlideProductReferenceImageRead] = []
+    product_lock_profile: ProductLockProfileRead | None = None
+
+
 class AssembledSlideBlueprint(BaseModel):
     id: str
     slide_index: int
@@ -250,9 +271,7 @@ class AssembledSlideBlueprint(BaseModel):
 
     ocr_result: OCRResultRead | None = None
     creative_fingerprint: CreativeFingerprintRead | None = None
-    product_appearances: list[SlideProductAppearanceRead] = []
-    product_reference_images: list[SlideProductReferenceImageRead] = []
-    product_lock_profile: ProductLockProfileRead | None = None
+    products: list[AssembledSlideProductBlueprint] = []
 
 
 class AssembledSlideshowBlueprint(BaseModel):

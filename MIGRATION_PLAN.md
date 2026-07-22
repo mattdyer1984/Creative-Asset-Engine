@@ -213,6 +213,19 @@ eventually:
   interface design work, not an orchestration-loop change, and belong in
   their own phase once there's a real multi-product use case to design
   against, not guessed at here.
+- **`prominence` doesn't yet distinguish primary from secondary on
+  multi-product slides** (observed while live-verifying Phase 6.5,
+  2026-07-22): the additive add-product endpoint (Phase 6.1) always
+  writes `prominence="primary"` for every appearance it creates, so a
+  slide with 2+ products added this way shows every one of them as
+  "primary" (Recreation Prompt's `_resolve_primary_appearance` from
+  Phase 6.3 still resolves deterministically in this case via the
+  earliest-created tiebreak, so nothing is actually broken - but the
+  stored `prominence` value itself doesn't yet carry a meaningful signal
+  once there's more than one). Fixing this needs a real product decision
+  (should adding a second product ever demote the first to "secondary"
+  automatically, or does that require explicit user action, e.g. a
+  "make primary" control in the picker?) - not guessed at here.
 
 ## Phase 3: Async execution boundary — detailed plan
 
@@ -1890,5 +1903,96 @@ undesigned, logged as future work).
   test). Ruff clean. App boots cleanly, 28 routes (unchanged - no new
   endpoints).
 - Commit: (see git log)
+
+---
+
+### Phase 6.4 + 6.5 — Blueprint regrouped per-product + frontend multi-product UI (done, landed together per the plan)
+
+Backend (6.4):
+
+- `AssembledSlideBlueprint`'s old flat `product_appearances` /
+  `product_reference_images` / `product_lock_profile` fields (the last
+  two only ever populated for `current_appearances[0]` - Phase 6.1/6.4's
+  actual gap) are gone, replaced by `products: list[AssembledSlideProductBlueprint]`
+  - one entry per current `ProductAppearance` on the slide, each carrying
+  its own `appearance`, `product_reference_images`, and
+  `product_lock_profile`. A genuinely breaking response-shape change,
+  landed deliberately (not deferred) per the plan.
+  `_assemble_slide_product()` (new, in `slideshow_blueprint.py`) does the
+  per-appearance lookup that `_assemble_slide` used to do once for
+  `current_appearances[0]` only.
+- Additive schema gap found and fixed while wiring the frontend: `SlideRead`
+  only ever exposed the *singular* `current_product_appearance` - the
+  plural accessor added in Phase 6.1 was never surfaced over the wire, so
+  a multi-product picker had no way to know about a slide's second+
+  product without fetching the whole assembled blueprint. Added
+  `SlideRead.current_product_appearances` (plural), additive alongside
+  the unchanged singular field - same non-breaking pattern used
+  throughout this migration.
+- Updated tests: the 3 tests in `test_slideshow_blueprint_api.py` and 4 in
+  `test_slide_products_add_remove_api.py` that asserted the old flat
+  shape now assert the grouped one; added
+  `test_blueprint_regroups_artifacts_per_product_on_a_multi_product_slide`
+  (2 real products, 2 Lock Profiles persisted directly since Phase 6.2
+  made the stage itself reject multi-product slides, asserting each
+  product's own Lock Profile shows up under its own entry - the actual
+  point of this sub-phase) and
+  `test_slide_read_exposes_the_plural_current_product_appearances`.
+
+Frontend (6.5):
+
+- `api.ts`: `AssembledSlideBlueprint.products: AssembledSlideProductBlueprint[]`
+  mirrors the new backend shape exactly; `Slide.current_product_appearances`
+  added (additive) mirroring the new `SlideRead` field; new
+  `addSlideProduct`/`removeSlideProduct` methods calling the Phase 6.1
+  endpoints.
+- `SlideProductPicker.tsx` rebuilt around the plural list instead of a
+  single replaceable slot: renders one removable pill per current
+  appearance, an "Add another product…"/"Assign product…" dropdown that
+  filters out already-assigned products, and a "+ New" create-and-add
+  flow - all via the additive add/remove endpoints, not the old
+  single-slot assign-product endpoint (which remains untouched and still
+  live on the backend, per its own regression test).
+  `SlideshowGrid.tsx` updated to pass the plural prop.
+- `SlideshowBlueprintModal.tsx`'s Product section rebuilt as "Products":
+  one sub-section per product (name + "primary" badge, its own reference
+  images, its own Lock Profile or "not generated yet"), replacing the
+  single flat section that only ever showed `product_appearances[0]`'s
+  data. Header's product line now joins every current product's name.
+  Product Isolation/Lock Profile rerun buttons stay slide-scoped (those
+  stages still reject 2+-product slides per Phase 6.2) - their failure
+  surfaces through the existing `failed_stage`/`failed_stage_error`
+  mechanism, not a special case.
+- New CSS: `.assigned-product-list`, updated `.assigned-product` (now a
+  removable pill inside a list item), `.product-subsection`,
+  `.product-subsection-title`, `.prominence-badge`.
+- `tsc -b && vite build`: clean. `oxlint`: clean (exit 0).
+- **Live-verified** against the real dev server and real dev DB (backend
+  on :8000, vite dev server proxying to it): added a second product
+  (Evoband) to a slide that already had one (Bellavita) via the picker -
+  confirmed both stayed current, the dropdown correctly excluded both
+  once assigned, and the grid card showed 2 removable pills. Opened the
+  Blueprint modal on that same slide: header read "Products: Bellavita,
+  Evoband"; the Products section rendered two distinct sub-sections -
+  Bellavita's showing its real, pre-existing generated Lock Profile in
+  full (this product's Lock Profile was generated in an earlier session,
+  confirming real data renders correctly, not just fixture data), Evoband
+  correctly showing "Lock Profile not generated yet." Removed Evoband via
+  the grid's Remove button - confirmed it dropped back out of both the
+  picker and (implicitly, via the same data path) the blueprint. No
+  console errors at any point.
+- Observed but out of scope for this sub-phase: the additive add-product
+  endpoint (Phase 6.1) always writes `prominence="primary"` for every
+  appearance it creates, so a slide with 2 products added this way shows
+  a "primary" badge on both in the UI - not incorrect (it's an honest
+  reflection of the stored data), but not yet a meaningful "which one is
+  actually primary" signal either. Not fixed here; flagged in "Suggested
+  future improvements" below since it would need its own design decision
+  (should adding a second product ever demote the first to secondary
+  automatically, or does that require an explicit user action?).
+- Also added a `frontend` entry to `.claude/launch.json` (vite dev
+  server on :5173) alongside the existing `backend` entry, so future
+  frontend live-verification doesn't need an ad hoc setup.
+- Commits: (see git log)
 
 ---

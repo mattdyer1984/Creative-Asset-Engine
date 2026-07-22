@@ -288,6 +288,26 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: productId }),
     }).then((res) => handle<Slideshow>(res)),
+
+  // Additive, multi-product endpoints (Phase 6.1, see MIGRATION_PLAN.md) -
+  // unlike assignSlideProduct above, adding a second product doesn't
+  // replace the first. addSlideProduct is idempotent: re-adding an
+  // already-current product no-ops rather than duplicating.
+  addSlideProduct: (slideshowId: string, slideId: string, productId: string): Promise<Slideshow> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId }),
+    }).then((res) => handle<Slideshow>(res)),
+
+  removeSlideProduct: (
+    slideshowId: string,
+    slideId: string,
+    appearanceId: string
+  ): Promise<Slideshow> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/products/${appearanceId}`, {
+      method: 'DELETE',
+    }).then((res) => handle<Slideshow>(res)),
 };
 
 export interface SlideProductAppearance {
@@ -308,6 +328,9 @@ export interface Slide {
   source_type: string;
   source_locator: string;
   current_product_appearance: SlideProductAppearance | null;
+  // Phase 6.5 (multi per-slide product detection, see MIGRATION_PLAN.md) -
+  // additive alongside the unchanged singular field above.
+  current_product_appearances: SlideProductAppearance[];
 }
 
 export interface Slideshow {
@@ -326,6 +349,18 @@ export interface SlideProductReferenceImage {
   created_at: string;
 }
 
+// Phase 6.4 (multi per-slide product detection, see MIGRATION_PLAN.md):
+// one product's full artifact set on a slide. Replaces the old flat
+// product_reference_images/product_lock_profile fields on
+// AssembledSlideBlueprint, which only ever showed data for
+// product_appearances[0] - a slide with 2+ current products now gets
+// one of these per product.
+export interface AssembledSlideProductBlueprint {
+  appearance: SlideProductAppearance;
+  product_reference_images: SlideProductReferenceImage[];
+  product_lock_profile: ProductLockProfile | null;
+}
+
 export interface AssembledSlideBlueprint {
   id: string;
   slide_index: number;
@@ -334,9 +369,7 @@ export interface AssembledSlideBlueprint {
   source_locator: string;
   ocr_result: OCRResult | null;
   creative_fingerprint: CreativeFingerprintData | null;
-  product_appearances: SlideProductAppearance[];
-  product_reference_images: SlideProductReferenceImage[];
-  product_lock_profile: ProductLockProfile | null;
+  products: AssembledSlideProductBlueprint[];
 }
 
 export interface AssembledSlideshowBlueprint {

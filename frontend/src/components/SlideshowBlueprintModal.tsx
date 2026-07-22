@@ -142,9 +142,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <span className={`status-badge status-${blueprint.status}`}>
                   {STATUS_LABELS[blueprint.status] ?? blueprint.status}
                 </span>
-                {slide.product_appearances[0]?.product && (
+                {slide.products.length > 0 && (
                   <p className="blueprint-meta">
-                    Product: {slide.product_appearances[0].product.display_name}
+                    {slide.products.length > 1 ? 'Products' : 'Product'}:{' '}
+                    {slide.products
+                      .map((p) => p.appearance.product?.display_name ?? p.appearance.product_id)
+                      .join(', ')}
                   </p>
                 )}
                 <p className="blueprint-meta">
@@ -190,43 +193,69 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               </div>
             )}
 
-            <BlueprintSection
-              title="Product"
-              generated={slide.product_lock_profile !== null}
-              failed={blueprint.failed_stage === 'product_lock_profile'}
-              error={blueprint.failed_stage === 'product_lock_profile' ? blueprint.failed_stage_error : null}
-              rerunLabel="Regenerate profile"
-              onRerun={() => handleRerun('product_lock_profile')}
-              busy={busyAction === 'product_lock_profile' || runInFlight}
-              extraAction={
-                <button
-                  className="rerun-button secondary"
-                  onClick={() => handleRerun('product_isolation')}
-                  disabled={busyAction !== null || runInFlight}
-                >
-                  {busyAction === 'product_isolation' ? 'Re-cropping…' : 'Re-crop product image'}
-                </button>
-              }
-            >
-              {slide.product_reference_images.length > 0 && (
-                <div className="reference-images-row">
-                  {slide.product_reference_images.map((img) => (
-                    <img
-                      key={img.id}
-                      src={api.referenceImageFileUrl(
-                        slide.product_appearances[0]?.product_id ?? '',
-                        img.id
-                      )}
-                      alt="Product reference"
-                      className="reference-image-thumbnail"
-                    />
-                  ))}
+            <section className="blueprint-section">
+              <div className="blueprint-section-header">
+                <h3>Products</h3>
+                <div className="blueprint-section-actions">
+                  <button
+                    className="rerun-button secondary"
+                    onClick={() => handleRerun('product_isolation')}
+                    disabled={busyAction !== null || runInFlight}
+                  >
+                    {busyAction === 'product_isolation' ? 'Re-cropping…' : 'Re-crop product image'}
+                  </button>
+                  <button
+                    className="rerun-button"
+                    onClick={() => handleRerun('product_lock_profile')}
+                    disabled={busyAction !== null || runInFlight}
+                  >
+                    {busyAction === 'product_lock_profile' ? 'Working…' : 'Regenerate profile'}
+                  </button>
                 </div>
+              </div>
+              {/*
+                Phase 6.2 (see MIGRATION_PLAN.md): both stages above
+                reject a slide with 2+ distinct current products outright
+                rather than guessing which one to isolate/profile - that
+                failure surfaces here exactly like any other stage
+                failure, not as a special case.
+              */}
+              {(blueprint.failed_stage === 'product_isolation' ||
+                blueprint.failed_stage === 'product_lock_profile') && (
+                <p className="section-error">{blueprint.failed_stage_error}</p>
               )}
-              {slide.product_lock_profile && (
-                <ProductLockProfileFields structured={slide.product_lock_profile.structured} />
+              {slide.products.length === 0 ? (
+                <p className="empty-state">No product assigned yet.</p>
+              ) : (
+                slide.products.map((product) => (
+                  <div key={product.appearance.id} className="product-subsection">
+                    <h4 className="product-subsection-title">
+                      {product.appearance.product?.display_name ?? product.appearance.product_id}
+                      {product.appearance.prominence === 'primary' && (
+                        <span className="prominence-badge">primary</span>
+                      )}
+                    </h4>
+                    {product.product_reference_images.length > 0 && (
+                      <div className="reference-images-row">
+                        {product.product_reference_images.map((img) => (
+                          <img
+                            key={img.id}
+                            src={api.referenceImageFileUrl(product.appearance.product_id, img.id)}
+                            alt="Product reference"
+                            className="reference-image-thumbnail"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {product.product_lock_profile ? (
+                      <ProductLockProfileFields structured={product.product_lock_profile.structured} />
+                    ) : (
+                      <p className="empty-state">Lock Profile not generated yet.</p>
+                    )}
+                  </div>
+                ))
               )}
-            </BlueprintSection>
+            </section>
 
             <BlueprintSection
               title="Creative Fingerprint"

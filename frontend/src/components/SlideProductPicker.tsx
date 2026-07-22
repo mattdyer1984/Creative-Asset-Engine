@@ -4,21 +4,27 @@ import { api, type Product, type SlideProductAppearance } from '../api';
 interface SlideProductPickerProps {
   slideshowId: string;
   slideId: string;
-  currentAppearance: SlideProductAppearance | null;
+  currentAppearances: SlideProductAppearance[];
   products: Product[];
   onChanged: () => void;
 }
 
 /**
  * New-pipeline equivalent of ProductPicker.tsx, operating on a
- * (slideshowId, slideId) pair and a ProductAppearance instead of a
- * creativeId and a direct Creative.product FK - see
+ * (slideshowId, slideId) pair and a list of ProductAppearances instead
+ * of a creativeId and a direct Creative.product FK - see
  * app/routers/slideshows.py's assign-product endpoint.
+ *
+ * Phase 6.5 (multi per-slide product detection, see MIGRATION_PLAN.md)
+ * rebuilt this around the additive add/remove endpoints (Phase 6.1)
+ * instead of the single-slot assign-product endpoint - a slide can now
+ * carry several current appearances at once, each removable
+ * independently, rather than one replaceable slot.
  */
 export function SlideProductPicker({
   slideshowId,
   slideId,
-  currentAppearance,
+  currentAppearances,
   products,
   onChanged,
 }: SlideProductPickerProps) {
@@ -27,12 +33,15 @@ export function SlideProductPicker({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSelectExisting = async (productId: string) => {
+  const assignedProductIds = new Set(currentAppearances.map((a) => a.product_id));
+  const availableProducts = products.filter((p) => !assignedProductIds.has(p.id));
+
+  const handleAddExisting = async (productId: string) => {
     if (!productId) return;
     setBusy(true);
     setError(null);
     try {
-      await api.assignSlideProduct(slideshowId, slideId, productId);
+      await api.addSlideProduct(slideshowId, slideId, productId);
       onChanged();
     } catch (err) {
       setError((err as Error).message);
@@ -41,10 +50,11 @@ export function SlideProductPicker({
     }
   };
 
-  const handleUnassign = async () => {
+  const handleRemove = async (appearanceId: string) => {
     setBusy(true);
+    setError(null);
     try {
-      await api.assignSlideProduct(slideshowId, slideId, null);
+      await api.removeSlideProduct(slideshowId, slideId, appearanceId);
       onChanged();
     } catch (err) {
       setError((err as Error).message);
@@ -60,7 +70,7 @@ export function SlideProductPicker({
     setError(null);
     try {
       const product = await api.createProduct({ display_name: newProductName.trim() });
-      await api.assignSlideProduct(slideshowId, slideId, product.id);
+      await api.addSlideProduct(slideshowId, slideId, product.id);
       setNewProductName('');
       setCreatingNew(false);
       onChanged();
@@ -71,21 +81,25 @@ export function SlideProductPicker({
     }
   };
 
-  if (currentAppearance) {
-    return (
-      <div className="product-picker">
-        <span className="assigned-product">
-          Product: {currentAppearance.product?.display_name ?? currentAppearance.product_id}
-        </span>
-        <button className="unassign-button" onClick={handleUnassign} disabled={busy}>
-          Unassign
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="product-picker">
+      {currentAppearances.length > 0 && (
+        <ul className="assigned-product-list">
+          {currentAppearances.map((appearance) => (
+            <li key={appearance.id} className="assigned-product">
+              <span>{appearance.product?.display_name ?? appearance.product_id}</span>
+              <button
+                className="unassign-button"
+                onClick={() => handleRemove(appearance.id)}
+                disabled={busy}
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {creatingNew ? (
         <form className="new-product-form" onSubmit={handleCreateAndAssign}>
           <input
@@ -97,7 +111,7 @@ export function SlideProductPicker({
             autoFocus
           />
           <button type="submit" disabled={busy || !newProductName.trim()}>
-            Create &amp; Assign
+            Create &amp; Add
           </button>
           <button type="button" onClick={() => setCreatingNew(false)} disabled={busy}>
             Cancel
@@ -107,11 +121,13 @@ export function SlideProductPicker({
         <>
           <select
             value=""
-            onChange={(e) => handleSelectExisting(e.target.value)}
-            disabled={busy}
+            onChange={(e) => handleAddExisting(e.target.value)}
+            disabled={busy || availableProducts.length === 0}
           >
-            <option value="">Assign product…</option>
-            {products.map((product) => (
+            <option value="">
+              {currentAppearances.length > 0 ? 'Add another product…' : 'Assign product…'}
+            </option>
+            {availableProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.display_name}
               </option>

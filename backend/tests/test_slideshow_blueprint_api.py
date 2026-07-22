@@ -16,6 +16,9 @@ from fastapi.testclient import TestClient
 
 from app.db import get_db
 from app.main import app
+from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
+from app.models.product_lock_profile import ProductLockProfile
+from app.stages.execution import start_analysis_run
 from tests.fakes import FakeAIProviderRegistry, FakeVisionAnalysisProvider
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 
@@ -80,7 +83,8 @@ def test_blueprint_is_all_null_for_a_fresh_slideshow(client):
     assert len(body["slides"]) == 1
     slide = body["slides"][0]
     assert slide["ocr_result"] is None
-    assert slide["product_lock_profile"] is None
+    assert len(slide["products"]) == 1
+    assert slide["products"][0]["product_lock_profile"] is None
     assert slide["creative_fingerprint"] is None
     assert body["marketing_analysis"] is None
     assert body["recreation_prompt"] is None
@@ -360,14 +364,65 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     assert blueprint["status"] == "ready"
     slide = blueprint["slides"][0]
     assert slide["ocr_result"] is not None
-    assert len(slide["product_reference_images"]) == 1
-    assert slide["product_lock_profile"] is not None
+    assert len(slide["products"]) == 1
+    product = slide["products"][0]
+    assert len(product["product_reference_images"]) == 1
+    assert product["product_lock_profile"] is not None
     assert slide["creative_fingerprint"] is not None
     assert blueprint["marketing_analysis"] is not None
     assert blueprint["recreation_prompt"] is not None
     assert blueprint["recreation_prompt"]["structured"]["product_lock_reference"][
         "product_lock_profile_id"
-    ] == slide["product_lock_profile"]["id"]
+    ] == product["product_lock_profile"]["id"]
+
+
+def test_blueprint_regroups_artifacts_per_product_on_a_multi_product_slide(client, db_session):
+    """
+    Phase 6.4: the actual point of the regrouping - a slide with 2
+    distinct current products must surface each product's own Lock
+    Profile, not just the first one silently (the old flat
+    product_lock_profile field only ever showed current_appearances[0]'s
+    data). Lock Profiles are persisted directly rather than via the
+    stage, since Phase 6.2 made the stage itself reject multi-product
+    slides.
+    """
+    slideshow_id, slide_id, product_a_id = _import_slideshow_with_product(client)
+    product_b_id = client.post("/api/products", json={"display_name": "Second Product"}).json()["id"]
+    client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_id}/products",
+        json={"product_id": product_b_id},
+    )
+
+    def _make_lock_profile(product_id, category):
+        analysis_run = start_analysis_run(
+            db_session,
+            analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+            provider="fake",
+            model_name="fake",
+            durable=False,
+        )
+        profile = ProductLockProfile(
+            analysis_run_id=analysis_run.id,
+            product_id=product_id,
+            structured_json={"product_category": category},
+            reference_image_ids_json=[],
+        )
+        db_session.add(profile)
+        db_session.commit()
+        return profile
+
+    profile_a = _make_lock_profile(product_a_id, "product-a-category")
+    profile_b = _make_lock_profile(product_b_id, "product-b-category")
+
+    body = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
+    products = body["slides"][0]["products"]
+    assert len(products) == 2
+
+    by_product_id = {p["appearance"]["product_id"]: p for p in products}
+    assert by_product_id[product_a_id]["product_lock_profile"]["id"] == profile_a.id
+    assert by_product_id[product_a_id]["product_lock_profile"]["structured"]["product_category"] == "product-a-category"
+    assert by_product_id[product_b_id]["product_lock_profile"]["id"] == profile_b.id
+    assert by_product_id[product_b_id]["product_lock_profile"]["structured"]["product_category"] == "product-b-category"
 
 
 def test_assign_and_unassign_product_on_slide(client):

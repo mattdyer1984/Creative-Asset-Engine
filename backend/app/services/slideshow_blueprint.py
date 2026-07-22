@@ -9,6 +9,17 @@ pointer by design (see Phase 2.4b) - it's resolved dynamically per slide
 via that slide's current ProductAppearance -> product_id -> that
 product's current ProductLockProfile, so it can never disagree with its
 own is_current flag the way the old pointer-based lookup could.
+
+Phase 6.4 (multi per-slide product detection, see MIGRATION_PLAN.md)
+regrouped each slide's product-scoped artifacts (reference images, lock
+profile) per product instead of flattening them for only
+current_appearances[0] - AssembledSlideBlueprint.products is a list with
+one AssembledSlideProductBlueprint per current ProductAppearance, so a
+slide with 2+ current products surfaces all of their data, not just the
+first one silently. This is a breaking response-shape change (the old
+flat product_appearances/product_reference_images/product_lock_profile
+fields are gone), landed together with its frontend consumer (Phase 6.5)
+in the same slice per the plan.
 """
 
 from sqlalchemy import select
@@ -25,6 +36,7 @@ from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.schemas import (
     AssembledSlideBlueprint,
+    AssembledSlideProductBlueprint,
     AssembledSlideshowBlueprint,
     CreativeFingerprintRead,
     MarketingAnalysisRead,
@@ -70,42 +82,8 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
             )
         )
     )
-    appearance_reads = [
-        SlideProductAppearanceRead.model_validate(a) for a in current_appearances
-    ]
 
-    product_reference_images: list[SlideProductReferenceImageRead] = []
-    product_lock_profile = None
-    if current_appearances:
-        # Phase 2 invariant: at most one current appearance per slide -
-        # the single-product assumption preserved until Phase 5.
-        product_id = current_appearances[0].product_id
-
-        ref_image_rows = db.scalars(
-            select(ProductReferenceImage).where(
-                ProductReferenceImage.product_id == product_id,
-                ProductReferenceImage.is_current.is_(True),
-            )
-        )
-        product_reference_images = [
-            SlideProductReferenceImageRead.model_validate(row) for row in ref_image_rows
-        ]
-
-        lock_profile_row = db.scalars(
-            select(ProductLockProfile).where(
-                ProductLockProfile.product_id == product_id,
-                ProductLockProfile.is_current.is_(True),
-            )
-        ).first()
-        if lock_profile_row is not None:
-            product_lock_profile = ProductLockProfileRead(
-                id=lock_profile_row.id,
-                schema_version=lock_profile_row.schema_version,
-                is_current=lock_profile_row.is_current,
-                structured=lock_profile_row.structured_json,
-                reference_image_ids=lock_profile_row.reference_image_ids_json,
-                created_at=lock_profile_row.created_at,
-            )
+    products = [_assemble_slide_product(db, appearance) for appearance in current_appearances]
 
     return AssembledSlideBlueprint(
         id=slide.id,
@@ -115,7 +93,42 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
         source_locator=slide.source_locator,
         ocr_result=ocr_result,
         creative_fingerprint=creative_fingerprint,
-        product_appearances=appearance_reads,
+        products=products,
+    )
+
+
+def _assemble_slide_product(
+    db: Session, appearance: ProductAppearance
+) -> AssembledSlideProductBlueprint:
+    ref_image_rows = db.scalars(
+        select(ProductReferenceImage).where(
+            ProductReferenceImage.product_id == appearance.product_id,
+            ProductReferenceImage.is_current.is_(True),
+        )
+    )
+    product_reference_images = [
+        SlideProductReferenceImageRead.model_validate(row) for row in ref_image_rows
+    ]
+
+    lock_profile_row = db.scalars(
+        select(ProductLockProfile).where(
+            ProductLockProfile.product_id == appearance.product_id,
+            ProductLockProfile.is_current.is_(True),
+        )
+    ).first()
+    product_lock_profile = None
+    if lock_profile_row is not None:
+        product_lock_profile = ProductLockProfileRead(
+            id=lock_profile_row.id,
+            schema_version=lock_profile_row.schema_version,
+            is_current=lock_profile_row.is_current,
+            structured=lock_profile_row.structured_json,
+            reference_image_ids=lock_profile_row.reference_image_ids_json,
+            created_at=lock_profile_row.created_at,
+        )
+
+    return AssembledSlideProductBlueprint(
+        appearance=SlideProductAppearanceRead.model_validate(appearance),
         product_reference_images=product_reference_images,
         product_lock_profile=product_lock_profile,
     )

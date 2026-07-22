@@ -92,7 +92,7 @@ export function SlideshowGrid({ slideshows, loading, onStatusChange, products }:
                 <SlideProductPicker
                   slideshowId={slideshow.id}
                   slideId={slide.id}
-                  currentAppearance={slide.current_product_appearance}
+                  currentAppearances={slide.current_product_appearances}
                   products={products}
                   onChanged={onStatusChange}
                 />
