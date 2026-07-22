@@ -32,8 +32,8 @@ session transcripts for the full reasoning):
 | 2 | Entity split: Creative → Slideshow + Slide (2.1–2.7) | done, reviewed |
 | 2.8 | Drop legacy Creative/CreativeBlueprint schema | **gated — explicit approval required, do not implement** |
 | 3 | Async execution boundary (3.1–3.5) | done |
-| 4 | True multi-slide import | in progress |
-| 5 | Optional multi per-slide product detection | not started |
+| 4 | True multi-slide import (4.1–4.4) | done |
+| 5 | Optional multi per-slide product detection | in progress |
 | 6 | Narrative pass with dependency-aware staleness | not started |
 | 7 | Frontend consolidation | not started |
 | 8 | PerformanceRecord (additive) | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
@@ -565,5 +565,47 @@ guarded against explicitly above by naming what's deliberately excluded.
   case.
 - Full suite: 79/79 passing (75 + 4 new). Ruff clean.
 - Commit: (see git log)
+
+### Phase 4.3 + 4.4 — Frontend: grouping choice + minimal multi-slide rendering (done)
+
+Landed together (both frontend-only, small, and 4.4 is what makes 4.3's
+grouped import actually visible - splitting them would leave an
+in-between state where a grouped import "succeeds" with no way to see
+slides beyond the first).
+
+- `ImportPanel.tsx`: explicit "These are one slideshow" checkbox,
+  unchecked by default. `api.ts`'s `importSlideshows` gained a
+  `groupAsOne` param passed through as the `group_as_one` form field.
+- `SlideshowGrid.tsx`: a small slide-count badge on the thumbnail when a
+  card's Slideshow has more than one Slide (still shows only slides[0]'s
+  image - a real filmstrip is Phase 7).
+- `SlideshowBlueprintModal.tsx`: a "Slide N of M" selector with Prev/Next
+  when there's more than one Slide, replacing the hardcoded
+  `blueprint.slides[0]`. Selecting a non-primary slide correctly shows
+  "Not generated yet" everywhere (the Stages only ever analyze
+  `primary_slide` until Phase 5) - not a bug, documented in the
+  component's own docstring so it doesn't look like one later.
+- Live-verified end-to-end against the real dev server: since the browser
+  tool can't drive a real file-picker (a known, pre-existing limitation -
+  same substitution used in Phase 2.6), posted a real 3-file multipart
+  `group_as_one=true` request via the page's own `fetch` (canvas-generated
+  JPEG blobs, not fabricated JSON) - got back one Slideshow with 3 ordered
+  Slides (201). Reloaded the page: the grid showed the new card with a
+  "3 slides" badge; opening its blueprint modal showed "Slide 1 of 3",
+  and clicking "Next →" correctly swapped the hero image, filename, and
+  all section content to slide-1.jpg's (empty, as expected). No console
+  errors. This left one real grouped-import Slideshow in the dev
+  database, consistent with how prior phases' live-data verification
+  (e.g. Phase 2.6) was left in place rather than cleaned up.
+- Full suite: 79/79 passing (frontend-only change, backend suite
+  unaffected). Frontend `tsc`/`oxlint`/`build` clean.
+- Commit: (see git log)
+
+**Phase 4 (true multi-slide import) is complete.** A Slideshow can now
+genuinely hold more than one Slide, end to end - imported, stored,
+returned by the blueprint API, and at least minimally visible in the UI -
+while every existing single-file import continues to behave exactly as
+before. Per this phase's own explicit scope note, actually running the
+analysis Stages per-slide is Phase 5's job, not done here.
 
 ---

@@ -151,10 +151,19 @@ export const api = {
   // removed in Phase 2.7 once nothing used them - see the comments above.
   // ---------------------------------------------------------------------
 
-  importSlideshows: (files: File[], projectId?: string): Promise<Slideshow[]> => {
+  // groupAsOne (Phase 4 - true multi-slide import, see MIGRATION_PLAN.md):
+  // default false preserves existing behavior (every file becomes its
+  // own independent Slideshow). true imports every file in this one call
+  // as a single Slideshow's ordered Slides instead.
+  importSlideshows: (
+    files: File[],
+    projectId?: string,
+    groupAsOne?: boolean
+  ): Promise<Slideshow[]> => {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
     if (projectId) formData.append('project_id', projectId);
+    if (groupAsOne) formData.append('group_as_one', 'true');
     return fetch('/api/slideshows/import', {
       method: 'POST',
       body: formData,

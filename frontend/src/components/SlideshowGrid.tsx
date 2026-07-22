@@ -29,10 +29,11 @@ const ANALYZABLE_STATUSES = new Set(['imported', 'failed']);
 
 /**
  * New-pipeline equivalent of CreativeGrid.tsx. Renders one card per
- * Slideshow; since Phase 2 preserves 1:1 cardinality, each card still
- * shows exactly one thumbnail (slideshows[i].slides[0]) - a
- * filmstrip/carousel for true multi-slide slideshows is a later phase
- * (Phase 7), not this one.
+ * Slideshow, still showing only slides[0]'s thumbnail even for a
+ * multi-slide Slideshow (Phase 4 - see MIGRATION_PLAN.md) - just with a
+ * small slide-count badge so a multi-slide import isn't indistinguishable
+ * from a single-slide one. A real filmstrip/carousel is a later phase
+ * (Phase 7, frontend consolidation), not this one.
  */
 export function SlideshowGrid({ slideshows, loading, onStatusChange, products }: SlideshowGridProps) {
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
@@ -72,11 +73,16 @@ export function SlideshowGrid({ slideshows, loading, onStatusChange, products }:
 
           return (
             <li key={slideshow.id} className="creative-card">
-              <img
-                src={api.slideFileUrl(slideshow.id, slide.id)}
-                alt={slide.original_filename}
-                className="creative-thumbnail"
-              />
+              <div className="creative-thumbnail-wrap">
+                <img
+                  src={api.slideFileUrl(slideshow.id, slide.id)}
+                  alt={slide.original_filename}
+                  className="creative-thumbnail"
+                />
+                {slideshow.slides.length > 1 && (
+                  <span className="slide-count-badge">{slideshow.slides.length} slides</span>
+                )}
+              </div>
               <div className="creative-card-body">
                 <span className="creative-filename">{slide.original_filename}</span>
                 <span className={`status-badge status-${status}`}>

@@ -26,17 +26,23 @@ const STAGE_LABELS: Record<string, string> = {
 
 /**
  * New-pipeline equivalent of CreativeBlueprintModal.tsx. Slide-scoped
- * sections (Product, Creative Fingerprint, OCR) read from
- * blueprint.slides[0] - valid while Phase 2's cardinality invariant
- * holds (exactly one slide per slideshow); slideshow-scoped sections
- * (Marketing Analysis, Recreation Prompt) read from blueprint directly.
- * True multi-slide rendering (a filmstrip/carousel over blueprint.slides)
- * is a later phase (Phase 7), not this one.
+ * sections (Product, Creative Fingerprint, OCR) read from one selected
+ * slide in blueprint.slides - a Prev/Next selector when there's more
+ * than one (Phase 4 - true multi-slide import, see MIGRATION_PLAN.md),
+ * defaulting to the first. Slideshow-scoped sections (Marketing
+ * Analysis, Recreation Prompt) read from blueprint directly regardless.
+ * Still minimal, not a real filmstrip/carousel - that's a later phase
+ * (Phase 7, frontend consolidation), not this one. Selecting a slide
+ * beyond the first will show "Not generated yet" everywhere, though -
+ * the Stages themselves only ever analyze the primary slide
+ * (slides[0]) until Phase 5 (see Slideshow.primary_slide's docstring),
+ * so there's genuinely nothing there yet, not a rendering bug.
  */
 export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: SlideshowBlueprintModalProps) {
   const [blueprint, setBlueprint] = useState<AssembledSlideshowBlueprint | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
 
   const load = () => {
     api
@@ -106,7 +112,10 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     }
   };
 
-  const slide = blueprint?.slides[0];
+  const clampedSlideIndex = blueprint
+    ? Math.min(selectedSlideIndex, blueprint.slides.length - 1)
+    : 0;
+  const slide = blueprint?.slides[clampedSlideIndex];
   const runInFlight = blueprint?.status === 'queued' || blueprint?.status === 'analyzing';
 
   return (
@@ -151,6 +160,28 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 </button>
               </div>
             </header>
+
+            {blueprint.slides.length > 1 && (
+              <div className="slide-selector">
+                <button
+                  onClick={() => setSelectedSlideIndex((i) => Math.max(0, i - 1))}
+                  disabled={clampedSlideIndex === 0}
+                >
+                  ← Prev
+                </button>
+                <span>
+                  Slide {clampedSlideIndex + 1} of {blueprint.slides.length}
+                </span>
+                <button
+                  onClick={() =>
+                    setSelectedSlideIndex((i) => Math.min(blueprint.slides.length - 1, i + 1))
+                  }
+                  disabled={clampedSlideIndex === blueprint.slides.length - 1}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
 
             {blueprint.status === 'failed' && blueprint.failed_stage && (
               <div className="blueprint-failure-banner">
