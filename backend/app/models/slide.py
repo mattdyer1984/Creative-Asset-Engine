@@ -51,10 +51,26 @@ class Slide(Base):
     @property
     def current_product_appearance(self) -> "ProductAppearance | None":
         """
-        The slide's current ProductAppearance, if any - a convenience for
-        API responses that need "is a product assigned, and which one"
-        without a separate query (e.g. the Slideshow list view, for UI
-        parity with the old Creative.product denormalization). Phase 2
-        invariant: at most one current appearance per slide.
+        The slide's first current ProductAppearance, if any - a
+        convenience for API responses that need "is a product assigned,
+        and which one" without a separate query (e.g. the Slideshow list
+        view, for UI parity with the old Creative.product
+        denormalization). Kept exactly as-is (Phase 6 of the multi
+        per-slide product detection work, see MIGRATION_PLAN.md, added
+        the plural current_product_appearances alongside it rather than
+        changing this one's behavior - same non-breaking pattern as
+        Phase 4.1's Slideshow.primary_slide).
         """
         return next((a for a in self.product_appearances if a.is_current), None)
+
+    @property
+    def current_product_appearances(self) -> list["ProductAppearance"]:
+        """
+        Every current ProductAppearance on this slide - Phase 6's actual
+        "zero, one, or several products per slide" support. Unlike
+        current_product_appearance above, this was never a single-item
+        invariant to begin with (ProductAppearance has supported this
+        structurally since Phase 2.1) - just nothing consumed more than
+        the first one until now.
+        """
+        return [a for a in self.product_appearances if a.is_current]

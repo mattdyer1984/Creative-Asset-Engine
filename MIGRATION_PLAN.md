@@ -1730,4 +1730,30 @@ product_id in 6.2 is a judgment call worth re-checking against real
 multi-product usage once it exists - documented as a reasonable default,
 not asserted as definitely correct forever.
 
+## Phase 6 reports log
+
+### Phase 6.1 — Additive plural product-appearance API + model accessor (done)
+
+- `Slide.current_product_appearances` (new, plural) added alongside the
+  unchanged singular `current_product_appearance` - same non-breaking
+  pattern as Phase 4.1's `primary_slide`.
+- `POST /api/slideshows/{id}/slides/{slide_id}/products` (idempotent -
+  a second call with the same product_id no-ops rather than duplicating)
+  and `DELETE .../products/{appearance_id}` added, `assign-product`
+  itself completely untouched - verified with an explicit regression
+  test proving it still replaces, not adds.
+- 11 new tests: 3 model-level (plural accessor empty/populated/excludes-
+  stale), 8 route-level (add creates a current appearance, two different
+  products both stay current - the actual point of this sub-phase,
+  idempotent re-add, 404s for unknown product/slide/appearance, remove
+  one leaves the others, and the assign-product regression guard).
+- Full suite: 137/137 passing (126 existing + 11 new). Ruff clean (11
+  findings now, not the prior baseline's 10 - the one new instance is
+  the new plural property's own string forward-ref, same already-
+  characterized-safe SQLAlchemy pattern as every other one, not a new
+  category of issue). App boots cleanly, 28 routes (was 26).
+- Zero behavior change to anything existing - two new endpoints, nothing
+  else touched.
+- Commit: (see git log)
+
 ---

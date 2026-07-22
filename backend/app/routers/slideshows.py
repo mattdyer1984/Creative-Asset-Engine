@@ -17,6 +17,7 @@ from app.models.project import Project
 from app.models.slide import Slide
 from app.models.slideshow import STATUS_ANALYZING, STATUS_QUEUED, Slideshow
 from app.schemas import (
+    AddSlideProductRequest,
     AnalysisRunRead,
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
@@ -258,6 +259,88 @@ def assign_product(
         )
         db.add(appearance)
 
+    db.commit()
+    db.refresh(slideshow)
+    return slideshow
+
+
+@router.post("/{slideshow_id}/slides/{slide_id}/products", response_model=SlideshowRead)
+def add_slide_product(
+    slideshow_id: str,
+    slide_id: str,
+    payload: AddSlideProductRequest,
+    db: Session = Depends(get_db),
+) -> Slideshow:
+    """
+    Additive counterpart to assign-product (Phase 6.1 of multi per-slide
+    product detection, see MIGRATION_PLAN.md) - adds a current
+    ProductAppearance without clearing any existing ones, unlike
+    assign-product's single-slot replace semantics. assign-product
+    itself is untouched; this is new, parallel capability, not a
+    modification of it.
+
+    Idempotent: a second call with the same product_id is a no-op rather
+    than creating a duplicate current appearance for the same product.
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    slide = db.get(Slide, slide_id)
+    if slide is None or slide.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Slide not found")
+
+    if db.get(Product, payload.product_id) is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    already_current = db.scalars(
+        select(ProductAppearance).where(
+            ProductAppearance.slide_id == slide.id,
+            ProductAppearance.product_id == payload.product_id,
+            ProductAppearance.is_current.is_(True),
+        )
+    ).first()
+    if already_current is None:
+        db.add(
+            ProductAppearance(
+                slide_id=slide.id,
+                product_id=payload.product_id,
+                prominence="primary",
+                confidence=1.0,
+                is_current=True,
+            )
+        )
+        db.commit()
+
+    db.refresh(slideshow)
+    return slideshow
+
+
+@router.delete("/{slideshow_id}/slides/{slide_id}/products/{appearance_id}", response_model=SlideshowRead)
+def remove_slide_product(
+    slideshow_id: str,
+    slide_id: str,
+    appearance_id: str,
+    db: Session = Depends(get_db),
+) -> Slideshow:
+    """
+    Removes exactly one ProductAppearance (Phase 6.1) - the additive
+    counterpart's delete half. Unlike assign-product's null case (which
+    clears every current appearance), this only flips off the one named.
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    slide = db.get(Slide, slide_id)
+    if slide is None or slide.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Slide not found")
+
+    appearance = db.get(ProductAppearance, appearance_id)
+    if appearance is None or appearance.slide_id != slide.id:
+        raise HTTPException(status_code=404, detail="Product appearance not found")
+
+    appearance.is_current = False
     db.commit()
     db.refresh(slideshow)
     return slideshow

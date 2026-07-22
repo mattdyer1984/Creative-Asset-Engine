@@ -212,6 +212,17 @@ class AssignSlideProductRequest(BaseModel):
     product_id: str | None  # null unassigns
 
 
+class AddSlideProductRequest(BaseModel):
+    """
+    Phase 6.1 of multi per-slide product detection, see
+    MIGRATION_PLAN.md - the additive counterpart to AssignSlideProduct-
+    Request above. No null case (unlike assign, "add" always adds a
+    product) - removing one is DELETE .../products/{appearance_id}.
+    """
+
+    product_id: str
+
+
 class SlideProductReferenceImageRead(BaseModel):
     """
     Distinct from the older ProductReferenceImageRead above: after Phase
