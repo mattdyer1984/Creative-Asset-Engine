@@ -240,4 +240,121 @@ export const api = {
     fetch(`/api/products/${productId}/lock-profile`).then((res) =>
       handle<ProductLockProfile>(res)
     ),
+
+  // ---------------------------------------------------------------------
+  // Slideshow/Slide (new pipeline) - Phase 2.6 of the Slideshow/Slide
+  // migration. Deliberately new methods, not modifications of the ones
+  // above: importLocalFiles/listCreatives/etc. still exist and still
+  // work (Phase 2.7 removes them once nothing uses them).
+  // ---------------------------------------------------------------------
+
+  importSlideshows: (files: File[], projectId?: string): Promise<Slideshow[]> => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    if (projectId) formData.append('project_id', projectId);
+    return fetch('/api/slideshows/import', {
+      method: 'POST',
+      body: formData,
+    }).then((res) => handle<Slideshow[]>(res));
+  },
+
+  listSlideshows: (projectId?: string): Promise<Slideshow[]> => {
+    const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+    return fetch(`/api/slideshows${query}`).then((res) => handle<Slideshow[]>(res));
+  },
+
+  slideFileUrl: (slideshowId: string, slideId: string): string =>
+    `/api/slideshows/${slideshowId}/slides/${slideId}/file`,
+
+  analyzeSlideshow: (slideshowId: string): Promise<AssembledSlideshowBlueprint> =>
+    fetch(`/api/slideshows/${slideshowId}/analyze`, { method: 'POST' }).then((res) =>
+      handle<AssembledSlideshowBlueprint>(res)
+    ),
+
+  getSlideshowBlueprint: (slideshowId: string): Promise<AssembledSlideshowBlueprint> =>
+    fetch(`/api/slideshows/${slideshowId}/blueprint`).then((res) =>
+      handle<AssembledSlideshowBlueprint>(res)
+    ),
+
+  rerunSlideshowStage: (
+    slideshowId: string,
+    stageName: string
+  ): Promise<AssembledSlideshowBlueprint> =>
+    fetch(`/api/slideshows/${slideshowId}/stages/${stageName}/rerun`, { method: 'POST' }).then(
+      (res) => handle<AssembledSlideshowBlueprint>(res)
+    ),
+
+  // productId: null unassigns.
+  assignSlideProduct: (
+    slideshowId: string,
+    slideId: string,
+    productId: string | null
+  ): Promise<Slideshow> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/assign-product`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId }),
+    }).then((res) => handle<Slideshow>(res)),
 };
+
+export interface SlideProductAppearance {
+  id: string;
+  product_id: string;
+  product: Product | null;
+  prominence: string;
+  confidence: number;
+  is_current: boolean;
+  created_at: string;
+}
+
+export interface Slide {
+  id: string;
+  slideshow_id: string;
+  slide_index: number;
+  original_filename: string;
+  source_type: string;
+  source_locator: string;
+  current_product_appearance: SlideProductAppearance | null;
+}
+
+export interface Slideshow {
+  id: string;
+  project_id: string | null;
+  imported_at: string;
+  status: string;
+  slides: Slide[];
+}
+
+export interface SlideProductReferenceImage {
+  id: string;
+  source_slide_id: string;
+  isolation_method: string;
+  is_current: boolean;
+  created_at: string;
+}
+
+export interface AssembledSlideBlueprint {
+  id: string;
+  slide_index: number;
+  original_filename: string;
+  source_type: string;
+  source_locator: string;
+  ocr_result: OCRResult | null;
+  creative_fingerprint: CreativeFingerprintData | null;
+  product_appearances: SlideProductAppearance[];
+  product_reference_images: SlideProductReferenceImage[];
+  product_lock_profile: ProductLockProfile | null;
+}
+
+export interface AssembledSlideshowBlueprint {
+  id: string;
+  status: string;
+  imported_at: string;
+  project_id: string | null;
+  source_references: Record<string, unknown>;
+  slides: AssembledSlideBlueprint[];
+  marketing_analysis: MarketingAnalysisData | null;
+  recreation_prompt: RecreationPromptData | null;
+  failed_stage: string | null;
+  failed_stage_error: string | null;
+}

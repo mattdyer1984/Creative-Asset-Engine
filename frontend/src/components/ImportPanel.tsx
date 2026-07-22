@@ -11,6 +11,12 @@ interface ImportPanelProps {
  * selector is optional - a Creative does not require a Project (plan §1,
  * §6) - so "No project" is a first-class, default choice here, not an
  * afterthought.
+ *
+ * Calls api.importSlideshows (new pipeline, Phase 2.6 of the
+ * Slideshow/Slide migration) rather than api.importLocalFiles - this
+ * component has no Creative-specific typing otherwise (it never
+ * references the Creative type, only Project), so the cutover is this
+ * one call, not a parallel component.
  */
 export function ImportPanel({ projects, onImported }: ImportPanelProps) {
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -25,7 +31,7 @@ export function ImportPanel({ projects, onImported }: ImportPanelProps) {
     setImporting(true);
     setError(null);
     try {
-      await api.importLocalFiles(Array.from(files), selectedProjectId || undefined);
+      await api.importSlideshows(Array.from(files), selectedProjectId || undefined);
       onImported();
     } catch (err) {
       setError((err as Error).message);

@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
-import { api, type Creative, type Product, type Project } from './api';
+import { api, type Product, type Project, type Slideshow } from './api';
 import { ImportPanel } from './components/ImportPanel';
-import { CreativeGrid } from './components/CreativeGrid';
+import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
 import './App.css';
 
 function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [slideshows, setSlideshows] = useState<Slideshow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [loadingCreatives, setLoadingCreatives] = useState(true);
+  const [loadingSlideshows, setLoadingSlideshows] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [creatingProject, setCreatingProject] = useState(false);
@@ -34,26 +34,26 @@ function App() {
       .finally(() => setLoadingProducts(false));
   };
 
-  const loadCreatives = () => {
-    setLoadingCreatives(true);
+  const loadSlideshows = () => {
+    setLoadingSlideshows(true);
     api
-      .listCreatives()
-      .then(setCreatives)
+      .listSlideshows()
+      .then(setSlideshows)
       .catch((err) => setError(err.message))
-      .finally(() => setLoadingCreatives(false));
+      .finally(() => setLoadingSlideshows(false));
   };
 
   useEffect(() => {
     loadProjects();
     loadProducts();
-    loadCreatives();
+    loadSlideshows();
   }, []);
 
-  // Product assignment changes a Creative's `product` field, so the
-  // Creative list needs reloading too - not just the Product list.
-  const reloadProductsAndCreatives = () => {
+  // Product assignment changes a Slide's current_product_appearance, so
+  // the Slideshow list needs reloading too - not just the Product list.
+  const reloadProductsAndSlideshows = () => {
     loadProducts();
-    loadCreatives();
+    loadSlideshows();
   };
 
   const handleCreateProject = async (event: React.FormEvent) => {
@@ -118,14 +118,14 @@ function App() {
 
       {error && <p className="error">{error}</p>}
 
-      <ImportPanel projects={projects} onImported={loadCreatives} />
+      <ImportPanel projects={projects} onImported={loadSlideshows} />
 
       <section className="creatives-section">
         <h2>Creatives</h2>
-        <CreativeGrid
-          creatives={creatives}
-          loading={loadingCreatives}
-          onStatusChange={reloadProductsAndCreatives}
+        <SlideshowGrid
+          slideshows={slideshows}
+          loading={loadingSlideshows}
+          onStatusChange={reloadProductsAndSlideshows}
           products={products}
         />
       </section>
