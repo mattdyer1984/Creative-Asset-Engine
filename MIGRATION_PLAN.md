@@ -127,6 +127,37 @@ If a genuine design ambiguity comes up that materially affects the
 architecture (not just an implementation detail), stop and log it in the
 "Open questions" section below rather than guessing.
 
+**2026-07-22: renewed, for Phase 5 onward.** The user confirmed the
+Phase 5 plan (five rounds of refinement, all recorded above) and granted
+autonomous implementation again, explicitly stating they will not be
+reachable to approve or grant access going forward. Same discipline as
+the original grant (small sub-phase, tested, verified, committed,
+reported here), same standing exclusions (no push/PR, no Phase 2.8, no
+implementation on Phases 9-11). One addition specific to Phase 5, which
+is genuinely new territory - it involves fetching real content from the
+open internet (5.3/5.4), not just local refactors:
+
+- Fetching public URLs (product pages, a real TikTok Shop listing for
+  5.4's investigation spike) proceeds as regular, read-only,
+  reasonable-volume activity - not something requiring a check-in per
+  fetch.
+- **Hard stop, not a workaround**: if 5.4's spike concludes TikTok
+  Shop's official Partner/Open API is required (not plain HTTP+parse),
+  that needs developer registration/credentials this session cannot
+  obtain - creating an account or supplying business/developer details
+  to a third party stays out of scope regardless of how long the user is
+  unreachable. If the spike lands there: do not attempt a workaround (no
+  reverse-engineering internal endpoints, no scraping a JS-rendered SPA
+  in a ToS-risky way to route around the credential requirement) - let
+  TikTok Shop URLs fall back to the generic adapter, document the gap
+  here, move on.
+- Any other genuine product/business judgment call: keep resolving it
+  the same way prior open questions were handled (conservative,
+  additive, well-reasoned, logged) - but lean more conservative than
+  before, since there's no longer a quick question to ask. Favor smaller
+  commits and reversible choices over anything requiring a guess about
+  intent.
+
 **2026-07-22: user enabled the Claude Code app's "bypass permissions
 mode"** (stops per-tool-call confirmation prompts) before stepping away
 for an extended period. This does not change any of the boundaries
