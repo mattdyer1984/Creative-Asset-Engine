@@ -2896,4 +2896,31 @@ deliberately NOT widened in this phase.
 
 ## Phase 7 reports log
 
+### Phase 7.1 — Extend OCR Stage to run across every slide (done)
+
+- `SlideOCRStage.run()` changed from `slide = slideshow.primary_slide`
+  (a single stage-scoped `AnalysisRun`) to iterating `slideshow.slides`
+  (already ordered by `slide_index` via the relationship's own
+  `order_by`), running OCR once per slide with its own `AnalysisRun`,
+  writing each slide's own `current_ocr_result_id`. Zero schema/migration
+  change - `Slide.current_ocr_result_id` has been a per-slide column
+  since Phase 2.1, confirmed before writing any code.
+- One slide's OCR failure fails the whole stage immediately - slides
+  processed before the failing one keep their already-committed,
+  already-current results (verified explicitly by test: slide 1 succeeds
+  and keeps its result, slide 2 fails, slide 3 is never attempted).
+- 2 new tests (`tests/test_slide_ocr_stage.py`): a real 3-slide slideshow
+  gets distinct OCR text on every slide, proven via a
+  `_SequentialFakeOCRProvider` that returns a different extraction per
+  call (not one result silently reused three times); the failure-mid-run
+  behavior above. All 3 pre-existing single-slide tests pass completely
+  unchanged - confirms the single-slide case (still the overwhelming
+  majority of real slideshows) is byte-for-byte unaffected.
+- Full suite: 195/195 passing (193 existing + 2 new). Ruff clean. App
+  boots cleanly, 35 routes (unchanged - no new endpoints this sub-phase).
+- Zero behavior change to anything downstream - nothing yet reads more
+  than `primary_slide`'s OCR result (that's Phase 7.2's job), so a
+  1-slide slideshow's blueprint/pipeline output is identical to before.
+- Commit: (see git log)
+
 ---

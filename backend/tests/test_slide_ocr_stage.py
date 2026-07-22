@@ -1,13 +1,20 @@
 """
 Unit tests for SlideOCRStage (new pipeline, Phase 2.4a) - mirrors
-tests/test_ocr_stage.py's coverage of the old OCRStage.
+tests/test_ocr_stage.py's coverage of the old OCRStage. Phase 7.1
+(Narrative pass, see MIGRATION_PLAN.md) widened this stage to run across
+every slide, not just primary_slide - the multi-slide tests below are
+that sub-phase's own coverage.
 """
+
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 
 from app.ai_providers.base import OCRExtraction
 from app.models.analysis_run import STATUS_FAILED, STATUS_SUCCEEDED, AnalysisRun
 from app.models.ocr_result import OCRResult
+from app.models.slide import Slide
+from app.models.slideshow import Slideshow
 from app.slideshow_stages.ocr_stage import SlideOCRStage
 from tests.fakes import FakeAIProviderRegistry, FakeOCRProvider
 
@@ -89,3 +96,103 @@ def test_slide_ocr_stage_is_independently_rerunnable(db_session, slideshow_with_
 
     all_runs = list(db_session.scalars(select(AnalysisRun)))
     assert len(all_runs) == 2
+
+
+def _make_multi_slide_slideshow(db_session, tmp_path, slide_count: int) -> Slideshow:
+    slideshow = Slideshow(imported_at=datetime.now(timezone.utc))
+    db_session.add(slideshow)
+    db_session.flush()
+
+    for i in range(slide_count):
+        image_path = tmp_path / f"slide-{i}.jpg"
+        image_path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
+        db_session.add(
+            Slide(
+                slideshow_id=slideshow.id,
+                slide_index=i,
+                stored_file_path=str(image_path),
+                original_filename=f"slide-{i}.jpg",
+                source_type="local_file",
+                source_locator=f"slide-{i}.jpg",
+            )
+        )
+    db_session.commit()
+    db_session.refresh(slideshow)
+    return slideshow
+
+
+class _SequentialFakeOCRProvider:
+    """Returns a distinct extraction per call, in order - proves each slide gets its own OCR, not one repeated."""
+
+    model = "fake-ocr-model"
+    provider = "openai"
+
+    def __init__(self, extractions: list[OCRExtraction]):
+        self._extractions = extractions
+        self._call_count = 0
+
+    def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+        extraction = self._extractions[self._call_count]
+        self._call_count += 1
+        return extraction
+
+
+def test_ocr_stage_runs_on_every_slide_in_a_multi_slide_slideshow(db_session, tmp_path, monkeypatch):
+    slideshow = _make_multi_slide_slideshow(db_session, tmp_path, slide_count=3)
+    extractions = [
+        OCRExtraction(raw_text=f"Slide {i} text", structured_blocks=[{"text": f"Slide {i}", "role": "headline"}])
+        for i in range(3)
+    ]
+    fake_registry = FakeAIProviderRegistry(ocr_provider=_SequentialFakeOCRProvider(extractions))
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)
+
+    stage = SlideOCRStage()
+    result = stage.run(db_session, slideshow)
+
+    assert result.succeeded is True
+    for i, slide in enumerate(sorted(slideshow.slides, key=lambda s: s.slide_index)):
+        db_session.refresh(slide)
+        assert slide.current_ocr_result_id is not None
+        ocr_result = db_session.get(OCRResult, slide.current_ocr_result_id)
+        assert ocr_result.raw_text == f"Slide {i} text"
+        assert ocr_result.slide_id == slide.id
+
+
+def test_ocr_stage_fails_the_whole_stage_if_any_slide_fails(db_session, tmp_path, monkeypatch):
+    """
+    One slide's OCR failure fails the stage - slides processed before the
+    failing one keep their already-committed results, per the stage's own
+    documented "honest failure" behavior (see MIGRATION_PLAN.md's Phase
+    7.1 report).
+    """
+    slideshow = _make_multi_slide_slideshow(db_session, tmp_path, slide_count=3)
+
+    class _FailOnSecondCallOCRProvider:
+        model = "fake-ocr-model"
+        provider = "openai"
+
+        def __init__(self):
+            self._call_count = 0
+
+        def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+            self._call_count += 1
+            if self._call_count == 2:
+                raise RuntimeError("provider timed out on slide 2")
+            return OCRExtraction(raw_text="ok", structured_blocks=[])
+
+    fake_registry = FakeAIProviderRegistry(ocr_provider=_FailOnSecondCallOCRProvider())
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)
+
+    stage = SlideOCRStage()
+    result = stage.run(db_session, slideshow)
+
+    assert result.succeeded is False
+    assert "provider timed out on slide 2" in result.error
+
+    slides = sorted(slideshow.slides, key=lambda s: s.slide_index)
+    db_session.refresh(slides[0])
+    db_session.refresh(slides[1])
+    db_session.refresh(slides[2])
+    assert slides[0].current_ocr_result_id is not None  # succeeded before the failure
+    assert slides[1].current_ocr_result_id is None  # the failing slide
+    assert slides[2].current_ocr_result_id is None  # never attempted
