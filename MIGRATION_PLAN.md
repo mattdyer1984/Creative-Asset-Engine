@@ -1433,4 +1433,50 @@ into 5.2's (already pushed to this branch) or 5.3's.
   why the credentialed path doesn't fully solve this either.
 - Commit: (see git log)
 
+### Phase 5.5 — Canonical merge / profile assembly service (done)
+
+- `app/services/product_profile.py`: `assemble_product_profile(db,
+  product) -> ProductProfile` - compute-on-read, mirroring
+  `assemble_slideshow_blueprint`. Merges the current `ProductLockProfile`
+  and current `ProductSourceImport` for a product into one field-level
+  `ProductProfileField{value, source_type, source_id, confidence,
+  classification}` view.
+- Precedence resolved exactly as base.py's comment described: `winner =
+  (source or vision) if immutable else (vision or source)` - a one-line
+  rule, confirming the earlier decision not to store "preferred source
+  type" separately in the vocabulary was correct; falls back to whichever
+  side actually has the field when the preferred one doesn't (tested
+  explicitly, not just assumed).
+- `ProductLockProfile` needed its own mapping into the canonical
+  vocabulary (the one evidence source that predates it) - documented
+  every field's fate individually: `product_category`,
+  `shape_and_proportions`→`shape`, `packaging.{type,closure,notes}`
+  joined→`packaging`, `materials`, `colors.primary[0]`→`color` (a
+  list-to-single-value simplification, noted inline, not silent),
+  `branding.brand_name`→`brand`, `labels_and_text[].text`→
+  `branding_text`, `viewing_angle`+`perspective` folded into one
+  `camera_angle` (two vision fields, one canonical field - revision #5
+  discipline in action, not an oversight),
+  `approximate_scale_in_frame`→`composition`,
+  `lighting_characteristics`→`lighting`. Deliberately left unmapped:
+  `surface_finish`, `distinguishing_features`, `immutable_characteristics`,
+  `extensions` - none are a genuinely new canonical concept, all remain
+  visible in `ProductLockProfile.structured_json` directly, just not
+  promoted to a profile field.
+- Vision-derived fields get a flat `VISION_DEFAULT_CONFIDENCE = 0.85`
+  (the Product Lock Profile Stage doesn't emit real per-field confidence
+  today - documented as a fast-follow, not solved here).
+- `ProductAttributeValue` parsing reuses Pydantic's `TypeAdapter` against
+  the same discriminated union `NormalizedAttribute.value` uses, rather
+  than duplicating validation logic.
+- 7 new tests: empty profile (no evidence), vision-only, source-import-
+  only, immutable-prefers-source-on-disagreement, contextual-prefers-
+  vision-on-disagreement, falls-back-to-the-other-side-when-the-
+  preferred-one-lacks-the-field, only-current-rows-considered.
+- Full suite: 118/118 passing (111 existing + 7 new). Ruff clean (same
+  10 pre-existing F821 false positives). App boots cleanly.
+- Zero behavior change to anything existing - `assemble_product_profile`
+  has no caller yet (that's 5.6's job).
+- Commit: (see git log)
+
 ---
