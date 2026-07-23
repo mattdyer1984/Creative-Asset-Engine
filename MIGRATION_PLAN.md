@@ -28,26 +28,36 @@ session transcripts for the full reasoning):
 After Phase 4 landed, the user refined the vision further. The engine is
 no longer framed as "analyze TikTok slideshows" - it's three systems:
 
-1. **Product Intelligence** - a canonical Product Profile, built by
-   combining evidence from multiple sources (official listing, Shopify/
-   Amazon/TikTok Shop pages, official images, user-uploaded references,
-   creator slideshows, future generated images), each attribute tagged
-   with its source and a confidence score. An official Product URL, when
-   supplied, becomes authoritative for immutable physical facts (shape,
-   dimensions, capacity, labels, branding, official colors, packaging);
-   slideshows continue to supply what listings can't (camera angle,
-   composition, lighting, marketing context, persuasion, emotional
-   positioning). These complement rather than compete.
+1. **Product Intelligence** - **(2026-07-23 revision, see the "ADR: Canonical
+   Product Reference" below)** everything required to recreate this exact
+   product with high visual fidelity, built by combining evidence from
+   multiple sources (official listing, Shopify/Amazon/TikTok Shop pages,
+   official images, user-uploaded references, creator slideshows, future
+   generated images), each attribute/image tagged with its source and a
+   confidence/quality score. A **Canonical Product Reference** (a small,
+   curated, scored set of real reference images - see the ADR) is now the
+   *primary* representation - the images define the product. The
+   canonical Product Profile (textual, structured: shape, dimensions,
+   capacity, labels, branding, official colors, packaging, materials,
+   category) is retained as supporting metadata, not the primary
+   representation it originally was - text is not precise enough to
+   encode exact geometry/silhouette, which real reference images are.
+   Slideshows continue to supply what listings can't for the *contextual*
+   (non-product-identity) side: camera angle, composition, lighting,
+   marketing context, persuasion, emotional positioning. These complement
+   rather than compete.
 2. **Creative Intelligence** - understanding why a slideshow sells a
    product. This is what Phases 2-4 already built (Slideshow/Slide,
    OCR, Creative Fingerprint, Marketing Analysis, Recreation Prompt).
-3. **Generation Engine** (future, not started) - generate an original
-   slideshow that preserves the marketing strategy while remaining
-   visually original. Explicitly out of scope for now, but Product
-   Intelligence is being designed so the eventual validation loop
-   (generate → analyze → compare against the canonical Product Profile →
-   measure fidelity → regenerate if below threshold) doesn't require a
-   second architectural redesign later.
+3. **Generation Engine** (Phase 8, done; Phase 9 in progress) - generate
+   an original slideshow that preserves the marketing strategy while
+   remaining visually original. Phase 8 proved the loop end-to-end
+   (text-mediated); Phase 9 (see the ADR below) closes the gap Phase 8's
+   own live-verification exposed: the validation loop (generate → analyze
+   → compare against the Canonical Product Reference's real images →
+   measure fidelity → regenerate if below threshold) needed real pixels,
+   not a textual description of them, to actually validate visual
+   identity rather than semantic description.
 
 **Key finding from reviewing the existing roadmap against this**: old
 Phase 5 ("multi per-slide product detection") and Product Intelligence
@@ -3354,7 +3364,15 @@ A new prompt/schema (`app/slideshow_stages/image_validation_stage.py`), not a ne
 
 ## ADR: Canonical Product Reference (Product Lock v2) — 2026-07-23
 
-**Status: proposed, awaiting user review. Design/planning only, per explicit instruction - no code, no migrations, no new files have been written for this ADR. Not to be implemented until confirmed.**
+**Status: revised once by the user on 2026-07-23 (see Revision #1 below) - the sections below reflect the current, revised design. Design/planning only, per explicit instruction - no code, no migrations, no new files have been written for this ADR. Not to be implemented until confirmed.**
+
+### Revision #1 (2026-07-23) - explicit scoring/selection stage, prompt compiler philosophy, Product Intelligence goal
+
+Three refinements, agreed direction unchanged, requested before implementation begins:
+
+1. **An explicit Reference Scoring and Canonical Selection Stage.** The original §4 described scoring/selection as something "the Reference Acquisition Engine" does as part of gathering. Split instead into two distinct responsibilities: **acquisition** (gathering *candidate* `ProductReferenceImage` rows from the priority-ordered sources - mostly already-existing code, per §0/§4's grounding) and **scoring & selection** (a new, explicit, first-class Stage that decides which candidates become canonical, and owns how that decision is scored, ranked, refreshed, and replaced over time). §4 below is rewritten around this split.
+2. **Prompt Compiler philosophy change.** The Prompt Compiler should stop describing the product at all - no shape/materials/color/packaging text, however "secondary." The Canonical Reference Set's images are the *only* source of product identity in a generation call; the compiler's job narrows to scene, composition, and marketing intent - everything *around* the product, never the product itself. §6 below is rewritten around this. This turns out to align exactly with a distinction Phase 5 already built for an unrelated reason: `CANONICAL_FIELD_VOCABULARY`'s existing `immutable`/`contextual` classification (Phase 5.5, built to decide *evidence merge precedence* between listing and vision sources) already separates "physical product facts" from "creative facts expected to vary" - the same split the compiler now needs to decide what to drop versus what to keep. No vocabulary change needed; the existing classification already draws the right line, which is a good sign the Phase 5 design was sound, not a coincidence to gloss over.
+3. **Product Intelligence's stated goal changes** from "a canonical description of the product" to "everything required to recreate this exact product with high visual fidelity" - reflected in the "Frozen architecture vision" section above (point 1) and threaded through the rewritten sections below.
 
 ### 0. Diagnosis - restating the flaw precisely, grounded in what actually happened
 
@@ -3420,27 +3438,33 @@ CanonicalProductReferenceImage (join table, new)
 
 On `AnalysisArtifactMixin`: `CanonicalProductReference` is a real, versioned, `is_current`-scoped artifact (re-running acquisition produces a new version, exactly like every other artifact in this codebase), but the *selection* step itself is not always an AI call (classical heuristic scoring needs none) - same reasoning `ProductSourceImport` used to justify not using `AnalysisArtifactMixin`'s non-nullable `analysis_run_id`. Recommendation: use the mixin's shape but make `analysis_run_id` nullable on this one table too (a third precedent for that exact pattern, after `ProductSourceImport` and `ProductReferenceImage`'s URL-sourced rows), populated only when a scoring pass actually used an AI vision call.
 
-### 4. Reference Acquisition Engine architecture
+### 4. Reference Acquisition Engine architecture, and the Reference Scoring & Canonical Selection Stage
 
-Framed against what already exists, per the diagnosis in §0 - this is the section where "new subsystem" is the most misleading framing in the request, because most of the acquisition mechanics already exist as working code:
+**Revision #1 splits this into two distinct responsibilities, per the request**: *acquisition* (gathering candidates - largely already-existing code) and *scoring & selection* (a new, explicit, first-class Stage - the genuinely new decision-making logic). Conflating them in the original draft understated how much of this is a new, well-defined piece of logic rather than "a service that also scores things."
+
+**Reference Acquisition (gathering candidates) - framed against what already exists, per the diagnosis in §0:**
 
 | Priority | Request's description | What already exists today | What's genuinely new |
 |---|---|---|---|
-| 1. Official URLs | Amazon/TikTok Shop/Shopify/etc. | `ProductSourceAdapter.extract()` (Phase 5.2) already returns `NormalizedProductEvidence.images: list[NormalizedProductImage]`; `_try_download_and_save_reference_image` (Phase 5.1) already downloads *every* one and stores it as a `ProductReferenceImage` with `isolation_method="product_url"`, unconditionally | Scoring the downloaded images and selecting a canonical subset instead of treating "all of them" as equally valid |
-| 2. Reuse existing canonical reference | Avoid duplicate work | N/A (new entity) | Trivial once §3 exists: check for a current `CanonicalProductReference` before doing anything else |
+| 1. Official URLs | Amazon/TikTok Shop/Shopify/etc. | `ProductSourceAdapter.extract()` (Phase 5.2) already returns `NormalizedProductEvidence.images: list[NormalizedProductImage]`; `_try_download_and_save_reference_image` (Phase 5.1) already downloads *every* one and stores it as a `ProductReferenceImage` with `isolation_method="product_url"`, unconditionally | Nothing - acquisition itself is complete for this source today |
+| 2. Reuse existing canonical reference | Avoid duplicate work | N/A (new entity) | Trivial once §3 exists: the Selection Stage below checks for a current `CanonicalProductReference` before doing anything else |
 | 3. User-uploaded images | Official product photographs | No dedicated upload path exists today - images only enter the system via slideshow import or URL import | A genuinely new upload endpoint + storage path (small - same shape as `save_product_reference_image`, a new `isolation_method="user_upload"` value, no new concept) |
-| 4. Slideshow extraction | Crop every slide, every angle | `SlideProductIsolationStage` (Phase 2.4a) already crops the featured product from every slide it's run on and stores each as a `ProductReferenceImage` with `isolation_method` describing the crop method; multi-slide slideshows already produce multiple crops today | Scoring these crops for "which angle/quality," which today are all just accumulated with no ranking |
+| 4. Slideshow extraction | Crop every slide, every angle | `SlideProductIsolationStage` (Phase 2.4a) already crops the featured product from every slide it's run on and stores each as a `ProductReferenceImage` with `isolation_method` describing the crop method; multi-slide slideshows already produce multiple crops today | Nothing - acquisition itself is complete for this source today |
 | 5. Future search providers | Explicitly deferred by the request | N/A | Explicitly out of scope, per the request itself |
 
-**The Reference Acquisition Engine, concretely, is therefore a new service (`app/services/reference_acquisition.py`, by analogy with `product_profile.py`/`prompt_compiler.py`) that:**
-1. Gathers *candidate* `ProductReferenceImage` rows for a product from whichever of the above sources already exist (a query, not a fetch - the fetching/downloading/cropping already happens in the existing Stages/services above).
-2. Scores each candidate. **Two-tier, not one AI call per image**, per this codebase's standing "compute what can be computed, don't ask the AI for free facts" discipline (`staleness.py`'s `passed` computation, `RecreationPromptStage`'s `product_lock_reference`, `SlideImageValidationStage`'s `passed`):
-   - **Tier 1 (free, deterministic, always run):** resolution, aspect ratio, file size as a crude sharpness proxy, EXIF orientation if present. Filters out obviously-unusable candidates (thumbnails, corrupted files) at zero cost.
-   - **Tier 2 (one `VisionAnalysisProvider.analyze_creative` call per surviving candidate - real, deliberate cost):** front-visibility, occlusion, brand-readability, packaging-visibility, composition - the genuinely subjective factors the request lists that classical heuristics can't judge. This is the same capability Phase 8.4 already uses for Stage 1 Identity Validation (§7) - one more consumer of an existing provider, not a new one.
-3. Selects the canonical set (a `role`-diverse top-N, not just "the single highest score" - the request's own examples, front/45°/side/packaging, are different *roles*, not competing candidates for one slot) and persists a new `CanonicalProductReference` + `CanonicalProductReferenceImage` rows.
-4. Runs synchronously or in the background depending on candidate volume - a single URL import's handful of images can stay synchronous (matching Phase 8's own precedent for single-call latency); a slideshow with many slides scoring many crops should use the existing background-task infrastructure (Phase 3.1, already built, already proven).
+Acquisition, concretely, is therefore not a new pipeline - it is a query (`app/services/reference_acquisition.py`, the "candidate gathering" half only): given a `product_id`, return every current `ProductReferenceImage` row regardless of `isolation_method`, i.e. every image already downloaded/cropped/uploaded for that product, as the candidate pool. No fetching, downloading, or cropping logic lives here - that already exists in the Stages/services listed above and stays exactly as it is.
 
-**Lifecycle/upgrade detection** (the request's explicit "user later provides an Amazon URL" scenario): triggered the same way `POST /source-import` already triggers new evidence today - after a *new* acquisition source produces candidates, compare the new candidate set's Tier 1+2 scores against the current `CanonicalProductReference`'s `quality_score`. If meaningfully higher, **surface it as a choice, never auto-replace** - this is not a new principle, it's the exact same discipline the catalogue ADR already locked in for Listing resolution ("resolution is never automatic except when a human has already chosen the target"). A silent swap of what "the product" visually means is a much higher-stakes silent action than a silent Listing-to-Product link would have been.
+**Reference Scoring & Canonical Selection Stage (new, first-class - `app/slideshow_stages`-adjacent but Product-scoped, not Slide/Slideshow-scoped, so it lives alongside `product_profile.py`/`prompt_compiler.py` as `app/services/reference_selection_stage.py`, matching how Stage-shaped logic that isn't literally `SlideshowAnalysisStage`-typed already lives outside `app/slideshow_stages/` in this codebase - e.g. `assemble_product_profile`).** This Stage owns everything the request asks a scoring/selection stage to define:
+
+- **Scored.** Two-tier, not one AI call per image, per this codebase's standing "compute what can be computed, don't ask the AI for free facts" discipline (`staleness.py`'s `passed` computation, `SlideImageValidationStage`'s `passed`):
+  - *Tier 1 (free, deterministic, always run):* resolution, aspect ratio, file size as a crude sharpness proxy, EXIF orientation if present. Filters out obviously-unusable candidates at zero cost.
+  - *Tier 2 (one `VisionAnalysisProvider.analyze_creative` call per surviving candidate - real, deliberate cost):* front-visibility, occlusion, brand-readability, packaging-visibility, composition. Same capability Stage 1 Identity Validation (§7) already uses - one more consumer of an existing provider, not a new one.
+- **Ranked.** Candidates are ranked *within* a `role` (front / 45° / side / packaging / close-up - the request's own examples), not against each other globally - a `packaging`-role image isn't competing with a `front`-role image for one slot; each role gets its own best candidate. Role itself is assigned as part of Tier 2 scoring (the vision call classifies angle/role alongside quality), not guessed separately.
+- **Selected.** Top-1 candidate per populated role becomes canonical, persisted as `CanonicalProductReference` + one `CanonicalProductReferenceImage` row per selected role - "a small, curated set," per the request, not "every candidate above a threshold." A product with only front-angle candidates gets a canonical set of one image; that is a correct, honest result, not a failure state.
+- **Refreshed.** The Stage is re-runnable, the same way every other Stage in this codebase is - triggered explicitly (new endpoint, §8) or automatically whenever acquisition produces genuinely new candidates (a new URL import succeeds, a new slideshow is analyzed, a new upload arrives). **Refresh is allowed to auto-apply only when it fills a currently-empty role** (nothing is being replaced, purely additive - e.g. the canonical set had no `packaging` image and one is now available). Refreshing a role that already has a canonical image always goes through the Replaced path below, never silently.
+- **Replaced.** The request's explicit "user later provides an Amazon URL" scenario: when a refresh's Tier 1+2 scores for an *already-populated* role meaningfully exceed the current canonical image's score for that role, **surface it as a choice, never auto-replace** - the exact same discipline the catalogue ADR already locked in for Listing resolution ("resolution is never automatic except when a human has already chosen the target"). A silent swap of what "the product" visually means is a materially higher-stakes silent action than a silent Listing-to-Product link would have been, so it gets the same treatment, not a lighter one.
+
+Runs synchronously or in the background depending on candidate volume - a single URL import's handful of images can stay synchronous (Phase 8's own precedent for single-call latency); a slideshow with many slides scoring many crops should use the existing background-task infrastructure (Phase 3.1, already built, already proven).
 
 ### 5. How existing Product Lock Profiles migrate
 
@@ -3448,11 +3472,17 @@ They do not migrate in the sense of being transformed or replaced - **they stay 
 
 ### 6. Changes required to the Prompt Compiler
 
-`compile_generation_request(creative_specification, product_profile, platform="generic")` gains a new, optional parameter: `canonical_reference: CanonicalProductReferenceImages | None` (a plain dataclass carrying the selected image bytes + roles, resolved by the caller - the compiler itself does no I/O, matching its existing pure-function design). `GenerationRequest` (Phase 8.2) gains one new field: `reference_images: list[ReferenceImage]` (bytes + role), empty by default so every existing caller/test continues to work unchanged.
+**Revision #1 changes this from "images added alongside the existing text" to "images replace the product-description text entirely."** The compiler stops synthesizing any physical description of the product - no shape, materials, color, packaging, or branding text, however framed as "secondary." The Canonical Reference Set's images become the *only* source of product identity in a generation call; the compiler's remaining job is scene, composition, and marketing intent - everything the product is placed *into*, never the product itself.
 
-The compiled `creative_intent` text changes in one specific way: when reference images are present, the intent explicitly states the constraint the request asks for - *"Use the attached reference image(s) as the exact product. Preserve geometry, proportions, silhouette, branding, typography placement, colours, materials, and packaging exactly. Only change environment, lighting, composition, camera angle, and supporting objects."* This replaces `immutable_constraints`' role as the *primary* preservation signal (it becomes a secondary, explicit checklist alongside the images, not the only signal) - a real behavior change, but a strictly additive one to the function's contract.
+**Signature change**: `compile_generation_request(creative_specification, canonical_reference, platform="generic")` - **`product_profile` is dropped as a parameter entirely**, not merely made optional. `canonical_reference` (a plain dataclass carrying the selected image bytes + roles from the Canonical Reference Set, resolved by the caller - the compiler itself still does no I/O) becomes the new required-in-spirit second argument. This is a real simplification, not just a rename: `SlideImageGenerationStage` no longer needs to call `assemble_product_profile` at all before compiling a generation request - one fewer dependency, less code, not more.
 
-**Provider-side, this requires switching which OpenAI endpoint `OpenAIImageGenerationAdapter` calls.** Confirmed directly against the installed SDK (`openai` 2.46.0) while drafting this ADR, not assumed: `client.images.edit(image=<one or a sequence of files>, prompt=str, input_fidelity="high"|"low", ...)` already exists and is built exactly for this - conditioning generation on one or more real reference images, with `input_fidelity="high"` as the explicit lever for "preserve input details closely." `OpenAIImageGenerationAdapter.generate_image` should call `images.edit` (not `images.generate`) when `request.reference_images` is non-empty, `images.generate` unchanged otherwise - all provider-specific branching stays inside the adapter, per Phase 8.2's own "provider-specific formatting never leaks upstream" rule; the compiler and every caller above it stay provider-agnostic.
+**`GenerationRequest` (Phase 8.2) changes**: `immutable_constraints: list[str]` is **removed** (its entire purpose - product-descriptive text - is now the images' job), with a real consequence: there is no longer any text fallback for product identity at all. **`reference_images` therefore becomes a hard prerequisite, not an optional enhancement** - `SlideImageGenerationStage` should check for a current `CanonicalProductReference` before compiling anything and fail cleanly if none exists ("No Canonical Product Reference available yet - run Reference Scoring & Selection first"), the exact same explicit-prerequisite-failure shape the stage already uses for a missing Creative Specification. This is a deliberate tightening from the original draft (which kept images as an *additive* signal alongside text, making a text-only fallback still coherent) - once the text is gone, generating without images would silently produce a prompt with no product description whatsoever, which is worse than today's behavior, not a graceful degradation of it. §7's "no canonical reference yet" tri-state (`identity_passed` stays `null`) is therefore Validation-side only; Generation-side, the same missing state is a hard stop, because Validation can meaningfully say "unknown" about a product it never got to compare, but Generation has nothing safe to fall back to.
+
+**`creative_intent` narrows to exactly the `contextual`-classified concerns** - composition, lighting, camera and perspective, background environment, mood, the scene's own color palette (distinct from the product's own colours, which are no longer described at all), and text overlays. This maps directly onto `CANONICAL_FIELD_VOCABULARY`'s existing `contextual` fields (`camera_angle`, `composition`, `lighting`, `background`, `props`, `marketing_context`) - the exact fields the vocabulary already classifies as "expected to vary between creatives," built in Phase 5.5 for evidence-merge precedence, now doing double duty as precisely the set of things the compiler is still allowed to describe. `things_to_avoid` is retained (still scene-relevant - "don't add extra bottles," "don't add other people" - not product-descriptive).
+
+**A necessary follow-on, flagged for implementation-time scope, not designed in detail here**: `OpenAIPromptGenerationAdapter.generate_creative_specification`'s own prompt (which composes the Creative Specification in the first place, from the Product Lock Profile + Creative Fingerprint) currently asks for a `subject` field like *"A single bottle of orange juice on a sunlit kitchen counter"* - descriptive of the product itself. Once the compiler never reads that description, leaving the prompt unchanged would just mean wasted generation effort (harmless, but sloppy) rather than a correctness problem - `subject` should be re-scoped to mean *where/how the product sits in the composition* (e.g. "product centered in the lower third, elevated on a plinth") rather than *what the product looks like*, so the Creative Specification stage's own output stays honest about what it's actually for. Small, coordinated, but a real second touch-point this revision implies beyond the compiler itself.
+
+**Provider-side, this still requires switching which OpenAI endpoint `OpenAIImageGenerationAdapter` calls** - unchanged from the original draft, confirmed directly against the installed SDK (`openai` 2.46.0), not assumed: `client.images.edit(image=<one or a sequence of files>, prompt=str, input_fidelity="high"|"low", ...)` already exists and is built exactly for this - conditioning generation on one or more real reference images, with `input_fidelity="high"` as the explicit lever for "preserve input details closely." `OpenAIImageGenerationAdapter.generate_image` should call `images.edit` (not `images.generate`) when `request.reference_images` is non-empty; all provider-specific branching stays inside the adapter, per Phase 8.2's own "provider-specific formatting never leaks upstream" rule - the compiler and every caller above it stay provider-agnostic.
 
 This is worth being explicit about: **`images.edit`'s reference-image conditioning is a real, direct answer to the actual observed failure mode (§0) - it targets geometry/silhouette specifically, which text-only generation is structurally bad at.** It does not guarantee perfect results (see §12) - text-rendering precision (the "BELLA MITA" typo) is a separate, partially-independent weakness of current image models that reference-image conditioning does not fully solve - but it is the correct, well-matched fix for the specific problem this request diagnosed.
 
@@ -3496,8 +3526,8 @@ Proposed as a phased plan **for approval, not as authorization to start** - matc
 
 Proposed sub-phases, expand → backfill → switch-reads → contract:
 1. **9.1 - Schema (expand):** the two new tables + four new columns from §1/§2, fully additive, no behavior change to anything reading today's tables.
-2. **9.2 - Reference Acquisition Engine, Priority 1+4 only:** the scoring/selection service (§4) over *already-existing* `ProductReferenceImage` rows from URL imports and slideshow crops - deliberately excludes Priority 3 (user upload, genuinely new UI+endpoint) to prove selection/scoring logic against real data before adding a new ingestion path.
-3. **9.3 - Prompt Compiler + `ImageGenerationProvider` reference-image support (§6):** `images.edit` wiring, live-verified with a real paid call against a real `CanonicalProductReference`, same live-verification discipline as Phase 8.3.
+2. **9.2 - Reference Scoring & Canonical Selection Stage, over Priority 1+4 candidates only (§4):** acquisition (the candidate query) plus the new Stage's scoring/ranking/selection logic, run over *already-existing* `ProductReferenceImage` rows from URL imports and slideshow crops - deliberately excludes Priority 3 (user upload, genuinely new UI+endpoint) to prove the Stage against real data before adding a new ingestion path. This sub-phase is a hard prerequisite for 9.3 - there is no `CanonicalProductReference` to pass into the compiler until this Stage exists and has run.
+3. **9.3 - Prompt Compiler rewrite + `ImageGenerationProvider` reference-image support (§6):** the `product_profile` → `canonical_reference` parameter swap, `immutable_constraints` removal, `images.edit` wiring - live-verified with a real paid call against a real `CanonicalProductReference` from 9.2, same live-verification discipline as Phase 8.3. Includes the `generate_creative_specification` prompt re-scoping flagged in §6 (drop product-descriptive `subject` text) as part of the same sub-phase, since leaving it undone would just be dead weight in the same commit's own output.
 4. **9.4 - Stage 1 Identity Validation (§7):** the short-circuit two-stage validation, live-verified against the *same* Bella Vita slideshow this ADR's diagnosis (§0) is based on - the natural regression check: does the same product now generate with correct geometry, and does Stage 1 correctly gate on it if not.
 5. **9.5 - Frontend (§9):** Canonical Reference panel + Identity badge.
 6. **9.6 - User upload path (Priority 3) + lifecycle upgrade detection (§4's "offer to replace"):** the two pieces deliberately deferred out of 9.2, once the core loop is proven.
