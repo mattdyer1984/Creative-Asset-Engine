@@ -18,12 +18,16 @@ KEYRING_SERVICE_NAME = "creative-asset-engine"
 class ProvidersConfig(BaseModel):
     # One field per capability - all 5 of the plan's AI capabilities now
     # present (ocr, product_isolation, vision_analysis added in M4;
-    # text_generation in M5; prompt_generation in M6).
+    # text_generation in M5; prompt_generation in M6), plus a 6th,
+    # image_generation, added in Phase 8.2 of the Generation -> Validation
+    # proof of loop (see MIGRATION_PLAN.md) - the one capability that
+    # produces an image rather than analyzing one.
     ocr: str = "openai"
     product_isolation: str = "openai"
     vision_analysis: str = "openai"
     text_generation: str = "openai"
     prompt_generation: str = "openai"
+    image_generation: str = "openai"
 
 
 class ModelsConfig(BaseModel):
@@ -34,6 +38,7 @@ class ModelsConfig(BaseModel):
         "vision_analysis": "gpt-5.5",
         "text_generation": "gpt-5.5",
         "prompt_generation": "gpt-5.5",
+        "image_generation": "gpt-5.5",
     }
 
 

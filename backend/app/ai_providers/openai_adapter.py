@@ -1,18 +1,24 @@
 """
-OpenAI adapters for the OCR, Product Isolation, and Vision Analysis
-capabilities (plan §4).
+OpenAI adapters for the OCR, Product Isolation, Vision Analysis, Text
+Generation, Prompt Generation, and Image Generation capabilities (plan
+§4; Image Generation added in Phase 8.2, see MIGRATION_PLAN.md).
 
 Uses OpenAI's Structured Outputs mode (response_format=json_schema,
-strict=True) throughout, so responses are guaranteed to match the given
-schema - no manual parsing/validation of loosely-structured text needed.
+strict=True) throughout the structured-JSON capabilities, so responses
+are guaranteed to match the given schema - no manual parsing/validation
+of loosely-structured text needed. Image Generation is the one
+capability with no structured-output equivalent - OpenAI's Images API
+returns image bytes, not JSON.
 """
 
 import base64
 import json
+import time
 
+import httpx
 from openai import OpenAI
 
-from app.ai_providers.base import OCRExtraction
+from app.ai_providers.base import GeneratedImageResult, GenerationRequest, OCRExtraction
 from app.ai_providers.config import get_api_key
 
 OCR_RESPONSE_SCHEMA = {
@@ -322,3 +328,85 @@ class OpenAIPromptGenerationAdapter:
             },
         )
         return json.loads(response.choices[0].message.content)
+
+
+# OpenAI's Images API doesn't take an arbitrary aspect ratio - a small,
+# explicit mapping to the closest of its supported fixed sizes,
+# defaulting to square for anything unrecognized. Not trying to be exact
+# for every possible ratio - Phase 8's goal is proving the loop, not a
+# precise size-mapping table (see MIGRATION_PLAN.md's architecture
+# direction: not optimizing for image quality in this phase).
+_ASPECT_RATIO_TO_OPENAI_SIZE: dict[str, str] = {
+    "1:1": "1024x1024",
+    "4:5": "1024x1536",
+    "9:16": "1024x1536",
+    "2:3": "1024x1536",
+    "16:9": "1536x1024",
+    "3:2": "1536x1024",
+}
+
+
+class OpenAIImageGenerationAdapter:
+    """
+    OpenAI's Images API - Phase 8.2 of the Generation -> Validation
+    proof of loop (see MIGRATION_PLAN.md). All provider-specific prompt
+    formatting lives here (_compile_openai_prompt), never upstream in
+    app.services.prompt_compiler - the rest of the system only ever
+    produces/consumes the provider-agnostic GenerationRequest.
+    """
+
+    def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
+        self.model = model
+        self.provider = provider
+        self._client: OpenAI | None = None
+
+    @property
+    def client(self) -> OpenAI:
+        if self._client is None:
+            self._client = OpenAI(api_key=get_api_key("openai"))
+        return self._client
+
+    def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
+        prompt = self._compile_openai_prompt(request)
+        size = _ASPECT_RATIO_TO_OPENAI_SIZE.get(request.aspect_ratio, "1024x1024")
+
+        start = time.monotonic()
+        response = self.client.images.generate(
+            model=self.model,
+            prompt=prompt,
+            size=size,
+            n=1,
+        )
+        elapsed = time.monotonic() - start
+
+        image_data = response.data[0]
+        if image_data.b64_json:
+            image_bytes = base64.b64decode(image_data.b64_json)
+        else:
+            # Older API shapes (response_format="url") return a URL
+            # instead of inline base64 - fetched directly rather than
+            # requiring every caller to know which shape their model
+            # returns.
+            image_bytes = httpx.get(image_data.url, timeout=60.0).content
+
+        return GeneratedImageResult(
+            image_bytes=image_bytes,
+            provider=self.provider,
+            model=self.model,
+            prompt_used=prompt,
+            seed=None,  # OpenAI's public Images API doesn't expose one today.
+            generation_time_seconds=elapsed,
+        )
+
+    def _compile_openai_prompt(self, request: GenerationRequest) -> str:
+        """
+        Provider-specific prompt formatting lives here, not in
+        app.services.prompt_compiler - the rest of the system only ever
+        sees the provider-agnostic GenerationRequest.
+        """
+        parts = [request.creative_intent]
+        if request.immutable_constraints:
+            parts.append("Must include exactly: " + "; ".join(request.immutable_constraints))
+        if request.things_to_avoid:
+            parts.append("Avoid: " + "; ".join(request.things_to_avoid))
+        return "\n\n".join(parts)

@@ -1,9 +1,10 @@
 # AI provider configuration (plan §4.2).
 #
 # Config is per-capability, not per-app - each capability below can point
-# at a different provider/model independently. All 5 of the plan's AI
-# capabilities are now used: ocr, product_isolation, vision_analysis
-# (M4), text_generation (M5), prompt_generation (M6).
+# at a different provider/model independently. All 6 capabilities are now
+# used: ocr, product_isolation, vision_analysis (M4), text_generation
+# (M5), prompt_generation (M6), image_generation (Phase 8.2 of the
+# Generation -> Validation proof of loop, see MIGRATION_PLAN.md).
 #
 # API keys are NOT stored here - see app/ai_providers/config.py
 # (get_api_key) for how credentials are resolved (macOS Keychain, with an
@@ -15,6 +16,7 @@ providers:
   vision_analysis: openai
   text_generation: openai
   prompt_generation: openai
+  image_generation: openai
 
 models:
   openai:
@@ -23,3 +25,4 @@ models:
     vision_analysis: gpt-5.5
     text_generation: gpt-5.5
     prompt_generation: gpt-5.5
+    image_generation: gpt-5.5

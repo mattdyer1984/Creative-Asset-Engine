@@ -64,3 +64,54 @@ class TextGenerationProvider(Protocol):
     """
 
     def generate(self, prompt_spec: dict, response_schema: dict) -> dict: ...
+
+
+@dataclass
+class GenerationRequest:
+    """
+    A compiled, provider-agnostic image generation request - the Prompt
+    Compiler's output (app.services.prompt_compiler.
+    compile_generation_request), Phase 8.2 of the Generation -> Validation
+    proof of loop (see MIGRATION_PLAN.md).
+
+    English-language intent, never provider-specific syntax - turning
+    this into the literal request a given provider's API expects (the
+    actual prompt string, size parameter, etc.) is each concrete
+    ImageGenerationProvider's own job, not the compiler's. This is what
+    keeps everything upstream of the provider boundary provider-agnostic.
+    """
+
+    creative_intent: str
+    immutable_constraints: list[str]
+    things_to_avoid: list[str]
+    aspect_ratio: str
+
+
+@dataclass
+class GeneratedImageResult:
+    """
+    What a provider hands back after generating one image: the bytes
+    plus facts about how they were produced. Mirrors
+    ProductIsolationProvider's division of labor - the provider reports
+    what it did, the calling Stage is responsible for persistence
+    (saving the file, writing the DB row); the provider never touches
+    storage or the database itself.
+    """
+
+    image_bytes: bytes
+    provider: str
+    model: str
+    prompt_used: str
+    seed: str | None
+    generation_time_seconds: float
+
+
+class ImageGenerationProvider(Protocol):
+    """
+    The one genuinely new AI capability the Generation -> Validation
+    proof of loop needs (Phase 8, see MIGRATION_PLAN.md's architecture
+    direction) - none of the 5 capabilities above can produce an image,
+    all are analysis-only (image/text in, structured JSON out).
+    """
+
+    def generate_image(self, request: GenerationRequest) -> GeneratedImageResult: ...

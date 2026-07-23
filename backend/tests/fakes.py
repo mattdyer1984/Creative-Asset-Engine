@@ -6,7 +6,7 @@ exactly what plan §13 calls for ("Integration tests ... using a mocked AI
 provider (no real API calls in CI)").
 """
 
-from app.ai_providers.base import OCRExtraction
+from app.ai_providers.base import GeneratedImageResult, GenerationRequest, OCRExtraction
 
 
 def _assert_matches_ocr_response_shape(extraction: OCRExtraction) -> None:
@@ -271,6 +271,31 @@ class FakePromptGenerationProvider:
         return self._result
 
 
+class FakeImageGenerationProvider:
+    """Returns a canned GeneratedImageResult, or raises - Phase 8.2, see MIGRATION_PLAN.md."""
+
+    model = "fake-image-model"
+    provider = "openai"
+
+    def __init__(self, result: GeneratedImageResult | None = None, raise_error: Exception | None = None):
+        self._result = result or GeneratedImageResult(
+            image_bytes=b"\x89PNG\r\n\x1a\nfake-png-bytes",
+            provider="openai",
+            model="fake-image-model",
+            prompt_used="a fake compiled prompt",
+            seed=None,
+            generation_time_seconds=0.01,
+        )
+        self._raise_error = raise_error
+        self.last_request: GenerationRequest | None = None
+
+    def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
+        self.last_request = request
+        if self._raise_error is not None:
+            raise self._raise_error
+        return self._result
+
+
 class FakeAIProviderRegistry:
     def __init__(
         self,
@@ -279,6 +304,7 @@ class FakeAIProviderRegistry:
         vision_provider: FakeVisionAnalysisProvider | None = None,
         text_generation_provider: FakeTextGenerationProvider | None = None,
         prompt_generation_provider: FakePromptGenerationProvider | None = None,
+        image_generation_provider: FakeImageGenerationProvider | None = None,
     ):
         self._ocr_provider = ocr_provider or FakeOCRProvider()
         self._isolation_provider = isolation_provider or FakeProductIsolationProvider()
@@ -286,6 +312,9 @@ class FakeAIProviderRegistry:
         self._text_generation_provider = text_generation_provider or FakeTextGenerationProvider()
         self._prompt_generation_provider = (
             prompt_generation_provider or FakePromptGenerationProvider()
+        )
+        self._image_generation_provider = (
+            image_generation_provider or FakeImageGenerationProvider()
         )
 
     def ocr(self) -> FakeOCRProvider:
@@ -302,3 +331,6 @@ class FakeAIProviderRegistry:
 
     def prompt_generation(self) -> FakePromptGenerationProvider:
         return self._prompt_generation_provider
+
+    def image_generation(self) -> FakeImageGenerationProvider:
+        return self._image_generation_provider

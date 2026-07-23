@@ -15,6 +15,7 @@ where construction is explicitly, intentionally triggered.
 """
 
 from app.ai_providers.base import (
+    ImageGenerationProvider,
     OCRProvider,
     ProductIsolationProvider,
     PromptGenerationProvider,
@@ -23,6 +24,7 @@ from app.ai_providers.base import (
 )
 from app.ai_providers.config import ModelsConfig, ProvidersConfig, load_config
 from app.ai_providers.openai_adapter import (
+    OpenAIImageGenerationAdapter,
     OpenAIOCRAdapter,
     OpenAIProductIsolationAdapter,
     OpenAIPromptGenerationAdapter,
@@ -48,6 +50,10 @@ TEXT_GENERATION_ADAPTERS: dict[str, type[TextGenerationProvider]] = {
 
 PROMPT_GENERATION_ADAPTERS: dict[str, type[PromptGenerationProvider]] = {
     "openai": OpenAIPromptGenerationAdapter,
+}
+
+IMAGE_GENERATION_ADAPTERS: dict[str, type[ImageGenerationProvider]] = {
+    "openai": OpenAIImageGenerationAdapter,
 }
 
 
@@ -89,6 +95,12 @@ class AIProviderRegistry:
             models_config,
             "prompt_generation",
         )
+        self._image_generation: ImageGenerationProvider = self._build(
+            IMAGE_GENERATION_ADAPTERS,
+            providers_config.image_generation,
+            models_config,
+            "image_generation",
+        )
 
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
@@ -109,6 +121,9 @@ class AIProviderRegistry:
 
     def prompt_generation(self) -> PromptGenerationProvider:
         return self._prompt_generation
+
+    def image_generation(self) -> ImageGenerationProvider:
+        return self._image_generation
 
 
 # Module-level default instance - Stages import this rather than each
