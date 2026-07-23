@@ -13,13 +13,10 @@ reference images for a product is every row with is_current=True and
 that product_id (there can be more than one - a single isolation run can
 produce several bounding boxes/crops).
 
-source_creative_id / source_slide_id records which creative's/slide's
-image this particular crop came from - provenance, not ownership (plan
-§7's comment on this field).
-
-Transitional (Phase 2.3 of the Slideshow/Slide migration): both
-source_creative_id and source_slide_id exist, both nullable - see
-OCRResult's docstring for why.
+source_slide_id records which slide's image this particular crop came
+from - provenance, not ownership (plan §7's comment on this field). The
+legacy source_creative_id column (Phase 2.3's transitional dual-FK) was
+dropped in Phase 2.8, see MIGRATION_PLAN.md.
 
 source_product_source_import_id (Phase 5.1 of Product Intelligence, see
 MIGRATION_PLAN.md) is a third, equally-nullable provenance column for
@@ -80,7 +77,6 @@ class ProductReferenceImage(Base, AnalysisArtifactMixin):
     analysis_run_id: Mapped[str | None] = mapped_column(ForeignKey("analysis_runs.id"), nullable=True)
 
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
-    source_creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
     source_slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
     source_product_source_import_id: Mapped[str | None] = mapped_column(
         ForeignKey("product_source_imports.id"), nullable=True

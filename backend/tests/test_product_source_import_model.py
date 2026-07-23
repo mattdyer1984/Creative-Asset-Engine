@@ -102,5 +102,4 @@ def test_product_reference_image_accepts_url_sourced_row_with_no_analysis_run(db
 
     assert image.analysis_run_id is None
     assert image.source_product_source_import_id == import_row.id
-    assert image.source_creative_id is None
     assert image.source_slide_id is None

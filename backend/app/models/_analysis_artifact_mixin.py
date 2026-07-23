@@ -8,7 +8,7 @@ it is NOT a new architectural layer, just a DRY convenience the plan
 explicitly called for.
 
 is_current is scoped to whatever entity naturally owns that artifact type
-(creative_id for five of the six artifacts, product_id for
+(slide_id or slideshow_id for five of the six artifacts, product_id for
 ProductReferenceImage) - the mixin doesn't (and can't) enforce that
 scoping itself, since it varies per artifact; each model's own queries
 are responsible for filtering is_current within the correct scope.

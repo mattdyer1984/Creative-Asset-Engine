@@ -16,8 +16,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db import Base
-from app.models.creative import Creative
-from app.models.creative_blueprint import CreativeBlueprint
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.slide import Slide
@@ -67,79 +65,8 @@ def db_session(monkeypatch):
 
 
 @pytest.fixture()
-def creative_with_blueprint(db_session, tmp_path):
-    """A persisted Creative + CreativeBlueprint, with a real (tiny) file on disk."""
-    image_path = tmp_path / "test-image.jpg"
-    # The OCR stage only reads raw bytes and hands them to the provider
-    # (mocked in these tests) - it never decodes the image itself, so
-    # this doesn't need to be a real, valid JPEG.
-    image_path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
-
-    creative = Creative(
-        original_filename="test-image.jpg",
-        source_type="local_file",
-        source_locator="test-image.jpg",
-        stored_file_path=str(image_path),
-        imported_at=datetime.now(timezone.utc),
-    )
-    db_session.add(creative)
-    db_session.flush()
-
-    blueprint = CreativeBlueprint(creative_id=creative.id)
-    db_session.add(blueprint)
-    db_session.commit()
-    db_session.refresh(creative)
-
-    return creative
-
-
-@pytest.fixture()
-def creative_with_product(db_session, tmp_path):
-    """
-    Like creative_with_blueprint, but with a Product already assigned -
-    the prerequisite Product Isolation and Product Lock Profile Stages
-    require (plan §8A).
-
-    Unlike creative_with_blueprint's fake byte string, this writes a real,
-    decodable JPEG - the Product Isolation Stage actually opens and crops
-    the image via Pillow, so it needs real image bytes, not just any
-    bytes a provider double can ignore.
-    """
-    from PIL import Image
-
-    product = Product(display_name="Sunrise Orange Juice")
-    db_session.add(product)
-    db_session.flush()
-
-    image_path = tmp_path / "test-image.jpg"
-    Image.new("RGB", (400, 400), color=(210, 160, 120)).save(image_path)
-
-    creative = Creative(
-        product_id=product.id,
-        original_filename="test-image.jpg",
-        source_type="local_file",
-        source_locator="test-image.jpg",
-        stored_file_path=str(image_path),
-        imported_at=datetime.now(timezone.utc),
-    )
-    db_session.add(creative)
-    db_session.flush()
-
-    blueprint = CreativeBlueprint(creative_id=creative.id)
-    db_session.add(blueprint)
-    db_session.commit()
-    db_session.refresh(creative)
-
-    return creative
-
-
-@pytest.fixture()
 def slideshow_with_slide(db_session, tmp_path):
-    """
-    A persisted Slideshow + single Slide, with a real (tiny) file on
-    disk - the new-pipeline (Phase 2.4+) equivalent of
-    creative_with_blueprint above.
-    """
+    """A persisted Slideshow + single Slide, with a real (tiny) file on disk."""
     image_path = tmp_path / "test-image.jpg"
     image_path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
 
@@ -166,9 +93,9 @@ def slideshow_with_slide(db_session, tmp_path):
 def slideshow_with_product(db_session, tmp_path):
     """
     Like slideshow_with_slide, but with a Product already assigned via a
-    current ProductAppearance - the new-pipeline equivalent of
-    creative_with_product above (see that fixture's docstring for why a
-    real, decodable JPEG is needed here).
+    current ProductAppearance. Writes a real, decodable JPEG (unlike
+    slideshow_with_slide's fake byte string) since the Product Isolation
+    Stage actually opens and crops the image via Pillow.
     """
     from PIL import Image
 

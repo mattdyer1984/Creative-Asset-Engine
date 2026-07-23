@@ -23,11 +23,6 @@ export interface ProjectCreateInput {
 // row that's never been scored yet).
 export interface ProductReferenceImage {
   id: string;
-  // Nullable since Phase 2.3 of the Slideshow/Slide migration - rows
-  // created by the new pipeline populate source_slide_id instead (not
-  // exposed by this endpoint's response shape). See
-  // ProductReferenceImageRead's docstring in app/schemas.py.
-  source_creative_id: string | null;
   isolation_method: string;
   is_current: boolean;
   created_at: string;

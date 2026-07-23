@@ -49,7 +49,6 @@ def test_succeeds_and_updates_slideshow(db_session, slideshow_with_slide, monkey
     ma = db_session.get(MarketingAnalysis, ma_id)
     assert ma.is_current is True
     assert ma.slideshow_id == slideshow_with_slide.id
-    assert ma.creative_id is None
     assert ma.narrative_text
     # Phase 7.3 (Narrative pass, see MIGRATION_PLAN.md): records exactly
     # which Creative Fingerprint version this was generated from.

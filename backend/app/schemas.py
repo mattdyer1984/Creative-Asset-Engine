@@ -49,18 +49,15 @@ class ProductReferenceImageRead(BaseModel):
     """
     Used by GET /api/products/{id}/reference-images - a permanent,
     Product-scoped endpoint unrelated to the Slideshow/Slide migration.
-    source_creative_id became nullable in Phase 2.3 (the new pipeline's
-    Product Isolation stage populates source_slide_id instead - see
-    SlideProductReferenceImageRead), so this must accept null too:
-    without this, this endpoint 500s (ResponseValidationError) the
-    moment any reference image created by the new pipeline exists for a
-    product - reproduced and confirmed before this fix.
+    The legacy source_creative_id field (Phase 2.3's transitional
+    dual-FK) was dropped in Phase 2.8, see MIGRATION_PLAN.md -
+    source_slide_id (see SlideProductReferenceImageRead) is the only
+    provenance field now.
     """
 
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    source_creative_id: str | None
     isolation_method: str
     is_current: bool
     created_at: datetime
@@ -614,19 +611,16 @@ class AddSlideProductRequest(BaseModel):
 
 class SlideProductReferenceImageRead(BaseModel):
     """
-    Distinct from the older ProductReferenceImageRead above: after Phase
-    2.3, ProductReferenceImage.source_creative_id is nullable and new
-    rows (from the new pipeline) populate source_slide_id instead - a
-    row created by the new pipeline wouldn't validate against the old
-    schema's non-nullable source_creative_id field.
+    Distinct from the older ProductReferenceImageRead above: this is the
+    slide-scoped view used by assemble_slideshow_blueprint.
 
     source_slide_id relaxed to nullable (real bug, found live via the
     UI - not every row has one: Phase 5's Product Source URL imports and
     Phase 9.6's direct user uploads both create real, valid
-    ProductReferenceImage rows with neither source_creative_id nor
-    source_slide_id set, and this schema's own non-nullable field was
-    never updated for either, throwing a real 500 on
-    assemble_slideshow_blueprint for any product with such an image).
+    ProductReferenceImage rows with no source_slide_id set, and this
+    schema's own non-nullable field was never updated for either,
+    throwing a real 500 on assemble_slideshow_blueprint for any product
+    with such an image).
     """
 
     model_config = ConfigDict(from_attributes=True)

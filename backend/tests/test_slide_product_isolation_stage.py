@@ -80,7 +80,6 @@ def test_succeeds_and_crops_reference_image(db_session, slideshow_with_product, 
     assert ref.is_current is True
     assert ref.isolation_method == ISOLATION_METHOD
     assert ref.source_slide_id == slide.id
-    assert ref.source_creative_id is None  # new pipeline never writes the legacy FK
 
     analysis_run = db_session.get(AnalysisRun, ref.analysis_run_id)
     assert analysis_run.status == STATUS_SUCCEEDED

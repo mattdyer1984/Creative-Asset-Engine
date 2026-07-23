@@ -55,7 +55,6 @@ def test_succeeds_and_updates_slide(db_session, slideshow_with_slide, monkeypatc
     fingerprint = db_session.get(CreativeFingerprint, fingerprint_id)
     assert fingerprint.is_current is True
     assert fingerprint.slide_id == slide.id
-    assert fingerprint.creative_id is None
     structured = fingerprint.structured_json
     assert structured["target_audience"] == "health-conscious young adults"
 

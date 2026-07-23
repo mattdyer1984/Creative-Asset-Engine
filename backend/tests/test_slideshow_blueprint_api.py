@@ -95,11 +95,11 @@ def test_blueprint_includes_a_reference_image_with_no_source_slide(client):
     """
     Real bug, found live via the UI (not written from a hypothesis): a
     ProductReferenceImage from a direct user upload (Phase 9.6) or a
-    Product Source URL import (Phase 5) has neither source_creative_id
-    nor source_slide_id set - SlideProductReferenceImageRead's
-    source_slide_id was still non-nullable, so assemble_slideshow_blueprint
-    threw a real 500 for any product with such an image, for every
-    slideshow that product was ever assigned to.
+    Product Source URL import (Phase 5) has no source_slide_id set -
+    SlideProductReferenceImageRead's source_slide_id was still
+    non-nullable, so assemble_slideshow_blueprint threw a real 500 for
+    any product with such an image, for every slideshow that product was
+    ever assigned to.
     """
     from io import BytesIO
 

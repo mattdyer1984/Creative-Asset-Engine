@@ -4,13 +4,10 @@ Analysis Stage (plan §6.3, §6.5, §9).
 
 A real AI pass over the Creative Fingerprint's structured JSON (a
 text-only prompt, not vision) - not a computed/derived view. Owned by
-Creative (legacy) / Slideshow (Phase 2+, since marketing analysis is a
-slideshow-scoped artifact, not a per-slide one). is_current is scoped
-accordingly.
-
-Transitional (Phase 2.3 of the Slideshow/Slide migration): both
-creative_id and slideshow_id exist, both nullable - see OCRResult's
-docstring for why.
+Slideshow, since marketing analysis is a slideshow-scoped artifact, not
+a per-slide one. is_current is scoped accordingly. The legacy
+creative_id column (Phase 2.3's transitional dual-FK) was dropped in
+Phase 2.8, see MIGRATION_PLAN.md.
 
 creative_fingerprint_id (Phase 7.3 of the Narrative pass, see
 MIGRATION_PLAN.md) is a real gap fix, not new functionality: this
@@ -35,7 +32,6 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 class MarketingAnalysis(Base, AnalysisArtifactMixin):
     __tablename__ = "marketing_analyses"
 
-    creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
     slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
     creative_fingerprint_id: Mapped[str | None] = mapped_column(
         ForeignKey("creative_fingerprints.id"), nullable=True

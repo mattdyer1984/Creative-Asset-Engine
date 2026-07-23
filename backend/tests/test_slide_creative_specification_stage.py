@@ -137,7 +137,6 @@ def test_succeeds_and_assembles_product_lock_reference(db_session, slideshow_wit
     spec = db_session.get(CreativeSpecification, spec_id)
     assert spec.is_current is True
     assert spec.slideshow_id == slideshow_with_product.id
-    assert spec.creative_id is None
 
     structured = spec.structured_json
     assert structured["subject"]

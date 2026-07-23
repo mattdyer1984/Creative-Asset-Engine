@@ -2,13 +2,10 @@
 CreativeFingerprint — the Analysis Artifact produced by the Creative
 Fingerprint Stage (plan §6.3, §6.5, §9).
 
-Owned by Creative (legacy) / Slide (Phase 2+). is_current is scoped
-accordingly: at most one CreativeFingerprint per creative/slide has
-is_current=True at any time.
-
-Transitional (Phase 2.3 of the Slideshow/Slide migration) - see
-OCRResult's docstring for the creative_id/slide_id coexistence pattern,
-identical here.
+Owned by Slide. is_current is scoped accordingly: at most one
+CreativeFingerprint per slide has is_current=True at any time. The
+legacy creative_id column (Phase 2.3's transitional dual-FK) was dropped
+in Phase 2.8, see MIGRATION_PLAN.md.
 
 ocr_result_id (Phase 7.4 of the Narrative pass, see MIGRATION_PLAN.md) -
 found and fixed while building that sub-phase's staleness service, same
@@ -33,7 +30,6 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 class CreativeFingerprint(Base, AnalysisArtifactMixin):
     __tablename__ = "creative_fingerprints"
 
-    creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
     slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
     ocr_result_id: Mapped[str | None] = mapped_column(ForeignKey("ocr_results.id"), nullable=True)
     structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)

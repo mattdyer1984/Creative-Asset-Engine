@@ -37,7 +37,6 @@ def test_slide_ocr_stage_succeeds_and_updates_slide(db_session, slideshow_with_s
     assert ocr_result.raw_text == "Fresh Squeezed. Zero Sugar Added."
     assert ocr_result.is_current is True
     assert ocr_result.slide_id == slideshow_with_slide.primary_slide.id
-    assert ocr_result.creative_id is None  # new pipeline never writes the legacy FK
     assert ocr_result.structured_blocks_json[0]["role"] == "headline"
 
     analysis_run = db_session.get(AnalysisRun, ocr_result.analysis_run_id)
@@ -45,7 +44,6 @@ def test_slide_ocr_stage_succeeds_and_updates_slide(db_session, slideshow_with_s
     assert analysis_run.analysis_type == "ocr"
     assert analysis_run.model_name == "fake-ocr-model"
     assert analysis_run.slide_id == slideshow_with_slide.primary_slide.id
-    assert analysis_run.creative_id is None
 
 
 def test_slide_ocr_stage_fails_gracefully_on_provider_error(db_session, slideshow_with_slide, monkeypatch):

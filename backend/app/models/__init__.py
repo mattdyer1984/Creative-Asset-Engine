@@ -71,18 +71,18 @@ Text Intelligence (app.services.text_intelligence) chose, a distinct
 entity from GeneratedImage since the raw model output and the
 composited final artifact have different lifecycles.
 
-Creative and CreativeBlueprint are legacy: the old pipeline that wrote
-to them was removed in Phase 2.7, but the models (and their tables)
-remain until Phase 2.8 explicitly drops them - app.services.
-slideshow_backfill still reads Creative to backfill historical data, and
-several artifact tables still carry (now-nullable) legacy creative_id/
-source_creative_id columns pending that same phase.
+Creative and CreativeBlueprint (the pre-migration pipeline's models) and
+the legacy creative_id/source_creative_id columns several artifact
+tables carried alongside their real slide_id/source_slide_id equivalents
+were removed in Phase 2.8 - see MIGRATION_PLAN.md's Phase 2.8 report.
+app.services.slideshow_backfill (which read Creative to backfill
+historical data) is also gone; the backfill logic it held now lives
+frozen inside alembic/versions/8a76d08b06fe, which no longer depends on
+live model code - see that migration's own docstring.
 """
 
 from app.models.analysis_run import AnalysisRun
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
-from app.models.creative import Creative
-from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.evidence_source import EvidenceSource
@@ -114,8 +114,6 @@ __all__ = [
     "Project",
     "ProjectProduct",
     "EvidenceSource",
-    "Creative",
-    "CreativeBlueprint",
     "AnalysisRun",
     "OCRResult",
     "Product",
