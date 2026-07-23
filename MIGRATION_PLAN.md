@@ -3491,6 +3491,20 @@ This second column was not in the original Phase 9.1 schema - discovered as a re
 
 - Commit: (see git log)
 
+### Phase 9.7: Backfill decision for existing products' Libraries (2026-07-23)
+
+**The decision itself**: §11 item 7 and §12 both flag this explicitly as "an open, real-money decision... flagged for the user's own call before 9.1 ships, not assumed" - not a routine implementation judgment call, and squarely the kind of thing the standing autonomous-implementation authorization says to interrupt for. Asked directly (skip entirely / run now for all current products / build the script but don't run it); the user chose **build a script, don't run it yet**.
+
+**What was built**: `app/services/reference_scoring_backfill.py` - `backfill_all_products(db, *, dry_run=False, product_ids=None) -> list[ProductBackfillResult]`, a thin orchestration layer over the already-real, already-tested `run_reference_scoring` (Phase 9.2/9.6) - a product reached via backfill behaves identically to one scored through the ordinary endpoint. Each product commits (or rolls back, on `StageResult.succeeded=False`) independently, so one product's failure never blocks or loses progress on any other - the same "no partial write on failure" discipline `run_reference_scoring` already keeps at the per-image level, now also held at the per-product level. Products with nothing unscored are silently skipped, not reported - there's nothing to decide about them. `dry_run=True` reports per-product unscored-candidate counts (a direct proxy for real cost) without spending a single vision call - the concrete tool for turning "real-money decision" into an *informed* one before ever actually running it.
+
+**`scripts/backfill_reference_scoring.py`** (new top-level `backend/scripts/` package - no prior precedent in this codebase for a standalone script, so this establishes the convention: real service logic lives in `app/services/`, fully unit-testable; the script itself is a thin, argument-parsing-only CLI wrapper, invoked as `python -m scripts.backfill_reference_scoring [--dry-run] [--product-id ID]`). Deliberately **not** wired into any API endpoint, router, or background task - per the user's explicit "don't run it yet," there is no surface in this codebase from which this could be triggered by a stray request; it only runs when someone invokes it directly, on purpose, later.
+
+**Verification**: 5 new tests in `test_reference_scoring_backfill.py` (dry-run makes zero vision calls, a live run scores every product with unscored candidates, `product_ids` correctly scopes to a subset, products with nothing unscored are silently skipped, one product's failure doesn't block or partially-write another's success). Full suite: 296 passed. `ruff check` clean. Also ran the real script's `--dry-run` mode against the real dev DB (safe - makes zero vision calls by design) as a live smoke test of the CLI wrapper itself, not just the underlying service function: correctly reported the one real unscored candidate currently sitting in the dev DB (the file uploaded during Phase 9.6's live browser verification) and printed the expected summary/re-run guidance. The script has not been run in live (non-dry-run) mode, per the user's decision - that remains a deliberate, separate future action.
+
+This completes Phase 9 (Canonical Product Reference / Product Lock v2), sub-phases 9.1-9.7. Continuing into Phase 10 (AI Creative Engine vNext).
+
+- Commit: (see git log)
+
 ---
 
 ## ADR: Canonical Product Reference (Product Lock v2) — 2026-07-23
