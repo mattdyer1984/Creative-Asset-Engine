@@ -12,7 +12,7 @@ canonical, multi-source view) - the API surface for everything Phase
 5.1-5.5 built.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -31,6 +31,7 @@ from app.schemas import (
     ProductSourceImportRead,
     ProductSourceImportRequest,
 )
+from app.services.background_execution import run_reference_scoring_in_background
 from app.services.product_profile import ProductProfile, assemble_product_profile
 from app.services.product_source_import import import_product_source
 
@@ -87,6 +88,49 @@ def get_reference_image_file(
     if image is None or image.product_id != product_id:
         raise HTTPException(status_code=404, detail="Reference image not found")
     return FileResponse(image.file_path)
+
+
+@router.get("/{product_id}/reference-library", response_model=list[ProductReferenceImageRead])
+def get_reference_library(product_id: str, db: Session = Depends(get_db)) -> list[ProductReferenceImage]:
+    """
+    Phase 9.1/9.2 of Product Lock v2 (see MIGRATION_PLAN.md's "ADR:
+    Canonical Product Reference" §3/§8). The Canonical Reference Library
+    is not a new table - it's this query: every current
+    ProductReferenceImage with library_status="included". A plain list,
+    not a single artifact, since there is no "the" Library version to
+    fetch by id.
+    """
+    if db.get(Product, product_id) is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    stmt = select(ProductReferenceImage).where(
+        ProductReferenceImage.product_id == product_id,
+        ProductReferenceImage.is_current.is_(True),
+        ProductReferenceImage.library_status == "included",
+    )
+    return list(db.scalars(stmt))
+
+
+@router.post("/{product_id}/score-references", status_code=202)
+def score_references(
+    product_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+) -> dict:
+    """
+    Phase 9.2 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8).
+    Explicitly triggers the Reference Scoring Stage in the background -
+    real, paid vision calls per unscored candidate, same reasoning
+    Phase 8.3/8.4 kept image generation/validation out of the automatic
+    pipeline. No atomic status-claim guard here (unlike
+    POST .../analyze) - Product has no status field to claim against;
+    a concurrent double-trigger would at worst repeat a vision call on
+    a candidate the first run hasn't finished scoring yet, not corrupt
+    state, since scoring writes are idempotent per-candidate.
+    """
+    if db.get(Product, product_id) is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    background_tasks.add_task(run_reference_scoring_in_background, product_id)
+    return {"status": "scheduled"}
 
 
 @router.get("/{product_id}/lock-profile", response_model=ProductLockProfileRead)

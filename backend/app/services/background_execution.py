@@ -23,7 +23,9 @@ SessionLocal before any test fixture had a chance to override it.
 """
 
 import app.db
+from app.models.product import Product
 from app.models.slideshow import Slideshow
+from app.services.reference_scoring_stage import run_reference_scoring
 from app.slideshow_stages.orchestrator import default_slideshow_orchestrator
 
 
@@ -45,5 +47,18 @@ def run_stage_in_background(slideshow_id: str, stage_name: str) -> None:
         if slideshow is None:
             return
         default_slideshow_orchestrator.run_single_stage(db, slideshow, stage_name)
+    finally:
+        db.close()
+
+
+def run_reference_scoring_in_background(product_id: str) -> None:
+    """Phase 9.2 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8)."""
+    db = app.db.SessionLocal()
+    try:
+        product = db.get(Product, product_id)
+        if product is None:
+            return
+        run_reference_scoring(db, product_id)
+        db.commit()
     finally:
         db.close()

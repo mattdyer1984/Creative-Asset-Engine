@@ -3411,6 +3411,18 @@ A new prompt/schema (`app/slideshow_stages/image_validation_stage.py`), not a ne
 
 - Commit: (see git log)
 
+### Phase 9.2: Reference Scoring Stage (2026-07-23)
+
+**What was built**: `app/services/reference_acquisition.py` (the candidate-gathering query - every current `ProductReferenceImage` for a product, plus `get_unscored_candidates` filtering to `library_status is null`) and `app/services/reference_scoring_stage.py` (`run_reference_scoring(db, product_id) -> StageResult`), matching ADR §4's two-tier design: Tier 1 (free - minimum dimension + file-size-as-sharpness-proxy floor) always runs first; Tier 2 (one real `VisionAnalysisProvider.analyze_creative` call per Tier-1 survivor) classifies `role` and judges front-visibility/occlusion/brand-readability/packaging-visibility/composition, with `quality_score` computed in code from those structured judgments - never asked of the AI as a bare number, same rule `SlideImageValidationStage.passed` already follows. Below-floor and low-scoring candidates are marked `"rejected"` (kept, not deleted) rather than silently dropped. Wired into the API: `GET /api/products/{id}/reference-library` (the compute-on-read Library query, `library_status="included"`) and `POST /api/products/{id}/score-references` (background-task-triggered, matching Phase 8.3/8.4's "real cost stays out of the automatic pipeline" discipline), plus a `background_execution.py` wrapper following the exact pattern `run_pipeline_in_background` already established.
+
+**Real decision made during implementation, not specified by the ADR**: whether Tier 2 calls should log an `AnalysisRun` like every other real paid AI call in this codebase. Decided **no** - `ProductReferenceImage.analysis_run_id` already means "the run that acquired this image" (Product Isolation, or null for URL-sourced rows), and overwriting it with a scoring run's id would destroy that provenance for no real benefit, while adding a second, parallel `analysis_run_id`-like column wasn't part of the reviewed §1 schema. `quality_reasons_json` serves the same "record the reasoning" purpose `AnalysisRun` would have, and is sufficient on its own. Logged here rather than decided silently, since it's a real interpretation of an ADR that didn't spell this out.
+
+**Real bug caught by testing, not anticipated**: the first test run rejected every candidate at Tier 1, including ones that should have cleared it easily. Cause: PIL's usual test-fixture shortcut (a flat solid-color image) JPEG-compresses to ~3KB regardless of dimensions - comfortably under the 5KB `MIN_FILE_SIZE_BYTES` floor a real product photo would clear without issue. Fixed by making test fixtures use noise-filled images (~70KB, in the same ballpark as a real photo) rather than weakening the production heuristic to accommodate an unrealistic fixture - the heuristic was correct, the test data wasn't representative.
+
+**Verification**: 11 new tests (`test_reference_scoring_stage.py` - Tier 1 floor rejection with no vision call made, high/low-quality Tier 2 outcomes, already-scored candidates never rescored, graceful failure with no partial write, multiple images surviving in the same role per the Library's explicit "not one-per-role" design; `test_reference_library_api.py` - 404 handling, 202 scheduling, library-only filtering), all passing, no real vision provider - `FakeVisionAnalysisProvider` throughout, live-verification deferred to Phase 9.3 where a real generation call exists to verify against. Full suite: 259 passed. `ruff check` clean.
+
+- Commit: (see git log)
+
 ---
 
 ## ADR: Canonical Product Reference (Product Lock v2) — 2026-07-23

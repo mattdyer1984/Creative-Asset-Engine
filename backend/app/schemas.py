@@ -64,6 +64,10 @@ class ProductReferenceImageRead(BaseModel):
     isolation_method: str
     is_current: bool
     created_at: datetime
+    quality_score: float | None = None
+    quality_reasons_json: list | None = None
+    role: str | None = None
+    library_status: str | None = None
 
 
 class ProductLockProfileRead(BaseModel):
