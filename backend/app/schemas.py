@@ -286,6 +286,35 @@ class GeneratedImageRead(BaseModel):
     created_at: datetime
 
 
+class ImageValidationFieldCheckRead(BaseModel):
+    field_name: str
+    preserved: bool
+    reason: str
+
+
+class ImageValidationResultRead(BaseModel):
+    """
+    Phase 8.4 of the Generation -> Validation proof of loop, see
+    MIGRATION_PLAN.md. field_checks is surfaced directly, not summarized
+    - this is the "explain why it failed" the user asked for.
+
+    Built explicitly by the router, not via from_attributes - the ORM's
+    field_checks_json doesn't match this schema's field_checks name, same
+    "computed/renamed fields need explicit construction" reasoning as
+    MarketingAnalysisRead switched to in Phase 7.4.
+    """
+
+    id: str
+    schema_version: str
+    is_current: bool
+    generated_image_id: str
+    product_id: str
+    passed: bool
+    field_checks: list[ImageValidationFieldCheckRead]
+    overall_explanation: str
+    created_at: datetime
+
+
 class OCRResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

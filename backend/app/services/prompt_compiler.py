@@ -37,8 +37,14 @@ _CREATIVE_SPEC_INTENT_FIELDS = [
 ]
 
 
-def _format_attribute_value(value) -> str:
-    """Renders one canonical ProductAttributeValue (see app.product_sources.base) as a short human-readable phrase."""
+def format_attribute_value(value) -> str:
+    """
+    Renders one canonical ProductAttributeValue (see
+    app.product_sources.base) as a short human-readable phrase. Public
+    (not module-private) since app.slideshow_stages.image_validation_stage
+    (Phase 8.4) reuses this exact formatting for consistency between what
+    Generation was told to preserve and what Validation displays back.
+    """
     if isinstance(value, TextValue):
         return value.text
     if isinstance(value, ColorValue):
@@ -85,7 +91,7 @@ def compile_generation_request(
         intent_parts.append(f"Text overlays: {overlay_text}")
 
     immutable_constraints = [
-        f"{field_name}: {_format_attribute_value(field.value)}"
+        f"{field_name}: {format_attribute_value(field.value)}"
         for field_name, field in product_profile.fields.items()
         if field.classification == "immutable"
     ]

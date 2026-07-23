@@ -37,6 +37,7 @@ from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
+from app.models.image_validation_result import ImageValidationResult
 from app.models.listing import Listing
 from app.models.marketing_analysis import MarketingAnalysis
 from app.models.narrative_structure import NarrativeStructure
@@ -70,6 +71,7 @@ __all__ = [
     "NarrativeStructure",
     "CreativeSpecification",
     "GeneratedImage",
+    "ImageValidationResult",
     "Slideshow",
     "Slide",
     "ProductAppearance",

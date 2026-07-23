@@ -37,6 +37,9 @@ ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
 # MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
 # see app.slideshow_stages.image_generation_stage's docstring for why.
 ANALYSIS_TYPE_GENERATED_IMAGE = "generated_image"
+# Phase 8.4 - same "not in SLIDESHOW_STAGE_PIPELINE" reasoning as
+# ANALYSIS_TYPE_GENERATED_IMAGE above.
+ANALYSIS_TYPE_IMAGE_VALIDATION = "image_validation"
 
 STATUS_PENDING = "pending"
 STATUS_SUCCEEDED = "succeeded"

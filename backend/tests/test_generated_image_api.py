@@ -127,3 +127,49 @@ def test_generated_image_file_404s_for_unknown_id(client):
     slideshow_id, _, _ = _import_slideshow_with_product(client)
     response = client.get(f"/api/slideshows/{slideshow_id}/generated-images/does-not-exist/file")
     assert response.status_code == 404
+
+
+def _generate_image(client, monkeypatch, slideshow_id, slide_id) -> str:
+    """Runs the full pipeline through a real (fake-backed) GeneratedImage, returns its id."""
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
+    )
+    return client.post(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/generate-image").json()["id"]
+
+
+def test_validate_image_404s_for_unknown_generated_image(client):
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+    response = client.post(f"/api/slideshows/{slideshow_id}/generated-images/does-not-exist/validate")
+    assert response.status_code == 404
+
+
+def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch):
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+
+    fake_vision = FakeVisionAnalysisProvider(
+        result={
+            "field_checks": [
+                {"field_name": "brand", "preserved": True, "reason": "Matches."},
+                {"field_name": "color", "preserved": False, "reason": "Wrong shade of orange."},
+            ],
+            "overall_explanation": "One characteristic did not match.",
+        }
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_validation_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+
+    response = client.post(f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validate")
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["generated_image_id"] == generated_image_id
+    assert body["passed"] is False
+    assert body["overall_explanation"] == "One characteristic did not match."
+    assert body["field_checks"] == [
+        {"field_name": "brand", "preserved": True, "reason": "Matches."},
+        {"field_name": "color", "preserved": False, "reason": "Wrong shade of orange."},
+    ]

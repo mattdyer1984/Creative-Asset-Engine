@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
 from app.models.generated_image import GeneratedImage
+from app.models.image_validation_result import ImageValidationResult
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
@@ -23,12 +24,15 @@ from app.schemas import (
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
     GeneratedImageRead,
+    ImageValidationFieldCheckRead,
+    ImageValidationResultRead,
     SlideshowRead,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
+from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
 
 router = APIRouter(prefix="/api/slideshows", tags=["slideshows"])
@@ -280,6 +284,49 @@ def get_generated_image_file(
     if generated_image is None or generated_image.slideshow_id != slideshow_id:
         raise HTTPException(status_code=404, detail="Generated image not found")
     return FileResponse(generated_image.file_path)
+
+
+@router.post(
+    "/{slideshow_id}/generated-images/{generated_image_id}/validate",
+    response_model=ImageValidationResultRead,
+    status_code=201,
+)
+def validate_generated_image(
+    slideshow_id: str, generated_image_id: str, db: Session = Depends(get_db)
+) -> ImageValidationResultRead:
+    """
+    Phase 8.4 of the Generation -> Validation proof of loop (see
+    MIGRATION_PLAN.md) - synchronous, same reasoning as generate_image
+    above. Closes the loop: judges a specific GeneratedImage against the
+    canonical Product Profile's immutable fields.
+    """
+    generated_image = db.get(GeneratedImage, generated_image_id)
+    if generated_image is None or generated_image.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Generated image not found")
+
+    result = SlideImageValidationStage().run(db, generated_image)
+    if not result.succeeded:
+        raise HTTPException(status_code=422, detail=result.error)
+
+    validation_result = db.scalars(
+        select(ImageValidationResult).where(
+            ImageValidationResult.generated_image_id == generated_image.id,
+            ImageValidationResult.is_current.is_(True),
+        )
+    ).first()
+    return ImageValidationResultRead(
+        id=validation_result.id,
+        schema_version=validation_result.schema_version,
+        is_current=validation_result.is_current,
+        generated_image_id=validation_result.generated_image_id,
+        product_id=validation_result.product_id,
+        passed=validation_result.passed,
+        field_checks=[
+            ImageValidationFieldCheckRead(**check) for check in validation_result.field_checks_json
+        ],
+        overall_explanation=validation_result.overall_explanation,
+        created_at=validation_result.created_at,
+    )
 
 
 @router.post("/{slideshow_id}/slides/{slide_id}/assign-product", response_model=SlideshowRead)
