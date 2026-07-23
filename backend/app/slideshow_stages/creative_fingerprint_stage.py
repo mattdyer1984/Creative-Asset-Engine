@@ -58,6 +58,19 @@ CREATIVE_FINGERPRINT_SCHEMA = {
             "items": {"type": "string"},
             "description": "e.g. discounts, urgency, social proof.",
         },
+        # Phase 10.4 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+        # ADR §8) - the two real gaps that ADR identified in this
+        # Stage's existing coverage, added as additive fields rather
+        # than a fourth artifact table (per the ADR's own explicit
+        # instruction).
+        "object_placement": {
+            "type": "string",
+            "description": "How the product and key objects are physically arranged/positioned in the frame.",
+        },
+        "emotional_trigger": {
+            "type": "string",
+            "description": "The specific emotional lever this creative pulls (more granular than emotional_appeal's tag list).",
+        },
         "extensions": {
             "type": "string",
             "description": "Any additional notes that don't fit the fields above.",
@@ -79,6 +92,8 @@ CREATIVE_FINGERPRINT_SCHEMA = {
         "visual_hierarchy",
         "trust_elements",
         "promotional_devices",
+        "object_placement",
+        "emotional_trigger",
         "extensions",
     ],
     "additionalProperties": False,
@@ -90,8 +105,13 @@ CREATIVE_FINGERPRINT_PROMPT = (
     "target audience, color palette, typography style, layout and "
     "composition, background environment, lighting style, graphic style, "
     "product prominence, marketing angle, visual hierarchy, trust elements "
-    "(e.g. certifications, guarantees, testimonials), and promotional "
-    "devices (e.g. discounts, urgency, social proof)."
+    "(e.g. certifications, guarantees, testimonials), promotional "
+    "devices (e.g. discounts, urgency, social proof), object placement "
+    "(how the product and key objects are physically arranged/positioned "
+    "in the frame), and the specific emotional trigger this creative "
+    "pulls (more granular than a general emotional-appeal tag - name the "
+    "precise psychological lever, e.g. 'fear of missing a limited window' "
+    "rather than just 'urgency')."
 )
 
 

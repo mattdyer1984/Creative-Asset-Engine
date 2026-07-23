@@ -14,6 +14,7 @@ from sqlalchemy import select
 from app.ai_providers.base import GeneratedImageResult
 from app.models.creative_specification import CreativeSpecification
 from app.models.generation_attempt import GenerationAttempt
+from app.models.scene_analysis import SceneAnalysis
 from app.services.decision_engine import decide_generation_plan
 from app.services.generation_engine import GenerationAttemptResult, run_generation_attempt
 from app.slideshow_stages.base import StageResult
@@ -151,3 +152,86 @@ def test_one_candidate_failing_does_not_stop_the_others(db_session, slideshow_wi
     assert isinstance(result, GenerationAttemptResult)
     assert len(result.candidates) == 2  # candidate index 1 failed, 0 and 2 succeeded
     assert [c.candidate_index for c in result.candidates] == [0, 2]
+
+
+def test_without_a_scene_analysis_the_original_specification_is_used_unchanged(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Phase 10.4's Creative Intelligence integration - a slide with no
+    SceneAnalysis (the ordinary case for every test in this file, none
+    of which run SceneIntelligenceStage) must compile exactly the
+    original, un-enriched Creative Specification - no behavior change
+    for slideshows that predate this sub-phase.
+    """
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    slide = slideshow_with_product.primary_slide
+    creative_specification = _get_creative_specification(db_session, slideshow_with_product)
+    original_background = creative_specification.structured_json["background_environment"]
+    plan = decide_generation_plan("fast")
+
+    run_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert original_background in fake_image_provider.last_request.creative_intent
+
+
+def test_with_a_scene_analysis_the_optimized_description_replaces_the_background(
+    db_session, slideshow_with_product, monkeypatch
+):
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+    slide = slideshow_with_product.primary_slide
+    creative_specification = _get_creative_specification(db_session, slideshow_with_product)
+    original_background = creative_specification.structured_json["background_environment"]
+
+    scene_analysis = SceneAnalysis(
+        slide_id=slide.id,
+        analysis_run_id="does-not-exist",
+        regions_json=[
+            {"region_type": "product", "importance_tier": "essential", "notes": "The bottle."},
+            {"region_type": "environment", "importance_tier": "context", "notes": "Plain backdrop."},
+        ],
+    )
+    db_session.add(scene_analysis)
+    db_session.flush()
+    slide.current_scene_analysis_id = scene_analysis.id
+    db_session.commit()
+
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    class _FakeTextProvider:
+        model = "fake-text-model"
+        provider = "openai"
+
+        def generate(self, prompt_spec, response_schema):
+            return {
+                "optimized_scene_description": "a premium sunlit loft with warm natural light",
+                "reasoning": "elevates the brand positioning",
+            }
+
+    class _FakeRegistryForText:
+        def text_generation(self):
+            return _FakeTextProvider()
+
+    monkeypatch.setattr(
+        "app.services.creative_intelligence.default_registry", _FakeRegistryForText()
+    )
+
+    plan = decide_generation_plan("fast", creativity_level="bold")
+
+    run_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert "a premium sunlit loft with warm natural light" in fake_image_provider.last_request.creative_intent
+    assert original_background not in fake_image_provider.last_request.creative_intent
+    # The persisted CreativeSpecification row itself is never mutated.
+    db_session.refresh(creative_specification)
+    assert creative_specification.structured_json["background_environment"] == original_background

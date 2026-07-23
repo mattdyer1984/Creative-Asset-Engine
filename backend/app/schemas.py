@@ -231,6 +231,38 @@ class CreativeFingerprintRead(BaseModel):
     stale_because: list[str] = []
 
 
+class SceneRegionRead(BaseModel):
+    """
+    Phase 10.4 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+    §8) - one detected region. bounding_box coordinates are normalized
+    (0.0-1.0), matching the existing ProductIsolationProvider bounding-
+    box convention.
+    """
+
+    region_type: str
+    x_min: float
+    y_min: float
+    x_max: float
+    y_max: float
+    importance_tier: str
+    notes: str
+
+
+class SceneAnalysisRead(BaseModel):
+    """
+    Built explicitly by the router/assembler, not via from_attributes -
+    the ORM's regions_json (a plain list of dicts) needs parsing into
+    SceneRegionRead instances, same "computed/renamed fields need
+    explicit construction" reasoning as ImageValidationResultRead.
+    """
+
+    id: str
+    schema_version: str
+    is_current: bool
+    regions: list[SceneRegionRead]
+    created_at: datetime
+
+
 class MarketingAnalysisRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -408,6 +440,12 @@ class GenerationAttemptRead(BaseModel):
 
 class GenerateCreativeRequest(BaseModel):
     quality_mode: str
+    # Phase 10.4 (see MIGRATION_PLAN.md's vNext ADR §8/§11 Revision #5) -
+    # "conservative" or "bold", how far Creative Intelligence's scene
+    # optimisation is allowed to reach. Optional - defaults to the same
+    # conservative behavior generate_with_retry already used before this
+    # field existed.
+    creativity_level: str = "conservative"
 
 
 class GenerateCreativeResponse(BaseModel):
@@ -563,6 +601,7 @@ class AssembledSlideBlueprint(BaseModel):
 
     ocr_result: OCRResultRead | None = None
     creative_fingerprint: CreativeFingerprintRead | None = None
+    scene_analysis: SceneAnalysisRead | None = None
     products: list[AssembledSlideProductBlueprint] = []
 
 

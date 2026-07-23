@@ -62,7 +62,12 @@ class RetryLoopResult:
 
 
 def generate_with_retry(
-    db: Session, slideshow: Slideshow, quality_mode: str, *, max_retries: int = DEFAULT_MAX_RETRIES
+    db: Session,
+    slideshow: Slideshow,
+    quality_mode: str,
+    *,
+    creativity_level: str = "conservative",
+    max_retries: int = DEFAULT_MAX_RETRIES,
 ) -> RetryLoopResult | StageResult:
     slide = slideshow.primary_slide
     if slideshow.current_creative_specification_id is None:
@@ -86,6 +91,7 @@ def generate_with_retry(
     for _ in range(max_retries + 1):
         plan = decide_generation_plan(
             quality_mode,
+            creativity_level=creativity_level,
             retry_of_generation_attempt_id=retry_of_id,
             retry_reason=retry_reason,
         )

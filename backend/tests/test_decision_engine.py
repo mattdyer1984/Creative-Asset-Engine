@@ -46,3 +46,13 @@ def test_to_dict_round_trips_every_field():
     assert as_dict["quality_mode"] == "balanced"
     assert as_dict["candidate_count"] == 3
     assert as_dict["retry_of_generation_attempt_id"] == "attempt-1"
+
+
+def test_creativity_level_defaults_to_conservative_and_is_carried_through():
+    assert decide_generation_plan("fast").creativity_level == "conservative"
+    assert decide_generation_plan("fast", creativity_level="bold").creativity_level == "bold"
+
+
+def test_unknown_creativity_level_raises():
+    with pytest.raises(ValueError, match="Unknown creativity_level"):
+        decide_generation_plan("fast", creativity_level="ludicrous")

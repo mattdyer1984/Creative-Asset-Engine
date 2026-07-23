@@ -33,6 +33,11 @@ ANALYSIS_TYPE_CREATIVE_FINGERPRINT = "creative_fingerprint"
 ANALYSIS_TYPE_MARKETING_ANALYSIS = "marketing_analysis"
 ANALYSIS_TYPE_CREATIVE_SPECIFICATION = "creative_specification"
 ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
+# Phase 10.4 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+# §8) - part of SLIDESHOW_STAGE_PIPELINE like every other analysis
+# artifact above it (unlike GENERATED_IMAGE/IMAGE_VALIDATION below,
+# this is an analysis pass, not a paid generation/validation action).
+ANALYSIS_TYPE_SCENE_INTELLIGENCE = "scene_intelligence"
 # Phase 8.3 of the Generation -> Validation proof of loop (see
 # MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
 # see app.slideshow_stages.image_generation_stage's docstring for why.

@@ -320,7 +320,9 @@ def generate_creative(
         )
 
     try:
-        result = generate_with_retry(db, slideshow, payload.quality_mode)
+        result = generate_with_retry(
+            db, slideshow, payload.quality_mode, creativity_level=payload.creativity_level
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

@@ -28,26 +28,94 @@ arbitrarily pointing at one candidate - it genuinely fed several,
 and nothing reads that field for lookup (only the forward
 `GeneratedImage.generation_reference_set_id` direction is ever
 queried), so leaving it null is honest, not a regression.
+
+**Creative Intelligence integration (Phase 10.4, §8)**: if the slide
+has a current `SceneAnalysis`, this Stage calls
+`creative_intelligence.optimize_scene_description` once per attempt
+(same "once per attempt, not per candidate" reasoning as Reference
+Selection above - every candidate samples the same optimized scene) and
+merges the result into a *copy* of the Creative Specification's
+`background_environment` field before compiling - never mutating the
+persisted `CreativeSpecification` row itself. Not persisted as a
+separate artifact: the optimized description flows into the compiled
+prompt exactly like every other scene detail, so it's already
+traceable via each candidate's own `GeneratedImage.prompt_used`, the
+same "record what actually happened" mechanism this codebase already
+relies on everywhere else. Tri-state: a slide with no `SceneAnalysis`
+yet (pre-10.4 slideshow, or the pipeline hasn't rerun) skips this
+entirely and compiles the original, un-enriched specification -
+exactly how generation already worked before this sub-phase.
 """
 
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
+from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
+from app.models.marketing_analysis import MarketingAnalysis
 from app.models.product import Product
+from app.models.product_lock_profile import ProductLockProfile
+from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
+from app.services.creative_intelligence import optimize_scene_description
 from app.services.decision_engine import GenerationPlan
 from app.services.prompt_compiler import compile_generation_request
 from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+
+def _enriched_creative_specification(
+    db: Session, slide: Slide, product: Product, creative_specification: CreativeSpecification, plan: GenerationPlan
+) -> dict:
+    """
+    Returns `creative_specification.structured_json`, or a copy with
+    `background_environment` replaced by Creative Intelligence's
+    optimized scene description when a SceneAnalysis exists for this
+    slide - never mutates the persisted row.
+    """
+    structured = creative_specification.structured_json
+    if not slide.current_scene_analysis_id:
+        return structured
+
+    scene_analysis = db.get(SceneAnalysis, slide.current_scene_analysis_id)
+    if scene_analysis is None:
+        return structured
+
+    fingerprint = (
+        db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+        if slide.current_creative_fingerprint_id
+        else None
+    )
+    marketing_analysis = (
+        db.get(MarketingAnalysis, slide.slideshow.current_marketing_analysis_id)
+        if slide.slideshow.current_marketing_analysis_id
+        else None
+    )
+    lock_profile = db.scalars(
+        select(ProductLockProfile).where(
+            ProductLockProfile.product_id == product.id,
+            ProductLockProfile.is_current.is_(True),
+        )
+    ).first()
+
+    result = optimize_scene_description(
+        scene_analysis,
+        visual_style=(fingerprint.structured_json.get("visual_style", "") if fingerprint else ""),
+        marketing_narrative=(marketing_analysis.narrative_text if marketing_analysis else ""),
+        product_category=(lock_profile.structured_json.get("product_category", "") if lock_profile else ""),
+        creativity_level=plan.creativity_level,
+    )
+
+    return {**structured, "background_environment": result["optimized_scene_description"]}
 
 
 @dataclass
@@ -97,9 +165,10 @@ def run_generation_attempt(
         )
 
     reference_image_paths = get_reference_image_paths(db, generation_reference_set.id)
-    request = compile_generation_request(
-        creative_specification.structured_json, reference_image_paths
+    enriched_specification = _enriched_creative_specification(
+        db, slide, product, creative_specification, plan
     )
+    request = compile_generation_request(enriched_specification, reference_image_paths)
 
     attempt = GenerationAttempt(
         slide_id=slide.id,

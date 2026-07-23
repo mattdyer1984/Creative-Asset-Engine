@@ -44,6 +44,10 @@ class Slide(Base):
     # Pointers to the current version of each slide-scoped artifact.
     current_ocr_result_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     current_creative_fingerprint_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Phase 10.4 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §8) - same plain-string-pointer convention as the two above
+    # (no FK constraint), not a new pattern.
+    current_scene_analysis_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     slideshow: Mapped["Slideshow"] = relationship(back_populates="slides")
     product_appearances: Mapped[list["ProductAppearance"]] = relationship(back_populates="slide")

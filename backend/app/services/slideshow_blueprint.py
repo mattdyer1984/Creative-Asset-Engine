@@ -39,6 +39,7 @@ from app.models.ocr_result import OCRResult
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.schemas import (
@@ -51,6 +52,8 @@ from app.schemas import (
     NarrativeStructureRead,
     OCRResultRead,
     ProductLockProfileRead,
+    SceneAnalysisRead,
+    SceneRegionRead,
     SlideProductAppearanceRead,
     SlideProductReferenceImageRead,
 )
@@ -92,6 +95,18 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
                 stale_because=staleness.stale_because,
             )
 
+    scene_analysis = None
+    if slide.current_scene_analysis_id:
+        row = db.get(SceneAnalysis, slide.current_scene_analysis_id)
+        if row is not None:
+            scene_analysis = SceneAnalysisRead(
+                id=row.id,
+                schema_version=row.schema_version,
+                is_current=row.is_current,
+                regions=[SceneRegionRead(**region) for region in row.regions_json],
+                created_at=row.created_at,
+            )
+
     current_appearances = list(
         db.scalars(
             select(ProductAppearance).where(
@@ -111,6 +126,7 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
         source_locator=slide.source_locator,
         ocr_result=ocr_result,
         creative_fingerprint=creative_fingerprint,
+        scene_analysis=scene_analysis,
         products=products,
     )
 

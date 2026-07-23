@@ -40,6 +40,13 @@ verdict. QualityAssessment references ImageValidationResult for the
 Product Fidelity dimension rather than duplicating it - see that
 model's own docstring for why.
 
+SceneAnalysis (Phase 10.4, AI Creative Engine vNext - see
+MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §8) holds one
+slide's detected regions (bounding box, region_type, importance_tier) -
+the input Creative Intelligence uses to decide what's safe to
+transform. Part of SLIDESHOW_STAGE_PIPELINE, unlike the Generation/
+Quality Engine models above.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -71,6 +78,7 @@ from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
 from app.models.quality_assessment import QualityAssessment
+from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 
@@ -97,6 +105,7 @@ __all__ = [
     "ImageValidationResult",
     "GenerationAttempt",
     "QualityAssessment",
+    "SceneAnalysis",
     "Slideshow",
     "Slide",
     "ProductAppearance",
