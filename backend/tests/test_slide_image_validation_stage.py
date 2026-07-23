@@ -9,6 +9,7 @@ from sqlalchemy import select
 from app.models.analysis_run import STATUS_SUCCEEDED, AnalysisRun
 from app.models.generated_image import GeneratedImage
 from app.models.image_validation_result import ImageValidationResult
+from app.models.product_reference_image import ProductReferenceImage
 from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
 from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
@@ -17,6 +18,24 @@ from app.slideshow_stages.product_isolation_stage import SlideProductIsolationSt
 from app.slideshow_stages.product_lock_profile_stage import SlideProductLockProfileStage
 from tests.fakes import FakeAIProviderRegistry, FakeVisionAnalysisProvider
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
+
+
+def _mark_current_reference_images_included(db_session):
+    """
+    Phase 9.3 of Product Lock v2 (see MIGRATION_PLAN.md) - Image
+    Generation now requires a populated Canonical Reference Library
+    (Reference Selection's precondition). Sets library_status directly
+    rather than re-running Reference Scoring's own AI call here - that
+    Stage has its own dedicated test file.
+    """
+    current_reference_images = db_session.scalars(
+        select(ProductReferenceImage).where(ProductReferenceImage.is_current.is_(True))
+    ).all()
+    for reference_image in current_reference_images:
+        reference_image.library_status = "included"
+        reference_image.role = "front"
+        reference_image.quality_score = 0.8
+    db_session.commit()
 
 
 def test_build_prompt_asks_for_the_short_field_name_only():
@@ -53,6 +72,7 @@ def _build_generated_image(db_session, slideshow, monkeypatch) -> GeneratedImage
         "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
     )
     SlideProductIsolationStage().run(db_session, slideshow)
+    _mark_current_reference_images_included(db_session)
     SlideProductLockProfileStage().run(db_session, slideshow)
     SlideCreativeFingerprintStage().run(db_session, slideshow)
     SlideCreativeSpecificationStage().run(db_session, slideshow)
@@ -116,6 +136,7 @@ def test_fails_gracefully_without_any_immutable_profile_fields(db_session, slide
         "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
     )
     SlideProductIsolationStage().run(db_session, slideshow_with_product)
+    _mark_current_reference_images_included(db_session)
     SlideProductLockProfileStage().run(db_session, slideshow_with_product)
     SlideCreativeFingerprintStage().run(db_session, slideshow_with_product)
     SlideCreativeSpecificationStage().run(db_session, slideshow_with_product)

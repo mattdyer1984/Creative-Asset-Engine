@@ -1,13 +1,41 @@
 """
 Prompt Compiler (Phase 8.2 of the Generation -> Validation proof of
-loop, see MIGRATION_PLAN.md's architecture direction). Turns a Creative
-Specification + the canonical Product Profile into a provider-agnostic
-GenerationRequest - English-language intent, never provider-specific
-syntax. Compiling that intent into the literal request a given
-provider's API expects is each ImageGenerationProvider's own job (see
-app.ai_providers.openai_adapter.OpenAIImageGenerationAdapter), not this
-module's - that boundary is what keeps everything upstream of a
-provider provider-agnostic, per the user's explicit instruction.
+loop; rewritten in Phase 9.3 of Product Lock v2, see MIGRATION_PLAN.md's
+"ADR: Canonical Product Reference" §6). Turns a Creative Specification +
+a Generation Reference Set's selected image paths into a
+provider-agnostic GenerationRequest - English-language intent, never
+provider-specific syntax. Compiling that intent into the literal
+request a given provider's API expects is each ImageGenerationProvider's
+own job (see app.ai_providers.openai_adapter.
+OpenAIImageGenerationAdapter), not this module's - that boundary is
+what keeps everything upstream of a provider provider-agnostic.
+
+Phase 9.3 rewrite: no longer takes a ProductProfile, no longer compiles
+immutable_constraints at all. The product is no longer described in
+text - reference_image_paths (the Reference Selection service's chosen
+subset of the Canonical Reference Library) are the only source of
+product identity a generation call carries; the compiler's job narrows
+to scene, composition, and marketing intent - everything AROUND the
+product, never the product itself. "subject" - the one Creative
+Specification field that describes the product rather than the scene -
+is dropped from _CREATIVE_SPEC_INTENT_FIELDS for the same reason,
+mirroring CANONICAL_FIELD_VOCABULARY's own immutable/contextual split
+(Phase 5.5): what's kept here is exactly the "contextual" half.
+
+reference_image_paths is a hard prerequisite, not optional - this
+function raises ValueError if given an empty list, rather than silently
+compiling a product-blind, text-only request. This is a deliberate,
+reviewed design decision (ADR §6/§10), not an oversight: a generation
+call with no reference images has nothing to condition product fidelity
+on, and Product Lock v2's whole point is that this should never happen
+silently.
+
+Still a pure function - no I/O, no DB queries, no provider calls,
+trivially unit-testable with plain dicts and a plain list of path
+strings. Reference Selection (a separate service, app.services.
+reference_selection) is what actually queries the Library and asks a
+provider's capabilities for max_reference_images - by the time its
+output reaches this function, it's already just data.
 
 "Platform Rules" (aspect ratio defaults per target platform) is
 deliberately minimal here - a plain fallback dict, not a persisted
@@ -18,16 +46,17 @@ explicit scope decision on this.
 
 from app.ai_providers.base import GenerationRequest
 from app.product_sources.base import ColorValue, DimensionValue, ListValue, NumberValue, TextValue
-from app.services.product_profile import ProductProfile
 
 _PLATFORM_DEFAULT_ASPECT_RATIOS = {
     "generic": "1:1",
 }
 
 # (CreativeSpecification field, human-readable label) - order here is the
-# order they appear in the compiled creative_intent text.
+# order they appear in the compiled creative_intent text. "subject" is
+# deliberately absent (Phase 9.3) - it's the one field that describes
+# the product itself, and the reference images are the only source of
+# product identity now, not text.
 _CREATIVE_SPEC_INTENT_FIELDS = [
-    ("subject", "Subject"),
     ("composition", "Composition"),
     ("style_direction", "Style"),
     ("lighting", "Lighting"),
@@ -43,7 +72,10 @@ def format_attribute_value(value) -> str:
     app.product_sources.base) as a short human-readable phrase. Public
     (not module-private) since app.slideshow_stages.image_validation_stage
     (Phase 8.4) reuses this exact formatting for consistency between what
-    Generation was told to preserve and what Validation displays back.
+    Generation was told to preserve and what Validation displays back -
+    unchanged by the Phase 9.3 rewrite, since Validation still compares
+    against the canonical Product Profile's immutable fields even though
+    Generation itself no longer describes them in text.
     """
     if isinstance(value, TextValue):
         return value.text
@@ -61,20 +93,30 @@ def format_attribute_value(value) -> str:
 
 def compile_generation_request(
     creative_specification: dict,
-    product_profile: ProductProfile,
+    reference_image_paths: list[str],
     platform: str = "generic",
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
-    dict (subject/composition/style_direction/... - see
+    dict (composition/style_direction/... - see
     CREATIVE_SPECIFICATION_AI_SCHEMA in
     app.slideshow_stages.creative_specification_stage).
 
-    immutable_constraints is compiled from the canonical ProductProfile,
-    not re-derived from the Creative Specification - what must be
-    preserved comes from the Product Profile's own immutable/contextual
-    classification (Phase 5.5), never guessed at here.
+    reference_image_paths is Reference Selection's output (§6/§7 of the
+    Product Lock v2 ADR) - the Generation Reference Set's chosen Library
+    image file paths, already resolved to real files on disk by the
+    caller. This function does not read them - reading happens in the
+    provider adapter, which needs the actual bytes to call a real API;
+    this function only carries the paths through as plain data.
     """
+    if not reference_image_paths:
+        raise ValueError(
+            "compile_generation_request requires at least one reference image path - "
+            "Reference Selection must run first and produce a non-empty Generation "
+            "Reference Set. Product Lock v2 makes this a hard prerequisite, not an "
+            "optional enhancement with a text-only fallback."
+        )
+
     intent_parts = []
     for field_name, label in _CREATIVE_SPEC_INTENT_FIELDS:
         value = creative_specification.get(field_name)
@@ -90,12 +132,6 @@ def compile_generation_request(
         overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
         intent_parts.append(f"Text overlays: {overlay_text}")
 
-    immutable_constraints = [
-        f"{field_name}: {format_attribute_value(field.value)}"
-        for field_name, field in product_profile.fields.items()
-        if field.classification == "immutable"
-    ]
-
     things_to_avoid = list(creative_specification.get("things_to_avoid") or [])
 
     aspect_ratio = creative_specification.get("aspect_ratio") or _PLATFORM_DEFAULT_ASPECT_RATIOS.get(
@@ -104,7 +140,7 @@ def compile_generation_request(
 
     return GenerationRequest(
         creative_intent="\n".join(intent_parts),
-        immutable_constraints=immutable_constraints,
+        reference_image_paths=reference_image_paths,
         things_to_avoid=things_to_avoid,
         aspect_ratio=aspect_ratio,
     )

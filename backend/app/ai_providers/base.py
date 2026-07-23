@@ -79,12 +79,45 @@ class GenerationRequest:
     actual prompt string, size parameter, etc.) is each concrete
     ImageGenerationProvider's own job, not the compiler's. This is what
     keeps everything upstream of the provider boundary provider-agnostic.
+
+    reference_image_paths (Phase 9.3 of Product Lock v2, see
+    MIGRATION_PLAN.md's "ADR: Canonical Product Reference" §6) replaces
+    immutable_constraints as of that phase: the product is no longer
+    described in text at all - these images (the Reference Selection
+    service's chosen subset of the Canonical Reference Library) are the
+    only source of product identity a generation call carries. A hard
+    prerequisite, not optional - the Prompt Compiler refuses to compile
+    a request without at least one, per that ADR's own explicit design
+    decision (no silent text-only fallback).
     """
 
     creative_intent: str
-    immutable_constraints: list[str]
+    reference_image_paths: list[str]
     things_to_avoid: list[str]
     aspect_ratio: str
+
+
+@dataclass
+class ProviderCapabilities:
+    """
+    What a given ImageGenerationProvider adapter can actually do - Phase
+    10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+    §10). Exists so Reference Selection/the Decision Engine can ask a
+    provider "how many reference images can you take" as data, rather
+    than every caller hardcoding an assumption about one specific
+    provider's real API limits. One dataclass covering every capability
+    axis discovered so far, rather than a new Protocol method per axis -
+    the axes here are the ones this codebase has directly verified
+    against a real provider (OpenAI's Images API SDK, Google's Gemini
+    API SDK) as of Phase 10.1; new axes get added to this dataclass, not
+    new methods bolted onto the Protocol.
+    """
+
+    supports_reference_images: bool
+    max_reference_images: int
+    supports_masking: bool
+    supports_inpainting: bool
+    supported_resolutions: list[str]
 
 
 @dataclass
@@ -115,3 +148,13 @@ class ImageGenerationProvider(Protocol):
     """
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult: ...
+
+    @property
+    def capabilities(self) -> ProviderCapabilities:
+        """
+        Phase 10.1 (see MIGRATION_PLAN.md's vNext ADR §10) - a property,
+        not a method: capability data is static per adapter instance
+        (fixed at construction from the real, verified provider limits),
+        never something worth a network round-trip to ask for.
+        """
+        ...

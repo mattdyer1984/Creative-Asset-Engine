@@ -16,7 +16,16 @@ providers:
   vision_analysis: openai
   text_generation: openai
   prompt_generation: openai
-  image_generation: openai
+  # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  # ADR §10) - Nano Banana Lite is the default image_generation
+  # provider, an implementation choice, not an architectural one: the
+  # ImageGenerationProvider abstraction (app/ai_providers/base.py) and
+  # the registry's multi-provider support (registry.py's
+  # image_generation(provider_name=...) override) are what make this a
+  # one-line config choice rather than a code change - OpenAI's adapter
+  # is unchanged and still fully registered/selectable, just not the
+  # default anymore.
+  image_generation: nano_banana
 
 models:
   openai:
@@ -32,3 +41,10 @@ models:
     # session actually exercised against the real API with a real key -
     # the other 5 values are unchanged, not confirmed working or broken.
     image_generation: gpt-image-1
+  nano_banana:
+    # gemini-3.1-flash-lite-image - the real, documented model ID for
+    # "Nano Banana Lite" (Google's fastest/cheapest Gemini image tier),
+    # confirmed 2026-07-23 via Google's own developer docs, not guessed.
+    # Not yet live-verified against a real API key in this environment -
+    # see app/ai_providers/nano_banana_adapter.py's own docstring.
+    image_generation: gemini-3.1-flash-lite-image

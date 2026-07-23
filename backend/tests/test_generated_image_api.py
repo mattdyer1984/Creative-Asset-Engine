@@ -8,9 +8,11 @@ import io
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from app.db import get_db
 from app.main import app
+from app.models.product_reference_image import ProductReferenceImage
 from tests.fakes import FakeAIProviderRegistry, FakeTextGenerationProvider, FakeVisionAnalysisProvider
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 
@@ -50,7 +52,7 @@ def _import_slideshow_with_product(client) -> tuple[str, str, str]:
     return slideshow["id"], slide_id, product["id"]
 
 
-def _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch):
+def _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session):
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
     monkeypatch.setattr(
         "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
@@ -78,6 +80,19 @@ def _run_full_pipeline_through_creative_specification(client, slideshow_id, monk
     )
     client.post(f"/api/slideshows/{slideshow_id}/analyze")
 
+    # Phase 9.3 of Product Lock v2 (see MIGRATION_PLAN.md) - Image
+    # Generation now requires a populated Canonical Reference Library.
+    # Marked directly rather than re-running Reference Scoring's own AI
+    # call here - that Stage has its own dedicated test file.
+    current_reference_images = db_session.scalars(
+        select(ProductReferenceImage).where(ProductReferenceImage.is_current.is_(True))
+    ).all()
+    for reference_image in current_reference_images:
+        reference_image.library_status = "included"
+        reference_image.role = "front"
+        reference_image.quality_score = 0.8
+    db_session.commit()
+
 
 def test_generate_image_fails_cleanly_without_a_creative_specification(client):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
@@ -102,9 +117,9 @@ def test_generate_image_400s_for_a_non_primary_slide_id(client):
     assert "primary slide" in response.json()["detail"]
 
 
-def test_generate_image_succeeds_and_file_is_servable(client, monkeypatch):
+def test_generate_image_succeeds_and_file_is_servable(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
-    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)
 
     monkeypatch.setattr(
         "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
@@ -136,9 +151,9 @@ def test_get_current_generated_image_404s_when_none_exists_yet(client):
     assert response.status_code == 404
 
 
-def test_get_current_generated_image_returns_the_real_current_one(client, monkeypatch):
+def test_get_current_generated_image_returns_the_real_current_one(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
-    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)
     monkeypatch.setattr(
         "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
     )
@@ -150,9 +165,9 @@ def test_get_current_generated_image_returns_the_real_current_one(client, monkey
     assert response.json()["id"] == created["id"]
 
 
-def _generate_image(client, monkeypatch, slideshow_id, slide_id) -> str:
+def _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session) -> str:
     """Runs the full pipeline through a real (fake-backed) GeneratedImage, returns its id."""
-    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)
     monkeypatch.setattr(
         "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
     )
@@ -165,9 +180,9 @@ def test_validate_image_404s_for_unknown_generated_image(client):
     assert response.status_code == 404
 
 
-def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch):
+def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
-    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session)
 
     fake_vision = FakeVisionAnalysisProvider(
         result={
@@ -196,18 +211,18 @@ def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch):
     ]
 
 
-def test_get_current_validation_result_404s_when_none_exists_yet(client, monkeypatch):
+def test_get_current_validation_result_404s_when_none_exists_yet(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
-    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session)
 
     response = client.get(f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validation")
 
     assert response.status_code == 404
 
 
-def test_get_current_validation_result_returns_the_real_current_one(client, monkeypatch):
+def test_get_current_validation_result_returns_the_real_current_one(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
-    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session)
 
     monkeypatch.setattr(
         "app.slideshow_stages.image_validation_stage.default_registry",

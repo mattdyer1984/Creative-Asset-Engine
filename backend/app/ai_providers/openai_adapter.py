@@ -14,11 +14,17 @@ returns image bytes, not JSON.
 import base64
 import json
 import time
+from pathlib import Path
 
 import httpx
 from openai import OpenAI
 
-from app.ai_providers.base import GeneratedImageResult, GenerationRequest, OCRExtraction
+from app.ai_providers.base import (
+    GeneratedImageResult,
+    GenerationRequest,
+    OCRExtraction,
+    ProviderCapabilities,
+)
 from app.ai_providers.config import get_api_key
 
 OCR_RESPONSE_SCHEMA = {
@@ -362,13 +368,36 @@ def _size_for_aspect_ratio(aspect_ratio: str) -> str:
     return "1024x1024"
 
 
+# Verified 2026-07-23 via direct inspection of the installed
+# openai==2.46.0 SDK: Images.edit's `image` parameter is
+# `Union[FileTypes, SequenceNotStr[FileTypes]]`, and gpt-image-1's
+# real, documented limit (openai/developers.openai.com reference docs)
+# is up to 16 images per edit call. Reference Selection (§7 of the ADR)
+# is what actually enforces this via ProviderCapabilities.
+# max_reference_images - this constant is that number's source of
+# truth for this one adapter, not a separately-guessed value.
+OPENAI_MAX_REFERENCE_IMAGES = 16
+
+_EXTENSION_TO_MIME_TYPE = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
+
+
 class OpenAIImageGenerationAdapter:
     """
     OpenAI's Images API - Phase 8.2 of the Generation -> Validation
-    proof of loop (see MIGRATION_PLAN.md). All provider-specific prompt
-    formatting lives here (_compile_openai_prompt), never upstream in
-    app.services.prompt_compiler - the rest of the system only ever
-    produces/consumes the provider-agnostic GenerationRequest.
+    proof of loop; rewritten in Phase 9.3 of Product Lock v2 (see
+    MIGRATION_PLAN.md's "ADR: Canonical Product Reference" §6) to
+    always call `images.edit` with the Generation Reference Set's
+    images, never `images.generate` - reference_image_paths is a hard
+    prerequisite now (app.ai_providers.base.GenerationRequest), so
+    there is no text-only code path left to keep. All provider-specific
+    prompt formatting lives here (_compile_openai_prompt), never
+    upstream in app.services.prompt_compiler - the rest of the system
+    only ever produces/consumes the provider-agnostic GenerationRequest.
     """
 
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
@@ -379,18 +408,31 @@ class OpenAIImageGenerationAdapter:
     @property
     def client(self) -> OpenAI:
         if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
+            self._client = OpenAI(api_key=get_api_key(self.provider))
         return self._client
+
+    @property
+    def capabilities(self) -> ProviderCapabilities:
+        return ProviderCapabilities(
+            supports_reference_images=True,
+            max_reference_images=OPENAI_MAX_REFERENCE_IMAGES,
+            supports_masking=True,
+            supports_inpainting=True,
+            supported_resolutions=["1024x1024", "1536x1024", "1024x1536"],
+        )
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
         prompt = self._compile_openai_prompt(request)
         size = _size_for_aspect_ratio(request.aspect_ratio)
+        reference_files = [_load_reference_file(path) for path in request.reference_image_paths]
 
         start = time.monotonic()
-        response = self.client.images.generate(
+        response = self.client.images.edit(
             model=self.model,
+            image=reference_files,
             prompt=prompt,
             size=size,
+            input_fidelity="high",
             n=1,
         )
         elapsed = time.monotonic() - start
@@ -418,11 +460,27 @@ class OpenAIImageGenerationAdapter:
         """
         Provider-specific prompt formatting lives here, not in
         app.services.prompt_compiler - the rest of the system only ever
-        sees the provider-agnostic GenerationRequest.
+        sees the provider-agnostic GenerationRequest. No more "must
+        include exactly" immutable-constraints text (Phase 9.3) - the
+        reference images passed to images.edit are the only source of
+        product identity now; the prompt describes scene/composition
+        only, with one added, unconditional instruction telling the
+        model to preserve what the reference images show rather than
+        reinterpret it.
         """
-        parts = [request.creative_intent]
-        if request.immutable_constraints:
-            parts.append("Must include exactly: " + "; ".join(request.immutable_constraints))
+        parts = [
+            request.creative_intent,
+            "Preserve the exact product shown in the reference images - its shape, "
+            "proportions, colors, materials, packaging, and any visible branding or "
+            "text. Only the scene, composition, lighting, and background described "
+            "above should differ from the references.",
+        ]
         if request.things_to_avoid:
             parts.append("Avoid: " + "; ".join(request.things_to_avoid))
         return "\n\n".join(parts)
+
+
+def _load_reference_file(path: str) -> tuple[str, bytes, str]:
+    file_path = Path(path)
+    mime_type = _EXTENSION_TO_MIME_TYPE.get(file_path.suffix.lower(), "image/jpeg")
+    return (file_path.name, file_path.read_bytes(), mime_type)

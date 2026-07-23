@@ -63,11 +63,19 @@ def _fake_image_response(b64_json: str):
     return SimpleNamespace(data=[SimpleNamespace(b64_json=b64_json, url=None)])
 
 
-def test_openai_image_generation_adapter_parses_b64_response():
+def _make_reference_image_file(tmp_path, filename="ref.jpg") -> str:
+    path = tmp_path / filename
+    path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
+    return str(path)
+
+
+def test_openai_image_generation_adapter_parses_b64_response(tmp_path):
     """
-    Phase 8.2 of the Generation -> Validation proof of loop (see
-    MIGRATION_PLAN.md) - same real-SDK-shape discipline as the OCR
-    adapter test above, no real network call.
+    Phase 8.2 of the Generation -> Validation proof of loop; rewritten
+    in Phase 9.3 of Product Lock v2 (see MIGRATION_PLAN.md) to call
+    images.edit with reference images, not images.generate - same
+    real-SDK-shape discipline as the OCR adapter test above, no real
+    network call.
     """
     fake_png_bytes = b"\x89PNG\r\n\x1a\nfake-bytes"
     canned_response = _fake_image_response(base64.b64encode(fake_png_bytes).decode())
@@ -78,13 +86,13 @@ def test_openai_image_generation_adapter_parses_b64_response():
         client = adapter.client
 
     request = GenerationRequest(
-        creative_intent="Subject: a bottle of orange juice",
-        immutable_constraints=["brand: Sunrise", "color: orange"],
+        creative_intent="Composition: off-center product shot",
+        reference_image_paths=[_make_reference_image_file(tmp_path)],
         things_to_avoid=["cluttered background"],
         aspect_ratio="4:5",
     )
 
-    with patch.object(client.images, "generate", return_value=canned_response) as mock_generate:
+    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
         result = adapter.generate_image(request)
 
     assert result.image_bytes == fake_png_bytes
@@ -92,18 +100,24 @@ def test_openai_image_generation_adapter_parses_b64_response():
     assert result.model == "gpt-5.5"
     assert result.seed is None
     assert result.generation_time_seconds >= 0
-    assert "Subject: a bottle of orange juice" in result.prompt_used
-    assert "Must include exactly: brand: Sunrise; color: orange" in result.prompt_used
+    assert "Composition: off-center product shot" in result.prompt_used
+    assert "Preserve the exact product shown in the reference images" in result.prompt_used
     assert "Avoid: cluttered background" in result.prompt_used
 
-    _, kwargs = mock_generate.call_args
+    _, kwargs = mock_edit.call_args
     assert kwargs["model"] == "gpt-5.5"
     assert kwargs["prompt"] == result.prompt_used
     assert kwargs["size"] == "1024x1536"  # mapped from aspect_ratio "4:5"
     assert kwargs["n"] == 1
+    assert kwargs["input_fidelity"] == "high"
+    assert len(kwargs["image"]) == 1
+    filename, contents, mime_type = kwargs["image"][0]
+    assert filename == "ref.jpg"
+    assert contents == b"\xff\xd8\xff\xe0fake-jpeg-bytes"
+    assert mime_type == "image/jpeg"
 
 
-def test_openai_image_generation_adapter_omits_optional_prompt_sections_when_empty():
+def test_openai_image_generation_adapter_omits_things_to_avoid_when_empty(tmp_path):
     canned_response = _fake_image_response(base64.b64encode(b"bytes").decode())
     adapter = OpenAIImageGenerationAdapter(model="gpt-5.5")
 
@@ -111,24 +125,24 @@ def test_openai_image_generation_adapter_omits_optional_prompt_sections_when_emp
         client = adapter.client
 
     request = GenerationRequest(
-        creative_intent="Subject: a bottle",
-        immutable_constraints=[],
+        creative_intent="Composition: a bottle on a counter",
+        reference_image_paths=[_make_reference_image_file(tmp_path)],
         things_to_avoid=[],
         aspect_ratio="unknown-ratio",
     )
 
-    with patch.object(client.images, "generate", return_value=canned_response) as mock_generate:
+    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
         result = adapter.generate_image(request)
 
-    assert result.prompt_used == "Subject: a bottle"
-    assert "Must include exactly" not in result.prompt_used
+    assert "Composition: a bottle on a counter" in result.prompt_used
+    assert "Preserve the exact product shown in the reference images" in result.prompt_used
     assert "Avoid" not in result.prompt_used
 
-    _, kwargs = mock_generate.call_args
+    _, kwargs = mock_edit.call_args
     assert kwargs["size"] == "1024x1024"  # unrecognized aspect ratio falls back to square
 
 
-def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring():
+def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring(tmp_path):
     """
     Real gap found live-verifying Phase 8.3 (see MIGRATION_PLAN.md):
     PromptGenerationProvider's real output is free text like "4:5
@@ -143,14 +157,47 @@ def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring():
         client = adapter.client
 
     request = GenerationRequest(
-        creative_intent="Subject: a bottle",
-        immutable_constraints=[],
+        creative_intent="Composition: a bottle",
+        reference_image_paths=[_make_reference_image_file(tmp_path)],
         things_to_avoid=[],
         aspect_ratio="4:5 vertical marketing ad",
     )
 
-    with patch.object(client.images, "generate", return_value=canned_response) as mock_generate:
+    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
         adapter.generate_image(request)
 
-    _, kwargs = mock_generate.call_args
+    _, kwargs = mock_edit.call_args
     assert kwargs["size"] == "1024x1536"
+
+
+def test_openai_image_generation_adapter_sends_multiple_reference_images(tmp_path):
+    canned_response = _fake_image_response(base64.b64encode(b"bytes").decode())
+    adapter = OpenAIImageGenerationAdapter(model="gpt-5.5")
+
+    with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
+        client = adapter.client
+
+    request = GenerationRequest(
+        creative_intent="Composition: a bottle",
+        reference_image_paths=[
+            _make_reference_image_file(tmp_path, "front.jpg"),
+            _make_reference_image_file(tmp_path, "side.jpg"),
+        ],
+        things_to_avoid=[],
+        aspect_ratio="1:1",
+    )
+
+    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
+        adapter.generate_image(request)
+
+    _, kwargs = mock_edit.call_args
+    assert [f[0] for f in kwargs["image"]] == ["front.jpg", "side.jpg"]
+
+
+def test_openai_image_generation_adapter_capabilities():
+    adapter = OpenAIImageGenerationAdapter(model="gpt-image-1")
+
+    capabilities = adapter.capabilities
+
+    assert capabilities.supports_reference_images is True
+    assert capabilities.max_reference_images == 16

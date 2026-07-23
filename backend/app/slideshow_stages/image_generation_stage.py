@@ -1,6 +1,11 @@
 """
 Image Generation Stage — Phase 8.3 of the Generation -> Validation proof
-of loop (see MIGRATION_PLAN.md).
+of loop; rewritten in Phase 9.3 of Product Lock v2 (see
+MIGRATION_PLAN.md's "ADR: Canonical Product Reference" §6) to run
+Reference Selection before compiling, instead of the canonical Product
+Profile - the product is no longer described in text at all, the
+selected reference images are the only source of product identity a
+generation call carries.
 
 `SlideshowAnalysisStage`-shaped (`name`, `run(db, slideshow) ->
 StageResult`) for consistency with every other stage, but deliberately
@@ -22,8 +27,17 @@ rejecting multi-product slides outright.
 
 Reuses resolve_primary_appearance from creative_specification_stage
 (the same "which product is this artifact about" resolution a Creative
-Specification was already built around) and assemble_product_profile
-(Phase 5.5's canonical Product Profile) - no new resolution logic here.
+Specification was already built around) - no new resolution logic here.
+
+Create-then-link ordering for GenerationReferenceSet, per ADR §3/§6:
+Reference Selection persists the Set (and its member rows) before
+generation runs, since the prompt needs the selected image paths first;
+once generation succeeds, this stage links the Set back to the
+GeneratedImage it fed (GenerationReferenceSet.generated_image_id) and
+records the same relationship the other direction
+(GeneratedImage.generation_reference_set_id) - both sides of the FK are
+written here, deliberately, so either can be queried directly without a
+join.
 """
 
 from sqlalchemy.orm import Session
@@ -33,10 +47,12 @@ from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
+from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.product import Product
+from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
-from app.services.product_profile import assemble_product_profile
 from app.services.prompt_compiler import compile_generation_request
+from app.services.reference_selection import select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
@@ -77,6 +93,21 @@ class SlideImageGenerationStage:
 
         image_provider = default_registry.image_generation()
 
+        generation_reference_set = select_reference_images(
+            db, product.id, creative_specification.structured_json, image_provider.capabilities
+        )
+        if generation_reference_set is None:
+            return StageResult(
+                succeeded=False,
+                error=(
+                    "No Generation Reference Set available - the product's Canonical "
+                    "Reference Library is empty. Run Reference Scoring first "
+                    "(POST /api/products/{id}/score-references)."
+                ),
+            )
+
+        reference_image_paths = _resolve_reference_image_paths(db, generation_reference_set.id)
+
         analysis_run = start_analysis_run(
             db,
             slide_id=slide.id,
@@ -87,9 +118,8 @@ class SlideImageGenerationStage:
         )
 
         try:
-            product_profile = assemble_product_profile(db, product)
             request = compile_generation_request(
-                creative_specification.structured_json, product_profile
+                creative_specification.structured_json, reference_image_paths
             )
             result = image_provider.generate_image(request)
 
@@ -103,6 +133,7 @@ class SlideImageGenerationStage:
                 slideshow_id=slideshow.id,
                 slide_id=slide.id,
                 creative_specification_id=creative_specification.id,
+                generation_reference_set_id=generation_reference_set.id,
                 provider=result.provider,
                 model_name=result.model,
                 prompt_used=result.prompt_used,
@@ -112,6 +143,8 @@ class SlideImageGenerationStage:
             )
             db.add(generated_image)
             db.flush()
+
+            generation_reference_set.generated_image_id = generated_image.id
 
             saved_path = storage.save_generated_image(
                 slide.id, generated_image.id, result.image_bytes
@@ -123,3 +156,17 @@ class SlideImageGenerationStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         return mark_succeeded(db, analysis_run)
+
+
+def _resolve_reference_image_paths(db: Session, generation_reference_set_id: str) -> list[str]:
+    rows = (
+        db.query(GenerationReferenceSetImage, ProductReferenceImage)
+        .join(
+            ProductReferenceImage,
+            ProductReferenceImage.id == GenerationReferenceSetImage.product_reference_image_id,
+        )
+        .filter(GenerationReferenceSetImage.generation_reference_set_id == generation_reference_set_id)
+        .order_by(GenerationReferenceSetImage.rank)
+        .all()
+    )
+    return [reference_image.file_path for _, reference_image in rows]

@@ -23,6 +23,7 @@ from app.ai_providers.base import (
     VisionAnalysisProvider,
 )
 from app.ai_providers.config import ModelsConfig, ProvidersConfig, load_config
+from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
 from app.ai_providers.openai_adapter import (
     OpenAIImageGenerationAdapter,
     OpenAIOCRAdapter,
@@ -54,6 +55,11 @@ PROMPT_GENERATION_ADAPTERS: dict[str, type[PromptGenerationProvider]] = {
 
 IMAGE_GENERATION_ADAPTERS: dict[str, type[ImageGenerationProvider]] = {
     "openai": OpenAIImageGenerationAdapter,
+    # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §10) - the first genuinely second provider for any capability
+    # in this registry. Not yet live-verified (no API key added as of
+    # this sub-phase) - see nano_banana_adapter.py's own docstring.
+    "nano_banana": NanoBananaImageGenerationAdapter,
 }
 
 
@@ -101,6 +107,7 @@ class AIProviderRegistry:
             models_config,
             "image_generation",
         )
+        self._models_config = models_config
 
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
@@ -122,8 +129,24 @@ class AIProviderRegistry:
     def prompt_generation(self) -> PromptGenerationProvider:
         return self._prompt_generation
 
-    def image_generation(self) -> ImageGenerationProvider:
-        return self._image_generation
+    def image_generation(self, provider_name: str | None = None) -> ImageGenerationProvider:
+        """
+        Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+        ADR §10) - `image_generation` is the first capability with more
+        than one real adapter, so this is the first accessor that
+        supports an explicit override rather than only ever returning
+        the configured default. `provider_name=None` (the default, and
+        every existing call site's behavior) returns the same cached
+        instance as before - this is additive, not a breaking change to
+        the 5 other capabilities' single-provider accessors, which have
+        no reason to grow this parameter until they have a second real
+        adapter of their own.
+        """
+        if provider_name is None or provider_name == self._image_generation.provider:
+            return self._image_generation
+        return self._build(
+            IMAGE_GENERATION_ADAPTERS, provider_name, self._models_config, "image_generation"
+        )
 
 
 # Module-level default instance - Stages import this rather than each

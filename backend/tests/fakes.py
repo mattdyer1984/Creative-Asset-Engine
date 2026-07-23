@@ -6,7 +6,12 @@ exactly what plan §13 calls for ("Integration tests ... using a mocked AI
 provider (no real API calls in CI)").
 """
 
-from app.ai_providers.base import GeneratedImageResult, GenerationRequest, OCRExtraction
+from app.ai_providers.base import (
+    GeneratedImageResult,
+    GenerationRequest,
+    OCRExtraction,
+    ProviderCapabilities,
+)
 
 
 def _assert_matches_ocr_response_shape(extraction: OCRExtraction) -> None:
@@ -294,6 +299,16 @@ class FakeImageGenerationProvider:
         if self._raise_error is not None:
             raise self._raise_error
         return self._result
+
+    @property
+    def capabilities(self) -> ProviderCapabilities:
+        return ProviderCapabilities(
+            supports_reference_images=True,
+            max_reference_images=16,
+            supports_masking=True,
+            supports_inpainting=True,
+            supported_resolutions=["1024x1024", "1536x1024", "1024x1536"],
+        )
 
 
 class FakeAIProviderRegistry:

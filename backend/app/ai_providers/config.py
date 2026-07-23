@@ -27,7 +27,13 @@ class ProvidersConfig(BaseModel):
     vision_analysis: str = "openai"
     text_generation: str = "openai"
     prompt_generation: str = "openai"
-    image_generation: str = "openai"
+    # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §10) - Nano Banana Lite is the default, an implementation
+    # choice made explicit here and in providers.yaml, not an
+    # architectural one; OpenAI's adapter stays fully registered and
+    # selectable (registry.image_generation("openai")) without any code
+    # change to switch back.
+    image_generation: str = "nano_banana"
 
 
 class ModelsConfig(BaseModel):
@@ -38,7 +44,25 @@ class ModelsConfig(BaseModel):
         "vision_analysis": "gpt-5.5",
         "text_generation": "gpt-5.5",
         "prompt_generation": "gpt-5.5",
-        "image_generation": "gpt-5.5",
+        # "gpt-5.5" is not a real OpenAI model (confirmed via a real 400
+        # from OpenAI's Images API during Phase 8.3's live verification -
+        # providers.yaml was fixed at the time, but this Pydantic-level
+        # default was missed, a latent inconsistency only harmless
+        # because providers.yaml always overrides it in real app
+        # startup via load_config() - found and fixed here while adding
+        # the nano_banana entry alongside it (Phase 10.1).
+        "image_generation": "gpt-image-1",
+    }
+    # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §10) - the first second-provider entry in this config. Only
+    # image_generation is populated since NanoBananaImageGenerationAdapter
+    # is the only capability with a real Nano Banana implementation;
+    # ProvidersConfig.image_generation stays "openai" by default (not
+    # switched here) - selecting nano_banana is a deliberate choice made
+    # via providers.yaml or an explicit registry.image_generation("nano_banana")
+    # call, never silent.
+    nano_banana: dict[str, str] = {
+        "image_generation": "gemini-3.1-flash-lite-image",
     }
 
 

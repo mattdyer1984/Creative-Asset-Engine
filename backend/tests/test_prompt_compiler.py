@@ -1,13 +1,14 @@
 """
 Unit tests for app.services.prompt_compiler (Phase 8.2 of the Generation
--> Validation proof of loop, see MIGRATION_PLAN.md). Plain dicts/model
-construction only - no AI provider involved, matching the sub-phase's
-own test strategy (the compiler's whole point is being provider-agnostic
-and provider-free).
+-> Validation proof of loop; rewritten in Phase 9.3 of Product Lock v2,
+see MIGRATION_PLAN.md's "ADR: Canonical Product Reference" §6). Plain
+dicts/lists only - no AI provider involved, matching the sub-phase's
+own test strategy (the compiler's whole point is being provider-agnostic,
+provider-free, and now also product-description-free).
 """
 
-from app.product_sources.base import ColorValue, ListValue, TextValue
-from app.services.product_profile import ProductProfile, ProductProfileField
+import pytest
+
 from app.services.prompt_compiler import compile_generation_request
 
 _CREATIVE_SPECIFICATION = {
@@ -25,64 +26,22 @@ _CREATIVE_SPECIFICATION = {
     "extensions": "",
 }
 
-
-def _make_profile(fields: dict) -> ProductProfile:
-    return ProductProfile(product_id="prod-1", fields=fields)
+_REFERENCE_PATHS = ["/data/storage/products/prod-1/ref-1.jpg", "/data/storage/products/prod-1/ref-2.jpg"]
 
 
-def test_immutable_constraints_come_only_from_immutable_fields():
-    profile = _make_profile(
-        {
-            "brand": ProductProfileField(
-                value=TextValue(text="Sunrise"),
-                source_type="vision",
-                source_id="lp-1",
-                confidence=0.9,
-                classification="immutable",
-            ),
-            "camera_angle": ProductProfileField(
-                value=TextValue(text="eye-level"),
-                source_type="vision",
-                source_id="lp-1",
-                confidence=0.9,
-                classification="contextual",
-            ),
-        }
-    )
-
-    request = compile_generation_request(_CREATIVE_SPECIFICATION, profile)
-
-    assert request.immutable_constraints == ["brand: Sunrise"]
+def test_reference_image_paths_is_a_hard_prerequisite():
+    with pytest.raises(ValueError, match="at least one reference image"):
+        compile_generation_request(_CREATIVE_SPECIFICATION, [])
 
 
-def test_immutable_constraints_format_each_value_kind_readably():
-    profile = _make_profile(
-        {
-            "color": ProductProfileField(
-                value=ColorValue(label="orange", hex="#FFA500"),
-                source_type="vision",
-                source_id="lp-1",
-                confidence=0.9,
-                classification="immutable",
-            ),
-            "materials": ProductProfileField(
-                value=ListValue(items=["glass", "plastic cap"]),
-                source_type="vision",
-                source_id="lp-1",
-                confidence=0.9,
-                classification="immutable",
-            ),
-        }
-    )
+def test_reference_image_paths_pass_through_unchanged():
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
 
-    request = compile_generation_request(_CREATIVE_SPECIFICATION, profile)
-
-    assert "color: orange (#FFA500)" in request.immutable_constraints
-    assert "materials: glass, plastic cap" in request.immutable_constraints
+    assert request.reference_image_paths == _REFERENCE_PATHS
 
 
 def test_things_to_avoid_and_aspect_ratio_pass_through_unchanged():
-    request = compile_generation_request(_CREATIVE_SPECIFICATION, _make_profile({}))
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
 
     assert request.things_to_avoid == ["cluttered background", "artificial-looking lighting"]
     assert request.aspect_ratio == "4:5"
@@ -92,16 +51,28 @@ def test_aspect_ratio_falls_back_to_platform_default_when_missing():
     spec_without_ratio = dict(_CREATIVE_SPECIFICATION)
     spec_without_ratio.pop("aspect_ratio")
 
-    request = compile_generation_request(spec_without_ratio, _make_profile({}), platform="generic")
+    request = compile_generation_request(spec_without_ratio, _REFERENCE_PATHS, platform="generic")
 
     assert request.aspect_ratio == "1:1"
 
 
-def test_creative_intent_includes_descriptive_fields_and_color_palette_and_overlays():
-    request = compile_generation_request(_CREATIVE_SPECIFICATION, _make_profile({}))
+def test_creative_intent_excludes_subject_but_includes_scene_fields_color_palette_and_overlays():
+    """
+    Phase 9.3's core behavior change: "subject" (the one field that
+    describes the product itself) must never appear in creative_intent -
+    the reference images are the only source of product identity now.
+    Every scene/composition field is still included unchanged.
+    """
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
 
-    assert "Subject: A single bottle of orange juice on a sunlit kitchen counter" in request.creative_intent
+    assert "orange juice" not in request.creative_intent
+    assert "Subject:" not in request.creative_intent
     assert "Composition: off-center product shot with negative space for text" in request.creative_intent
+    assert "Style: warm, natural morning light photography" in request.creative_intent
+    assert "Lighting: natural morning sunlight from the left" in request.creative_intent
+    assert "Camera & perspective: eye-level, slight angle" in request.creative_intent
+    assert "Background: blurred kitchen counter with fruit" in request.creative_intent
+    assert "Mood: fresh, energizing, morning routine" in request.creative_intent
     assert "Color palette: warm orange, cream, soft green" in request.creative_intent
     assert "Text overlays: headline: Start Fresh" in request.creative_intent
 
@@ -117,9 +88,9 @@ def test_missing_optional_creative_specification_fields_are_skipped_not_blank():
         "aspect_ratio": "1:1",
     }
 
-    request = compile_generation_request(minimal, _make_profile({}))
+    request = compile_generation_request(minimal, _REFERENCE_PATHS)
 
-    assert "Subject: A bottle" in request.creative_intent
+    assert request.creative_intent == ""
     assert "Composition" not in request.creative_intent
     assert "Style" not in request.creative_intent
     assert "Color palette" not in request.creative_intent
