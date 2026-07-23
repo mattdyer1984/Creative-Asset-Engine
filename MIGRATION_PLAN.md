@@ -90,11 +90,11 @@ implementation/production limitation.
 | 5 | **Product Intelligence** (evidence model, listing import, canonical profile, catalogue layer) | done (5.1-5.12, live-verified — TikTok Shop deliberately unsupported, see 5.4; catalogue layer per the frozen ADR) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
 | 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | done (7.1-7.5, live-verified) |
-| 8 | Frontend consolidation *(was Phase 7)* | not started — Product Intelligence's own minimal UI ships inside Phase 5 itself (same discipline as Phases 3-4: backend+frontend as one working slice), not deferred here |
-| 9 | PerformanceRecord (additive) *(was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
-| 10 | Pattern v0 (trivial candidate capture) *(was Phase 9)* | **same as 9** |
-| 11 | Pattern curation lifecycle + ContextEfficacy + search *(was Phase 10)* | **same as 9** — now understood to sit above both Product and Creative Intelligence, not just Creative |
-| — | **Generation Engine** | future, unnumbered — depends on Phase 5's canonical Product Profile existing; explicitly not started
+| 8 | **Generation → Validation proof of loop** (ImageGenerationProvider, Prompt Compiler, single-slide generate/validate) | not started — see architecture direction below. 2026-07-22 standing directive: prioritize proving this loop over further architecture; Phases 9-12 below are deprioritized until it's proven |
+| 9 | Frontend consolidation *(was Phase 8, was Phase 7)* | not started — deprioritized per the 2026-07-22 directive |
+| 10 | PerformanceRecord (additive) *(was Phase 9, was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
+| 11 | Pattern v0 (trivial candidate capture) *(was Phase 10, was Phase 9)* | **same as 10** |
+| 12 | Pattern curation lifecycle + ContextEfficacy + search *(was Phase 11, was Phase 10)* | **same as 10** — now understood to sit above both Product and Creative Intelligence, not just Creative |
 
 ## Standing authorization (granted 2026-07-21/22, user away for an
 extended, unspecified period)
@@ -3143,6 +3143,158 @@ deliberately NOT widened in this phase.
   hasn't run Narrative Structure yet - `is_stale`/`stale_because` are
   optional on every frontend type and the new section's empty state
   ("Not generated yet.") matches every other section's.
+- Commit: (see git log)
+
+---
+
+## Phase 8: Generation → Validation proof of loop — architecture direction
+
+**Status: direction set 2026-07-22, ready for implementation.**
+
+### 2026-07-22 standing directive (governs this phase and every phase after it until revisited)
+
+"The infrastructure is now sufficiently mature. From this point onwards, bias towards proving the end-to-end Generation → Validation loop rather than adding more architectural capability. If additional infrastructure is genuinely required to support that loop, justify it with the concrete blocker it removes." Concretely: build against OpenAI's image generation API first, not optimizing for quality or cost; prove `Product Profile + Creative Specification → Prompt Compiler → ImageGenerationProvider → Generated Image → VisionAnalysisProvider → Validation → Pass/Fail` for **one slide** - no whole-slideshow generation, no multi-candidate generation, no automatic retry/regenerate loop. Once one slide can be generated, validated, and explained, the hardest unproven part of the platform is de-risked; everything past that is scaling, not proving the concept.
+
+### What already exists and is reused as-is (no new infrastructure)
+
+- `RecreationPrompt` (renamed to `CreativeSpecification` in 8.1 below) is already a generation-ready, provider-neutral spec: subject, composition, style_direction, color_palette, lighting, camera_and_perspective, background_environment, mood, text_overlays, things_to_avoid, aspect_ratio.
+- The canonical `ProductProfile` (Phase 5.5) already classifies every field `immutable` (must be preserved) vs. `contextual` (expected to vary) - exactly the contract Validation needs, with zero design changes.
+- `VisionAnalysisProvider.analyze_creative(image_bytes, prompt_spec, response_schema)` (already used by Product Lock Profile and Creative Fingerprint) is reused unchanged for Validation - a new prompt/schema, not a new provider.
+- The provider registry/config pattern (`app/ai_providers/base.py` Protocols, `app/ai_providers/openai_adapter.py` concrete adapters, `app/ai_providers/registry.py`, `providers.yaml`) is reused unchanged in shape - `ImageGenerationProvider` is a sixth capability added the same way `prompt_generation` was added as a fifth in M6, not a new pattern.
+
+### The one genuine new capability, and why it's unavoidable
+
+No existing provider can produce an image - all 5 are analysis-only (image/text in, structured JSON out). `ImageGenerationProvider` is the one new interface this phase adds, because the loop cannot run at all without something that returns image bytes. This is the concrete blocker the user asked to have named before adding it.
+
+### Rename: RecreationPrompt → CreativeSpecification
+
+Once generation exists, "prompt" becomes ambiguous - there's the **Creative Specification** (what should be created: subject, style, composition - provider-neutral intent, persisted) and the **compiled provider prompt** (the literal string sent to OpenAI's API - provider-specific syntax, never the canonical persisted record). Renaming now avoids the wrong concept anchoring itself in the DB right as generation lands.
+
+Scope of the rename: the *new-pipeline* entity only - model, table, stage, schema, staleness check, pipeline registration, frontend types/UI, and every new-pipeline test. **Explicitly not touched**: `app/models/creative_blueprint.py`'s `current_recreation_prompt_id` column (the legacy, Phase-2.8-gated old-pipeline schema) and `app/services/slideshow_backfill.py`'s read of that legacy column - both are frozen, out-of-scope-until-2.8 leftovers, not live code this rename needs to reach. Docstring-only mentions of "RecreationPrompt" as a historical design reference (`marketing_analysis.py`, `narrative_structure.py`) get a one-line wording update for accuracy, not a functional change.
+
+### Prompt Compiler - what "provider-agnostic" means concretely here
+
+`app/services/prompt_compiler.py` (new): a plain function, `compile_generation_request(creative_specification, product_profile, platform="generic") -> GenerationRequest`. `GenerationRequest` is a plain dataclass (`creative_intent: str`, `immutable_constraints: list[str]`, `things_to_avoid: list[str]`, `aspect_ratio: str`) - English-language intent, not provider syntax. It:
+- Joins the Creative Specification's descriptive fields (subject, composition, style_direction, lighting, camera_and_perspective, background_environment, mood, color_palette, text_overlays) into `creative_intent`.
+- Formats every `immutable`-classified field on the canonical `ProductProfile` (brand, product_category, shape, dimensions, capacity, materials, color, branding_text, packaging - whichever are populated) into `immutable_constraints`, so what must be preserved comes from the Product Profile itself, never re-derived from the Creative Specification.
+- Passes `things_to_avoid` straight through.
+- Resolves `aspect_ratio` from the Creative Specification, falling back to a small per-`platform` default dict if absent.
+
+**Explicit scope decision on "Platform Rules"**: for one slide, one provider, proving the loop once, a full Platform Rules subsystem (persisted per-platform content-policy phrasing, exact pixel dimensions, etc.) is not required - `platform` is a plain string parameter with one small fallback table inside the compiler, not a new entity/table. This is deliberately minimal per the standing directive; a real Platform Rules concept is future work if a second platform ever needs different behavior, not built speculatively now.
+
+The compiled `GenerationRequest` is handed to `ImageGenerationProvider.generate_image(request)`. Turning `GenerationRequest` into the literal OpenAI request (the actual prompt string, size parameter, etc.) happens **inside** `OpenAIImageGenerationAdapter`, never in the compiler - this is what keeps the rest of the system provider-agnostic per the user's explicit instruction.
+
+### ImageGenerationProvider contract
+
+```python
+@dataclass
+class GenerationRequest:
+    creative_intent: str
+    immutable_constraints: list[str]
+    things_to_avoid: list[str]
+    aspect_ratio: str
+
+@dataclass
+class GeneratedImageResult:
+    image_bytes: bytes
+    provider: str
+    model: str
+    prompt_used: str       # the actual compiled string sent to the API - persisted as metadata, not as its own canonical entity
+    seed: str | None       # None for OpenAI today - its public image API doesn't expose one; the field exists for a future provider that does
+    generation_time_seconds: float
+
+class ImageGenerationProvider(Protocol):
+    def generate_image(self, request: GenerationRequest) -> GeneratedImageResult: ...
+```
+
+Mirrors `ProductIsolationProvider`'s division of labor exactly: the provider returns facts about what it did (bytes + metadata), the Stage is responsible for persistence (saving the file via `app.storage`, recording the DB row) - the provider never touches storage or the DB itself.
+
+### Validation - reuses VisionAnalysisProvider, no new provider
+
+A new prompt/schema (`app/slideshow_stages/image_validation_stage.py`), not a new capability: lists every `immutable` field name + value from the canonical `ProductProfile`, asks the vision model to judge each as `preserved: bool` + `reason: str` against the generated image, plus one `overall_explanation`. `passed` is computed by our own code as `all(check.preserved for check in field_checks)` - never asked of the AI as a bare boolean, matching this codebase's standing rule that anything derivable from known facts is assembled directly, not left to the model to self-report (same discipline `RecreationPromptStage`/`SlideshowNarrativeStructureStage` already follow).
+
+### Deliberately not built in this phase
+
+- Automatic regenerate-on-fail loops or any threshold/retry logic - "generate once, validate once, see a real Pass/Fail with a real explanation" is the whole goal; a human re-triggering generation manually (via the same endpoint) is sufficient to prove "regenerate" works, without needing a new automated loop.
+- Multi-candidate generation, whole-slideshow generation, reference-image-conditioned (image-to-image) generation - real quality improvements, explicitly out of scope per "not optimising for image quality... at this stage."
+- Wiring these two new stages into `SLIDESHOW_STAGE_PIPELINE` or `Slideshow.status` - image generation costs real money per call in a way every existing stage doesn't as sharply, and "Analyze / Re-run All" must not silently start generating images. Both new stages get their own dedicated, explicitly-triggered endpoints instead (see 8.3/8.4), decoupled from the core pipeline's status semantics entirely. They still implement the same `SlideshowAnalysisStage`-shaped `name`/`run(db, slideshow)` contract for consistency and so pipeline integration is a small, deliberate future step if ever wanted - not a redesign.
+- A background-task/polling wrapper for these two endpoints - every existing AI stage uses one because it's woven into the auto-pipeline's status polling; these two are synchronous, explicitly-triggered, single-call endpoints, so a blocking request/response (typical image generation latency is comparable to the vision/text calls already used synchronously elsewhere in tests, and this is a local single-user dev tool) is simpler and adequate. Revisit only if real latency proves this wrong.
+- A `PlatformRules` entity, per above.
+
+## Phase 8: Generation → Validation proof of loop — detailed sub-phase plan
+
+### 8.1 — Rename RecreationPrompt → CreativeSpecification
+
+- `app/models/recreation_prompt.py` → `app/models/creative_specification.py`: class `RecreationPrompt` → `CreativeSpecification`, table `recreation_prompts` → `creative_specifications`, columns unchanged in shape.
+- `app/models/slideshow.py`: `current_recreation_prompt_id` → `current_creative_specification_id`.
+- New Alembic migration: `op.rename_table`, batch-mode `op.alter_column` for the renamed Slideshow column (SQLite column rename, same batch-mode discipline as every prior column-level change this session) - full backup/scratch-copy/round-trip discipline before touching the real dev DB, matching every migration this entire engagement.
+- `app/slideshow_stages/recreation_prompt_stage.py` → `app/slideshow_stages/creative_specification_stage.py`: class `SlideRecreationPromptStage` → `SlideCreativeSpecificationStage`, `.name` `"recreation_prompt"` → `"creative_specification"` (this changes the `/stages/{stage_name}/rerun` route value - a deliberate, visible rename, not hidden).
+- `app/models/analysis_run.py`: `ANALYSIS_TYPE_RECREATION_PROMPT` → `ANALYSIS_TYPE_CREATIVE_SPECIFICATION`, value `"recreation_prompt"` → `"creative_specification"`.
+- `app/ai_providers/base.py` / `openai_adapter.py`: `PromptGenerationProvider.generate_recreation_prompt` → `generate_creative_specification` (same signature); `OpenAIPromptGenerationAdapter` docstring/prompt text updated for the new name (no behavior change to the actual generated content).
+- `app/schemas.py`: `RecreationPromptRead` → `CreativeSpecificationRead`; `AssembledSlideshowBlueprint.recreation_prompt` → `.creative_specification`.
+- `app/services/slideshow_blueprint.py`, `app/services/staleness.py` (`recreation_prompt_staleness` → `creative_specification_staleness`, `STAGE_DEPENDENCIES` key), `app/slideshow_stages/pipeline.py`: updated to match.
+- `app/services/slideshow_backfill.py`: only the new-side keyword (`current_recreation_prompt_id=` → `current_creative_specification_id=`) changes; its read of the legacy `blueprint.current_recreation_prompt_id` stays untouched (Phase 2.8 territory).
+- Frontend: `RecreationPromptData` → `CreativeSpecificationData` in `api.ts`; `SlideshowBlueprintModal.tsx`'s "Recreation Prompt" section → "Creative Specification" (same fields, same `RecreationPromptFields` component renamed).
+- All new-pipeline tests renamed/updated to match (`test_slide_recreation_prompt_stage.py` → `test_slide_creative_specification_stage.py`, plus references in `fakes.py`, `test_slideshow_blueprint_api.py`, `test_slideshow_orchestrator.py`, `test_staleness_service.py`).
+- **Test strategy**: full existing test suite must pass unchanged in behavior (this is a rename, not a redesign) - a green suite after a global rename is itself the test.
+- **Rollback**: revert the migration (rename back) and the commit.
+- **Expected commit size**: large (mechanical, low-risk).
+
+### 8.2 — ImageGenerationProvider contract + Prompt Compiler + OpenAI adapter
+
+- `app/ai_providers/base.py`: add `GenerationRequest`, `GeneratedImageResult` dataclasses and the `ImageGenerationProvider` Protocol.
+- `app/services/prompt_compiler.py` (new): `compile_generation_request(creative_specification: dict, product_profile: ProductProfile, platform: str = "generic") -> GenerationRequest`, per the architecture direction above.
+- `app/ai_providers/openai_adapter.py`: `OpenAIImageGenerationAdapter` - calls OpenAI's image generation endpoint, does its own provider-specific prompt formatting (`_compile_openai_prompt`) from the `GenerationRequest`, times the call, returns `GeneratedImageResult`.
+- `app/ai_providers/registry.py` / `config.py` / `providers.yaml`: sixth capability, `image_generation`, added the same way `prompt_generation` was added in M6 - one dict entry, one registry method (`default_registry.image_generation()`), no other registry code changes.
+- **Test strategy**: unit tests for the compiler (given a Creative Specification + Product Profile, confirm `immutable_constraints` are exactly the profile's immutable fields, `things_to_avoid`/`aspect_ratio` pass through correctly, platform fallback works) using plain dicts - no AI provider involved. A fake `ImageGenerationProvider` for adapter-shape tests, mirroring `FakeVisionAnalysisProvider` etc. in `tests/fakes.py`. No real OpenAI image call in this sub-phase - that's proven live in 8.3.
+- **Rollback**: revert; nothing else depends on this yet.
+- **Expected commit size**: medium.
+
+### 8.3 — GeneratedImage artifact + Image Generation Stage + API endpoint
+
+- `app/models/generated_image.py` (new, `AnalysisArtifactMixin`): `slideshow_id`, `slide_id`, `creative_specification_id` (FK - which spec version produced it), `provider`, `model_name`, `prompt_used` (Text), `seed` (nullable String), `generation_time_seconds` (Float), `file_path` (String(1024), matching `ProductReferenceImage.file_path`'s exact convention).
+- `app/storage.py`: `save_generated_image(slideshow_id, slide_id, generated_image_id, content, suffix=".png") -> Path`, same per-owning-entity layout pattern as `save_product_reference_image`.
+- `app/models/analysis_run.py`: `ANALYSIS_TYPE_GENERATED_IMAGE = "generated_image"`.
+- `app/slideshow_stages/image_generation_stage.py` (new): `SlideImageGenerationStage` - `SlideshowAnalysisStage`-shaped (`name = "generated_image"`, `run(db, slideshow) -> StageResult`) for consistency, but **not** added to `SLIDESHOW_STAGE_PIPELINE` (see architecture direction). Resolves the slide's primary product (reuses `_resolve_primary_appearance` from the renamed Creative Specification stage), the current Creative Specification, and `assemble_product_profile` for that product; calls `compile_generation_request` then `default_registry.image_generation().generate_image(...)`; saves the file; writes the `GeneratedImage` row; flips `is_current` on any prior `GeneratedImage` for the slide, same versioning pattern as every other artifact.
+- `app/routers/slideshows.py`: `POST /api/slideshows/{slideshow_id}/slides/{slide_id}/generate-image` (synchronous, per architecture direction; returns the created `GeneratedImageRead`) and `GET /api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/file` (mirrors `get_slide_file`/`get_reference_image_file`).
+- `app/schemas.py`: `GeneratedImageRead`.
+- **Test strategy**: stage unit tests with a fake `ImageGenerationProvider` (success, failure surfaced cleanly, missing-prerequisite failures mirroring the Creative Specification stage's own checks); route tests (success, 404s, file-serving). No real OpenAI call in automated tests, consistent with every other AI-backed stage's test discipline this whole engagement.
+- **Live verification**: one real call against OpenAI's actual image generation API for one real slide, if a key is available in the environment - if not, this is flagged explicitly rather than silently skipped (same discipline as Phase 7.5).
+- **Rollback**: revert; purely additive (new table, new endpoints, no existing endpoint changes).
+- **Expected commit size**: medium-large.
+
+### 8.4 — Validation Stage + API endpoint
+
+- `app/models/image_validation_result.py` (new, `AnalysisArtifactMixin`): `generated_image_id` (FK), `product_id` (FK), `passed` (Boolean), `field_checks_json` (JSON: `[{field_name, preserved, reason}]`), `overall_explanation` (Text).
+- `app/models/analysis_run.py`: `ANALYSIS_TYPE_IMAGE_VALIDATION = "image_validation"`.
+- `app/slideshow_stages/image_validation_stage.py` (new): builds the field-check prompt/schema from the canonical `ProductProfile`'s immutable fields, calls `default_registry.vision().analyze_creative(...)` against the generated image's bytes, computes `passed` itself from the returned `field_checks` (never asked of the AI as a bare boolean, per architecture direction).
+- `app/routers/slideshows.py`: `POST /api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validate` (synchronous, returns `ImageValidationResultRead`).
+- `app/schemas.py`: `ImageValidationResultRead`.
+- **Test strategy**: stage unit tests with a fake `VisionAnalysisProvider` (all-preserved → passed, one-violated → failed with the right reason surfaced, missing-generated-image 404); route tests.
+- **Live verification**: real vision-analysis call against the real generated image from 8.3, if a key is available.
+- **Rollback**: revert; additive only.
+- **Expected commit size**: medium.
+
+### 8.5 — Minimal frontend: trigger, view, explain
+
+- `frontend/src/api.ts`: `GeneratedImage`, `ImageValidationResult` types; `generateImage`, `validateImage` methods.
+- `SlideshowBlueprintModal.tsx`: a new "Generated Image" section per slide - a "Generate Image" button, the resulting image once present, a "Validate" button once an image exists, and the Pass/Fail result with each field's preserved/violated reason listed (this *is* the "explain why it failed" the user asked for - directly surfacing `field_checks`, not summarizing it away). Deliberately no retry/regenerate automation - re-clicking "Generate Image" is the manual regenerate path.
+- **Live verification**: real browser check that one full cycle (generate → see image → validate → see Pass/Fail + reasons) renders correctly, following this session's established discipline (real preview server, real DOM inspection, honest about what needed a real API key vs. what was mocked for visual QA if a key isn't available in this environment).
+- **Rollback**: revert; no other UI depends on this section.
+- **Expected commit size**: medium.
+
+**Risks**: OpenAI's real image-generation cost/latency profile is unknown until 8.3's live call - if it's materially slower than assumed, the synchronous-endpoint decision above gets revisited then, not preemptively. Prompt-compiler quality (does `immutable_constraints` phrasing actually produce a preservable result) is explicitly not being optimized in this phase - a first real Pass/Fail result, even a "Fail" with a clear reason, proves the loop; it does not need to reliably Pass.
+
+## Phase 8 reports log
+
+### Phase 8.1 — Rename RecreationPrompt → CreativeSpecification (done)
+
+- Renamed the new-pipeline entity end to end: `app/models/recreation_prompt.py` → `app/models/creative_specification.py` (class + table), `Slideshow.current_recreation_prompt_id` → `current_creative_specification_id`, `app/slideshow_stages/recreation_prompt_stage.py` → `creative_specification_stage.py` (class + `.name` + the now-public `resolve_primary_appearance` helper, reused unchanged by Phase 8.3), `ANALYSIS_TYPE_RECREATION_PROMPT` → `ANALYSIS_TYPE_CREATIVE_SPECIFICATION`, `PromptGenerationProvider.generate_recreation_prompt` → `generate_creative_specification`, `RecreationPromptRead` → `CreativeSpecificationRead`, `recreation_prompt_staleness` → `creative_specification_staleness` (+ `STAGE_DEPENDENCIES` key), pipeline registration, frontend `RecreationPromptData` → `CreativeSpecificationData`, the "Recreation Prompt" UI section → "Creative Specification", and every new-pipeline test.
+- New migration `a1c3e9f2b8d4`: `op.rename_table` + batch-mode `op.alter_column` for the Slideshow pointer column - full backup/scratch-copy/round-trip discipline (isolated `CAE_DATA_DIR` copy, upgrade, verified 2 rows survived with the new table/column names, downgrade, verified the original schema/names came back byte-for-byte except cosmetic batch-mode rebuild formatting), then applied to the real dev DB and re-verified before cleanup.
+- **Explicitly not touched**, per the architecture direction: `app/models/creative_blueprint.py`'s legacy `current_recreation_prompt_id` column and `app/services/slideshow_backfill.py`'s read of it - both stay exactly as they were, Phase 2.8 territory.
+- Full suite: 215/215 passing (pure rename, zero behavior change - a green suite after a global rename was the test, per the sub-phase's own test strategy). Ruff clean on every touched file (6 pre-existing baseline findings in untouched `slide.py`/`slideshow.py` forward-ref annotations, confirmed present on the pre-rename baseline via `git stash` before/after comparison - not introduced by this change). Frontend `tsc --noEmit`, `oxlint`, and `vite build` all clean.
+- **Live verification**: real backend restarted to load the renamed models (a plain `uvicorn` process without `--reload` doesn't pick up code changes on its own - confirmed this was necessary, not just theoretical, since the first restart happened for exactly this reason). Confirmed via direct HTTP calls against the real dev DB: `GET .../blueprint` returns a populated `creative_specification` key (not `recreation_prompt`) for a real previously-generated row; `POST .../stages/recreation_prompt/rerun` now 400s ("Unknown stage"); `POST .../stages/creative_specification/rerun` is accepted. Confirmed via the real browser (DOM inspection) that the modal renders a "Creative Specification" section, with no "Recreation Prompt" anywhere in the rendered headers.
+- Zero behavior change to anything else - every other artifact's assembly/response shape, and every existing stage's behavior, is untouched.
 - Commit: (see git log)
 
 ---

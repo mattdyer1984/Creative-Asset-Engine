@@ -8,8 +8,8 @@ Creative Fingerprint) read/write via slideshow.primary_slide - the single
 Slide these Stages analyze, even once a Slideshow can have more than one
 (Phase 4 onward; see MIGRATION_PLAN.md - looping every Stage over every
 Slide is explicitly Phase 5's job, not this accessor's). Slideshow-scoped
-stages (Marketing Analysis, Recreation Prompt) operate on the Slideshow
-itself.
+stages (Marketing Analysis, Creative Specification) operate on the
+Slideshow itself.
 
 Re-exports StageResult from app.stages.base unchanged rather than
 redefining it - it is already entity-agnostic (succeeded/error only), so

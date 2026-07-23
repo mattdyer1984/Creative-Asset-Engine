@@ -160,7 +160,7 @@ def test_default_pipeline_runs_all_seven_stages(db_session, slideshow_with_produ
         "app.slideshow_stages.product_lock_profile_stage",
         "app.slideshow_stages.creative_fingerprint_stage",
         "app.slideshow_stages.marketing_analysis_stage",
-        "app.slideshow_stages.recreation_prompt_stage",
+        "app.slideshow_stages.creative_specification_stage",
     ):
         monkeypatch.setattr(f"{module}.default_registry", FakeAIProviderRegistry())
     # Narrative Structure (Phase 7.2) shares TextGenerationProvider with
@@ -185,7 +185,7 @@ def test_default_pipeline_runs_all_seven_stages(db_session, slideshow_with_produ
     assert slide.current_creative_fingerprint_id is not None
     assert slideshow_with_product.current_marketing_analysis_id is not None
     assert slideshow_with_product.current_narrative_structure_id is not None
-    assert slideshow_with_product.current_recreation_prompt_id is not None
+    assert slideshow_with_product.current_creative_specification_id is not None
 
     product_id = slide.product_appearances[0].product_id
     current_lock_profile = db_session.scalars(

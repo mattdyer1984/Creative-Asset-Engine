@@ -9,8 +9,8 @@ exists now so true multi-slide import (a later phase) doesn't need
 another migration just to add ordering.
 
 Owns the pointers to slide-scoped artifacts (OCR, Creative Fingerprint) -
-slideshow-scoped artifacts (Marketing Analysis, Recreation Prompt) are
-pointed to from Slideshow instead. Product association is via
+slideshow-scoped artifacts (Marketing Analysis, Creative Specification)
+are pointed to from Slideshow instead. Product association is via
 ProductAppearance (app.models.product_appearance), not a direct FK -
 replacing Creative.product_id's single-product assumption with a proper
 many-to-many join.

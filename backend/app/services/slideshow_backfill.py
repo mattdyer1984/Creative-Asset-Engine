@@ -47,7 +47,7 @@ def backfill_slideshows(db: Session) -> BackfillStats:
             imported_at=creative.imported_at,
             status=blueprint.status,
             current_marketing_analysis_id=blueprint.current_marketing_analysis_id,
-            current_recreation_prompt_id=blueprint.current_recreation_prompt_id,
+            current_creative_specification_id=blueprint.current_recreation_prompt_id,
             last_failed_stage=blueprint.last_failed_stage,
             last_failed_stage_error=blueprint.last_failed_stage_error,
             source_references_json=blueprint.source_references_json,

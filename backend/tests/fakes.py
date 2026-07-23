@@ -215,8 +215,8 @@ class FakeTextGenerationProvider:
         return self._result
 
 
-def _assert_matches_recreation_prompt_ai_shape(result: dict) -> None:
-    """Guards FakePromptGenerationProvider's canned result against drifting from RECREATION_PROMPT_AI_SCHEMA."""
+def _assert_matches_creative_specification_ai_shape(result: dict) -> None:
+    """Guards FakePromptGenerationProvider's canned result against drifting from CREATIVE_SPECIFICATION_AI_SCHEMA."""
     expected_keys = {
         "subject",
         "composition",
@@ -232,12 +232,12 @@ def _assert_matches_recreation_prompt_ai_shape(result: dict) -> None:
         "extensions",
     }
     assert set(result.keys()) == expected_keys, (
-        f"recreation prompt AI result must have exactly {expected_keys} - got {result.keys()}"
+        f"creative specification AI result must have exactly {expected_keys} - got {result.keys()}"
     )
 
 
 class FakePromptGenerationProvider:
-    """Returns a canned recreation-prompt creative-direction dict, or raises."""
+    """Returns a canned creative-specification creative-direction dict, or raises."""
 
     model = "fake-prompt-model"
     provider = "openai"
@@ -258,11 +258,11 @@ class FakePromptGenerationProvider:
             "extensions": "",
         }
         if raise_error is None and result is None:
-            _assert_matches_recreation_prompt_ai_shape(self._result)
+            _assert_matches_creative_specification_ai_shape(self._result)
         self._raise_error = raise_error
         self.last_call: dict | None = None
 
-    def generate_recreation_prompt(
+    def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
     ) -> dict:
         self.last_call = {"lock_profile": lock_profile, "fingerprint": fingerprint}

@@ -266,10 +266,16 @@ class OpenAITextGenerationAdapter:
 
 class OpenAIPromptGenerationAdapter:
     """
-    Composes a provider-neutral Recreation Prompt from an existing
+    Composes a provider-neutral Creative Specification from an existing
     ProductLockProfile + CreativeFingerprint (plan §4, §10) - no image
     input, by design: this is pure composition over prior analysis
     artifacts, never a fresh look at the Creative's image.
+
+    Renamed from "recreation prompt" terminology in Phase 8.1 of the
+    Generation -> Validation proof of loop (see MIGRATION_PLAN.md) - the
+    output here is provider-neutral creative intent, not a compiled
+    provider prompt (that's app.services.prompt_compiler's job, once an
+    ImageGenerationProvider exists to compile one for).
     """
 
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
@@ -283,19 +289,18 @@ class OpenAIPromptGenerationAdapter:
             self._client = OpenAI(api_key=get_api_key("openai"))
         return self._client
 
-    def generate_recreation_prompt(
+    def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
     ) -> dict:
         prompt_text = (
             "Given the following Product Lock Profile and Creative "
             "Fingerprint for a marketing creative, compose a "
-            "provider-neutral recreation prompt specification for "
-            "generating a NEW, visually original marketing image that "
-            "features the exact same product (per the Product Lock "
-            "Profile) but is NOT a copy of the original creative - it "
-            "should feel visually distinct while preserving the "
-            "underlying marketing strategy captured in the Creative "
-            "Fingerprint.\n\n"
+            "provider-neutral creative specification for generating a "
+            "NEW, visually original marketing image that features the "
+            "exact same product (per the Product Lock Profile) but is "
+            "NOT a copy of the original creative - it should feel "
+            "visually distinct while preserving the underlying "
+            "marketing strategy captured in the Creative Fingerprint.\n\n"
             f"Product Lock Profile (JSON):\n{json.dumps(lock_profile)}\n\n"
             f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
             "Focus on composition, style direction, color palette, "
@@ -310,7 +315,7 @@ class OpenAIPromptGenerationAdapter:
             response_format={
                 "type": "json_schema",
                 "json_schema": {
-                    "name": "recreation_prompt",
+                    "name": "creative_specification",
                     "schema": response_schema,
                     "strict": True,
                 },

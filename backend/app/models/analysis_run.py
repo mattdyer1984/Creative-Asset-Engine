@@ -11,7 +11,7 @@ Transitional (Phase 2.3 of the Slideshow/Slide migration): creative_id,
 slide_id, and slideshow_id all exist, all nullable. A run's slide_id is
 populated for slide-scoped analysis_types (ocr, product_isolation,
 product_lock_profile, creative_fingerprint); slideshow_id for
-slideshow-scoped ones (marketing_analysis, recreation_prompt) - mirroring
+slideshow-scoped ones (marketing_analysis, creative_specification) - mirroring
 exactly which artifact table each analysis_type's own Phase 2.3 split
 uses. creative_id remains authoritative until Phase 2.7.
 """
@@ -31,7 +31,7 @@ ANALYSIS_TYPE_PRODUCT_ISOLATION = "product_isolation"
 ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE = "product_lock_profile"
 ANALYSIS_TYPE_CREATIVE_FINGERPRINT = "creative_fingerprint"
 ANALYSIS_TYPE_MARKETING_ANALYSIS = "marketing_analysis"
-ANALYSIS_TYPE_RECREATION_PROMPT = "recreation_prompt"
+ANALYSIS_TYPE_CREATIVE_SPECIFICATION = "creative_specification"
 ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
 
 STATUS_PENDING = "pending"

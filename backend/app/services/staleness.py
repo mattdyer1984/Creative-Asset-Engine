@@ -3,10 +3,11 @@ Dependency-aware staleness (Phase 7.4 of the Narrative pass, see
 MIGRATION_PLAN.md's architecture direction for this phase).
 
 An artifact is stale if the upstream artifact it recorded as its input
-is no longer the *current* one - e.g. Recreation Prompt was built from
-Creative Fingerprint version A, but Creative Fingerprint has since been
-regenerated to version B; the Recreation Prompt is now stale relative to
-the slide's current state, even though its own content hasn't changed.
+is no longer the *current* one - e.g. Creative Specification was built
+from Creative Fingerprint version A, but Creative Fingerprint has since
+been regenerated to version B; the Creative Specification is now stale
+relative to the slide's current state, even though its own content
+hasn't changed.
 
 Compute-on-read, same philosophy as app.services.slideshow_blueprint.
 assemble_slideshow_blueprint itself - never a persisted flag that could
@@ -27,12 +28,12 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from app.models.creative_fingerprint import CreativeFingerprint
+from app.models.creative_specification import CreativeSpecification
 from app.models.marketing_analysis import MarketingAnalysis
 from app.models.narrative_structure import NarrativeStructure
 from app.models.ocr_result import OCRResult
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
-from app.models.recreation_prompt import RecreationPrompt
 from app.models.slideshow import Slideshow
 
 STAGE_DEPENDENCIES: dict[str, list[str]] = {
@@ -42,7 +43,7 @@ STAGE_DEPENDENCIES: dict[str, list[str]] = {
     "creative_fingerprint": ["ocr"],
     "marketing_analysis": ["creative_fingerprint"],
     "narrative_structure": ["ocr"],
-    "recreation_prompt": ["product_lock_profile", "creative_fingerprint"],
+    "creative_specification": ["product_lock_profile", "creative_fingerprint"],
 }
 
 
@@ -111,14 +112,16 @@ def narrative_structure_staleness(db: Session, narrative: NarrativeStructure) ->
     return _fresh()
 
 
-def recreation_prompt_staleness(db: Session, recreation_prompt: RecreationPrompt) -> StalenessResult:
+def creative_specification_staleness(
+    db: Session, creative_specification: CreativeSpecification
+) -> StalenessResult:
     stale_because: list[str] = []
 
-    lock_profile = db.get(ProductLockProfile, recreation_prompt.product_lock_profile_id)
+    lock_profile = db.get(ProductLockProfile, creative_specification.product_lock_profile_id)
     if lock_profile is None or not lock_profile.is_current:
         stale_because.append("product_lock_profile")
 
-    fingerprint = db.get(CreativeFingerprint, recreation_prompt.creative_fingerprint_id)
+    fingerprint = db.get(CreativeFingerprint, creative_specification.creative_fingerprint_id)
     if fingerprint is None or not fingerprint.is_current:
         stale_because.append("creative_fingerprint")
 

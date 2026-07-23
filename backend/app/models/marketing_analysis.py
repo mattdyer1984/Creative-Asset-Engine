@@ -15,7 +15,7 @@ docstring for why.
 creative_fingerprint_id (Phase 7.3 of the Narrative pass, see
 MIGRATION_PLAN.md) is a real gap fix, not new functionality: this
 artifact is generated *from* a CreativeFingerprint but, unlike
-RecreationPrompt (which has always recorded its own two upstream
+CreativeSpecification (which has always recorded its own two upstream
 versions - see that model's docstring), never recorded which one. A
 real prerequisite for Phase 7.4's dependency-aware staleness check -
 you can't tell whether an artifact is stale relative to its input

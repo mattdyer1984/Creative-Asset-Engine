@@ -207,7 +207,8 @@ export interface MarketingAnalysisData {
   stale_because?: string[];
 }
 
-export interface RecreationPromptData {
+// Renamed from RecreationPromptData in Phase 8.1, see MIGRATION_PLAN.md.
+export interface CreativeSpecificationData {
   id: string;
   schema_version: string;
   is_current: boolean;
@@ -516,7 +517,7 @@ export interface AssembledSlideshowBlueprint {
   slides: AssembledSlideBlueprint[];
   marketing_analysis: MarketingAnalysisData | null;
   narrative_structure: NarrativeStructureData | null;
-  recreation_prompt: RecreationPromptData | null;
+  creative_specification: CreativeSpecificationData | null;
   failed_stage: string | null;
   failed_stage_error: string | null;
 }

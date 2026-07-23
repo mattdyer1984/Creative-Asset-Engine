@@ -48,7 +48,11 @@ class Slideshow(Base):
     # Slide-scoped artifacts (OCR, Creative Fingerprint) are pointed to
     # from Slide instead - see app.models.slide.
     current_marketing_analysis_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    current_recreation_prompt_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Renamed from current_recreation_prompt_id in Phase 8.1 of the
+    # Generation -> Validation proof of loop (see MIGRATION_PLAN.md).
+    current_creative_specification_id: Mapped[str | None] = mapped_column(
+        String(36), nullable=True
+    )
     # Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - additive,
     # same pattern as the two pointers above.
     current_narrative_structure_id: Mapped[str | None] = mapped_column(String(36), nullable=True)

@@ -4,9 +4,10 @@ ORM models package.
 Slideshow, Slide, and ProductAppearance are the live, authoritative
 entities as of the Slideshow/Slide migration - Project, Product,
 AnalysisRun, OCRResult, ProductReferenceImage, ProductLockProfile,
-CreativeFingerprint, MarketingAnalysis, and RecreationPrompt round out
-the data model. Every Analysis Artifact follows the same
-AnalysisArtifactMixin pattern (plan §6.5).
+CreativeFingerprint, MarketingAnalysis, and CreativeSpecification (renamed
+from RecreationPrompt in Phase 8.1, see MIGRATION_PLAN.md) round out the
+data model. Every Analysis Artifact follows the same AnalysisArtifactMixin
+pattern (plan §6.5).
 
 ProductSourceImport (Phase 5.1 of Product Intelligence, see
 MIGRATION_PLAN.md) is the one artifact-like model that deliberately does
@@ -34,6 +35,7 @@ from app.models.analysis_run import AnalysisRun
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
+from app.models.creative_specification import CreativeSpecification
 from app.models.listing import Listing
 from app.models.marketing_analysis import MarketingAnalysis
 from app.models.narrative_structure import NarrativeStructure
@@ -46,7 +48,6 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
-from app.models.recreation_prompt import RecreationPrompt
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 
@@ -66,7 +67,7 @@ __all__ = [
     "CreativeFingerprint",
     "MarketingAnalysis",
     "NarrativeStructure",
-    "RecreationPrompt",
+    "CreativeSpecification",
     "Slideshow",
     "Slide",
     "ProductAppearance",

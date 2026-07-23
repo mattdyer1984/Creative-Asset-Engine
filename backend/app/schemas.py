@@ -231,7 +231,9 @@ class MarketingAnalysisRead(BaseModel):
     stale_because: list[str] = []
 
 
-class RecreationPromptRead(BaseModel):
+class CreativeSpecificationRead(BaseModel):
+    """Renamed from RecreationPromptRead in Phase 8.1, see MIGRATION_PLAN.md."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -285,10 +287,10 @@ class AnalysisRunRead(BaseModel):
 # AssembledCreativeBlueprint (old /api/creatives/*'s single-response
 # view) was removed in Phase 2.7 of the Slideshow/Slide migration -
 # superseded by AssembledSlideshowBlueprint below. ProductLockProfileRead,
-# CreativeFingerprintRead, MarketingAnalysisRead, RecreationPromptRead,
-# and OCRResultRead were kept (not old-pipeline-exclusive): they're
-# still used directly by app/routers/products.py and
-# app/services/slideshow_blueprint.py.
+# CreativeFingerprintRead, MarketingAnalysisRead, CreativeSpecificationRead
+# (renamed from RecreationPromptRead in Phase 8.1), and OCRResultRead were
+# kept (not old-pipeline-exclusive): they're still used directly by
+# app/routers/products.py and app/services/slideshow_blueprint.py.
 
 
 # ---------------------------------------------------------------------------
@@ -406,7 +408,7 @@ class AssembledSlideshowBlueprint(BaseModel):
     The single, canonical view of a Slideshow (new-pipeline equivalent
     of AssembledCreativeBlueprint above): every slide-scoped artifact
     per slide, plus the slideshow-scoped artifacts (Marketing Analysis,
-    Recreation Prompt), assembled into one response.
+    Creative Specification), assembled into one response.
     """
 
     id: str
@@ -419,7 +421,7 @@ class AssembledSlideshowBlueprint(BaseModel):
 
     marketing_analysis: MarketingAnalysisRead | None = None
     narrative_structure: NarrativeStructureRead | None = None
-    recreation_prompt: RecreationPromptRead | None = None
+    creative_specification: CreativeSpecificationRead | None = None
 
     failed_stage: str | None = None
     failed_stage_error: str | None = None

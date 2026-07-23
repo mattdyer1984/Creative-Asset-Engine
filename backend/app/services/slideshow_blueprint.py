@@ -32,13 +32,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.creative_fingerprint import CreativeFingerprint
+from app.models.creative_specification import CreativeSpecification
 from app.models.marketing_analysis import MarketingAnalysis
 from app.models.narrative_structure import NarrativeStructure
 from app.models.ocr_result import OCRResult
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
-from app.models.recreation_prompt import RecreationPrompt
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.schemas import (
@@ -46,20 +46,20 @@ from app.schemas import (
     AssembledSlideProductBlueprint,
     AssembledSlideshowBlueprint,
     CreativeFingerprintRead,
+    CreativeSpecificationRead,
     MarketingAnalysisRead,
     NarrativeStructureRead,
     OCRResultRead,
     ProductLockProfileRead,
-    RecreationPromptRead,
     SlideProductAppearanceRead,
     SlideProductReferenceImageRead,
 )
 from app.services.staleness import (
     creative_fingerprint_staleness,
+    creative_specification_staleness,
     marketing_analysis_staleness,
     narrative_structure_staleness,
     product_lock_profile_staleness,
-    recreation_prompt_staleness,
 )
 
 
@@ -186,12 +186,12 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
                 stale_because=staleness.stale_because,
             )
 
-    recreation_prompt = None
-    if slideshow.current_recreation_prompt_id:
-        row = db.get(RecreationPrompt, slideshow.current_recreation_prompt_id)
+    creative_specification = None
+    if slideshow.current_creative_specification_id:
+        row = db.get(CreativeSpecification, slideshow.current_creative_specification_id)
         if row is not None:
-            staleness = recreation_prompt_staleness(db, row)
-            recreation_prompt = RecreationPromptRead(
+            staleness = creative_specification_staleness(db, row)
+            creative_specification = CreativeSpecificationRead(
                 id=row.id,
                 schema_version=row.schema_version,
                 is_current=row.is_current,
@@ -214,7 +214,7 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
         slides=slides,
         marketing_analysis=marketing_analysis,
         narrative_structure=narrative_structure,
-        recreation_prompt=recreation_prompt,
+        creative_specification=creative_specification,
         failed_stage=slideshow.last_failed_stage,
         failed_stage_error=slideshow.last_failed_stage_error,
     )

@@ -22,7 +22,7 @@ const STAGE_LABELS: Record<string, string> = {
   creative_fingerprint: 'Creative Fingerprint',
   marketing_analysis: 'Marketing Analysis',
   narrative_structure: 'Narrative Structure',
-  recreation_prompt: 'Recreation Prompt',
+  creative_specification: 'Creative Specification',
 };
 
 const BEAT_LABELS: Record<string, string> = {
@@ -41,7 +41,7 @@ const BEAT_LABELS: Record<string, string> = {
  * slide in blueprint.slides - a Prev/Next selector when there's more
  * than one (Phase 4 - true multi-slide import, see MIGRATION_PLAN.md),
  * defaulting to the first. Slideshow-scoped sections (Marketing
- * Analysis, Recreation Prompt) read from blueprint directly regardless.
+ * Analysis, Creative Specification) read from blueprint directly regardless.
  * Still minimal, not a real filmstrip/carousel - that's a later phase
  * (Phase 7, frontend consolidation), not this one. Selecting a slide
  * beyond the first will show "Not generated yet" everywhere, though -
@@ -367,23 +367,23 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
-              title="Recreation Prompt"
-              generated={blueprint.recreation_prompt !== null}
-              failed={blueprint.failed_stage === 'recreation_prompt'}
-              error={blueprint.failed_stage === 'recreation_prompt' ? blueprint.failed_stage_error : null}
-              rerunLabel="Regenerate prompt"
-              onRerun={() => handleRerun('recreation_prompt')}
-              busy={busyAction === 'recreation_prompt' || runInFlight}
-              isStale={blueprint.recreation_prompt?.is_stale}
-              staleBecause={blueprint.recreation_prompt?.stale_because}
+              title="Creative Specification"
+              generated={blueprint.creative_specification !== null}
+              failed={blueprint.failed_stage === 'creative_specification'}
+              error={blueprint.failed_stage === 'creative_specification' ? blueprint.failed_stage_error : null}
+              rerunLabel="Regenerate specification"
+              onRerun={() => handleRerun('creative_specification')}
+              busy={busyAction === 'creative_specification' || runInFlight}
+              isStale={blueprint.creative_specification?.is_stale}
+              staleBecause={blueprint.creative_specification?.stale_because}
               extraAction={
-                blueprint.recreation_prompt ? (
-                  <CopyJsonButton data={blueprint.recreation_prompt.structured} />
+                blueprint.creative_specification ? (
+                  <CopyJsonButton data={blueprint.creative_specification.structured} />
                 ) : undefined
               }
             >
-              {blueprint.recreation_prompt && (
-                <RecreationPromptFields structured={blueprint.recreation_prompt.structured} />
+              {blueprint.creative_specification && (
+                <CreativeSpecificationFields structured={blueprint.creative_specification.structured} />
               )}
             </BlueprintSection>
           </>
@@ -547,7 +547,7 @@ function CreativeFingerprintFields({ structured }: { structured: Record<string, 
   );
 }
 
-function RecreationPromptFields({ structured }: { structured: Record<string, unknown> }) {
+function CreativeSpecificationFields({ structured }: { structured: Record<string, unknown> }) {
   const s = structured as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   return (
     <div className="field-grid">

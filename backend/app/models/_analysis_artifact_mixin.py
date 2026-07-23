@@ -2,8 +2,8 @@
 Analysis Artifact mixin (plan §6.5).
 
 Every stage's output (OCRResult, ProductReferenceImage, ProductLockProfile,
-CreativeFingerprint, MarketingAnalysis, RecreationPrompt) shares the same
-four columns. This mixin exists purely to avoid retyping them six times -
+CreativeFingerprint, MarketingAnalysis, CreativeSpecification) shares the
+same four columns. This mixin exists purely to avoid retyping them six times -
 it is NOT a new architectural layer, just a DRY convenience the plan
 explicitly called for.
 

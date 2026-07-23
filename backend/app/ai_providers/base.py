@@ -51,7 +51,7 @@ class ProductIsolationProvider(Protocol):
 
 
 class PromptGenerationProvider(Protocol):
-    def generate_recreation_prompt(
+    def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
     ) -> dict: ...
 

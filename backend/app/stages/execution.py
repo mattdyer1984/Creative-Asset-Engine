@@ -21,7 +21,7 @@ not unified - deliberately: unifying them is a real behavior change,
 crash-durability of the "an attempt was made" record, not a refactor):
 
   - durable=True (isolation, fingerprint, marketing_analysis,
-    recreation_prompt): the pending AnalysisRun is committed BEFORE the
+    creative_specification): the pending AnalysisRun is committed BEFORE the
     stage's own risky work runs, so a process crash mid-call still
     leaves a durable record that the attempt happened. A failure inside
     the stage's try block rolls back whatever it wrote before recording

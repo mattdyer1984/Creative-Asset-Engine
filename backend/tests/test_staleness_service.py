@@ -9,7 +9,7 @@ from app.models.analysis_run import (
     ANALYSIS_TYPE_NARRATIVE_STRUCTURE,
     ANALYSIS_TYPE_OCR,
     ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
-    ANALYSIS_TYPE_RECREATION_PROMPT,
+    ANALYSIS_TYPE_CREATIVE_SPECIFICATION,
     STATUS_SUCCEEDED,
     AnalysisRun,
 )
@@ -20,13 +20,13 @@ from app.models.ocr_result import OCRResult
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
-from app.models.recreation_prompt import RecreationPrompt
+from app.models.creative_specification import CreativeSpecification
 from app.services.staleness import (
     creative_fingerprint_staleness,
     marketing_analysis_staleness,
     narrative_structure_staleness,
     product_lock_profile_staleness,
-    recreation_prompt_staleness,
+    creative_specification_staleness,
 )
 
 
@@ -233,7 +233,7 @@ def test_narrative_structure_stale_when_a_slides_ocr_reran(db_session, slideshow
     assert result.stale_because == ["ocr"]
 
 
-# --- recreation_prompt_staleness ---------------------------------------------
+# --- creative_specification_staleness ---------------------------------------------
 
 
 def _make_current_lock_profile_and_fingerprint(db_session, product):
@@ -248,59 +248,59 @@ def _make_current_lock_profile_and_fingerprint(db_session, product):
     return lock_profile, fingerprint
 
 
-def test_recreation_prompt_fresh_when_both_dependencies_still_current(db_session):
+def test_creative_specification_fresh_when_both_dependencies_still_current(db_session):
     product = _make_product(db_session)
     lock_profile, fingerprint = _make_current_lock_profile_and_fingerprint(db_session, product)
 
-    rp_run = _run(db_session, ANALYSIS_TYPE_RECREATION_PROMPT)
-    recreation_prompt = RecreationPrompt(
+    rp_run = _run(db_session, ANALYSIS_TYPE_CREATIVE_SPECIFICATION)
+    creative_specification = CreativeSpecification(
         analysis_run_id=rp_run.id,
         product_lock_profile_id=lock_profile.id,
         creative_fingerprint_id=fingerprint.id,
         structured_json={},
     )
-    db_session.add(recreation_prompt)
+    db_session.add(creative_specification)
     db_session.commit()
 
-    assert recreation_prompt_staleness(db_session, recreation_prompt).is_stale is False
+    assert creative_specification_staleness(db_session, creative_specification).is_stale is False
 
 
-def test_recreation_prompt_stale_when_lock_profile_regenerated(db_session):
+def test_creative_specification_stale_when_lock_profile_regenerated(db_session):
     product = _make_product(db_session)
     lock_profile, fingerprint = _make_current_lock_profile_and_fingerprint(db_session, product)
     lock_profile.is_current = False  # a newer one has since become current
 
-    rp_run = _run(db_session, ANALYSIS_TYPE_RECREATION_PROMPT)
-    recreation_prompt = RecreationPrompt(
+    rp_run = _run(db_session, ANALYSIS_TYPE_CREATIVE_SPECIFICATION)
+    creative_specification = CreativeSpecification(
         analysis_run_id=rp_run.id,
         product_lock_profile_id=lock_profile.id,
         creative_fingerprint_id=fingerprint.id,
         structured_json={},
     )
-    db_session.add(recreation_prompt)
+    db_session.add(creative_specification)
     db_session.commit()
 
-    result = recreation_prompt_staleness(db_session, recreation_prompt)
+    result = creative_specification_staleness(db_session, creative_specification)
     assert result.is_stale is True
     assert result.stale_because == ["product_lock_profile"]
 
 
-def test_recreation_prompt_stale_on_both_dependencies_at_once(db_session):
+def test_creative_specification_stale_on_both_dependencies_at_once(db_session):
     product = _make_product(db_session)
     lock_profile, fingerprint = _make_current_lock_profile_and_fingerprint(db_session, product)
     lock_profile.is_current = False
     fingerprint.is_current = False
 
-    rp_run = _run(db_session, ANALYSIS_TYPE_RECREATION_PROMPT)
-    recreation_prompt = RecreationPrompt(
+    rp_run = _run(db_session, ANALYSIS_TYPE_CREATIVE_SPECIFICATION)
+    creative_specification = CreativeSpecification(
         analysis_run_id=rp_run.id,
         product_lock_profile_id=lock_profile.id,
         creative_fingerprint_id=fingerprint.id,
         structured_json={},
     )
-    db_session.add(recreation_prompt)
+    db_session.add(creative_specification)
     db_session.commit()
 
-    result = recreation_prompt_staleness(db_session, recreation_prompt)
+    result = creative_specification_staleness(db_session, creative_specification)
     assert result.is_stale is True
     assert set(result.stale_because) == {"product_lock_profile", "creative_fingerprint"}

@@ -4,13 +4,13 @@ Structure Stage (Phase 7.2 of the Narrative pass, see MIGRATION_PLAN.md's
 architecture direction for this phase).
 
 Owned by Slideshow (a slideshow-scoped artifact, like MarketingAnalysis/
-RecreationPrompt - no legacy Creative-scoped equivalent exists, this is
-new work, not a migrated old stage). is_current is scoped accordingly.
+CreativeSpecification - no legacy Creative-scoped equivalent exists, this
+is new work, not a migrated old stage). is_current is scoped accordingly.
 
 Explicitly records which OCR result VERSIONS (one per slide, in
 slide_index order) it was composed from, via ocr_result_ids_json - same
 "an artifact is meaningless without knowing exactly which upstream
-versions produced it" principle RecreationPrompt already established for
+versions produced it" principle CreativeSpecification already established for
 its own two dependencies (see that model's docstring), just as a JSON
 list instead of individual FK columns since the count varies per
 slideshow (one per slide, not a fixed small number). This is exactly
