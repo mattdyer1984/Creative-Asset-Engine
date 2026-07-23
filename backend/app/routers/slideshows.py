@@ -20,6 +20,12 @@ from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
 from app.models.slide import Slide
 from app.models.slideshow import STATUS_ANALYZING, STATUS_QUEUED, Slideshow
+from app.importers.playwright_tiktok import (
+    TikTokImportBlockedError,
+    TikTokImportError,
+    TikTokImportNotFoundError,
+    TikTokImportUnsupportedContentError,
+)
 from app.schemas import (
     AddSlideProductRequest,
     AnalysisRunRead,
@@ -36,6 +42,7 @@ from app.schemas import (
     ImageValidationResultRead,
     QualityAssessmentRead,
     SlideshowRead,
+    SlideshowUrlImportRequest,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
 from app.services.generate_with_retry import generate_with_retry
@@ -78,6 +85,45 @@ async def import_local_files(
         group_as_one=group_as_one,
     )
     return slideshows
+
+
+@router.post("/import-url", response_model=list[SlideshowRead], status_code=201)
+def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(get_db)) -> list[Slideshow]:
+    """
+    Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - the
+    URL counterpart to import_local_files, currently backed by
+    PlaywrightTikTokImporter only. Deliberately a plain `def`, not
+    `async def`: FastAPI runs a sync path operation in a threadpool,
+    which is what a Playwright sync-API call (network + a real browser
+    launch, seconds not milliseconds) needs to not block the event loop -
+    the same reasoning app.routers.products' create_source_import already
+    applies to its own blocking httpx fetch.
+
+    Always group_as_one=True: a TikTok post's images are one coherent
+    slideshow the platform itself already ordered, not "N unrelated
+    files the user happened to select" - the reasoning that makes
+    group_as_one an explicit opt-in for local_file uploads doesn't apply
+    here, so this isn't user-configurable for this source type.
+    """
+    if payload.project_id is not None and db.get(Project, payload.project_id) is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    try:
+        return import_slideshows(
+            db,
+            source_type="tiktok",
+            source_config={"url": payload.url},
+            project_id=payload.project_id,
+            group_as_one=True,
+        )
+    except TikTokImportBlockedError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except TikTokImportUnsupportedContentError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except TikTokImportNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except TikTokImportError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 def _with_slide_relationships(stmt):

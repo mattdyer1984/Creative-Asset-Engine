@@ -102,6 +102,13 @@ class ProductSourceImportRequest(BaseModel):
     url: str
 
 
+class SlideshowUrlImportRequest(BaseModel):
+    """Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - POST /api/slideshows/import-url's input."""
+
+    url: str
+    project_id: str | None = None
+
+
 class ProductSourceImportRead(BaseModel):
     """
     Phase 5.6. Returns the ProductSourceImport row itself (not the

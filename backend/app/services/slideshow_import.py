@@ -29,18 +29,29 @@ list - this module unwraps `media_assets` for the existing per-image
 Slideshow/Slide persistence unchanged, and additionally routes the
 package itself through app.services.evidence_router to record its
 package-level facts as one EvidenceSource, pointed at by every Slideshow
-this call produces.
+this call produces. `evidence_type` is looked up per `source_type` (new
+in Phase 10.6, adding "tiktok") rather than hardcoded, since a Local
+File upload and a TikTok URL import are genuinely different evidence
+types per the ADR's own vocabulary (§4b).
 """
 
 from sqlalchemy.orm import Session
 
 from app.domain import MarketingCreative
 from app.importers import get_importer
-from app.models.evidence_source import EVIDENCE_TYPE_SLIDESHOW_UPLOAD
+from app.models.evidence_source import (
+    EVIDENCE_TYPE_SLIDESHOW_UPLOAD,
+    EVIDENCE_TYPE_TIKTOK_SLIDESHOW_URL,
+)
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.services.evidence_router import record_evidence_source
 from app.storage import save_creative_original
+
+_EVIDENCE_TYPE_BY_SOURCE_TYPE = {
+    "local_file": EVIDENCE_TYPE_SLIDESHOW_UPLOAD,
+    "tiktok": EVIDENCE_TYPE_TIKTOK_SLIDESHOW_URL,
+}
 
 
 def import_slideshows(
@@ -64,9 +75,8 @@ def import_slideshows(
     if not marketing_creatives:
         return []
 
-    evidence_source = record_evidence_source(
-        db, package, project_id, evidence_type=EVIDENCE_TYPE_SLIDESHOW_UPLOAD
-    )
+    evidence_type = _EVIDENCE_TYPE_BY_SOURCE_TYPE.get(source_type, EVIDENCE_TYPE_SLIDESHOW_UPLOAD)
+    evidence_source = record_evidence_source(db, package, project_id, evidence_type=evidence_type)
 
     if group_as_one:
         return [
