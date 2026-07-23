@@ -559,6 +559,53 @@ section h2 {
   border-radius: 999px;
 }
 
+/* Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8/§9) */
+
+.reference-library-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.file-picker-button.secondary {
+  background: white;
+  color: #555;
+  border: 1px solid #d0d0d0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+}
+
+.file-picker-button.secondary:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.text-button {
+  border: none;
+  background: none;
+  color: #2554c7;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.text-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.reference-library-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.upgrade-prompt {
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.4rem;
+  background: #fff2e0;
+  border-radius: 6px;
+}
+
 .attribute-color-value {
   display: inline-flex;
   align-items: center;

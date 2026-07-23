@@ -68,6 +68,16 @@ class ProductReferenceImageRead(BaseModel):
     quality_reasons_json: list | None = None
     role: str | None = None
     library_status: str | None = None
+    upgrade_candidate_of_id: str | None = None
+
+
+# Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8) - the
+# human-in-the-loop override on library_status. status is a plain string
+# (not a hardcoded enum in the API layer either), matching
+# ProductReferenceImage.library_status's own "open vocabulary" design -
+# validated against the real allowed set in the router, not here.
+class LibraryStatusUpdateRequest(BaseModel):
+    status: str
 
 
 class ProductLockProfileRead(BaseModel):

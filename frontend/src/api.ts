@@ -35,6 +35,12 @@ export interface ProductReferenceImage {
   quality_reasons_json: string[] | null;
   role: string | null;
   library_status: 'candidate' | 'included' | 'rejected' | 'superseded' | null;
+  // Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§9) -
+  // set when the Reference Scoring Stage detects this image as a
+  // higher-quality near-duplicate of an already-included image. Never
+  // auto-applied - this is purely the signal for the frontend's
+  // non-blocking "offer to upgrade" prompt.
+  upgrade_candidate_of_id: string | null;
 }
 
 export interface ProductLockProfile {
@@ -390,6 +396,33 @@ export const api = {
     fetch(`/api/products/${productId}/score-references`, { method: 'POST' }).then((res) =>
       handle<{ status: string }>(res)
     ),
+
+  // Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8,
+  // "Priority 3" user upload). Created as an ordinary, unscored
+  // candidate - it only enters the Library once Score References runs,
+  // same as every other acquisition source.
+  uploadReferenceImage: (productId: string, file: File): Promise<ProductReferenceImage> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fetch(`/api/products/${productId}/reference-images/upload`, {
+      method: 'POST',
+      body: formData,
+    }).then((res) => handle<ProductReferenceImage>(res));
+  },
+
+  // The human-in-the-loop override (Phase 9.6, ADR §4/§9) - lets a user
+  // manually include/reject/supersede an image, and is also how a user
+  // confirms a non-blocking upgrade prompt (superseding the older image).
+  updateLibraryStatus: (
+    productId: string,
+    referenceImageId: string,
+    status: 'included' | 'rejected' | 'superseded'
+  ): Promise<ProductReferenceImage> =>
+    fetch(`/api/products/${productId}/reference-images/${referenceImageId}/library-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).then((res) => handle<ProductReferenceImage>(res)),
 
   // Product Intelligence (Phase 5.6, see MIGRATION_PLAN.md). Synchronous
   // (200, not 202) - a single fetch+parse is done by the time the response

@@ -81,6 +81,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // completion signal, so "scoring" here just means "within the fixed
   // polling window below", not a real server-reported status.
   const [scoringProductId, setScoringProductId] = useState<string | null>(null);
+  // Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8/§9)
+  // - which product is currently mid-upload, and which specific image is
+  // mid a manual library-status write, so only that image's/product's
+  // controls show a busy state rather than disabling the whole panel.
+  const [uploadingProductId, setUploadingProductId] = useState<string | null>(null);
+  const [updatingLibraryStatusId, setUpdatingLibraryStatusId] = useState<string | null>(null);
   // Phase 9.5 - which real Library images fed the current
   // GeneratedImage, for the "reference images used" strip.
   const [referenceSet, setReferenceSet] = useState<GenerationReferenceSet | null>(null);
@@ -248,6 +254,39 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     }, 1500);
     return () => clearInterval(interval);
   }, [scoringProductId]);
+
+  const handleUploadReferenceImage = async (productId: string, file: File) => {
+    setUploadingProductId(productId);
+    setError(null);
+    try {
+      await api.uploadReferenceImage(productId, file);
+      // A freshly-uploaded image is an unscored candidate - it won't
+      // appear in the Library (compute-on-read, "included" only) until
+      // Score References runs, so there's nothing to re-fetch yet.
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploadingProductId(null);
+    }
+  };
+
+  const handleUpdateLibraryStatus = async (
+    productId: string,
+    referenceImageId: string,
+    status: 'included' | 'rejected' | 'superseded'
+  ) => {
+    setUpdatingLibraryStatusId(referenceImageId);
+    setError(null);
+    try {
+      await api.updateLibraryStatus(productId, referenceImageId, status);
+      const images = await api.getReferenceLibrary(productId);
+      setReferenceLibraries((prev) => ({ ...prev, [productId]: images }));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUpdatingLibraryStatusId(null);
+    }
+  };
 
   const handleGenerateImage = async () => {
     if (!primarySlideId) return;
@@ -425,6 +464,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                       productId={product.appearance.product_id}
                       onScore={() => handleScoreReferences(product.appearance.product_id)}
                       scoring={scoringProductId === product.appearance.product_id}
+                      onUpload={(file) => handleUploadReferenceImage(product.appearance.product_id, file)}
+                      uploading={uploadingProductId === product.appearance.product_id}
+                      onUpdateStatus={(imageId, status) =>
+                        handleUpdateLibraryStatus(product.appearance.product_id, imageId, status)
+                      }
+                      updatingStatusId={updatingLibraryStatusId}
                     />
                   </div>
                 ))
@@ -762,17 +807,35 @@ function ValidationResultPanel({ result }: { result: ImageValidationResultData }
  * concept. Grouped by role and showing quality_score/quality_reasons_json
  * directly is the "why was this scored this way" surface the ADR calls
  * for - never collapsed into a single number.
+ *
+ * Phase 9.6 adds: a direct upload control (Priority 3 acquisition -
+ * uploads enter as ordinary unscored candidates, same as every other
+ * source, so there's nothing to render for one until Score References
+ * runs), manual include/reject/supersede controls per image (the
+ * human-in-the-loop override the ADR requires), and a non-blocking
+ * "offer to upgrade" banner on any image the Stage flagged as a
+ * higher-quality near-duplicate of an older included image -
+ * confirming it is an ordinary manual supersede write on the *older*
+ * image, never a silent swap.
  */
 function ReferenceLibraryPanel({
   images,
   productId,
   onScore,
   scoring,
+  onUpload,
+  uploading,
+  onUpdateStatus,
+  updatingStatusId,
 }: {
   images: ProductReferenceImage[] | undefined;
   productId: string;
   onScore: () => void;
   scoring: boolean;
+  onUpload: (file: File) => void;
+  uploading: boolean;
+  onUpdateStatus: (imageId: string, status: 'included' | 'rejected' | 'superseded') => void;
+  updatingStatusId: string | null;
 }) {
   const grouped = new Map<string, ProductReferenceImage[]>();
   (images ?? []).forEach((img) => {
@@ -780,14 +843,27 @@ function ReferenceLibraryPanel({
     if (!grouped.has(role)) grouped.set(role, []);
     grouped.get(role)!.push(img);
   });
+  const imagesById = new Map((images ?? []).map((img) => [img.id, img]));
+
+  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) onUpload(file);
+    event.target.value = '';
+  };
 
   return (
     <div className="reference-library-panel">
       <div className="reference-library-header">
         <span className="field-label">Canonical Reference Library</span>
-        <button className="rerun-button secondary" onClick={onScore} disabled={scoring}>
-          {scoring ? 'Scoring…' : 'Score References'}
-        </button>
+        <div className="reference-library-header-actions">
+          <label className="file-picker-button secondary">
+            {uploading ? 'Uploading…' : 'Upload Image'}
+            <input type="file" accept="image/*" onChange={handleFileSelected} disabled={uploading} hidden />
+          </label>
+          <button className="rerun-button secondary" onClick={onScore} disabled={scoring}>
+            {scoring ? 'Scoring…' : 'Score References'}
+          </button>
+        </div>
       </div>
       {!images || images.length === 0 ? (
         <p className="empty-state">No images in the Library yet.</p>
@@ -796,21 +872,57 @@ function ReferenceLibraryPanel({
           <div key={role} className="reference-library-role-group">
             <span className="tag">{role}</span>
             <div className="reference-images-row">
-              {roleImages.map((img) => (
-                <div key={img.id} className="reference-library-item">
-                  <img
-                    src={api.referenceImageFileUrl(productId, img.id)}
-                    alt="Reference"
-                    className="reference-image-thumbnail"
-                  />
-                  {img.quality_score !== null && (
-                    <span className="quality-score-badge">{img.quality_score.toFixed(2)}</span>
-                  )}
-                  {img.quality_reasons_json && img.quality_reasons_json.length > 0 && (
-                    <p className="field-check-reason">{img.quality_reasons_json.join('; ')}</p>
-                  )}
-                </div>
-              ))}
+              {roleImages.map((img) => {
+                const upgradeTarget = img.upgrade_candidate_of_id
+                  ? imagesById.get(img.upgrade_candidate_of_id)
+                  : undefined;
+                const busy = updatingStatusId === img.id;
+                return (
+                  <div key={img.id} className="reference-library-item">
+                    <img
+                      src={api.referenceImageFileUrl(productId, img.id)}
+                      alt="Reference"
+                      className="reference-image-thumbnail"
+                    />
+                    {img.quality_score !== null && (
+                      <span className="quality-score-badge">{img.quality_score.toFixed(2)}</span>
+                    )}
+                    {img.quality_reasons_json && img.quality_reasons_json.length > 0 && (
+                      <p className="field-check-reason">{img.quality_reasons_json.join('; ')}</p>
+                    )}
+                    <div className="reference-library-item-actions">
+                      <button
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() => onUpdateStatus(img.id, 'rejected')}
+                      >
+                        Reject
+                      </button>
+                      <button
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() => onUpdateStatus(img.id, 'superseded')}
+                      >
+                        Supersede
+                      </button>
+                    </div>
+                    {upgradeTarget && (
+                      <div className="upgrade-prompt">
+                        <p className="field-check-reason">
+                          Looks like a better version of an existing image.
+                        </p>
+                        <button
+                          className="text-button"
+                          disabled={busy}
+                          onClick={() => onUpdateStatus(upgradeTarget.id, 'superseded')}
+                        >
+                          Use this instead
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))

@@ -34,12 +34,28 @@ ask the AI for free facts" discipline:
   is computed in code from these structured judgments - never asked of
   the AI as a bare number, same rule this codebase applies everywhere
   a pass/fail or score is derived from AI-provided facts.
+
+Phase 9.6 adds lifecycle upgrade detection (the ADR's §4
+"Replaced/superseded" behavior): a Tier-1-surviving candidate that
+would otherwise be included is checked against any already-included
+image of the *same role* whose quality_score it doesn't beat. Real
+near-duplicate detection needs an actual visual judgment (Visual
+Embeddings are explicitly deferred elsewhere in this ADR) - so this
+reuses the same multi-image analyze_creative capability Stage 1
+Identity Validation (Phase 9.4) already proved, rather than adding a
+new provider capability. Deliberately conditional on quality_score
+first (cheap, already computed) before spending a second real vision
+call - only a same-role, lower-scoring existing image is worth
+comparing against; a same-role image with an equal or better score
+would never be marked superseded by this candidate even if visually
+identical, so there is nothing worth asking about.
 """
 
 from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
@@ -81,6 +97,16 @@ _COMPOSITION_SCORE = {"poor": 0.0, "fair": 0.33, "good": 0.67, "excellent": 1.0}
 
 QUALITY_FLOOR = 0.5
 
+SUPERSEDE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "is_near_duplicate": {"type": "boolean"},
+        "reasoning": {"type": "string"},
+    },
+    "required": ["is_near_duplicate", "reasoning"],
+    "additionalProperties": False,
+}
+
 
 def _tier1_score(image_bytes: bytes, file_size: int) -> tuple[float, list[str], bool]:
     """Returns (score 0-1, reasons, cleared_floor)."""
@@ -108,6 +134,73 @@ def _tier1_score(image_bytes: bytes, file_size: int) -> tuple[float, list[str], 
 
 def _open_image(image_bytes: bytes):
     return Image.open(BytesIO(image_bytes))
+
+
+def _compare_against_same_role_included(
+    db: Session,
+    candidate: ProductReferenceImage,
+    candidate_bytes: bytes,
+    candidate_score: float,
+    role: str,
+    vision_provider,
+) -> tuple[str, ProductReferenceImage] | None:
+    """
+    Compares a Tier-1-surviving candidate against every already-included,
+    same-role image with a *different* score (an equal score carries no
+    "meaningfully lower/higher" signal either way, per §4's wording, and
+    is skipped without spending a vision call). Returns the first
+    near-duplicate match found, tagged by direction:
+
+    - ("supersede", existing) - the candidate scores lower: the
+      low-stakes, automatable dedup case §4 describes explicitly.
+      Applied directly (library_status="superseded") - never kept
+      alongside a strictly-better duplicate.
+    - ("upgrade_candidate", existing) - the candidate scores higher: the
+      higher-stakes mirror case §4/§9 says must "surface as a choice,
+      never auto-apply." The candidate is still included normally;
+      `existing` is recorded as what it could replace, for the
+      frontend's non-blocking upgrade prompt - the older image is never
+      touched here.
+
+    Returns None if no same-role included image is a near-duplicate (or
+    none exist yet) - the ordinary case for most candidates.
+    """
+    existing_included = db.scalars(
+        select(ProductReferenceImage).where(
+            ProductReferenceImage.product_id == candidate.product_id,
+            ProductReferenceImage.is_current.is_(True),
+            ProductReferenceImage.library_status == "included",
+            ProductReferenceImage.role == role,
+            ProductReferenceImage.id != candidate.id,
+        )
+    ).all()
+
+    for existing in existing_included:
+        if existing.quality_score is None or candidate_score == existing.quality_score:
+            continue
+        existing_bytes = Path(existing.file_path).read_bytes()
+        result = vision_provider.analyze_creative(
+            image_bytes=[candidate_bytes, existing_bytes],
+            prompt_spec={
+                "prompt": (
+                    "The first image is a new candidate reference image for a "
+                    "product's Canonical Reference Library. The second image "
+                    "is an already-included reference image showing the same "
+                    "role/view. Judge whether the new candidate is a "
+                    "near-duplicate of the existing image - the same shot, "
+                    "same angle, carrying no meaningfully different "
+                    "information - rather than a genuinely different, useful "
+                    "view of the product."
+                ),
+                "schema_name": "reference_supersede_check",
+            },
+            response_schema=SUPERSEDE_SCHEMA,
+        )
+        if result["is_near_duplicate"]:
+            action = "supersede" if candidate_score < existing.quality_score else "upgrade_candidate"
+            return action, existing
+
+    return None
 
 
 def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> None:
@@ -160,7 +253,30 @@ def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> No
     image.quality_score = vision_score
     image.quality_reasons_json = reasons
     image.role = tier2["role"]
-    image.library_status = "included" if vision_score >= QUALITY_FLOOR else "rejected"
+
+    if vision_score < QUALITY_FLOOR:
+        image.library_status = "rejected"
+        return
+
+    comparison = _compare_against_same_role_included(
+        db, image, image_bytes, vision_score, tier2["role"], vision_provider
+    )
+    if comparison is None:
+        image.library_status = "included"
+        return
+
+    action, existing = comparison
+    if action == "supersede":
+        image.library_status = "superseded"
+        image.quality_reasons_json = reasons + [
+            f"near-duplicate of an already-included, higher-scoring image ({existing.id})"
+        ]
+    else:
+        image.library_status = "included"
+        image.upgrade_candidate_of_id = existing.id
+        image.quality_reasons_json = reasons + [
+            f"possible upgrade over an already-included image ({existing.id}) - review and confirm"
+        ]
 
 
 def run_reference_scoring(db: Session, product_id: str) -> StageResult:

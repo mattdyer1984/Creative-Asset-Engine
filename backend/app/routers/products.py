@@ -12,7 +12,7 @@ canonical, multi-source view) - the API surface for everything Phase
 5.1-5.5 built.
 """
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -24,6 +24,7 @@ from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
 from app.schemas import (
+    LibraryStatusUpdateRequest,
     ProductCreate,
     ProductLockProfileRead,
     ProductRead,
@@ -34,8 +35,18 @@ from app.schemas import (
 from app.services.background_execution import run_reference_scoring_in_background
 from app.services.product_profile import ProductProfile, assemble_product_profile
 from app.services.product_source_import import import_product_source
+from app.storage import save_product_reference_image
 
 router = APIRouter(prefix="/api/products", tags=["products"])
+
+# Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4) - the
+# real, closed set library_status may hold. The Pydantic layer keeps the
+# field a plain string (matching the model's own open-vocabulary
+# design), so this is where the actual constraint lives - a manual
+# override should never be able to write a value the Reference Scoring
+# Stage itself would never produce.
+VALID_LIBRARY_STATUSES = {"included", "rejected", "superseded"}
+ISOLATION_METHOD_USER_UPLOAD = "user_upload"
 
 
 @router.post("", response_model=ProductRead, status_code=201)
@@ -131,6 +142,78 @@ def score_references(
 
     background_tasks.add_task(run_reference_scoring_in_background, product_id)
     return {"status": "scheduled"}
+
+
+@router.post(
+    "/{product_id}/reference-images/upload",
+    response_model=ProductReferenceImageRead,
+    status_code=201,
+)
+async def upload_reference_image(
+    product_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> ProductReferenceImage:
+    """
+    Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8,
+    "Priority 3" in the acquisition-source list). A directly
+    user-supplied reference image - unlike every other
+    ProductReferenceImage source (Product Isolation crops, Product
+    Source URL imports), there is no upstream Stage/import to trigger;
+    this endpoint IS the acquisition step. Created as an ordinary,
+    unscored candidate (library_status left null) - it enters the
+    Library the same way every other candidate does, via the Reference
+    Scoring Stage, not by being auto-included on upload.
+    """
+    if db.get(Product, product_id) is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    content = await file.read()
+
+    image = ProductReferenceImage(
+        product_id=product_id,
+        analysis_run_id=None,
+        isolation_method=ISOLATION_METHOD_USER_UPLOAD,
+        file_path="",  # placeholder, set below once the row has an id
+    )
+    db.add(image)
+    db.flush()
+
+    stored_path = save_product_reference_image(product_id, image.id, content)
+    image.file_path = str(stored_path)
+
+    db.commit()
+    db.refresh(image)
+    return image
+
+
+@router.post(
+    "/{product_id}/reference-images/{reference_image_id}/library-status",
+    response_model=ProductReferenceImageRead,
+)
+def update_library_status(
+    product_id: str, reference_image_id: str, payload: LibraryStatusUpdateRequest, db: Session = Depends(get_db)
+) -> ProductReferenceImage:
+    """
+    Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8) -
+    the human-in-the-loop override the ADR's Replaced/superseded section
+    requires: lets a user manually include/reject/supersede an image
+    rather than trusting the automatic score, and is also how a user
+    confirms a non-blocking upgrade prompt (§9) - "supersede the old
+    one" is exactly a manual library-status write on the old image.
+    """
+    if payload.status not in VALID_LIBRARY_STATUSES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"status must be one of {sorted(VALID_LIBRARY_STATUSES)}",
+        )
+
+    image = db.get(ProductReferenceImage, reference_image_id)
+    if image is None or image.product_id != product_id:
+        raise HTTPException(status_code=404, detail="Reference image not found")
+
+    image.library_status = payload.status
+    db.commit()
+    db.refresh(image)
+    return image
 
 
 @router.get("/{product_id}/lock-profile", response_model=ProductLockProfileRead)

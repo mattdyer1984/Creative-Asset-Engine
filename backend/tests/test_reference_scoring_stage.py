@@ -33,6 +33,41 @@ POOR_TIER2_RESULT = {
     "reasons": ["mostly out of frame"],
 }
 
+# Same role/checks as GOOD_TIER2_RESULT but "good" instead of "excellent"
+# composition - clears the quality floor, but scores strictly lower
+# (0.9175 vs 1.0), the precondition Phase 9.6's supersede check needs.
+LOWER_SCORING_TIER2_RESULT = {
+    "role": "front",
+    "front_visible": True,
+    "occluded": False,
+    "brand_readable": True,
+    "packaging_visible": True,
+    "composition_quality": "good",
+    "reasons": ["slightly softer focus"],
+}
+
+
+class _SequencedVisionProvider:
+    """
+    A vision fake that returns queued results in call order, regardless
+    of schema_name - needed for Phase 9.6's supersede tests, where two
+    different candidates must score differently across a sequence of
+    calls (reference_scoring, reference_scoring, reference_supersede_check),
+    something FakeVisionAnalysisProvider's per-schema_name (not
+    per-call) canned results can't express.
+    """
+
+    model = "fake-vision-model"
+    provider = "openai"
+
+    def __init__(self, results: list[dict]):
+        self._results = list(results)
+        self.schema_names_called: list[str] = []
+
+    def analyze_creative(self, image_bytes, prompt_spec: dict, response_schema: dict) -> dict:
+        self.schema_names_called.append(prompt_spec.get("schema_name"))
+        return self._results.pop(0)
+
 
 def _save_realistic_test_image(path, size):
     """
@@ -210,3 +245,138 @@ def test_multiple_candidates_can_end_up_included_in_the_same_role(db_session, tm
     ).all()
     assert len(included) == 2
     assert all(image.role == "front" for image in included)
+
+
+def test_lower_scoring_near_duplicate_of_included_image_is_marked_superseded(
+    db_session, tmp_path, monkeypatch
+):
+    """Phase 9.6 (lifecycle upgrade detection, ADR §4 'Replaced/superseded')."""
+    product = Product(display_name="Sunrise Orange Juice")
+    db_session.add(product)
+    db_session.flush()
+
+    images = []
+    for i in range(2):
+        path = tmp_path / f"ref-{i}.jpg"
+        _save_realistic_test_image(path, (400, 400))
+        image = ProductReferenceImage(
+            product_id=product.id, file_path=str(path), isolation_method="product_url"
+        )
+        db_session.add(image)
+        images.append(image)
+    db_session.commit()
+
+    fake_vision = _SequencedVisionProvider(
+        [
+            GOOD_TIER2_RESULT,  # first candidate: included, score 1.0
+            LOWER_SCORING_TIER2_RESULT,  # second candidate: clears floor, score < first
+            {"is_near_duplicate": True, "reasoning": "same front-on shot, softer focus"},
+        ]
+    )
+    monkeypatch.setattr(
+        "app.services.reference_scoring_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+
+    result = run_reference_scoring(db_session, product.id)
+
+    assert result.succeeded is True
+    assert fake_vision.schema_names_called == [
+        "reference_scoring",
+        "reference_scoring",
+        "reference_supersede_check",
+    ]
+    db_session.refresh(images[0])
+    db_session.refresh(images[1])
+    assert images[0].library_status == "included"
+    assert images[1].library_status == "superseded"
+    assert any("near-duplicate" in reason for reason in images[1].quality_reasons_json)
+
+
+def test_equal_or_higher_scoring_candidate_is_never_superseded(db_session, tmp_path, monkeypatch):
+    """
+    The cheap score check must short-circuit before a second vision
+    call - an equal-or-better candidate is never superseded by this
+    check, per the ADR's own 'meaningfully lower quality' wording, and
+    no second call should even be made to find that out.
+    """
+    product = Product(display_name="Sunrise Orange Juice")
+    db_session.add(product)
+    db_session.flush()
+
+    images = []
+    for i in range(2):
+        path = tmp_path / f"ref-{i}.jpg"
+        _save_realistic_test_image(path, (400, 400))
+        image = ProductReferenceImage(
+            product_id=product.id, file_path=str(path), isolation_method="product_url"
+        )
+        db_session.add(image)
+        images.append(image)
+    db_session.commit()
+
+    fake_vision = _SequencedVisionProvider([GOOD_TIER2_RESULT, GOOD_TIER2_RESULT])
+    monkeypatch.setattr(
+        "app.services.reference_scoring_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+
+    result = run_reference_scoring(db_session, product.id)
+
+    assert result.succeeded is True
+    assert fake_vision.schema_names_called == ["reference_scoring", "reference_scoring"]
+    db_session.refresh(images[0])
+    db_session.refresh(images[1])
+    assert images[0].library_status == "included"
+    assert images[1].library_status == "included"
+
+
+def test_higher_scoring_near_duplicate_flags_an_upgrade_candidate_without_touching_the_old_image(
+    db_session, tmp_path, monkeypatch
+):
+    """
+    Phase 9.6's mirror case (ADR §4/§9): a new candidate that is a
+    near-duplicate of an existing included image but scores *higher*
+    must never auto-supersede the old one - only flag itself as an
+    upgrade candidate, for the frontend's non-blocking prompt.
+    """
+    product = Product(display_name="Sunrise Orange Juice")
+    db_session.add(product)
+    db_session.flush()
+
+    images = []
+    for i in range(2):
+        path = tmp_path / f"ref-{i}.jpg"
+        _save_realistic_test_image(path, (400, 400))
+        image = ProductReferenceImage(
+            product_id=product.id, file_path=str(path), isolation_method="product_url"
+        )
+        db_session.add(image)
+        images.append(image)
+    db_session.commit()
+
+    fake_vision = _SequencedVisionProvider(
+        [
+            LOWER_SCORING_TIER2_RESULT,  # first candidate: included, the lower score this time
+            GOOD_TIER2_RESULT,  # second candidate: included, scores higher
+            {"is_near_duplicate": True, "reasoning": "same front-on shot, crisper focus"},
+        ]
+    )
+    monkeypatch.setattr(
+        "app.services.reference_scoring_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+
+    result = run_reference_scoring(db_session, product.id)
+
+    assert result.succeeded is True
+    db_session.refresh(images[0])
+    db_session.refresh(images[1])
+    # The older, lower-scoring image is untouched - never auto-demoted.
+    assert images[0].library_status == "included"
+    assert images[0].upgrade_candidate_of_id is None
+    # The new, better candidate is included and flagged as an upgrade
+    # candidate over the older one - a signal, not a state change.
+    assert images[1].library_status == "included"
+    assert images[1].upgrade_candidate_of_id == images[0].id
+    assert any("possible upgrade" in reason for reason in images[1].quality_reasons_json)

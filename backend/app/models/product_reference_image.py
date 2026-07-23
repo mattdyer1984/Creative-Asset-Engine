@@ -53,6 +53,18 @@ enum, matching ProductSourceImport.source_type's own precedent for
 this kind of open, provider/stage-extensible vocabulary; role is the
 same style ("hero"/"front"/"45_degree"/"packaging"/"branding_closeup",
 free string, not closed).
+
+upgrade_candidate_of_id (Phase 9.6, ADR §4/§9 "Replaced/superseded" and
+"a non-blocking prompt offering to upgrade - never a silent swap") is
+the mirror case of the automatic-supersede check §4 describes: when a
+*new*, higher-quality candidate is a near-duplicate of an *existing
+included* image in the same role, the Stage never auto-demotes the old
+one (that's explicitly the higher-stakes decision the ADR says "still
+surfaces as a choice, never auto-applies") - instead it points this
+column at the older image it could replace, and the frontend surfaces
+that as a non-blocking prompt. Confirming the upgrade is an ordinary
+manual library-status write (superseding the old image via the
+existing human-in-the-loop override endpoint), not a new mechanism.
 """
 
 from sqlalchemy import Float, ForeignKey, JSON, String
@@ -80,3 +92,6 @@ class ProductReferenceImage(Base, AnalysisArtifactMixin):
     quality_reasons_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
     role: Mapped[str | None] = mapped_column(String(64), nullable=True)
     library_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    upgrade_candidate_of_id: Mapped[str | None] = mapped_column(
+        ForeignKey("product_reference_images.id"), nullable=True
+    )
