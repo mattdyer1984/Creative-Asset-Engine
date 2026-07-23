@@ -47,12 +47,10 @@ from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
-from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.product import Product
-from app.models.product_reference_image import ProductReferenceImage
 from app.models.slideshow import Slideshow
 from app.services.prompt_compiler import compile_generation_request
-from app.services.reference_selection import select_reference_images
+from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
@@ -106,7 +104,7 @@ class SlideImageGenerationStage:
                 ),
             )
 
-        reference_image_paths = _resolve_reference_image_paths(db, generation_reference_set.id)
+        reference_image_paths = get_reference_image_paths(db, generation_reference_set.id)
 
         analysis_run = start_analysis_run(
             db,
@@ -156,17 +154,3 @@ class SlideImageGenerationStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         return mark_succeeded(db, analysis_run)
-
-
-def _resolve_reference_image_paths(db: Session, generation_reference_set_id: str) -> list[str]:
-    rows = (
-        db.query(GenerationReferenceSetImage, ProductReferenceImage)
-        .join(
-            ProductReferenceImage,
-            ProductReferenceImage.id == GenerationReferenceSetImage.product_reference_image_id,
-        )
-        .filter(GenerationReferenceSetImage.generation_reference_set_id == generation_reference_set_id)
-        .order_by(GenerationReferenceSetImage.rank)
-        .all()
-    )
-    return [reference_image.file_path for _, reference_image in rows]

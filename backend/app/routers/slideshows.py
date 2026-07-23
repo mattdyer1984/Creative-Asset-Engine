@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
 from app.models.generated_image import GeneratedImage
+from app.models.generation_reference_set import GenerationReferenceSet
+from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.image_validation_result import ImageValidationResult
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
@@ -24,6 +26,8 @@ from app.schemas import (
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
     GeneratedImageRead,
+    GenerationReferenceSetImageRead,
+    GenerationReferenceSetRead,
     ImageValidationFieldCheckRead,
     ImageValidationResultRead,
     SlideshowRead,
@@ -315,6 +319,57 @@ def get_generated_image_file(
     return FileResponse(generated_image.file_path)
 
 
+@router.get(
+    "/{slideshow_id}/generated-images/{generated_image_id}/reference-set",
+    response_model=GenerationReferenceSetRead,
+)
+def get_generation_reference_set(
+    slideshow_id: str, generated_image_id: str, db: Session = Depends(get_db)
+) -> GenerationReferenceSetRead:
+    """
+    Phase 9.4 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §8/§9) -
+    exactly which Library images, with what role/rank, were sent to the
+    provider for this specific generation - the "reference images used"
+    strip's data source. Nullable-precondition tri-state, same style as
+    get_current_generated_image: 404 if there's genuinely nothing to
+    show (no Set - a pre-Product-Lock-v2 GeneratedImage), not a 200
+    with empty/fabricated data.
+    """
+    generated_image = db.get(GeneratedImage, generated_image_id)
+    if generated_image is None or generated_image.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Generated image not found")
+    if generated_image.generation_reference_set_id is None:
+        raise HTTPException(
+            status_code=404, detail="This generated image has no Generation Reference Set"
+        )
+
+    generation_reference_set = db.get(GenerationReferenceSet, generated_image.generation_reference_set_id)
+    if generation_reference_set is None:
+        raise HTTPException(status_code=404, detail="Generation Reference Set not found")
+
+    members = (
+        db.query(GenerationReferenceSetImage)
+        .filter(GenerationReferenceSetImage.generation_reference_set_id == generation_reference_set.id)
+        .order_by(GenerationReferenceSetImage.rank)
+        .all()
+    )
+
+    return GenerationReferenceSetRead(
+        id=generation_reference_set.id,
+        generated_image_id=generation_reference_set.generated_image_id,
+        selection_method=generation_reference_set.selection_method_json,
+        images=[
+            GenerationReferenceSetImageRead(
+                product_reference_image_id=member.product_reference_image_id,
+                role=member.role,
+                rank=member.rank,
+            )
+            for member in members
+        ],
+        created_at=generation_reference_set.created_at,
+    )
+
+
 def _to_validation_read(row: ImageValidationResult) -> ImageValidationResultRead:
     return ImageValidationResultRead(
         id=row.id,
@@ -326,6 +381,12 @@ def _to_validation_read(row: ImageValidationResult) -> ImageValidationResultRead
         field_checks=[ImageValidationFieldCheckRead(**check) for check in row.field_checks_json],
         overall_explanation=row.overall_explanation,
         created_at=row.created_at,
+        identity_passed=row.identity_passed,
+        identity_checks=(
+            [ImageValidationFieldCheckRead(**check) for check in row.identity_checks_json]
+            if row.identity_checks_json is not None
+            else None
+        ),
     )
 
 

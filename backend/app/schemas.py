@@ -282,11 +282,36 @@ class GeneratedImageRead(BaseModel):
     is_current: bool
     slide_id: str
     creative_specification_id: str
+    generation_reference_set_id: str | None = None
     provider: str
     model_name: str
     prompt_used: str
     seed: str | None
     generation_time_seconds: float
+    created_at: datetime
+
+
+class GenerationReferenceSetImageRead(BaseModel):
+    """
+    Phase 9.4 of Product Lock v2 (see MIGRATION_PLAN.md's "ADR:
+    Canonical Product Reference" §8/§9) - one Library image within a
+    GenerationReferenceSet, in the shape the "Reference images used"
+    UI strip needs (§9): which file, what role it was selected for,
+    and its rank within the set.
+    """
+
+    product_reference_image_id: str
+    role: str | None
+    rank: int
+
+
+class GenerationReferenceSetRead(BaseModel):
+    """GET .../generated-images/{id}/reference-set (§8) - what was actually sent to the provider."""
+
+    id: str
+    generated_image_id: str | None
+    selection_method: dict
+    images: list[GenerationReferenceSetImageRead]
     created_at: datetime
 
 
@@ -317,6 +342,8 @@ class ImageValidationResultRead(BaseModel):
     field_checks: list[ImageValidationFieldCheckRead]
     overall_explanation: str
     created_at: datetime
+    identity_passed: bool | None = None
+    identity_checks: list[ImageValidationFieldCheckRead] | None = None
 
 
 class OCRResultRead(BaseModel):

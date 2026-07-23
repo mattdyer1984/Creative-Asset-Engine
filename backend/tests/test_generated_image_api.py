@@ -185,12 +185,17 @@ def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch, 
     generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session)
 
     fake_vision = FakeVisionAnalysisProvider(
-        result={
-            "field_checks": [
-                {"field_name": "brand", "preserved": True, "reason": "Matches."},
-                {"field_name": "color", "preserved": False, "reason": "Wrong shade of orange."},
-            ],
-            "overall_explanation": "One characteristic did not match.",
+        results_by_schema_name={
+            "identity_validation": {
+                "field_checks": [{"field_name": "silhouette", "preserved": True, "reason": "Matches."}]
+            },
+            "image_validation": {
+                "field_checks": [
+                    {"field_name": "brand", "preserved": True, "reason": "Matches."},
+                    {"field_name": "color", "preserved": False, "reason": "Wrong shade of orange."},
+                ],
+                "overall_explanation": "One characteristic did not match.",
+            },
         }
     )
     monkeypatch.setattr(
@@ -228,9 +233,14 @@ def test_get_current_validation_result_returns_the_real_current_one(client, monk
         "app.slideshow_stages.image_validation_stage.default_registry",
         FakeAIProviderRegistry(
             vision_provider=FakeVisionAnalysisProvider(
-                result={
-                    "field_checks": [{"field_name": "brand", "preserved": True, "reason": "Matches."}],
-                    "overall_explanation": "All good.",
+                results_by_schema_name={
+                    "identity_validation": {
+                        "field_checks": [{"field_name": "silhouette", "preserved": True, "reason": "Matches."}]
+                    },
+                    "image_validation": {
+                        "field_checks": [{"field_name": "brand", "preserved": True, "reason": "Matches."}],
+                        "overall_explanation": "All good.",
+                    },
                 }
             )
         ),

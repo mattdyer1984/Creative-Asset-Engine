@@ -211,10 +211,11 @@ class OpenAIVisionAnalysisAdapter:
         return self._client
 
     def analyze_creative(
-        self, image_bytes: bytes, prompt_spec: dict, response_schema: dict
+        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
     ) -> dict:
         prompt_text = prompt_spec["prompt"]
         schema_name = prompt_spec.get("schema_name", "analysis")
+        images = [image_bytes] if isinstance(image_bytes, bytes) else image_bytes
 
         response = self.client.chat.completions.create(
             model=self.model,
@@ -223,7 +224,7 @@ class OpenAIVisionAnalysisAdapter:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": prompt_text},
-                        _image_content_block(image_bytes),
+                        *[_image_content_block(image) for image in images],
                     ],
                 }
             ],

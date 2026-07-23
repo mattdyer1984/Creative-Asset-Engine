@@ -128,7 +128,24 @@ class FakeVisionAnalysisProvider:
     model = "fake-vision-model"
     provider = "openai"
 
-    def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
+    def __init__(
+        self,
+        result: dict | None = None,
+        raise_error: Exception | None = None,
+        results_by_schema_name: dict[str, dict] | None = None,
+    ):
+        """
+        results_by_schema_name (Phase 9.4 of Product Lock v2, see
+        MIGRATION_PLAN.md) - opt-in, additive: SlideImageValidationStage
+        now calls analyze_creative up to twice per run (schema_name
+        "identity_validation" then "image_validation"), and most tests
+        need each call to return a genuinely different shape/outcome.
+        Falls back to `self._result` for any schema_name not given here
+        (or when this param is omitted entirely) - every other caller
+        of this fake, and every test that only cares about one call, is
+        unaffected.
+        """
+        self._results_by_schema_name = results_by_schema_name
         self._result = result if result is not None else {
             "product_category": "beverage",
             "product_type": "juice bottle",
@@ -166,10 +183,16 @@ class FakeVisionAnalysisProvider:
         # than just trusting the calling Stage's docstring.
         self.last_prompt_spec: dict | None = None
 
-    def analyze_creative(self, image_bytes: bytes, prompt_spec: dict, response_schema: dict) -> dict:
+    def analyze_creative(
+        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+    ) -> dict:
         self.last_prompt_spec = prompt_spec
         if self._raise_error is not None:
             raise self._raise_error
+        if self._results_by_schema_name is not None:
+            schema_name = prompt_spec.get("schema_name")
+            if schema_name in self._results_by_schema_name:
+                return self._results_by_schema_name[schema_name]
         return self._result
 
 

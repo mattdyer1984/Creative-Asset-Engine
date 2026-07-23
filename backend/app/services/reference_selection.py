@@ -137,3 +137,26 @@ def select_reference_images(
     db.flush()
 
     return generation_reference_set
+
+
+def get_reference_image_paths(db: Session, generation_reference_set_id: str) -> list[str]:
+    """
+    Resolves a GenerationReferenceSet's member rows back to real file
+    paths, in rank order. Shared by the Generation Engine
+    (app.slideshow_stages.image_generation_stage, building the Prompt
+    Compiler's hard-prerequisite reference_image_paths) and Stage 1
+    Identity Validation (app.slideshow_stages.image_validation_stage,
+    Phase 9.4 - re-reading the *same* Set actually used to generate,
+    per ADR §7) - one query, not duplicated in both Stage files.
+    """
+    rows = (
+        db.query(GenerationReferenceSetImage, ProductReferenceImage)
+        .join(
+            ProductReferenceImage,
+            ProductReferenceImage.id == GenerationReferenceSetImage.product_reference_image_id,
+        )
+        .filter(GenerationReferenceSetImage.generation_reference_set_id == generation_reference_set_id)
+        .order_by(GenerationReferenceSetImage.rank)
+        .all()
+    )
+    return [reference_image.file_path for _, reference_image in rows]

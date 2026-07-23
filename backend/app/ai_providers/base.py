@@ -40,8 +40,21 @@ class OCRProvider(Protocol):
 
 class VisionAnalysisProvider(Protocol):
     def analyze_creative(
-        self, image_bytes: bytes, prompt_spec: dict, response_schema: dict
-    ) -> dict: ...
+        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+    ) -> dict:
+        """
+        image_bytes accepts a list as of Phase 9.4 of Product Lock v2
+        (see MIGRATION_PLAN.md's "ADR: Canonical Product Reference"
+        §7) - Stage 1 Identity Validation needs to show the model the
+        generated image AND one or more reference images in the same
+        call, to compare them directly, rather than describing one
+        image against text. Every existing caller (Product Lock
+        Profile Stage, Creative Fingerprint Stage, Stage 2 of Image
+        Validation) still passes a single `bytes` value and is
+        unaffected - this is a backward-compatible extension of what
+        was already a single-image parameter, not a new method.
+        """
+        ...
 
 
 class ProductIsolationProvider(Protocol):
