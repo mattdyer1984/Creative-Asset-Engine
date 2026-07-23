@@ -336,14 +336,30 @@ class OpenAIPromptGenerationAdapter:
 # for every possible ratio - Phase 8's goal is proving the loop, not a
 # precise size-mapping table (see MIGRATION_PLAN.md's architecture
 # direction: not optimizing for image quality in this phase).
-_ASPECT_RATIO_TO_OPENAI_SIZE: dict[str, str] = {
-    "1:1": "1024x1024",
-    "4:5": "1024x1536",
-    "9:16": "1024x1536",
-    "2:3": "1024x1536",
-    "16:9": "1536x1024",
-    "3:2": "1536x1024",
-}
+#
+# Matched by substring, not exact equality - a real live-verification
+# call (Phase 8.3) exposed that PromptGenerationProvider's real
+# aspect_ratio output is free text like "4:5 vertical marketing ad", not
+# a bare ratio string; an exact-match lookup silently fell through to
+# square for every real Creative Specification. Order matters: "2:3" is
+# checked before "3:2" would otherwise never get a chance to match
+# strings containing both as substrings of a longer phrase, though none
+# of today's real outputs do - kept explicit for when they might.
+_ASPECT_RATIO_TO_OPENAI_SIZE: list[tuple[str, str]] = [
+    ("1:1", "1024x1024"),
+    ("4:5", "1024x1536"),
+    ("9:16", "1024x1536"),
+    ("2:3", "1024x1536"),
+    ("16:9", "1536x1024"),
+    ("3:2", "1536x1024"),
+]
+
+
+def _size_for_aspect_ratio(aspect_ratio: str) -> str:
+    for ratio, size in _ASPECT_RATIO_TO_OPENAI_SIZE:
+        if ratio in aspect_ratio:
+            return size
+    return "1024x1024"
 
 
 class OpenAIImageGenerationAdapter:
@@ -368,7 +384,7 @@ class OpenAIImageGenerationAdapter:
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
         prompt = self._compile_openai_prompt(request)
-        size = _ASPECT_RATIO_TO_OPENAI_SIZE.get(request.aspect_ratio, "1024x1024")
+        size = _size_for_aspect_ratio(request.aspect_ratio)
 
         start = time.monotonic()
         response = self.client.images.generate(

@@ -25,4 +25,10 @@ models:
     vision_analysis: gpt-5.5
     text_generation: gpt-5.5
     prompt_generation: gpt-5.5
-    image_generation: gpt-5.5
+    # "gpt-5.5" (used by every other capability above) is not a real
+    # OpenAI model - confirmed via a real 400 from OpenAI's Images API
+    # while live-verifying Phase 8.3 (see MIGRATION_PLAN.md). Scoped fix:
+    # image_generation only, since that's the one capability this
+    # session actually exercised against the real API with a real key -
+    # the other 5 values are unchanged, not confirmed working or broken.
+    image_generation: gpt-image-1

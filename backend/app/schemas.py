@@ -261,6 +261,31 @@ class NarrativeStructureRead(BaseModel):
     stale_because: list[str] = []
 
 
+class GeneratedImageRead(BaseModel):
+    """
+    Phase 8.3 of the Generation -> Validation proof of loop, see
+    MIGRATION_PLAN.md. No is_stale/stale_because - staleness (Phase 7.4)
+    exists to flag an artifact built from an upstream version that's
+    since moved on; a generated image is a point-in-time output, not
+    something that goes stale relative to its own inputs the way an
+    analysis artifact does.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    schema_version: str
+    is_current: bool
+    slide_id: str
+    creative_specification_id: str
+    provider: str
+    model_name: str
+    prompt_used: str
+    seed: str | None
+    generation_time_seconds: float
+    created_at: datetime
+
+
 class OCRResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

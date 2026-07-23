@@ -126,3 +126,31 @@ def test_openai_image_generation_adapter_omits_optional_prompt_sections_when_emp
 
     _, kwargs = mock_generate.call_args
     assert kwargs["size"] == "1024x1024"  # unrecognized aspect ratio falls back to square
+
+
+def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring():
+    """
+    Real gap found live-verifying Phase 8.3 (see MIGRATION_PLAN.md):
+    PromptGenerationProvider's real output is free text like "4:5
+    vertical marketing ad", not a bare ratio string - an exact-match
+    lookup silently fell through to square for every real Creative
+    Specification.
+    """
+    canned_response = _fake_image_response(base64.b64encode(b"bytes").decode())
+    adapter = OpenAIImageGenerationAdapter(model="gpt-5.5")
+
+    with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
+        client = adapter.client
+
+    request = GenerationRequest(
+        creative_intent="Subject: a bottle",
+        immutable_constraints=[],
+        things_to_avoid=[],
+        aspect_ratio="4:5 vertical marketing ad",
+    )
+
+    with patch.object(client.images, "generate", return_value=canned_response) as mock_generate:
+        adapter.generate_image(request)
+
+    _, kwargs = mock_generate.call_args
+    assert kwargs["size"] == "1024x1536"

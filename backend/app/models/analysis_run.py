@@ -33,6 +33,10 @@ ANALYSIS_TYPE_CREATIVE_FINGERPRINT = "creative_fingerprint"
 ANALYSIS_TYPE_MARKETING_ANALYSIS = "marketing_analysis"
 ANALYSIS_TYPE_CREATIVE_SPECIFICATION = "creative_specification"
 ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
+# Phase 8.3 of the Generation -> Validation proof of loop (see
+# MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
+# see app.slideshow_stages.image_generation_stage's docstring for why.
+ANALYSIS_TYPE_GENERATED_IMAGE = "generated_image"
 
 STATUS_PENDING = "pending"
 STATUS_SUCCEEDED = "succeeded"

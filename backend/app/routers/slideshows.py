@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
+from app.models.generated_image import GeneratedImage
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
@@ -21,11 +22,13 @@ from app.schemas import (
     AnalysisRunRead,
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
+    GeneratedImageRead,
     SlideshowRead,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
+from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
 
 router = APIRouter(prefix="/api/slideshows", tags=["slideshows"])
@@ -218,6 +221,65 @@ def list_analysis_runs(slideshow_id: str, db: Session = Depends(get_db)) -> list
         .order_by(AnalysisRun.created_at.desc())
     )
     return list(db.scalars(stmt))
+
+
+@router.post(
+    "/{slideshow_id}/slides/{slide_id}/generate-image",
+    response_model=GeneratedImageRead,
+    status_code=201,
+)
+def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_db)) -> GeneratedImage:
+    """
+    Phase 8.3 of the Generation -> Validation proof of loop (see
+    MIGRATION_PLAN.md) - deliberately synchronous, not the
+    background-task/polling pattern every pipeline stage uses (that
+    pattern exists to keep /analyze's status polling coherent; this
+    endpoint is a standalone, explicitly-triggered action with its own
+    response, not part of that status machine). Real image-generation
+    latency is comparable to the vision/text calls already awaited
+    synchronously elsewhere in this codebase's tests.
+
+    Only slide_id == slideshow.primary_slide.id is supported today - the
+    architecture direction's explicit "one slide first" scope boundary,
+    checked here rather than silently generating for whichever slide the
+    Image Generation Stage happens to read.
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    primary_slide = slideshow.primary_slide
+    if slide_id != primary_slide.id:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Only the primary slide supports image generation today "
+                "(Phase 8's 'one slide first' scope boundary)."
+            ),
+        )
+
+    result = SlideImageGenerationStage().run(db, slideshow)
+    if not result.succeeded:
+        raise HTTPException(status_code=422, detail=result.error)
+
+    generated_image = db.scalars(
+        select(GeneratedImage).where(
+            GeneratedImage.slide_id == primary_slide.id,
+            GeneratedImage.is_current.is_(True),
+        )
+    ).first()
+    return generated_image
+
+
+@router.get("/{slideshow_id}/generated-images/{generated_image_id}/file")
+def get_generated_image_file(
+    slideshow_id: str, generated_image_id: str, db: Session = Depends(get_db)
+) -> FileResponse:
+    """Serves one generated image's file - mirrors get_slide_file/get_reference_image_file."""
+    generated_image = db.get(GeneratedImage, generated_image_id)
+    if generated_image is None or generated_image.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Generated image not found")
+    return FileResponse(generated_image.file_path)
 
 
 @router.post("/{slideshow_id}/slides/{slide_id}/assign-product", response_model=SlideshowRead)
