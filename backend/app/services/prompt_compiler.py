@@ -30,6 +30,22 @@ call with no reference images has nothing to condition product fidelity
 on, and Product Lock v2's whole point is that this should never happen
 silently.
 
+bundle_members (Phase 10.7, AI Creative Engine vNext §12's "Bundle
+Composition" addendum) is the one addition since the Phase 9.3 rewrite
+above - still additive, still optional, still no new I/O. When given,
+it's plain, precomputed data (role_in_scene + how many of
+reference_image_paths belong to that member, in the same order the
+caller concatenated them - see app.services.generation_engine.
+run_bundle_generation_attempt), used only to build one explicit
+instruction telling the provider which reference images belong to
+which distinct product and what part it plays in the scene. This
+phrasing (list each product's role, point at its specific reference
+images by position) is the exact structure a real, live-verified spike
+confirmed works: a real generation call given two genuinely different
+products' reference images, with this kind of positional callout,
+composed both together correctly in one photorealistic scene - see
+that phase's report in MIGRATION_PLAN.md.
+
 Still a pure function - no I/O, no DB queries, no provider calls,
 trivially unit-testable with plain dicts and a plain list of path
 strings. Reference Selection (a separate service, app.services.
@@ -91,10 +107,28 @@ def format_attribute_value(value) -> str:
     return str(value)
 
 
+def _bundle_composition_instruction(bundle_members: list[dict]) -> str:
+    lines = [
+        "This is a BUNDLE composition: compose the following distinct products "
+        "together in the same scene, matching each one's own reference photos "
+        "exactly. Every product listed below must be clearly visible and "
+        "recognizable in the final image - do not omit or merge any of them."
+    ]
+    start = 1
+    for member in bundle_members:
+        count = member["image_count"]
+        end = start + count - 1
+        image_ref = f"reference image {start}" if start == end else f"reference images {start}-{end}"
+        lines.append(f"- {member['role_in_scene']}: shown in {image_ref}")
+        start = end + 1
+    return "\n".join(lines)
+
+
 def compile_generation_request(
     creative_specification: dict,
     reference_image_paths: list[str],
     platform: str = "generic",
+    bundle_members: list[dict] | None = None,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -108,6 +142,12 @@ def compile_generation_request(
     caller. This function does not read them - reading happens in the
     provider adapter, which needs the actual bytes to call a real API;
     this function only carries the paths through as plain data.
+
+    bundle_members (Phase 10.7, §12's Bundle Composition addendum): a
+    list of `{"role_in_scene": str, "image_count": int}` in the same
+    order the caller concatenated each member's own reference images
+    into reference_image_paths - see this function's own module
+    docstring for why this exists and what confirmed it works.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -118,6 +158,9 @@ def compile_generation_request(
         )
 
     intent_parts = []
+    if bundle_members:
+        intent_parts.append(_bundle_composition_instruction(bundle_members))
+
     for field_name, label in _CREATIVE_SPEC_INTENT_FIELDS:
         value = creative_specification.get(field_name)
         if value:

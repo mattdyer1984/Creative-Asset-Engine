@@ -30,6 +30,22 @@ pass/fail or score is derived from AI-provided facts.
 `creative_fidelity_json`/`text_quality_json` are still never populated
 by this sub-phase - those remain later, separate sub-phases (10.4/the
 eventual Text Intelligence phase).
+
+**Bundle Composition (Phase 10.7, §12's addendum)**: `assess_bundle_candidate`
+is a parallel entry point for a candidate produced by
+`run_bundle_generation_attempt` - "every product in the scene must
+still retain its own canonical identity, reference set and validation,"
+per the user's own explicit instruction, so Product Fidelity becomes N
+independent Stage-1-only validations (one per member,
+`run_bundle_member_identity_validation`) rather than one. `accepted`
+requires **every** member to individually pass - never an averaged or
+majority score, since one wrong product in a bundle shot is a real
+failure, not a partial one. Photorealism still runs once per candidate
+image (a single image has one photorealism judgment regardless of how
+many products are in it), spent only once every member's identity
+check clears - the same floor-before-spend discipline as the single-
+product path, generalized from "the one product passed" to "every
+member passed."
 """
 
 from pathlib import Path
@@ -37,11 +53,16 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
+from app.models.bundle_composition import BundleCompositionMember
 from app.models.generated_image import GeneratedImage
+from app.models.generation_attempt import GenerationAttempt
 from app.models.image_validation_result import ImageValidationResult
 from app.models.quality_assessment import QualityAssessment
 from app.slideshow_stages.base import StageResult
-from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
+from app.slideshow_stages.image_validation_stage import (
+    SlideImageValidationStage,
+    run_bundle_member_identity_validation,
+)
 
 PHOTOREALISM_SCHEMA = {
     "type": "object",
@@ -171,5 +192,81 @@ def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAss
     # already committed its own row before this point). Without this,
     # get_db()'s session.close() rolls the assessment back - a real bug
     # found via live verification in Phase 10.2, not a style preference.
+    db.commit()
+    return assessment
+
+
+def assess_bundle_candidate(db: Session, generated_image: GeneratedImage) -> QualityAssessment | StageResult:
+    """
+    Bundle Composition counterpart to assess_candidate (Phase 10.7,
+    §12's addendum) - see this module's own docstring for the accept
+    logic. Resolves the candidate's BundleComposition via
+    GenerationAttempt.bundle_composition_id (never via
+    GeneratedImage.generation_reference_set_id, which stays null for a
+    bundle candidate - see BundleComposition's own docstring) and runs
+    one independent Stage 1 Identity Validation per member.
+    """
+    attempt = db.get(GenerationAttempt, generated_image.generation_attempt_id)
+    if attempt is None or attempt.bundle_composition_id is None:
+        return StageResult(
+            succeeded=False,
+            error="This candidate has no Bundle Composition - use assess_candidate instead.",
+        )
+
+    members = list(
+        db.query(BundleCompositionMember)
+        .filter(BundleCompositionMember.bundle_composition_id == attempt.bundle_composition_id)
+        .order_by(BundleCompositionMember.rank)
+        .all()
+    )
+    if not members:
+        return StageResult(succeeded=False, error="Bundle Composition has no members to validate against.")
+
+    validation_result_ids: list[str] = []
+    all_passed = True
+    for member in members:
+        stage_result = run_bundle_member_identity_validation(db, generated_image, member)
+        if not stage_result.succeeded:
+            return stage_result
+
+        member_result = (
+            db.query(ImageValidationResult)
+            .filter(
+                ImageValidationResult.generated_image_id == generated_image.id,
+                ImageValidationResult.product_id == member.product_id,
+                ImageValidationResult.is_current.is_(True),
+            )
+            .one()
+        )
+        validation_result_ids.append(member_result.id)
+        all_passed = all_passed and bool(member_result.passed)
+
+    photorealism_json: dict | None = None
+    if all_passed:
+        vision_provider = default_registry.vision()
+        generated_image_bytes = Path(generated_image.file_path).read_bytes()
+        photorealism_json = vision_provider.analyze_creative(
+            image_bytes=generated_image_bytes,
+            prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
+            response_schema=PHOTOREALISM_SCHEMA,
+        )
+        photorealism_score = _score_photorealism(photorealism_json)
+        accepted = photorealism_score >= PHOTOREALISM_FLOOR
+        overall_confidence_score = photorealism_score
+    else:
+        accepted = False
+        overall_confidence_score = 0.0
+
+    assessment = QualityAssessment(
+        generated_image_id=generated_image.id,
+        image_validation_result_id=None,
+        image_validation_result_ids_json=validation_result_ids,
+        photorealism_json=photorealism_json,
+        overall_confidence_score=overall_confidence_score,
+        accepted=accepted,
+    )
+    db.add(assessment)
+    # Same real-commit reasoning as assess_candidate above - nothing
+    # after this point to piggyback a commit on.
     db.commit()
     return assessment

@@ -27,12 +27,12 @@ attempt with the same GenerationPlan," not yet the fully adaptive
 read (photorealism_json, creative_fidelity_json) don't exist until
 later sub-phases.
 
-bundle_composition_id (§12's "mutually exclusive with
-generation_reference_set_id" field) is deliberately not added yet -
-Bundle Composition is its own later sub-phase (10.7); adding a nullable
-FK to a table that doesn't exist yet isn't possible, and this column
-will be added additively when that sub-phase lands, the same
-expand-as-you-go discipline every other phase in this engagement uses.
+bundle_composition_id (Phase 10.7, §12's "Bundle Composition" addendum)
+is mutually exclusive with generation_reference_set_id above - set
+only when this attempt used Bundle Composition (several distinct
+products composed into one scene), in which case
+generation_reference_set_id stays null (a bundle attempt has N Sets,
+one per member, not one - see BundleCompositionMember, not this row).
 """
 
 from datetime import datetime
@@ -54,6 +54,9 @@ class GenerationAttempt(Base):
     )
     generation_reference_set_id: Mapped[str | None] = mapped_column(
         ForeignKey("generation_reference_sets.id"), nullable=True
+    )
+    bundle_composition_id: Mapped[str | None] = mapped_column(
+        ForeignKey("bundle_compositions.id"), nullable=True
     )
     quality_mode: Mapped[str] = mapped_column(String(32), nullable=False)
     decision_json: Mapped[dict] = mapped_column(JSON, nullable=False)

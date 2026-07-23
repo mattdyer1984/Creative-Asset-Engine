@@ -22,6 +22,12 @@ candidate is a real paid provider call (up to
 this must stay behind its own explicit, user-triggered endpoint
 (`POST .../generate-creative`), never one `POST /analyze` away from
 firing.
+
+`bundle_members` (Phase 10.7, §12's addendum), when given, routes every
+attempt through `run_bundle_generation_attempt`/`assess_bundle_candidate`
+instead of the single-product pair - the retry loop's own shape (chain
+attempts, pick the best accepted candidate) is identical either way,
+only which Generation/Quality Engine entry point runs differs.
 """
 
 from dataclasses import dataclass
@@ -34,8 +40,8 @@ from app.models.generation_attempt import GenerationAttempt
 from app.models.quality_assessment import QualityAssessment
 from app.models.slideshow import Slideshow
 from app.services.decision_engine import decide_generation_plan
-from app.services.generation_engine import run_generation_attempt
-from app.services.quality_engine import assess_candidate
+from app.services.generation_engine import run_bundle_generation_attempt, run_generation_attempt
+from app.services.quality_engine import assess_bundle_candidate, assess_candidate
 from app.slideshow_stages.base import StageResult
 
 # A small, real bound, not "retry forever" - §14 calls for a
@@ -68,6 +74,7 @@ def generate_with_retry(
     *,
     creativity_level: str = "conservative",
     max_retries: int = DEFAULT_MAX_RETRIES,
+    bundle_members: list[dict] | None = None,
 ) -> RetryLoopResult | StageResult:
     slide = slideshow.primary_slide
     if slideshow.current_creative_specification_id is None:
@@ -94,8 +101,12 @@ def generate_with_retry(
             creativity_level=creativity_level,
             retry_of_generation_attempt_id=retry_of_id,
             retry_reason=retry_reason,
+            bundle_members=bundle_members,
         )
-        attempt_result = run_generation_attempt(db, slide, creative_specification, plan)
+        if plan.bundle_members:
+            attempt_result = run_bundle_generation_attempt(db, slide, creative_specification, plan)
+        else:
+            attempt_result = run_generation_attempt(db, slide, creative_specification, plan)
         if isinstance(attempt_result, StageResult):
             # Can't even start (no product assigned, empty Library) -
             # the same failure would recur on every retry, so stop
@@ -105,7 +116,9 @@ def generate_with_retry(
 
         candidate_assessments: list[CandidateAssessment] = []
         for candidate in attempt_result.candidates:
-            assessment_result = assess_candidate(db, candidate)
+            assessment_result = (
+                assess_bundle_candidate(db, candidate) if plan.bundle_members else assess_candidate(db, candidate)
+            )
             if isinstance(assessment_result, StageResult):
                 # This one candidate's validation couldn't run (e.g. no
                 # immutable Product Profile fields yet) - treated as a

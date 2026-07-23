@@ -417,7 +417,13 @@ class QualityAssessmentRead(BaseModel):
 
     id: str
     generated_image_id: str
-    image_validation_result_id: str
+    # Mutually exclusive (Phase 10.7, §12's Bundle Composition addendum):
+    # a single-product candidate sets image_validation_result_id alone;
+    # a Bundle Composition candidate sets image_validation_result_ids
+    # alone (one per member product) - see QualityAssessment's own
+    # docstring for why.
+    image_validation_result_id: str | None = None
+    image_validation_result_ids: list[str] | None = None
     # Phase 10.3 - null whenever Product Fidelity didn't pass (the
     # short-circuit that saves the real vision call), never a fabricated
     # score for a candidate that was never actually assessed for it.
@@ -445,6 +451,13 @@ class GenerationAttemptRead(BaseModel):
     candidates: list[GenerationCandidateRead]
 
 
+class BundleMemberRequest(BaseModel):
+    """One product's part in a Bundle Composition (Phase 10.7, §12's addendum) - see GenerateCreativeRequest."""
+
+    product_id: str
+    role_in_scene: str
+
+
 class GenerateCreativeRequest(BaseModel):
     quality_mode: str
     # Phase 10.4 (see MIGRATION_PLAN.md's vNext ADR §8/§11 Revision #5) -
@@ -453,6 +466,11 @@ class GenerateCreativeRequest(BaseModel):
     # conservative behavior generate_with_retry already used before this
     # field existed.
     creativity_level: str = "conservative"
+    # Phase 10.7 (§12's Bundle Composition addendum) - explicit opt-in
+    # into composing several distinct products into one scene, never
+    # inferred from anything about the slide/product. None (the
+    # default) is the ordinary single-product path, unchanged.
+    bundle_members: list[BundleMemberRequest] | None = None
 
 
 class GenerateCreativeResponse(BaseModel):

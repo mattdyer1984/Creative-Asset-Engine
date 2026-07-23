@@ -45,6 +45,14 @@ relies on everywhere else. Tri-state: a slide with no `SceneAnalysis`
 yet (pre-10.4 slideshow, or the pipeline hasn't rerun) skips this
 entirely and compiles the original, un-enriched specification -
 exactly how generation already worked before this sub-phase.
+
+**Bundle Composition (Phase 10.7, §12's addendum)**:
+`run_bundle_generation_attempt` is a second, parallel entry point
+(not a mode flag on `run_generation_attempt`) for the explicit,
+opt-in case a marketing objective calls for several distinct products
+composed into one scene. Shares the candidate-generation mechanics
+with the single-product path via `_generate_candidates` but not its
+single-Reference-Set assumption - see that function's own docstring.
 """
 
 from dataclasses import dataclass
@@ -55,6 +63,7 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
+from app.models.bundle_composition import BundleComposition, BundleCompositionMember
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
@@ -124,6 +133,75 @@ class GenerationAttemptResult:
     candidates: list[GeneratedImage]
 
 
+def _generate_candidates(
+    db: Session,
+    slide: Slide,
+    creative_specification: CreativeSpecification,
+    attempt: GenerationAttempt,
+    image_provider,
+    request,
+    candidate_count: int,
+    generation_reference_set_id: str | None,
+) -> list[GeneratedImage]:
+    """
+    Shared candidate loop for both the single-product path
+    (run_generation_attempt) and the Bundle Composition path
+    (run_bundle_generation_attempt, Phase 10.7) - identical mechanics
+    either way (call the provider, persist, save the file, mark the
+    AnalysisRun), the only real difference between the two callers is
+    what generation_reference_set_id to stamp on each GeneratedImage
+    row: the single Set for a single-product attempt, None for a bundle
+    attempt (whose N Sets live on BundleCompositionMember instead - see
+    that model's own docstring).
+    """
+    candidates: list[GeneratedImage] = []
+    for candidate_index in range(candidate_count):
+        analysis_run = start_analysis_run(
+            db,
+            slide_id=slide.id,
+            analysis_type=ANALYSIS_TYPE_GENERATED_IMAGE,
+            provider=image_provider.provider,
+            model_name=image_provider.model,
+            durable=True,
+        )
+        try:
+            result = image_provider.generate_image(request)
+
+            generated_image = GeneratedImage(
+                analysis_run_id=analysis_run.id,
+                slideshow_id=slide.slideshow_id,
+                slide_id=slide.id,
+                creative_specification_id=creative_specification.id,
+                generation_reference_set_id=generation_reference_set_id,
+                generation_attempt_id=attempt.id,
+                candidate_index=candidate_index,
+                is_current=False,  # candidates aren't "the" current generation until one is accepted
+                provider=result.provider,
+                model_name=result.model,
+                prompt_used=result.prompt_used,
+                seed=result.seed,
+                generation_time_seconds=result.generation_time_seconds,
+                file_path="",
+            )
+            db.add(generated_image)
+            db.flush()
+
+            saved_path = storage.save_generated_image(
+                slide.id, generated_image.id, result.image_bytes
+            )
+            generated_image.file_path = str(saved_path)
+            db.flush()
+
+        except Exception as exc:
+            mark_failed(db, analysis_run, exc, rollback=True)
+            continue
+
+        mark_succeeded(db, analysis_run)
+        candidates.append(generated_image)
+
+    return candidates
+
+
 def run_generation_attempt(
     db: Session, slide: Slide, creative_specification: CreativeSpecification, plan: GenerationPlan
 ) -> GenerationAttemptResult | StageResult:
@@ -181,49 +259,113 @@ def run_generation_attempt(
     db.add(attempt)
     db.flush()
 
-    candidates: list[GeneratedImage] = []
-    for candidate_index in range(plan.candidate_count):
-        analysis_run = start_analysis_run(
-            db,
-            slide_id=slide.id,
-            analysis_type=ANALYSIS_TYPE_GENERATED_IMAGE,
-            provider=image_provider.provider,
-            model_name=image_provider.model,
-            durable=True,
+    candidates = _generate_candidates(
+        db, slide, creative_specification, attempt, image_provider, request,
+        plan.candidate_count, generation_reference_set.id,
+    )
+    return GenerationAttemptResult(attempt=attempt, candidates=candidates)
+
+
+def run_bundle_generation_attempt(
+    db: Session,
+    slide: Slide,
+    creative_specification: CreativeSpecification,
+    plan: GenerationPlan,
+) -> GenerationAttemptResult | StageResult:
+    """
+    Bundle Composition path (Phase 10.7, §12's "Bundle Composition"
+    addendum) - `plan.bundle_members` (set by the Decision Engine,
+    never inferred) is a list of `{"product_id": str, "role_in_scene":
+    str}`, in the order they should appear in the composed scene.
+
+    Deliberately product-centric per member, exactly like the single-
+    product path: Reference Selection runs independently, once per
+    product (select_reference_images, unchanged), never asked to reason
+    about more than one product at a time - Bundle Composition only
+    assembles those already-independent selections afterward. Aborts
+    the whole attempt (a StageResult, nothing committed) if ANY
+    member's product is missing or has an empty Library - a partial
+    bundle (some products resolved, one silently dropped) would violate
+    "every product in the scene must still retain its own canonical
+    identity," so this fails closed rather than degrading quietly.
+
+    Deliberately skips Creative Intelligence's Scene Analysis enrichment
+    (_enriched_creative_specification above, Phase 10.4) - that logic
+    reasons about a single scene's regions belonging to one product's
+    shot, and a bundle scene composed of several distinct products has
+    no well-defined per-region ownership to hand it. Compiles the
+    Creative Specification's own structured_json unchanged instead - a
+    real, flagged scope cut (see this phase's report in
+    MIGRATION_PLAN.md), not an oversight.
+    """
+    if not plan.bundle_members:
+        return StageResult(succeeded=False, error="Bundle Composition requires at least one member product.")
+
+    image_provider = default_registry.image_generation(plan.provider)
+
+    bundle_composition = BundleComposition(
+        slide_id=slide.id, creative_specification_id=creative_specification.id
+    )
+    db.add(bundle_composition)
+    db.flush()
+
+    reference_image_paths: list[str] = []
+    bundle_member_prompt_metadata: list[dict] = []
+    for rank, member_request in enumerate(plan.bundle_members):
+        product = db.get(Product, member_request["product_id"])
+        if product is None:
+            return StageResult(
+                succeeded=False, error=f"Product {member_request['product_id']} does not exist."
+            )
+
+        member_reference_set = select_reference_images(
+            db, product.id, creative_specification.structured_json, image_provider.capabilities
         )
-        try:
-            result = image_provider.generate_image(request)
-
-            generated_image = GeneratedImage(
-                analysis_run_id=analysis_run.id,
-                slideshow_id=slide.slideshow_id,
-                slide_id=slide.id,
-                creative_specification_id=creative_specification.id,
-                generation_reference_set_id=generation_reference_set.id,
-                generation_attempt_id=attempt.id,
-                candidate_index=candidate_index,
-                is_current=False,  # candidates aren't "the" current generation until one is accepted
-                provider=result.provider,
-                model_name=result.model,
-                prompt_used=result.prompt_used,
-                seed=result.seed,
-                generation_time_seconds=result.generation_time_seconds,
-                file_path="",
+        if member_reference_set is None:
+            return StageResult(
+                succeeded=False,
+                error=(
+                    f"No Generation Reference Set available for product {product.id} - its "
+                    "Canonical Reference Library is empty. Run Reference Scoring first."
+                ),
             )
-            db.add(generated_image)
-            db.flush()
 
-            saved_path = storage.save_generated_image(
-                slide.id, generated_image.id, result.image_bytes
+        member_paths = get_reference_image_paths(db, member_reference_set.id)
+        db.add(
+            BundleCompositionMember(
+                bundle_composition_id=bundle_composition.id,
+                product_id=product.id,
+                generation_reference_set_id=member_reference_set.id,
+                role_in_scene=member_request["role_in_scene"],
+                rank=rank,
             )
-            generated_image.file_path = str(saved_path)
-            db.flush()
+        )
+        reference_image_paths.extend(member_paths)
+        bundle_member_prompt_metadata.append(
+            {"role_in_scene": member_request["role_in_scene"], "image_count": len(member_paths)}
+        )
+    db.flush()
 
-        except Exception as exc:
-            mark_failed(db, analysis_run, exc, rollback=True)
-            continue
+    request = compile_generation_request(
+        creative_specification.structured_json,
+        reference_image_paths,
+        bundle_members=bundle_member_prompt_metadata,
+    )
 
-        mark_succeeded(db, analysis_run)
-        candidates.append(generated_image)
+    attempt = GenerationAttempt(
+        slide_id=slide.id,
+        creative_specification_id=creative_specification.id,
+        generation_reference_set_id=None,
+        bundle_composition_id=bundle_composition.id,
+        quality_mode=plan.quality_mode,
+        decision_json=plan.to_dict(),
+        retry_of_generation_attempt_id=plan.retry_of_generation_attempt_id,
+    )
+    db.add(attempt)
+    db.flush()
 
+    candidates = _generate_candidates(
+        db, slide, creative_specification, attempt, image_provider, request,
+        plan.candidate_count, None,
+    )
     return GenerationAttemptResult(attempt=attempt, candidates=candidates)

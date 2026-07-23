@@ -56,3 +56,12 @@ def test_creativity_level_defaults_to_conservative_and_is_carried_through():
 def test_unknown_creativity_level_raises():
     with pytest.raises(ValueError, match="Unknown creativity_level"):
         decide_generation_plan("fast", creativity_level="ludicrous")
+
+
+def test_bundle_members_defaults_to_none_and_is_carried_through():
+    """Phase 10.7, §12's Bundle Composition addendum - explicit opt-in, never inferred."""
+    assert decide_generation_plan("fast").bundle_members is None
+
+    members = [{"product_id": "prod-1", "role_in_scene": "hero"}, {"product_id": "prod-2", "role_in_scene": "background"}]
+    plan = decide_generation_plan("fast", bundle_members=members)
+    assert plan.bundle_members == members

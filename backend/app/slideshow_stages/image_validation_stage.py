@@ -49,6 +49,7 @@ from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_IMAGE_VALIDATION
+from app.models.bundle_composition import BundleCompositionMember
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
 from app.models.image_validation_result import ImageValidationResult
@@ -285,3 +286,97 @@ class SlideImageValidationStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         return mark_succeeded(db, analysis_run)
+
+
+def run_bundle_member_identity_validation(
+    db: Session, generated_image: GeneratedImage, member: BundleCompositionMember
+) -> StageResult:
+    """
+    Stage 1 Identity Validation only, run independently for one Bundle
+    Composition member (Phase 10.7, §12's "Bundle Composition" addendum)
+    - "every product in the scene must still retain its own canonical
+    identity, reference set and validation," per the user's own
+    explicit instruction. Compares the generated (bundle) image against
+    THIS member's own GenerationReferenceSet, exactly the same
+    mechanism SlideImageValidationStage.run's Stage 1 already uses for
+    a single-product image - reused directly (_build_identity_prompt,
+    IDENTITY_VALIDATION_SCHEMA), just addressed at one member instead
+    of the whole image.
+
+    Deliberately does NOT run Stage 2 (the text-field creative check):
+    that depends on the single Creative Specification -> Product Lock
+    Profile -> Product chain _resolve_product uses, which has no
+    well-defined per-member analogue for a scene composed of several
+    distinct products - a genuine, flagged scope cut (see
+    app.services.quality_engine.assess_bundle_candidate), not an
+    oversight. `passed` on the persisted row is therefore
+    identity_passed alone here, unlike the single-product path's
+    identity-AND-creative combination.
+
+    Persists its own ImageValidationResult row, is_current-scoped to
+    (generated_image_id, product_id) rather than the whole image - a
+    bundle image legitimately has several *simultaneously* current
+    results, one per member, unlike the single-product path's "exactly
+    one current result per image" invariant.
+    """
+    product = db.get(Product, member.product_id)
+    if product is None:
+        return StageResult(
+            succeeded=False, error=f"Product {member.product_id} referenced by this bundle member no longer exists."
+        )
+
+    reference_paths = get_reference_image_paths(db, member.generation_reference_set_id)
+    if not reference_paths:
+        return StageResult(
+            succeeded=False,
+            error=f"Bundle member's Generation Reference Set for product {product.id} has no images.",
+        )
+
+    vision_provider = default_registry.vision()
+    analysis_run = start_analysis_run(
+        db,
+        analysis_type=ANALYSIS_TYPE_IMAGE_VALIDATION,
+        provider=vision_provider.provider,
+        model_name=vision_provider.model,
+        durable=True,
+    )
+
+    try:
+        generated_image_bytes = Path(generated_image.file_path).read_bytes()
+        reference_bytes = [Path(path).read_bytes() for path in reference_paths]
+        identity_result = vision_provider.analyze_creative(
+            image_bytes=[generated_image_bytes, *reference_bytes],
+            prompt_spec={"prompt": _build_identity_prompt(), "schema_name": "identity_validation"},
+            response_schema=IDENTITY_VALIDATION_SCHEMA,
+        )
+        identity_checks = identity_result["field_checks"]
+        identity_passed = bool(identity_checks) and all(check["preserved"] for check in identity_checks)
+
+        db.query(ImageValidationResult).filter(
+            ImageValidationResult.generated_image_id == generated_image.id,
+            ImageValidationResult.product_id == member.product_id,
+            ImageValidationResult.is_current.is_(True),
+        ).update({"is_current": False})
+
+        db.add(
+            ImageValidationResult(
+                analysis_run_id=analysis_run.id,
+                generated_image_id=generated_image.id,
+                product_id=member.product_id,
+                passed=identity_passed,
+                field_checks_json=[],
+                overall_explanation=(
+                    "Bundle Composition member validation - Stage 1 Identity only, "
+                    "see run_bundle_member_identity_validation's own docstring for why "
+                    "Stage 2 does not run per-member."
+                ),
+                identity_passed=identity_passed,
+                identity_checks_json=identity_checks,
+            )
+        )
+        db.flush()
+
+    except Exception as exc:
+        return mark_failed(db, analysis_run, exc, rollback=True)
+
+    return mark_succeeded(db, analysis_run)

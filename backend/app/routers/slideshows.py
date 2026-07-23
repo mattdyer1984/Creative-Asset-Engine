@@ -368,7 +368,15 @@ def generate_creative(
 
     try:
         result = generate_with_retry(
-            db, slideshow, payload.quality_mode, creativity_level=payload.creativity_level
+            db,
+            slideshow,
+            payload.quality_mode,
+            creativity_level=payload.creativity_level,
+            bundle_members=(
+                [member.model_dump() for member in payload.bundle_members]
+                if payload.bundle_members
+                else None
+            ),
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -395,6 +403,7 @@ def generate_creative(
                             id=candidate.quality_assessment.id,
                             generated_image_id=candidate.quality_assessment.generated_image_id,
                             image_validation_result_id=candidate.quality_assessment.image_validation_result_id,
+                            image_validation_result_ids=candidate.quality_assessment.image_validation_result_ids_json,
                             photorealism=candidate.quality_assessment.photorealism_json,
                             overall_confidence_score=candidate.quality_assessment.overall_confidence_score,
                             accepted=candidate.quality_assessment.accepted,

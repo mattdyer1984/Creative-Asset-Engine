@@ -95,3 +95,35 @@ def test_missing_optional_creative_specification_fields_are_skipped_not_blank():
     assert "Style" not in request.creative_intent
     assert "Color palette" not in request.creative_intent
     assert "Text overlays" not in request.creative_intent
+
+
+# --- Phase 10.7 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+# §12's "Bundle Composition" addendum) -------------------------------
+
+
+def test_no_bundle_instruction_when_bundle_members_is_none():
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "BUNDLE" not in request.creative_intent
+
+
+def test_bundle_instruction_lists_each_member_role_and_its_reference_range():
+    bundle_members = [
+        {"role_in_scene": "hero perfume bottle", "image_count": 2},
+        {"role_in_scene": "background mug", "image_count": 1},
+    ]
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS + ["/data/storage/products/prod-2/ref-1.jpg"],
+        bundle_members=bundle_members,
+    )
+
+    assert "BUNDLE" in request.creative_intent
+    assert "hero perfume bottle: shown in reference images 1-2" in request.creative_intent
+    assert "background mug: shown in reference image 3" in request.creative_intent
+
+
+def test_bundle_instruction_comes_before_the_ordinary_scene_fields():
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS,
+        bundle_members=[{"role_in_scene": "hero", "image_count": 2}],
+    )
+    assert request.creative_intent.index("BUNDLE") < request.creative_intent.index("Composition:")

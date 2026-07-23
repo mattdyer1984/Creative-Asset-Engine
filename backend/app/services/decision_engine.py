@@ -32,6 +32,15 @@ through to Creative Intelligence's `optimize_scene_description`. Per
 from the original staging that optimisation is allowed to reach,
 bounded always by the correct context-tier category and every
 preserved region staying intact.
+
+`bundle_members` (Phase 10.7, §12's "Bundle Composition" addendum) is
+how a caller opts into Bundle Composition - explicit, never inferred
+from "this slide has a Listing-resolved Bundle attached" (the ADR's
+own explicit instruction). None by default; when given (a list of
+`{"product_id": str, "role_in_scene": str}`), it's carried on the
+resulting `GenerationPlan` unchanged, and `generate_with_retry`/
+`run_bundle_generation_attempt` branch on its presence rather than a
+separate mode flag.
 """
 
 from dataclasses import asdict, dataclass
@@ -53,6 +62,7 @@ class GenerationPlan:
     creativity_level: str = "conservative"
     retry_of_generation_attempt_id: str | None = None
     retry_reason: str | None = None
+    bundle_members: list[dict] | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -64,6 +74,7 @@ def decide_generation_plan(
     creativity_level: str = "conservative",
     retry_of_generation_attempt_id: str | None = None,
     retry_reason: str | None = None,
+    bundle_members: list[dict] | None = None,
 ) -> GenerationPlan:
     if quality_mode not in QUALITY_MODE_CANDIDATE_COUNTS:
         raise ValueError(
@@ -91,4 +102,5 @@ def decide_generation_plan(
         creativity_level=creativity_level,
         retry_of_generation_attempt_id=retry_of_generation_attempt_id,
         retry_reason=retry_reason,
+        bundle_members=bundle_members,
     )

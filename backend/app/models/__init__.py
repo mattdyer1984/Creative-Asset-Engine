@@ -56,6 +56,13 @@ many-to-one); ProjectProduct is a pure membership join (mirroring
 ProductBundleMember's shape) recording which Products a Project's work
 involves, without Product moving into Project's ownership.
 
+BundleComposition and BundleCompositionMember (Phase 10.7, AI Creative
+Engine vNext - see MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext"
+§12's "Bundle Composition" addendum) let one generation attempt compose
+several distinct, independently-selected products into a single scene
+without relaxing Product Lock's own one-product-at-a-time reasoning
+anywhere else - see that model's own docstring for the full design.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -65,6 +72,7 @@ source_creative_id columns pending that same phase.
 """
 
 from app.models.analysis_run import AnalysisRun
+from app.models.bundle_composition import BundleComposition, BundleCompositionMember
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
@@ -119,6 +127,8 @@ __all__ = [
     "GenerationAttempt",
     "QualityAssessment",
     "SceneAnalysis",
+    "BundleComposition",
+    "BundleCompositionMember",
     "Slideshow",
     "Slide",
     "ProductAppearance",

@@ -28,6 +28,21 @@ yet would be fabricating a signal, not computing one. Both are still
 computed in code, never asked of the AI as a bare boolean, matching
 `image_validation_stage.py`'s own standing rule - there's just only one
 real input to that computation so far.
+
+image_validation_result_id / image_validation_result_ids_json (the
+latter added Phase 10.7, §12's "Bundle Composition" addendum) are
+mutually exclusive, the same pattern GenerationAttempt's own
+generation_reference_set_id/bundle_composition_id pair uses: a
+single-product candidate gets exactly one ImageValidationResult
+(image_validation_result_id, unchanged); a Bundle Composition candidate
+gets one ImageValidationResult per member product - "every product in
+the scene must still retain its own canonical identity, reference set
+and validation," per the user's own explicit instruction - stored as a
+plain JSON list of ids rather than a new join table, since nothing
+needs to query this list independently of its owning QualityAssessment
+row. image_validation_result_id relaxes to nullable in the same
+migration that adds this column, for a bundle candidate genuinely has
+no single result to point at.
 """
 
 from datetime import datetime
@@ -44,9 +59,10 @@ class QualityAssessment(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     generated_image_id: Mapped[str] = mapped_column(ForeignKey("generated_images.id"), nullable=False)
-    image_validation_result_id: Mapped[str] = mapped_column(
-        ForeignKey("image_validation_results.id"), nullable=False
+    image_validation_result_id: Mapped[str | None] = mapped_column(
+        ForeignKey("image_validation_results.id"), nullable=True
     )
+    image_validation_result_ids_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
     creative_fidelity_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     photorealism_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     text_quality_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
