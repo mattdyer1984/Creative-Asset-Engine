@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type Product, type Project, type Slideshow } from './api';
+import { ProjectWorkspace } from './components/ProjectWorkspace';
 import { ImportPanel } from './components/ImportPanel';
 import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
@@ -16,6 +17,13 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [creatingProject, setCreatingProject] = useState(false);
+  // Phase 10.5/10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  // ADR §3) - which Project's workspace is currently expanded, if any.
+  // No router in this app (see App.tsx's own history) - an inline
+  // expand/collapse follows the same single-page convention every other
+  // section here already uses, rather than introducing new routing
+  // infrastructure just for this one view.
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const loadProjects = () => {
     setLoadingProjects(true);
@@ -130,10 +138,24 @@ function App() {
           <ul className="project-list">
             {projects.map((project) => (
               <li key={project.id} className="project-list-item">
-                <span className="project-name">{project.name}</span>
-                <span className="project-meta">
-                  Created {new Date(project.created_at).toLocaleString()}
-                </span>
+                <button
+                  type="button"
+                  className="project-row-toggle"
+                  onClick={() =>
+                    setExpandedProjectId((current) =>
+                      current === project.id ? null : project.id
+                    )
+                  }
+                >
+                  <span className="project-name">{project.name}</span>
+                  <span className="project-meta">
+                    Created {new Date(project.created_at).toLocaleString()}
+                  </span>
+                  <span className="project-row-chevron">
+                    {expandedProjectId === project.id ? '▾' : '▸'}
+                  </span>
+                </button>
+                {expandedProjectId === project.id && <ProjectWorkspace project={project} />}
               </li>
             ))}
           </ul>

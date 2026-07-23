@@ -91,6 +91,41 @@ def test_blueprint_is_all_null_for_a_fresh_slideshow(client):
     assert body["failed_stage"] is None
 
 
+def test_blueprint_includes_a_reference_image_with_no_source_slide(client):
+    """
+    Real bug, found live via the UI (not written from a hypothesis): a
+    ProductReferenceImage from a direct user upload (Phase 9.6) or a
+    Product Source URL import (Phase 5) has neither source_creative_id
+    nor source_slide_id set - SlideProductReferenceImageRead's
+    source_slide_id was still non-nullable, so assemble_slideshow_blueprint
+    threw a real 500 for any product with such an image, for every
+    slideshow that product was ever assigned to.
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    slideshow_id, slide_id, product_id = _import_slideshow_with_product(client)
+
+    buffer = BytesIO()
+    Image.new("RGB", (200, 200), color=(50, 60, 70)).save(buffer, format="JPEG")
+    upload_response = client.post(
+        f"/api/products/{product_id}/reference-images/upload",
+        files={"file": ("uploaded.jpg", BytesIO(buffer.getvalue()), "image/jpeg")},
+    )
+    assert upload_response.status_code == 201
+
+    client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_id}/assign-product",
+        json={"product_id": product_id},
+    )
+
+    response = client.get(f"/api/slideshows/{slideshow_id}/blueprint")
+    assert response.status_code == 200
+    product = response.json()["slides"][0]["products"][0]
+    assert any(img["source_slide_id"] is None for img in product["product_reference_images"])
+
+
 def test_blueprint_unknown_slideshow_404s(client):
     response = client.get("/api/slideshows/does-not-exist/blueprint")
     assert response.status_code == 404

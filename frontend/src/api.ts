@@ -299,6 +299,78 @@ export interface ImageValidationResultData {
   identity_checks: ImageValidationFieldCheck[] | null;
 }
 
+// --- Phase 10.2-10.8 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+// "ADR: AI Creative Engine vNext") - the Decision -> Generation -> Quality
+// retry loop, Bundle Composition, and Text Intelligence/Rendering Engine.
+// Mirrors GenerateCreativeRequest/Response and friends in app/schemas.py.
+
+export type QualityMode = 'fast' | 'balanced' | 'maximum';
+export type CreativityLevel = 'conservative' | 'bold';
+// Phase 10.8, §9 - undefined/omitted means "the classic behavior" (the
+// model renders text itself) - a real, deliberate distinction from the
+// explicit 'no_text' strategy, not the same "no text" outcome. See
+// GenerationPlan.text_strategy's own docstring in decision_engine.py.
+export type TextStrategy = 'reuse_original' | 'ai_rewrite' | 'no_text';
+
+// Phase 10.7, §12's Bundle Composition addendum.
+export interface BundleMemberInput {
+  product_id: string;
+  role_in_scene: string;
+}
+
+export interface GenerateCreativeRequest {
+  quality_mode: QualityMode;
+  creativity_level?: CreativityLevel;
+  bundle_members?: BundleMemberInput[];
+  text_strategy?: TextStrategy;
+}
+
+// Mutually exclusive with image_validation_result_ids (Phase 10.7's
+// Bundle Composition addendum) - a single-product candidate sets the
+// singular field, a bundle candidate sets the plural one.
+export interface QualityAssessmentData {
+  id: string;
+  generated_image_id: string;
+  image_validation_result_id: string | null;
+  image_validation_result_ids: string[] | null;
+  // Phase 10.3 - null whenever Product Fidelity didn't pass (the
+  // vision call was never spent).
+  photorealism: Record<string, unknown> | null;
+  overall_confidence_score: number;
+  accepted: boolean;
+  created_at: string;
+}
+
+export interface GenerationCandidateData {
+  generated_image: GeneratedImageData;
+  quality_assessment: QualityAssessmentData;
+}
+
+export interface GenerationAttemptData {
+  id: string;
+  quality_mode: QualityMode;
+  retry_of_generation_attempt_id: string | null;
+  created_at: string;
+  candidates: GenerationCandidateData[];
+}
+
+// Phase 10.8, §15 - the Rendering Engine's composited output, only
+// present when a real text_strategy was given AND a winner was
+// actually accepted - null otherwise, never a placeholder.
+export interface FinalOutputData {
+  id: string;
+  generation_attempt_id: string;
+  generated_image_id: string;
+  text_assets: Record<string, unknown>[];
+  created_at: string;
+}
+
+export interface GenerateCreativeResponseData {
+  attempts: GenerationAttemptData[];
+  winner: GeneratedImageData | null;
+  final_output: FinalOutputData | null;
+}
+
 // Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - structured is
 // {slides: [{slide_id, slide_index, beat}], arc_summary}.
 export interface NarrativeStructureData {
@@ -628,6 +700,32 @@ export const api = {
     fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/products/${appearanceId}`, {
       method: 'DELETE',
     }).then((res) => handle<Slideshow>(res)),
+
+  // Phase 10.2-10.8 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  // ADR §11-§15) - deliberately synchronous, same reasoning as
+  // generateImage/validateGeneratedImage: every candidate across every
+  // retry is a real, paid provider call, so this resolves only once the
+  // whole loop concludes, not a queued/polled status. Real money - never
+  // called without the user explicitly triggering it from the UI.
+  generateCreative: (
+    slideshowId: string,
+    slideId: string,
+    payload: GenerateCreativeRequest
+  ): Promise<GenerateCreativeResponseData> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/generate-creative`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then((res) => handle<GenerateCreativeResponseData>(res)),
+
+  finalOutputFileUrl: (slideshowId: string, finalOutputId: string): string =>
+    `/api/slideshows/${slideshowId}/final-outputs/${finalOutputId}/file`,
+
+  // Phase 10.5 (AI Creative Engine vNext, see MIGRATION_PLAN.md's ADR
+  // §3) - the read side of ProjectProduct, populated automatically
+  // whenever a Product gets linked to one of the Project's Slides.
+  listProjectProducts: (projectId: string): Promise<Product[]> =>
+    fetch(`/api/projects/${projectId}/products`).then((res) => handle<Product[]>(res)),
 };
 
 export interface SlideProductAppearance {
@@ -663,7 +761,10 @@ export interface Slideshow {
 
 export interface SlideProductReferenceImage {
   id: string;
-  source_slide_id: string;
+  // Nullable - a real, live-found bug fix (see SlideProductReferenceImageRead's
+  // own docstring in app/schemas.py): not every reference image has a
+  // source slide (Product Source URL imports, direct uploads).
+  source_slide_id: string | null;
   isolation_method: string;
   is_current: boolean;
   created_at: string;

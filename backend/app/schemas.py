@@ -610,12 +610,20 @@ class SlideProductReferenceImageRead(BaseModel):
     rows (from the new pipeline) populate source_slide_id instead - a
     row created by the new pipeline wouldn't validate against the old
     schema's non-nullable source_creative_id field.
+
+    source_slide_id relaxed to nullable (real bug, found live via the
+    UI - not every row has one: Phase 5's Product Source URL imports and
+    Phase 9.6's direct user uploads both create real, valid
+    ProductReferenceImage rows with neither source_creative_id nor
+    source_slide_id set, and this schema's own non-nullable field was
+    never updated for either, throwing a real 500 on
+    assemble_slideshow_blueprint for any product with such an image).
     """
 
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    source_slide_id: str
+    source_slide_id: str | None
     isolation_method: str
     is_current: bool
     created_at: datetime

@@ -61,11 +61,20 @@ section h2 {
 }
 
 .project-list-item {
+  border-bottom: 1px solid #eee;
+}
+
+.project-row-toggle {
   display: flex;
+  width: 100%;
   justify-content: space-between;
   align-items: baseline;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #eee;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
 .project-name {
@@ -75,6 +84,49 @@ section h2 {
 .project-meta {
   color: #888;
   font-size: 0.8rem;
+}
+
+.project-row-chevron {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+/* Project workspace (Phase 10.5/10.9, see MIGRATION_PLAN.md's vNext ADR §3) */
+
+.project-workspace {
+  padding: 0.75rem 1rem 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.project-workspace-notes {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.project-workspace-heading {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 0.4rem;
+}
+
+.project-workspace-products {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.project-workspace-product {
+  padding: 0.3rem 0.7rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 0.85rem;
 }
 
 /* Import panel */
@@ -521,6 +573,85 @@ section h2 {
 
 .reference-set-strip {
   margin-top: 0.5rem;
+}
+
+/* Phase 10.2-10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+   ADR §11-§15) - the Decision -> Generation -> Quality retry loop UI. */
+
+.generate-creative-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.generate-creative-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.generate-creative-field select {
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.generate-creative-results {
+  margin-top: 0.75rem;
+}
+
+.generate-creative-outcome {
+  font-weight: 600;
+  margin: 0 0 0.6rem;
+}
+
+.generate-creative-outcome-winner {
+  color: #157a41;
+}
+
+.generate-creative-outcome-none {
+  color: #a3271f;
+}
+
+.final-output-panel {
+  margin-bottom: 0.75rem;
+}
+
+.generation-attempt-panel {
+  margin-top: 0.6rem;
+}
+
+.generation-candidate-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+.generation-candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 140px;
+  padding: 0.4rem;
+  border-radius: 8px;
+}
+
+.generation-candidate-winner {
+  background: #d9f2e3;
+}
+
+.generation-candidate-thumbnail {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e2e2e2;
 }
 
 .reference-library-panel {

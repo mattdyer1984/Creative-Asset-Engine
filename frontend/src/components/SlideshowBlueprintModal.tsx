@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import {
   api,
   type AssembledSlideshowBlueprint,
+  type CreativityLevel,
+  type GenerateCreativeResponseData,
   type GeneratedImageData,
   type GenerationReferenceSet,
   type ImageValidationResultData,
   type ProductReferenceImage,
+  type QualityMode,
+  type TextStrategy,
 } from '../api';
 
 interface SlideshowBlueprintModalProps {
@@ -69,6 +73,20 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // polling/status machinery.
   const [generatedImage, setGeneratedImage] = useState<GeneratedImageData | null>(null);
   const [validationResult, setValidationResult] = useState<ImageValidationResultData | null>(null);
+  // Phase 10.2-10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  // ADR §11-§15) - the Decision -> Generation -> Quality retry loop,
+  // deliberately separate from the Phase 8 single-shot fields above:
+  // generate-creative is a different, newer endpoint (real money, N
+  // candidates, real retries), not a replacement for Generate Image.
+  const [qualityMode, setQualityMode] = useState<QualityMode>('fast');
+  const [creativityLevel, setCreativityLevel] = useState<CreativityLevel>('conservative');
+  // undefined = the classic behavior (the model renders text itself) -
+  // a real, deliberate distinct choice from the explicit 'no_text'
+  // strategy, not the same "no text" outcome. See GenerationPlan.
+  // text_strategy's own docstring in decision_engine.py.
+  const [textStrategy, setTextStrategy] = useState<TextStrategy | ''>('');
+  const [generateCreativeResult, setGenerateCreativeResult] =
+    useState<GenerateCreativeResponseData | null>(null);
   // Phase 9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) - the
   // Canonical Reference Library is compute-on-read (never part of
   // `blueprint`), keyed by product_id since a slide can carry 2+
@@ -309,6 +327,28 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     setError(null);
     try {
       setValidationResult(await api.validateGeneratedImage(slideshowId, generatedImage.id));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  // Phase 10.2-10.9 (see MIGRATION_PLAN.md's vNext ADR §11-§15) - real,
+  // paid provider calls (up to several candidates per attempt, up to
+  // several retries), only ever spent when the user explicitly clicks
+  // this button - never automatic, never part of any polling/analyze flow.
+  const handleGenerateCreative = async () => {
+    if (!primarySlideId) return;
+    setBusyAction('generate_creative');
+    setError(null);
+    try {
+      const result = await api.generateCreative(slideshowId, primarySlideId, {
+        quality_mode: qualityMode,
+        creativity_level: creativityLevel,
+        ...(textStrategy ? { text_strategy: textStrategy } : {}),
+      });
+      setGenerateCreativeResult(result);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -653,6 +693,69 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 </div>
               )}
             </section>
+
+            <section className="blueprint-section">
+              <div className="blueprint-section-header">
+                <h3>Generate Creative</h3>
+              </div>
+              <p className="blueprint-meta">
+                Phase 10.2-10.9 (see MIGRATION_PLAN.md's vNext ADR §11-§15) - the full
+                Decision → Generation → Quality retry loop: N candidates, real Product
+                Fidelity + Photorealism validation, an automatically-picked winner. Every
+                candidate is a real, paid provider call - always the primary slide.
+              </p>
+              <div className="generate-creative-controls">
+                <label className="generate-creative-field">
+                  Quality mode
+                  <select
+                    value={qualityMode}
+                    onChange={(e) => setQualityMode(e.target.value as QualityMode)}
+                    disabled={busyAction !== null}
+                  >
+                    <option value="fast">Fast (1 candidate)</option>
+                    <option value="balanced">Balanced (3 candidates)</option>
+                    <option value="maximum">Maximum Quality (5 candidates)</option>
+                  </select>
+                </label>
+                <label className="generate-creative-field">
+                  Creativity
+                  <select
+                    value={creativityLevel}
+                    onChange={(e) => setCreativityLevel(e.target.value as CreativityLevel)}
+                    disabled={busyAction !== null}
+                  >
+                    <option value="conservative">Conservative</option>
+                    <option value="bold">Bold</option>
+                  </select>
+                </label>
+                <label className="generate-creative-field">
+                  Marketing text
+                  <select
+                    value={textStrategy}
+                    onChange={(e) => setTextStrategy(e.target.value as TextStrategy | '')}
+                    disabled={busyAction !== null}
+                  >
+                    <option value="">Classic (model renders text)</option>
+                    <option value="no_text">No text overlay</option>
+                    <option value="reuse_original">Reuse original text &amp; position</option>
+                    <option value="ai_rewrite">AI-rewritten text</option>
+                  </select>
+                </label>
+                <button
+                  className="rerun-button"
+                  onClick={handleGenerateCreative}
+                  disabled={busyAction !== null || runInFlight || !primarySlideId}
+                >
+                  {busyAction === 'generate_creative' ? 'Generating…' : 'Generate Creative'}
+                </button>
+              </div>
+              {generateCreativeResult && (
+                <GenerateCreativeResultsPanel
+                  slideshowId={slideshowId}
+                  result={generateCreativeResult}
+                />
+              )}
+            </section>
           </>
         )}
       </div>
@@ -795,6 +898,94 @@ function ValidationResultPanel({ result }: { result: ImageValidationResultData }
           </ul>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Phase 10.2-10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+ * ADR §11-§15) - every attempt the retry loop made, not just the
+ * winner, so a user can see the whole loop's reasoning (which
+ * candidates it tried, why each was accepted/rejected), not just the
+ * final pick. `winner` null means no candidate across every attempt
+ * was accepted within the retry limit - a real, honest outcome,
+ * rendered as its own state, never silently hidden.
+ */
+function GenerateCreativeResultsPanel({
+  slideshowId,
+  result,
+}: {
+  slideshowId: string;
+  result: GenerateCreativeResponseData;
+}) {
+  return (
+    <div className="generate-creative-results">
+      {result.winner ? (
+        <p className="generate-creative-outcome generate-creative-outcome-winner">
+          ✓ A candidate was accepted.
+        </p>
+      ) : (
+        <p className="generate-creative-outcome generate-creative-outcome-none">
+          No candidate across {result.attempts.length}{' '}
+          {result.attempts.length === 1 ? 'attempt' : 'attempts'} passed validation.
+        </p>
+      )}
+
+      {result.final_output && (
+        <div className="final-output-panel">
+          <p className="field-list-label">Final Output (composited)</p>
+          <img
+            src={api.finalOutputFileUrl(slideshowId, result.final_output.id)}
+            alt="Composited final output"
+            className="generated-image-preview"
+          />
+          {result.final_output.text_assets.length === 0 ? (
+            <p className="blueprint-meta">No text overlay rendered.</p>
+          ) : (
+            <p className="blueprint-meta">
+              {result.final_output.text_assets.length} text element
+              {result.final_output.text_assets.length === 1 ? '' : 's'} composited.
+            </p>
+          )}
+        </div>
+      )}
+
+      {result.attempts.map((attempt, attemptIndex) => (
+        <div key={attempt.id} className="generation-attempt-panel">
+          <p className="field-list-label">
+            Attempt {attemptIndex + 1}
+            {attempt.retry_of_generation_attempt_id ? ' (retry)' : ''}
+          </p>
+          <div className="generation-candidate-row">
+            {attempt.candidates.map((candidate) => {
+              const isWinner = result.winner?.id === candidate.generated_image.id;
+              return (
+                <div
+                  key={candidate.generated_image.id}
+                  className={`generation-candidate ${isWinner ? 'generation-candidate-winner' : ''}`}
+                >
+                  <img
+                    src={api.generatedImageFileUrl(slideshowId, candidate.generated_image.id)}
+                    alt="Candidate"
+                    className="generation-candidate-thumbnail"
+                  />
+                  <span
+                    className={`validation-badge ${
+                      candidate.quality_assessment.accepted ? 'validation-pass' : 'validation-fail'
+                    }`}
+                  >
+                    {candidate.quality_assessment.accepted ? 'Accepted' : 'Rejected'}
+                    {isWinner && ' · Winner'}
+                  </span>
+                  <span className="blueprint-meta">
+                    Score: {candidate.quality_assessment.overall_confidence_score.toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
