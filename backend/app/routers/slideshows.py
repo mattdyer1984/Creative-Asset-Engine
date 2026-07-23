@@ -21,6 +21,12 @@ from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
 from app.models.slide import Slide
 from app.models.slideshow import STATUS_ANALYZING, STATUS_QUEUED, Slideshow
+from app.importers.downie import (
+    DownieImportError,
+    DownieImportTimeoutError,
+    DownieImportUnavailableError,
+    DownieImportUnsupportedContentError,
+)
 from app.importers.playwright_tiktok import (
     TikTokImportBlockedError,
     TikTokImportError,
@@ -93,13 +99,16 @@ async def import_local_files(
 def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(get_db)) -> list[Slideshow]:
     """
     Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - the
-    URL counterpart to import_local_files, currently backed by
-    PlaywrightTikTokImporter only. Deliberately a plain `def`, not
-    `async def`: FastAPI runs a sync path operation in a threadpool,
-    which is what a Playwright sync-API call (network + a real browser
-    launch, seconds not milliseconds) needs to not block the event loop -
-    the same reasoning app.routers.products' create_source_import already
-    applies to its own blocking httpx fetch.
+    URL counterpart to import_local_files, backed by
+    PlaywrightTikTokImporter by default, or DownieImporter (Phase 10.6b's
+    documented fallback) via an explicit `payload.provider="downie"` opt-in
+    - never inferred, since Downie is a deployment-environment decision
+    (a licensed local copy must be installed). Deliberately a plain `def`,
+    not `async def`: FastAPI runs a sync path operation in a threadpool,
+    which is what both providers need (a real browser launch, or shelling
+    out to `open` and polling disk) to not block the event loop - the same
+    reasoning app.routers.products' create_source_import already applies
+    to its own blocking httpx fetch.
 
     Always group_as_one=True: a TikTok post's images are one coherent
     slideshow the platform itself already ordered, not "N unrelated
@@ -109,11 +118,15 @@ def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(ge
     """
     if payload.project_id is not None and db.get(Project, payload.project_id) is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    if payload.provider not in ("tiktok", "downie"):
+        raise HTTPException(
+            status_code=400, detail=f"Unknown provider '{payload.provider}' - expected 'tiktok' or 'downie'"
+        )
 
     try:
         return import_slideshows(
             db,
-            source_type="tiktok",
+            source_type=payload.provider,
             source_config={"url": payload.url},
             project_id=payload.project_id,
             group_as_one=True,
@@ -125,6 +138,14 @@ def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(ge
     except TikTokImportNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except TikTokImportError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except DownieImportUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except DownieImportTimeoutError as exc:
+        raise HTTPException(status_code=504, detail=str(exc)) from exc
+    except DownieImportUnsupportedContentError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except DownieImportError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 

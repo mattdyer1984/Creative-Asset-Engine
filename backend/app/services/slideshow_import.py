@@ -51,6 +51,11 @@ from app.storage import save_creative_original
 _EVIDENCE_TYPE_BY_SOURCE_TYPE = {
     "local_file": EVIDENCE_TYPE_SLIDESHOW_UPLOAD,
     "tiktok": EVIDENCE_TYPE_TIKTOK_SLIDESHOW_URL,
+    # DownieImporter (Phase 10.6b) is a fallback implementation behind the
+    # same real-world evidence category as "tiktok" above, not a new one -
+    # the caller (POST /import-url's `provider` field) picks which
+    # ImportProvider actually runs; this app never brands the result by it.
+    "downie": EVIDENCE_TYPE_TIKTOK_SLIDESHOW_URL,
 }
 
 

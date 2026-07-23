@@ -7,12 +7,14 @@ in a new module, add one line here. No other code changes.
 """
 
 from app.importers.base import ImportProvider
+from app.importers.downie import DownieImporter
 from app.importers.local_file import LocalFileImporter
 from app.importers.playwright_tiktok import PlaywrightTikTokImporter
 
 IMPORTERS: dict[str, type[ImportProvider]] = {
     "local_file": LocalFileImporter,
     "tiktok": PlaywrightTikTokImporter,
+    "downie": DownieImporter,
 }
 
 

@@ -103,10 +103,19 @@ class ProductSourceImportRequest(BaseModel):
 
 
 class SlideshowUrlImportRequest(BaseModel):
-    """Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - POST /api/slideshows/import-url's input."""
+    """
+    Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - POST
+    /api/slideshows/import-url's input. `provider` (Phase 10.6b) selects
+    which ImportProvider actually runs - "tiktok" (PlaywrightTikTokImporter,
+    the recommended native path) by default, or "downie" (DownieImporter,
+    the documented fallback) as an explicit opt-in - never inferred, since
+    picking Downie is a deployment-environment decision (a licensed local
+    copy must be installed), not something the caller's URL implies.
+    """
 
     url: str
     project_id: str | None = None
+    provider: str = "tiktok"
 
 
 class ProductSourceImportRead(BaseModel):
