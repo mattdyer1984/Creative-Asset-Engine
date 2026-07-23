@@ -40,6 +40,17 @@ class Slideshow(Base):
     # carried over unchanged from Creative.project_id.
     project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
 
+    # Phase 10.5 (AI Creative Engine vNext, see MIGRATION_PLAN.md's ADR
+    # §4b) - which EvidenceSource (one ImportProvider call) produced this
+    # Slideshow. Nullable: every Slideshow created before this phase, and
+    # any future direct/manual creation path, has none. Many-to-one - a
+    # group_as_one=False multi-file import shares one EvidenceSource
+    # across every resulting Slideshow, matching EvidencePackage's own
+    # one-package-many-media_assets shape.
+    evidence_source_id: Mapped[str | None] = mapped_column(
+        ForeignKey("evidence_sources.id"), nullable=True
+    )
+
     imported_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     status: Mapped[str] = mapped_column(String(32), default=STATUS_IMPORTED)

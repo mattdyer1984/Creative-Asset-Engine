@@ -12,9 +12,12 @@ from io import BytesIO
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
+from sqlalchemy import select
 
 from app.db import get_db
 from app.main import app
+from app.models.evidence_source import EVIDENCE_TYPE_SLIDESHOW_UPLOAD, EvidenceSource
+from app.models.slideshow import Slideshow
 
 
 @pytest.fixture()
@@ -97,3 +100,36 @@ def test_group_as_one_with_a_single_file_behaves_like_a_normal_import(client):
     slideshows = response.json()
     assert len(slideshows) == 1
     assert len(slideshows[0]["slides"]) == 1
+
+
+def test_import_records_one_evidence_source_shared_by_every_independent_slideshow(
+    client, db_session
+):
+    """Phase 10.5: default (non-grouped) import still routes through the Evidence Engine -
+    one EvidenceSource per Import Provider call, shared by every Slideshow it produces."""
+    response = client.post("/api/slideshows/import", files=_three_files())
+    assert response.status_code == 201
+    slideshow_ids = [s["id"] for s in response.json()]
+
+    evidence_sources = list(db_session.scalars(select(EvidenceSource)))
+    assert len(evidence_sources) == 1
+    assert evidence_sources[0].source_platform == "local_file"
+    assert evidence_sources[0].evidence_type == EVIDENCE_TYPE_SLIDESHOW_UPLOAD
+
+    slideshows = list(db_session.scalars(select(Slideshow).where(Slideshow.id.in_(slideshow_ids))))
+    assert len(slideshows) == 3
+    assert all(s.evidence_source_id == evidence_sources[0].id for s in slideshows)
+
+
+def test_group_as_one_import_records_one_evidence_source(client, db_session):
+    response = client.post(
+        "/api/slideshows/import", files=_three_files(), data={"group_as_one": "true"}
+    )
+    assert response.status_code == 201
+    slideshow_id = response.json()[0]["id"]
+
+    evidence_sources = list(db_session.scalars(select(EvidenceSource)))
+    assert len(evidence_sources) == 1
+
+    slideshow = db_session.get(Slideshow, slideshow_id)
+    assert slideshow.evidence_source_id == evidence_sources[0].id

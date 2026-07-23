@@ -39,6 +39,7 @@ from app.schemas import (
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
 from app.services.generate_with_retry import generate_with_retry
+from app.services.project_product import ensure_project_product_membership
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
 from app.slideshow_stages.base import StageResult
@@ -573,6 +574,7 @@ def assign_product(
             is_current=True,
         )
         db.add(appearance)
+        ensure_project_product_membership(db, slideshow.project_id, payload.product_id)
 
     db.commit()
     db.refresh(slideshow)
@@ -625,6 +627,7 @@ def add_slide_product(
                 is_current=True,
             )
         )
+        ensure_project_product_membership(db, slideshow.project_id, payload.product_id)
         db.commit()
 
     db.refresh(slideshow)

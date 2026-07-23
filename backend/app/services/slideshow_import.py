@@ -22,14 +22,24 @@ is a little misleading for what's now a Slide's image, but renaming it
 would mean touching storage.py, which the old pipeline also depends on.
 Not worth it for Phase 2; worth revisiting once the old pipeline no
 longer exists (Phase 2.7+).
+
+Since Phase 10.5 (AI Creative Engine vNext, see MIGRATION_PLAN.md's ADR
+§4b), an ImportProvider returns an EvidencePackage rather than a bare
+list - this module unwraps `media_assets` for the existing per-image
+Slideshow/Slide persistence unchanged, and additionally routes the
+package itself through app.services.evidence_router to record its
+package-level facts as one EvidenceSource, pointed at by every Slideshow
+this call produces.
 """
 
 from sqlalchemy.orm import Session
 
 from app.domain import MarketingCreative
 from app.importers import get_importer
+from app.models.evidence_source import EVIDENCE_TYPE_SLIDESHOW_UPLOAD
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
+from app.services.evidence_router import record_evidence_source
 from app.storage import save_creative_original
 
 
@@ -44,17 +54,29 @@ def import_slideshows(
     Resolve the requested Import Provider, run it, and persist what it
     returns either as N independent Slideshows (default) or, if
     `group_as_one` is set, as a single Slideshow with N ordered Slides.
+    Every Slideshow produced points at the same EvidenceSource, recording
+    this one Import Provider call's package-level facts.
     """
     importer = get_importer(source_type)
-    marketing_creatives = importer.import_source(source_config)
+    package = importer.import_source(source_config)
+    marketing_creatives = package.media_assets
+
+    if not marketing_creatives:
+        return []
+
+    evidence_source = record_evidence_source(
+        db, package, project_id, evidence_type=EVIDENCE_TYPE_SLIDESHOW_UPLOAD
+    )
 
     if group_as_one:
-        if not marketing_creatives:
-            return []
-        return [_persist_marketing_creatives_as_one_slideshow(db, marketing_creatives, project_id)]
+        return [
+            _persist_marketing_creatives_as_one_slideshow(
+                db, marketing_creatives, project_id, evidence_source.id
+            )
+        ]
 
     return [
-        _persist_marketing_creative(db, mc, project_id)
+        _persist_marketing_creative(db, mc, project_id, evidence_source.id)
         for mc in marketing_creatives
     ]
 
@@ -86,9 +108,11 @@ def _persist_marketing_creative(
     db: Session,
     marketing_creative: MarketingCreative,
     project_id: str | None,
+    evidence_source_id: str,
 ) -> Slideshow:
     slideshow = Slideshow(
         project_id=project_id,
+        evidence_source_id=evidence_source_id,
         imported_at=marketing_creative.imported_at,
         source_references_json={
             "source_type": marketing_creative.source_type,
@@ -110,10 +134,12 @@ def _persist_marketing_creatives_as_one_slideshow(
     db: Session,
     marketing_creatives: list[MarketingCreative],
     project_id: str | None,
+    evidence_source_id: str,
 ) -> Slideshow:
     first = marketing_creatives[0]
     slideshow = Slideshow(
         project_id=project_id,
+        evidence_source_id=evidence_source_id,
         imported_at=first.imported_at,
         source_references_json={
             # No single source_locator/raw_metadata makes sense for a

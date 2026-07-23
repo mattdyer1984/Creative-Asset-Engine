@@ -47,6 +47,15 @@ the input Creative Intelligence uses to decide what's safe to
 transform. Part of SLIDESHOW_STAGE_PIPELINE, unlike the Generation/
 Quality Engine models above.
 
+EvidenceSource and ProjectProduct (Phase 10.5, AI Creative Engine vNext
+- see MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §3/§4b) are
+the Project-role-reversal + Evidence Engine pieces: EvidenceSource is a
+Project-scoped event-log row recording one ImportProvider call's
+package-level facts (Slideshow.evidence_source_id points back to it,
+many-to-one); ProjectProduct is a pure membership join (mirroring
+ProductBundleMember's shape) recording which Products a Project's work
+involves, without Product moving into Project's ownership.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -60,6 +69,7 @@ from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
+from app.models.evidence_source import EvidenceSource
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
 from app.models.generation_reference_set import GenerationReferenceSet
@@ -77,6 +87,7 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
+from app.models.project_product import ProjectProduct
 from app.models.quality_assessment import QualityAssessment
 from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
@@ -84,6 +95,8 @@ from app.models.slideshow import Slideshow
 
 __all__ = [
     "Project",
+    "ProjectProduct",
+    "EvidenceSource",
     "Creative",
     "CreativeBlueprint",
     "AnalysisRun",
