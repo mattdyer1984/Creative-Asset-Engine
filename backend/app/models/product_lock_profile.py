@@ -12,7 +12,7 @@ if a later Product Isolation run has since produced new ones (plan §7's
 key design point on this).
 """
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -23,5 +23,5 @@ class ProductLockProfile(Base, AnalysisArtifactMixin):
     __tablename__ = "product_lock_profiles"
 
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
-    structured_json: Mapped[str] = mapped_column(Text, nullable=False)
-    reference_image_ids_json: Mapped[str] = mapped_column(Text, default="[]")
+    structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)
+    reference_image_ids_json: Mapped[list] = mapped_column(JSON, default=list)

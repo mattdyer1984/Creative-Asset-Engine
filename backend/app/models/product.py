@@ -7,6 +7,16 @@ Project (for grouping), but neither owns the other. This is what lets
 the same Product be the target of many Creatives over time, which is
 the whole point of the Product Lock Profile being reusable (plan
 guiding principle 5).
+
+Still true after Project's Phase 10.5 role reversal (see
+app.models.project's docstring and MIGRATION_PLAN.md's "ADR: AI
+Creative Engine vNext" §3) - Product's Canonical Reference Library is
+durable, cross-Project-reusable knowledge, deliberately left outside
+Project's new aggregation-root role rather than folded into it.
+project_id above stays what it always was (an optional, non-owning
+label); ProjectProduct (app.models.project_product) is the new,
+separate membership join recording which Projects' work a Product is
+actually involved in, without changing who owns what.
 """
 
 from datetime import datetime

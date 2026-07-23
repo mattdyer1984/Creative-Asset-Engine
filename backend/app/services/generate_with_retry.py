@@ -1,0 +1,210 @@
+"""
+Automatic Retry Loop — Phase 10.2 of AI Creative Engine vNext (see
+MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §14). Chains
+Decision Engine -> Generation Engine -> Quality Engine, per
+`GenerationAttempt.retry_of_generation_attempt_id`, until some
+candidate is accepted or `max_retries` is hit.
+
+**Deliberately the "basic" loop, per the ADR's own phased framing
+(§19 item 3)** - not yet the fully adaptive retry §11 describes (reading
+*why* a previous attempt failed - weak identity vs. weak photorealism
+vs. a generic creative choice - and changing strategy accordingly),
+since none of those richer failure signals exist yet (Photorealism and
+Creative Intelligence are Phases 10.3/10.4). A retry here always means
+"run the Decision Engine again with the same quality_mode and a
+generic 'nothing was accepted' reason" - true adaptive re-planning is
+explicit future work, not silently claimed here.
+
+Deliberately **not** wired into `SLIDESHOW_STAGE_PIPELINE` or any
+background/automatic flow, per §14's own explicit instruction - every
+candidate is a real paid provider call (up to
+`max_retries + 1` attempts * `candidate_count` candidates each), so
+this must stay behind its own explicit, user-triggered endpoint
+(`POST .../generate-creative`), never one `POST /analyze` away from
+firing.
+
+`bundle_members` (Phase 10.7, §12's addendum), when given, routes every
+attempt through `run_bundle_generation_attempt`/`assess_bundle_candidate`
+instead of the single-product pair - the retry loop's own shape (chain
+attempts, pick the best accepted candidate) is identical either way,
+only which Generation/Quality Engine entry point runs differs.
+
+`text_strategy` (Phase 10.8, §9/§15), when given, runs Text
+Intelligence + the Rendering Engine on the accepted winner - once, not
+per-candidate, since only the winner is ever going anywhere - and
+persists the result as a `FinalOutput`. `None` (the default) skips
+this entirely, exactly as it did before this phase, per
+`GenerationPlan.text_strategy`'s own backward-compatibility reasoning.
+"""
+
+from dataclasses import dataclass
+from pathlib import Path
+
+from sqlalchemy.orm import Session
+
+from app import storage
+from app.ai_providers.registry import default_registry
+from app.models.creative_specification import CreativeSpecification
+from app.models.final_output import FinalOutput
+from app.models.generated_image import GeneratedImage
+from app.models.generation_attempt import GenerationAttempt
+from app.models.ocr_result import OCRResult
+from app.models.quality_assessment import QualityAssessment
+from app.models.slide import Slide
+from app.models.slideshow import Slideshow
+from app.services.decision_engine import decide_generation_plan
+from app.services.generation_engine import run_bundle_generation_attempt, run_generation_attempt
+from app.services.quality_engine import assess_bundle_candidate, assess_candidate
+from app.services.rendering_engine import render_final_output
+from app.services.text_intelligence import build_text_assets
+from app.slideshow_stages.base import StageResult
+
+# A small, real bound, not "retry forever" - §14 calls for a
+# "configured retry limit," this is Phase 10.2's default value for it.
+DEFAULT_MAX_RETRIES = 1
+
+
+@dataclass
+class CandidateAssessment:
+    generated_image: GeneratedImage
+    quality_assessment: QualityAssessment
+
+
+@dataclass
+class GenerationAttemptOutcome:
+    attempt: GenerationAttempt
+    candidates: list[CandidateAssessment]
+
+
+@dataclass
+class RetryLoopResult:
+    attempts: list[GenerationAttemptOutcome]
+    winner: CandidateAssessment | None
+    final_output: FinalOutput | None = None
+
+
+def _render_final_output_for_winner(
+    db: Session, slide: Slide, winner: CandidateAssessment, text_strategy: str
+) -> FinalOutput:
+    ocr_result = db.get(OCRResult, slide.current_ocr_result_id) if slide.current_ocr_result_id else None
+    text_generation_provider = default_registry.text_generation() if text_strategy == "ai_rewrite" else None
+    text_assets = build_text_assets(
+        text_strategy, ocr_result, text_generation_provider=text_generation_provider
+    )
+
+    source_bytes = Path(winner.generated_image.file_path).read_bytes()
+    rendered_bytes = render_final_output(source_bytes, text_assets)
+
+    final_output = FinalOutput(
+        generation_attempt_id=winner.generated_image.generation_attempt_id,
+        generated_image_id=winner.generated_image.id,
+        text_assets_json=text_assets,
+        file_path="",
+    )
+    db.add(final_output)
+    db.flush()
+
+    saved_path = storage.save_final_output(slide.id, final_output.id, rendered_bytes)
+    final_output.file_path = str(saved_path)
+    # A real commit - the last write for this call chain, with nothing
+    # after it to piggyback a commit on, same reasoning as every other
+    # "last write in the chain" fix this session already made
+    # (quality_engine.assess_candidate, the is_current flip below).
+    db.commit()
+    return final_output
+
+
+def generate_with_retry(
+    db: Session,
+    slideshow: Slideshow,
+    quality_mode: str,
+    *,
+    creativity_level: str = "conservative",
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    bundle_members: list[dict] | None = None,
+    text_strategy: str | None = None,
+) -> RetryLoopResult | StageResult:
+    slide = slideshow.primary_slide
+    if slideshow.current_creative_specification_id is None:
+        return StageResult(
+            succeeded=False,
+            error="No Creative Specification available yet - run that stage first.",
+        )
+    creative_specification = db.get(
+        CreativeSpecification, slideshow.current_creative_specification_id
+    )
+    if creative_specification is None:
+        return StageResult(
+            succeeded=False,
+            error="Creative Specification referenced by the Slideshow no longer exists.",
+        )
+
+    attempts: list[GenerationAttemptOutcome] = []
+    retry_of_id: str | None = None
+    retry_reason: str | None = None
+
+    for _ in range(max_retries + 1):
+        plan = decide_generation_plan(
+            quality_mode,
+            creativity_level=creativity_level,
+            retry_of_generation_attempt_id=retry_of_id,
+            retry_reason=retry_reason,
+            bundle_members=bundle_members,
+            text_strategy=text_strategy,
+        )
+        if plan.bundle_members:
+            attempt_result = run_bundle_generation_attempt(db, slide, creative_specification, plan)
+        else:
+            attempt_result = run_generation_attempt(db, slide, creative_specification, plan)
+        if isinstance(attempt_result, StageResult):
+            # Can't even start (no product assigned, empty Library) -
+            # the same failure would recur on every retry, so stop
+            # immediately rather than burning the retry budget on
+            # attempts that can never succeed.
+            return attempt_result
+
+        candidate_assessments: list[CandidateAssessment] = []
+        for candidate in attempt_result.candidates:
+            assessment_result = (
+                assess_bundle_candidate(db, candidate) if plan.bundle_members else assess_candidate(db, candidate)
+            )
+            if isinstance(assessment_result, StageResult):
+                # This one candidate's validation couldn't run (e.g. no
+                # immutable Product Profile fields yet) - treated as a
+                # non-accepted candidate, not a fatal error for the
+                # whole attempt; other candidates may still validate.
+                continue
+            candidate_assessments.append(
+                CandidateAssessment(generated_image=candidate, quality_assessment=assessment_result)
+            )
+
+        attempts.append(
+            GenerationAttemptOutcome(attempt=attempt_result.attempt, candidates=candidate_assessments)
+        )
+
+        accepted = [c for c in candidate_assessments if c.quality_assessment.accepted]
+        if accepted:
+            winner = max(accepted, key=lambda c: c.quality_assessment.overall_confidence_score)
+            db.query(GeneratedImage).filter(
+                GeneratedImage.slide_id == slide.id,
+                GeneratedImage.is_current.is_(True),
+            ).update({"is_current": False})
+            winner.generated_image.is_current = True
+            # A real commit - the is_current flip is this loop's last
+            # write, with nothing after it to piggyback a commit on
+            # (same reasoning as quality_engine.assess_candidate's own
+            # fix); a flush-only write here would roll back once the
+            # request's session closes, silently leaving no "current"
+            # generated image at all despite a real accepted winner.
+            db.commit()
+
+            final_output = None
+            if plan.text_strategy is not None:
+                final_output = _render_final_output_for_winner(db, slide, winner, plan.text_strategy)
+
+            return RetryLoopResult(attempts=attempts, winner=winner, final_output=final_output)
+
+        retry_of_id = attempt_result.attempt.id
+        retry_reason = "No candidate in the previous attempt passed Product Fidelity validation."
+
+    return RetryLoopResult(attempts=attempts, winner=None)

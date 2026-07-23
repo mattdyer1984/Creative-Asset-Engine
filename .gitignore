@@ -3,6 +3,10 @@ backend/.venv/
 __pycache__/
 *.pyc
 
+# Secrets
+.env
+backend/.env
+
 # Local data (DB + imported/generated files) — never committed
 backend/data/
 

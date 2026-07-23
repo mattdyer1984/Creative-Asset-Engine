@@ -11,9 +11,22 @@ interface ImportPanelProps {
  * selector is optional - a Creative does not require a Project (plan §1,
  * §6) - so "No project" is a first-class, default choice here, not an
  * afterthought.
+ *
+ * Calls api.importSlideshows (new pipeline, Phase 2.6 of the
+ * Slideshow/Slide migration) rather than api.importLocalFiles - this
+ * component has no Creative-specific typing otherwise (it never
+ * references the Creative type, only Project), so the cutover is this
+ * one call, not a parallel component.
+ *
+ * groupAsOne (Phase 4 - true multi-slide import, see MIGRATION_PLAN.md):
+ * an explicit, unchecked-by-default checkbox, not something inferred
+ * from "more than one file was chosen" - selecting several files today
+ * already means "N unrelated items," a real, already-relied-on behavior
+ * this must not silently change.
  */
 export function ImportPanel({ projects, onImported }: ImportPanelProps) {
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [groupAsOne, setGroupAsOne] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +38,7 @@ export function ImportPanel({ projects, onImported }: ImportPanelProps) {
     setImporting(true);
     setError(null);
     try {
-      await api.importLocalFiles(Array.from(files), selectedProjectId || undefined);
+      await api.importSlideshows(Array.from(files), selectedProjectId || undefined, groupAsOne);
       onImported();
     } catch (err) {
       setError((err as Error).message);
@@ -51,6 +64,16 @@ export function ImportPanel({ projects, onImported }: ImportPanelProps) {
             </option>
           ))}
         </select>
+
+        <label className="group-as-one-checkbox">
+          <input
+            type="checkbox"
+            checked={groupAsOne}
+            onChange={(e) => setGroupAsOne(e.target.checked)}
+            disabled={importing}
+          />
+          These are one slideshow
+        </label>
 
         <label className="file-picker-button">
           {importing ? 'Importing…' : 'Choose Image(s)'}

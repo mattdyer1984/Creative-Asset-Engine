@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { api, type Product, type ProductLockProfile, type ProductReferenceImage } from '../api';
+import {
+  api,
+  type Product,
+  type ProductAttributeValue,
+  type ProductLockProfile,
+  type ProductProfile,
+  type ProductReferenceImage,
+  type ProductSourceImport,
+} from '../api';
 
 interface ProductManagerProps {
   products: Product[];
@@ -13,10 +21,13 @@ interface ProductManagerProps {
  * linked to - see plan §1, §7.
  *
  * Each product also gets a "View Analysis" toggle showing its current
- * reference images + Product Lock Profile, once M4's Stages have
- * produced them - deliberately minimal (raw JSON, not a designed view),
- * since the real assembled Blueprint UX is M7's job. This exists only to
- * prove the Stages' output is reachable and correct.
+ * reference images, a Product Source URL import form, and the assembled
+ * Product Profile (Phase 5 of Product Intelligence, see
+ * MIGRATION_PLAN.md) - the canonical, provenance-tagged merge of every
+ * evidence source. The raw ProductLockProfile view from M4 stays as a
+ * secondary "raw evidence" detail, collapsed by default - the Product
+ * Profile is the primary view now, per the standing design principle
+ * that the profile (not this UI) is the canonical contract.
  */
 export function ProductManager({ products, loading, onCreated }: ProductManagerProps) {
   const [newName, setNewName] = useState('');
@@ -92,7 +103,16 @@ export function ProductManager({ products, loading, onCreated }: ProductManagerP
 function ProductAnalysisPanel({ productId }: { productId: string }) {
   const [referenceImages, setReferenceImages] = useState<ProductReferenceImage[] | null>(null);
   const [lockProfile, setLockProfile] = useState<ProductLockProfile | 'none' | null>(null);
+  const [profile, setProfile] = useState<ProductProfile | null>(null);
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [lastImport, setLastImport] = useState<ProductSourceImport | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const loadProfile = () => {
+    api.getProductProfile(productId).then(setProfile).catch((err) => setError(err.message));
+  };
 
   useEffect(() => {
     api
@@ -103,11 +123,47 @@ function ProductAnalysisPanel({ productId }: { productId: string }) {
       .getLockProfile(productId)
       .then(setLockProfile)
       .catch(() => setLockProfile('none'));
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  const handleImportSource = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!sourceUrl.trim()) return;
+    setImporting(true);
+    setImportError(null);
+    try {
+      const result = await api.createSourceImport(productId, sourceUrl.trim());
+      setLastImport(result);
+      setSourceUrl('');
+      loadProfile();
+    } catch (err) {
+      setImportError((err as Error).message);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   return (
     <div className="product-analysis-panel">
       {error && <p className="error">{error}</p>}
+
+      <form className="source-import-form" onSubmit={handleImportSource}>
+        <input
+          type="url"
+          placeholder="Product URL (e.g. official listing)"
+          value={sourceUrl}
+          onChange={(e) => setSourceUrl(e.target.value)}
+          disabled={importing}
+        />
+        <button type="submit" disabled={importing || !sourceUrl.trim()}>
+          {importing ? 'Importing…' : 'Import from URL'}
+        </button>
+      </form>
+      {importError && <p className="error card-error">{importError}</p>}
+      {lastImport?.fetch_status === 'failed' && (
+        <p className="section-error">Import failed: {lastImport.error}</p>
+      )}
 
       <div className="reference-images-row">
         {referenceImages === null ? (
@@ -126,13 +182,105 @@ function ProductAnalysisPanel({ productId }: { productId: string }) {
         )}
       </div>
 
-      {lockProfile === null ? (
-        <p>Loading lock profile…</p>
-      ) : lockProfile === 'none' ? (
-        <p className="empty-state">No Product Lock Profile generated yet.</p>
-      ) : (
-        <pre className="lock-profile-json">{JSON.stringify(lockProfile.structured, null, 2)}</pre>
+      <div className="product-profile">
+        <h4>Product Profile</h4>
+        {profile === null ? (
+          <p>Loading profile…</p>
+        ) : (
+          <ProductProfileFields
+            profile={profile}
+            emptyMessage="No evidence yet - import a source URL above, or run analysis on a slideshow featuring this product."
+          />
+        )}
+      </div>
+
+      {lockProfile !== null && lockProfile !== 'none' && (
+        <details className="raw-evidence-details">
+          <summary>Raw slideshow-derived evidence</summary>
+          <pre className="lock-profile-json">{JSON.stringify(lockProfile.structured, null, 2)}</pre>
+        </details>
       )}
     </div>
   );
+}
+
+// Renders one ProductProfile's field-grid (Phase 5.7), extracted in
+// Phase 5.12 so the catalogue layer's Bundle view can render each
+// member's profile with the identical renderer - a bundle's "profile" is
+// a list of its members' real profiles, never a new one, per the
+// catalogue ADR's Bundle philosophy, and this component is what makes
+// that concrete on the frontend too.
+export function ProductProfileFields({
+  profile,
+  emptyMessage,
+}: {
+  profile: ProductProfile;
+  emptyMessage: string;
+}) {
+  if (Object.keys(profile.fields).length === 0) {
+    return <p className="empty-state">{emptyMessage}</p>;
+  }
+  return (
+    <div className="field-grid">
+      {Object.entries(profile.fields).map(([fieldName, field]) => (
+        <div key={fieldName} className="field-row profile-field-row">
+          <span className="field-label">{fieldName.replace(/_/g, ' ')}</span>
+          <span className="field-value">
+            <AttributeValueDisplay value={field.value} />
+            <span className={`classification-badge classification-${field.classification}`}>
+              {field.classification}
+            </span>
+            <span className="confidence-badge">
+              {field.source_type} · {Math.round(field.confidence * 100)}%
+            </span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Renders each ProductAttributeValue shape appropriately (Phase 5.7,
+// applying the standing design principle: the typed structure exists
+// specifically so it can be shown as more than a flattened string - a
+// color swatch for ColorValue, not just its label). Exported in Phase
+// 5.12 so the catalogue layer's Bundle view can render each member's
+// ProductProfile with the exact same renderer, not a duplicate one.
+export function AttributeValueDisplay({ value }: { value: ProductAttributeValue }) {
+  switch (value.kind) {
+    case 'text':
+      return <span>{value.text}</span>;
+    case 'color':
+      return (
+        <span className="attribute-color-value">
+          {value.hex && <span className="color-swatch" style={{ backgroundColor: value.hex }} />}
+          {value.label}
+        </span>
+      );
+    case 'dimension': {
+      const parts = [value.length, value.width, value.height].filter((n) => n != null);
+      return (
+        <span>
+          {parts.join(' × ')} {value.unit}
+        </span>
+      );
+    }
+    case 'number':
+      return (
+        <span>
+          {value.value}
+          {value.unit ? ` ${value.unit}` : ''}
+        </span>
+      );
+    case 'list':
+      return (
+        <span className="tag-list">
+          {value.items.map((item, i) => (
+            <span key={i} className="tag">
+              {item}
+            </span>
+          ))}
+        </span>
+      );
+  }
 }

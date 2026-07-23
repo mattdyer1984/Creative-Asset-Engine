@@ -7,9 +7,15 @@ imports an SDK or instantiates an adapter itself. Adding a new provider
 for an existing capability (e.g. Claude for OCR) is: implement
 OCRProvider in a new class, add one line to OCR_ADAPTERS, flip
 providers.yaml - no registry code changes.
+
+`default_registry` (bottom of this file) is constructed lazily via a
+module-level __getattr__ (PEP 562), not as a bare top-level statement -
+see the comment down there for why, and app/main.py's `lifespan` for
+where construction is explicitly, intentionally triggered.
 """
 
 from app.ai_providers.base import (
+    ImageGenerationProvider,
     OCRProvider,
     ProductIsolationProvider,
     PromptGenerationProvider,
@@ -17,7 +23,9 @@ from app.ai_providers.base import (
     VisionAnalysisProvider,
 )
 from app.ai_providers.config import ModelsConfig, ProvidersConfig, load_config
+from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
 from app.ai_providers.openai_adapter import (
+    OpenAIImageGenerationAdapter,
     OpenAIOCRAdapter,
     OpenAIProductIsolationAdapter,
     OpenAIPromptGenerationAdapter,
@@ -43,6 +51,15 @@ TEXT_GENERATION_ADAPTERS: dict[str, type[TextGenerationProvider]] = {
 
 PROMPT_GENERATION_ADAPTERS: dict[str, type[PromptGenerationProvider]] = {
     "openai": OpenAIPromptGenerationAdapter,
+}
+
+IMAGE_GENERATION_ADAPTERS: dict[str, type[ImageGenerationProvider]] = {
+    "openai": OpenAIImageGenerationAdapter,
+    # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §10) - the first genuinely second provider for any capability
+    # in this registry. Not yet live-verified (no API key added as of
+    # this sub-phase) - see nano_banana_adapter.py's own docstring.
+    "nano_banana": NanoBananaImageGenerationAdapter,
 }
 
 
@@ -84,11 +101,18 @@ class AIProviderRegistry:
             models_config,
             "prompt_generation",
         )
+        self._image_generation: ImageGenerationProvider = self._build(
+            IMAGE_GENERATION_ADAPTERS,
+            providers_config.image_generation,
+            models_config,
+            "image_generation",
+        )
+        self._models_config = models_config
 
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
         model = getattr(models_config, provider_name, {}).get(capability, "gpt-5.5")
-        return adapters[provider_name](model=model)
+        return adapters[provider_name](model=model, provider=provider_name)
 
     def ocr(self) -> OCRProvider:
         return self._ocr
@@ -105,7 +129,54 @@ class AIProviderRegistry:
     def prompt_generation(self) -> PromptGenerationProvider:
         return self._prompt_generation
 
+    def image_generation(self, provider_name: str | None = None) -> ImageGenerationProvider:
+        """
+        Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+        ADR §10) - `image_generation` is the first capability with more
+        than one real adapter, so this is the first accessor that
+        supports an explicit override rather than only ever returning
+        the configured default. `provider_name=None` (the default, and
+        every existing call site's behavior) returns the same cached
+        instance as before - this is additive, not a breaking change to
+        the 5 other capabilities' single-provider accessors, which have
+        no reason to grow this parameter until they have a second real
+        adapter of their own.
+        """
+        if provider_name is None or provider_name == self._image_generation.provider:
+            return self._image_generation
+        return self._build(
+            IMAGE_GENERATION_ADAPTERS, provider_name, self._models_config, "image_generation"
+        )
+
 
 # Module-level default instance - Stages import this rather than each
 # constructing their own registry, so config is loaded once per process.
-default_registry = AIProviderRegistry()
+#
+# Built lazily (on first access to the name `default_registry`, via the
+# module __getattr__ below - PEP 562) rather than as a bare
+# `default_registry = AIProviderRegistry()` statement, so merely
+# *importing* this module (e.g. for the AIProviderRegistry class itself,
+# or transitively via some import chain that never actually needs the
+# singleton) no longer has the side effect of reading providers.yaml and
+# constructing five adapters. app/main.py's `lifespan` explicitly touches
+# `default_registry` on app startup as the intentional, documented
+# trigger point for that construction.
+#
+# Every Stage still does `from app.ai_providers.registry import
+# default_registry` exactly as before - that statement itself invokes
+# this __getattr__ (Python's `from module import name` performs a
+# getattr(module, name), which module-level __getattr__ intercepts), so
+# no Stage or test file needed to change: each Stage's own
+# `default_registry` name still ends up bound to this same cached
+# instance, and `monkeypatch.setattr("app.stages.<x>.default_registry",
+# ...)` continues to work exactly as it does today.
+_default_registry: AIProviderRegistry | None = None
+
+
+def __getattr__(name: str) -> AIProviderRegistry:
+    if name == "default_registry":
+        global _default_registry
+        if _default_registry is None:
+            _default_registry = AIProviderRegistry()
+        return _default_registry
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

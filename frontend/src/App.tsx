@@ -1,20 +1,29 @@
 import { useEffect, useState } from 'react';
-import { api, type Creative, type Product, type Project } from './api';
+import { api, type Product, type Project, type Slideshow } from './api';
+import { ProjectWorkspace } from './components/ProjectWorkspace';
 import { ImportPanel } from './components/ImportPanel';
-import { CreativeGrid } from './components/CreativeGrid';
+import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
+import { CatalogueImporter } from './components/CatalogueImporter';
 import './App.css';
 
 function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [slideshows, setSlideshows] = useState<Slideshow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [loadingCreatives, setLoadingCreatives] = useState(true);
+  const [loadingSlideshows, setLoadingSlideshows] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [creatingProject, setCreatingProject] = useState(false);
+  // Phase 10.5/10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  // ADR §3) - which Project's workspace is currently expanded, if any.
+  // No router in this app (see App.tsx's own history) - an inline
+  // expand/collapse follows the same single-page convention every other
+  // section here already uses, rather than introducing new routing
+  // infrastructure just for this one view.
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const loadProjects = () => {
     setLoadingProjects(true);
@@ -34,26 +43,51 @@ function App() {
       .finally(() => setLoadingProducts(false));
   };
 
-  const loadCreatives = () => {
-    setLoadingCreatives(true);
+  const loadSlideshows = () => {
+    setLoadingSlideshows(true);
     api
-      .listCreatives()
-      .then(setCreatives)
+      .listSlideshows()
+      .then(setSlideshows)
       .catch((err) => setError(err.message))
-      .finally(() => setLoadingCreatives(false));
+      .finally(() => setLoadingSlideshows(false));
+  };
+
+  // Silent refresh (no loading-spinner flash) - used by the polling
+  // effect below, which ticks every 1.5s while anything is queued/
+  // analyzing and would otherwise flicker the grid on every tick.
+  const refreshSlideshowsSilently = () => {
+    api.listSlideshows().then(setSlideshows).catch((err) => setError(err.message));
   };
 
   useEffect(() => {
     loadProjects();
     loadProducts();
-    loadCreatives();
+    loadSlideshows();
   }, []);
 
-  // Product assignment changes a Creative's `product` field, so the
-  // Creative list needs reloading too - not just the Product list.
-  const reloadProductsAndCreatives = () => {
+  // Poll while a background analysis is in flight anywhere in the list
+  // (Phase 3.2 of the async execution boundary work - see
+  // MIGRATION_PLAN.md) so cards reach ready/failed without the user
+  // needing to open a slideshow's blueprint modal (which has its own,
+  // separate poller for the single slideshow it's showing). Depends on
+  // the derived boolean, not `slideshows` itself, so the interval isn't
+  // torn down and recreated on every single tick's update - only when
+  // "is anything in flight" actually flips.
+  const anySlideshowInFlight = slideshows.some(
+    (s) => s.status === 'queued' || s.status === 'analyzing'
+  );
+  useEffect(() => {
+    if (!anySlideshowInFlight) return;
+    const interval = setInterval(refreshSlideshowsSilently, 1500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anySlideshowInFlight]);
+
+  // Product assignment changes a Slide's current_product_appearance, so
+  // the Slideshow list needs reloading too - not just the Product list.
+  const reloadProductsAndSlideshows = () => {
     loadProducts();
-    loadCreatives();
+    loadSlideshows();
   };
 
   const handleCreateProject = async (event: React.FormEvent) => {
@@ -104,10 +138,24 @@ function App() {
           <ul className="project-list">
             {projects.map((project) => (
               <li key={project.id} className="project-list-item">
-                <span className="project-name">{project.name}</span>
-                <span className="project-meta">
-                  Created {new Date(project.created_at).toLocaleString()}
-                </span>
+                <button
+                  type="button"
+                  className="project-row-toggle"
+                  onClick={() =>
+                    setExpandedProjectId((current) =>
+                      current === project.id ? null : project.id
+                    )
+                  }
+                >
+                  <span className="project-name">{project.name}</span>
+                  <span className="project-meta">
+                    Created {new Date(project.created_at).toLocaleString()}
+                  </span>
+                  <span className="project-row-chevron">
+                    {expandedProjectId === project.id ? '▾' : '▸'}
+                  </span>
+                </button>
+                {expandedProjectId === project.id && <ProjectWorkspace project={project} />}
               </li>
             ))}
           </ul>
@@ -116,16 +164,18 @@ function App() {
 
       <ProductManager products={products} loading={loadingProducts} onCreated={loadProducts} />
 
+      <CatalogueImporter products={products} onProductsChanged={loadProducts} />
+
       {error && <p className="error">{error}</p>}
 
-      <ImportPanel projects={projects} onImported={loadCreatives} />
+      <ImportPanel projects={projects} onImported={loadSlideshows} />
 
       <section className="creatives-section">
         <h2>Creatives</h2>
-        <CreativeGrid
-          creatives={creatives}
-          loading={loadingCreatives}
-          onStatusChange={reloadProductsAndCreatives}
+        <SlideshowGrid
+          slideshows={slideshows}
+          loading={loadingSlideshows}
+          onStatusChange={reloadProductsAndSlideshows}
           products={products}
         />
       </section>

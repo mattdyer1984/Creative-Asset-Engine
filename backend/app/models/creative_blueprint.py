@@ -12,7 +12,7 @@ NULL until then.
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -79,10 +79,10 @@ class CreativeBlueprint(Base):
     # Snapshot of the Creative's import provenance, copied in at creation
     # time (plan §6) - kept on the Blueprint itself so the single
     # assembled view never needs to join back to Creative for this.
-    source_references_json: Mapped[str] = mapped_column(Text, default="{}")
+    source_references_json: Mapped[dict] = mapped_column(JSON, default=dict)
 
     # Empty in V1; placeholder for future image-generation outputs.
-    future_generated_assets_json: Mapped[str] = mapped_column(Text, default="[]")
+    future_generated_assets_json: Mapped[list] = mapped_column(JSON, default=list)
 
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow)

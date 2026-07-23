@@ -6,7 +6,12 @@ exactly what plan §13 calls for ("Integration tests ... using a mocked AI
 provider (no real API calls in CI)").
 """
 
-from app.ai_providers.base import OCRExtraction
+from app.ai_providers.base import (
+    GeneratedImageResult,
+    GenerationRequest,
+    OCRExtraction,
+    ProviderCapabilities,
+)
 
 
 def _assert_matches_ocr_response_shape(extraction: OCRExtraction) -> None:
@@ -20,25 +25,35 @@ def _assert_matches_ocr_response_shape(extraction: OCRExtraction) -> None:
     assert isinstance(extraction.raw_text, str)
     assert isinstance(extraction.structured_blocks, list)
     for block in extraction.structured_blocks:
-        assert set(block.keys()) == {"text", "role"}, (
-            f"structured_blocks entries must have exactly 'text' and 'role' keys "
-            f"to match OCR_RESPONSE_SCHEMA - got {block.keys()}"
+        assert set(block.keys()) == {"text", "role", "bounding_box"}, (
+            f"structured_blocks entries must have exactly 'text', 'role', and "
+            f"'bounding_box' keys to match OCR_RESPONSE_SCHEMA - got {block.keys()}"
         )
         assert isinstance(block["text"], str)
         assert isinstance(block["role"], str)
+        assert set(block["bounding_box"].keys()) == {"x_min", "y_min", "x_max", "y_max"}
 
 
 class FakeOCRProvider:
     """Returns a canned result, or raises, depending on how it's configured."""
 
     model = "fake-ocr-model"
+    provider = "openai"
 
     def __init__(self, extraction: OCRExtraction | None = None, raise_error: Exception | None = None):
         self._extraction = extraction or OCRExtraction(
             raw_text="Fresh Squeezed. Zero Sugar Added.",
             structured_blocks=[
-                {"text": "Fresh Squeezed", "role": "headline"},
-                {"text": "Zero Sugar Added", "role": "subheadline"},
+                {
+                    "text": "Fresh Squeezed",
+                    "role": "headline",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.05, "x_max": 0.9, "y_max": 0.2},
+                },
+                {
+                    "text": "Zero Sugar Added",
+                    "role": "subheadline",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.22, "x_max": 0.7, "y_max": 0.32},
+                },
             ],
         )
         if raise_error is None:
@@ -64,6 +79,7 @@ class FakeProductIsolationProvider:
     """Returns a canned bounding box, or raises, depending on how it's configured."""
 
     model = "fake-isolation-model"
+    provider = "openai"
 
     def __init__(self, bounding_boxes: list[dict] | None = None, raise_error: Exception | None = None):
         self._bounding_boxes = (
@@ -119,8 +135,26 @@ class FakeVisionAnalysisProvider:
     """Returns a canned Product Lock Profile dict, or raises."""
 
     model = "fake-vision-model"
+    provider = "openai"
 
-    def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
+    def __init__(
+        self,
+        result: dict | None = None,
+        raise_error: Exception | None = None,
+        results_by_schema_name: dict[str, dict] | None = None,
+    ):
+        """
+        results_by_schema_name (Phase 9.4 of Product Lock v2, see
+        MIGRATION_PLAN.md) - opt-in, additive: SlideImageValidationStage
+        now calls analyze_creative up to twice per run (schema_name
+        "identity_validation" then "image_validation"), and most tests
+        need each call to return a genuinely different shape/outcome.
+        Falls back to `self._result` for any schema_name not given here
+        (or when this param is omitted entirely) - every other caller
+        of this fake, and every test that only cares about one call, is
+        unaffected.
+        """
+        self._results_by_schema_name = results_by_schema_name
         self._result = result if result is not None else {
             "product_category": "beverage",
             "product_type": "juice bottle",
@@ -158,10 +192,16 @@ class FakeVisionAnalysisProvider:
         # than just trusting the calling Stage's docstring.
         self.last_prompt_spec: dict | None = None
 
-    def analyze_creative(self, image_bytes: bytes, prompt_spec: dict, response_schema: dict) -> dict:
+    def analyze_creative(
+        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+    ) -> dict:
         self.last_prompt_spec = prompt_spec
         if self._raise_error is not None:
             raise self._raise_error
+        if self._results_by_schema_name is not None:
+            schema_name = prompt_spec.get("schema_name")
+            if schema_name in self._results_by_schema_name:
+                return self._results_by_schema_name[schema_name]
         return self._result
 
 
@@ -174,9 +214,19 @@ def _assert_matches_marketing_analysis_shape(result: dict) -> None:
 
 
 class FakeTextGenerationProvider:
-    """Returns a canned narrative dict, or raises."""
+    """
+    Returns a canned dict for TextGenerationProvider.generate(), or
+    raises - shared by both real consumers (Marketing Analysis and, since
+    Phase 7.2, Narrative Structure - see MIGRATION_PLAN.md), which expect
+    different response shapes. The shape guard only applies to this
+    class's own default canned result (marketing-analysis-shaped, its
+    original and only purpose) - an explicitly supplied `result` is
+    trusted as-is, since it's now the caller's job to match whichever
+    consumer/schema they're actually faking.
+    """
 
     model = "fake-text-model"
+    provider = "openai"
 
     def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
         self._result = result if result is not None else {
@@ -188,7 +238,7 @@ class FakeTextGenerationProvider:
                 "product rather than a new market entrant."
             )
         }
-        if raise_error is None:
+        if raise_error is None and result is None:
             _assert_matches_marketing_analysis_shape(self._result)
         self._raise_error = raise_error
         # Records the most recent call's prompt_spec, so tests can assert
@@ -202,8 +252,8 @@ class FakeTextGenerationProvider:
         return self._result
 
 
-def _assert_matches_recreation_prompt_ai_shape(result: dict) -> None:
-    """Guards FakePromptGenerationProvider's canned result against drifting from RECREATION_PROMPT_AI_SCHEMA."""
+def _assert_matches_creative_specification_ai_shape(result: dict) -> None:
+    """Guards FakePromptGenerationProvider's canned result against drifting from CREATIVE_SPECIFICATION_AI_SCHEMA."""
     expected_keys = {
         "subject",
         "composition",
@@ -219,14 +269,15 @@ def _assert_matches_recreation_prompt_ai_shape(result: dict) -> None:
         "extensions",
     }
     assert set(result.keys()) == expected_keys, (
-        f"recreation prompt AI result must have exactly {expected_keys} - got {result.keys()}"
+        f"creative specification AI result must have exactly {expected_keys} - got {result.keys()}"
     )
 
 
 class FakePromptGenerationProvider:
-    """Returns a canned recreation-prompt creative-direction dict, or raises."""
+    """Returns a canned creative-specification creative-direction dict, or raises."""
 
     model = "fake-prompt-model"
+    provider = "openai"
 
     def __init__(self, result: dict | None = None, raise_error: Exception | None = None):
         self._result = result if result is not None else {
@@ -244,17 +295,52 @@ class FakePromptGenerationProvider:
             "extensions": "",
         }
         if raise_error is None and result is None:
-            _assert_matches_recreation_prompt_ai_shape(self._result)
+            _assert_matches_creative_specification_ai_shape(self._result)
         self._raise_error = raise_error
         self.last_call: dict | None = None
 
-    def generate_recreation_prompt(
+    def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
     ) -> dict:
         self.last_call = {"lock_profile": lock_profile, "fingerprint": fingerprint}
         if self._raise_error is not None:
             raise self._raise_error
         return self._result
+
+
+class FakeImageGenerationProvider:
+    """Returns a canned GeneratedImageResult, or raises - Phase 8.2, see MIGRATION_PLAN.md."""
+
+    model = "fake-image-model"
+    provider = "openai"
+
+    def __init__(self, result: GeneratedImageResult | None = None, raise_error: Exception | None = None):
+        self._result = result or GeneratedImageResult(
+            image_bytes=b"\x89PNG\r\n\x1a\nfake-png-bytes",
+            provider="openai",
+            model="fake-image-model",
+            prompt_used="a fake compiled prompt",
+            seed=None,
+            generation_time_seconds=0.01,
+        )
+        self._raise_error = raise_error
+        self.last_request: GenerationRequest | None = None
+
+    def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
+        self.last_request = request
+        if self._raise_error is not None:
+            raise self._raise_error
+        return self._result
+
+    @property
+    def capabilities(self) -> ProviderCapabilities:
+        return ProviderCapabilities(
+            supports_reference_images=True,
+            max_reference_images=16,
+            supports_masking=True,
+            supports_inpainting=True,
+            supported_resolutions=["1024x1024", "1536x1024", "1024x1536"],
+        )
 
 
 class FakeAIProviderRegistry:
@@ -265,6 +351,7 @@ class FakeAIProviderRegistry:
         vision_provider: FakeVisionAnalysisProvider | None = None,
         text_generation_provider: FakeTextGenerationProvider | None = None,
         prompt_generation_provider: FakePromptGenerationProvider | None = None,
+        image_generation_provider: FakeImageGenerationProvider | None = None,
     ):
         self._ocr_provider = ocr_provider or FakeOCRProvider()
         self._isolation_provider = isolation_provider or FakeProductIsolationProvider()
@@ -272,6 +359,9 @@ class FakeAIProviderRegistry:
         self._text_generation_provider = text_generation_provider or FakeTextGenerationProvider()
         self._prompt_generation_provider = (
             prompt_generation_provider or FakePromptGenerationProvider()
+        )
+        self._image_generation_provider = (
+            image_generation_provider or FakeImageGenerationProvider()
         )
 
     def ocr(self) -> FakeOCRProvider:
@@ -288,3 +378,14 @@ class FakeAIProviderRegistry:
 
     def prompt_generation(self) -> FakePromptGenerationProvider:
         return self._prompt_generation_provider
+
+    def image_generation(self, provider_name: str | None = None) -> FakeImageGenerationProvider:
+        """
+        provider_name (Phase 10.1, mirroring AIProviderRegistry.
+        image_generation's real override signature) - accepted and
+        ignored: every test that cares about a specific provider name
+        should construct FakeImageGenerationProvider with that name
+        directly rather than this fake actually branching on it, since
+        this double only ever holds one configured instance.
+        """
+        return self._image_generation_provider

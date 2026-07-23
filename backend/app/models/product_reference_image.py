@@ -13,11 +13,61 @@ reference images for a product is every row with is_current=True and
 that product_id (there can be more than one - a single isolation run can
 produce several bounding boxes/crops).
 
-source_creative_id records which creative's image this particular crop
-came from - provenance, not ownership (plan §7's comment on this field).
+source_creative_id / source_slide_id records which creative's/slide's
+image this particular crop came from - provenance, not ownership (plan
+§7's comment on this field).
+
+Transitional (Phase 2.3 of the Slideshow/Slide migration): both
+source_creative_id and source_slide_id exist, both nullable - see
+OCRResult's docstring for why.
+
+source_product_source_import_id (Phase 5.1 of Product Intelligence, see
+MIGRATION_PLAN.md) is a third, equally-nullable provenance column for
+images sourced from a Product Source (a URL import - the generic
+schema.org/OpenGraph fallback, or a platform-specific adapter) rather
+than cropped from a creative. Reuses this table rather than inventing a
+separate "official image" concept, exactly like source_slide_id reused
+it instead of inventing a new one for the new pipeline in Phase 2.3.
+
+analysis_run_id (from AnalysisArtifactMixin) is overridden here to be
+nullable, unlike every other artifact that uses the mixin - a Product
+Source fetch isn't an AI call, so a URL-sourced row has no AnalysisRun
+to point at (same reasoning as ProductSourceImport itself not using this
+mixin at all). Rows produced by the Product Isolation Stage continue to
+always populate it; only URL-sourced rows leave it null. The mixin
+itself stays unchanged for the other five artifact types, which remain
+exclusively AI-analysis-derived and should keep requiring a real run.
+
+quality_score / quality_reasons_json / role / library_status (Phase 9.1
+of Product Lock v2, see MIGRATION_PLAN.md's "ADR: Canonical Product
+Reference" §1/§3) are the Reference Scoring Stage's output - all four
+nullable, written once per image by that Stage (§4), not recomputed on
+every read. Together they turn this table into the Canonical Reference
+Library: "the Library" is not a new table, it's the query
+`library_status == "included"` for a given product_id - the same
+compute-on-read pattern assemble_product_profile/
+assemble_slideshow_blueprint already use elsewhere in this codebase for
+"the current state of things." library_status is a plain string
+("candidate" | "included" | "rejected" | "superseded"), not a hardcoded
+enum, matching ProductSourceImport.source_type's own precedent for
+this kind of open, provider/stage-extensible vocabulary; role is the
+same style ("hero"/"front"/"45_degree"/"packaging"/"branding_closeup",
+free string, not closed).
+
+upgrade_candidate_of_id (Phase 9.6, ADR §4/§9 "Replaced/superseded" and
+"a non-blocking prompt offering to upgrade - never a silent swap") is
+the mirror case of the automatic-supersede check §4 describes: when a
+*new*, higher-quality candidate is a near-duplicate of an *existing
+included* image in the same role, the Stage never auto-demotes the old
+one (that's explicitly the higher-stakes decision the ADR says "still
+surfaces as a choice, never auto-applies") - instead it points this
+column at the older image it could replace, and the frontend surfaces
+that as a non-blocking prompt. Confirming the upgrade is an ordinary
+manual library-status write (superseding the old image via the
+existing human-in-the-loop override endpoint), not a new mechanism.
 """
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Float, ForeignKey, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -27,7 +77,21 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 class ProductReferenceImage(Base, AnalysisArtifactMixin):
     __tablename__ = "product_reference_images"
 
+    analysis_run_id: Mapped[str | None] = mapped_column(ForeignKey("analysis_runs.id"), nullable=True)
+
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
-    source_creative_id: Mapped[str] = mapped_column(ForeignKey("creatives.id"), nullable=False)
+    source_creative_id: Mapped[str | None] = mapped_column(ForeignKey("creatives.id"), nullable=True)
+    source_slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
+    source_product_source_import_id: Mapped[str | None] = mapped_column(
+        ForeignKey("product_source_imports.id"), nullable=True
+    )
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     isolation_method: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    quality_reasons_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    role: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    library_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    upgrade_candidate_of_id: Mapped[str | None] = mapped_column(
+        ForeignKey("product_reference_images.id"), nullable=True
+    )

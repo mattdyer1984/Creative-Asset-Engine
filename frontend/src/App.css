@@ -61,11 +61,20 @@ section h2 {
 }
 
 .project-list-item {
+  border-bottom: 1px solid #eee;
+}
+
+.project-row-toggle {
   display: flex;
+  width: 100%;
   justify-content: space-between;
   align-items: baseline;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #eee;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
 .project-name {
@@ -75,6 +84,49 @@ section h2 {
 .project-meta {
   color: #888;
   font-size: 0.8rem;
+}
+
+.project-row-chevron {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+/* Project workspace (Phase 10.5/10.9, see MIGRATION_PLAN.md's vNext ADR §3) */
+
+.project-workspace {
+  padding: 0.75rem 1rem 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.project-workspace-notes {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.project-workspace-heading {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 0.4rem;
+}
+
+.project-workspace-products {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.project-workspace-product {
+  padding: 0.3rem 0.7rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 0.85rem;
 }
 
 /* Import panel */
@@ -109,6 +161,15 @@ section h2 {
   display: inline-block;
 }
 
+.group-as-one-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+}
+
 /* Creatives grid */
 
 .creative-grid {
@@ -127,12 +188,28 @@ section h2 {
   background: white;
 }
 
+.creative-thumbnail-wrap {
+  position: relative;
+}
+
 .creative-thumbnail {
   width: 100%;
   height: 120px;
   object-fit: cover;
   display: block;
   background: #f0f0f0;
+}
+
+.slide-count-badge {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.4rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
 }
 
 .creative-card-body {
@@ -285,6 +362,405 @@ section h2 {
   word-break: break-word;
 }
 
+/* Product Intelligence (Phase 5, see MIGRATION_PLAN.md) */
+
+.source-import-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.source-import-form input {
+  flex: 1;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.source-import-form button {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.product-profile {
+  margin-bottom: 0.75rem;
+}
+
+.product-profile h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.profile-field-row .field-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.classification-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.classification-immutable {
+  background: #e8f0ff;
+  color: #2554c7;
+}
+
+.classification-contextual {
+  background: #fff2e0;
+  color: #b5680b;
+}
+
+.confidence-badge {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+/* Phase 7.5 (dependency-aware staleness, see MIGRATION_PLAN.md) */
+
+.stale-badge {
+  margin-left: 0.5rem;
+  color: #a34a00;
+  background: #ffe9d1;
+  vertical-align: middle;
+}
+
+.beat-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #5b3caa;
+  background: #ece2ff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.narrative-beat-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.narrative-beat-list li {
+  display: flex;
+  align-items: center;
+}
+
+.narrative-beat-list li.current-slide-beat {
+  font-weight: 600;
+}
+
+/* Phase 8.5 (Generation -> Validation proof of loop, see MIGRATION_PLAN.md) */
+
+.generated-image-panel {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.generated-image-preview {
+  max-width: 220px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e2e2e2;
+}
+
+.generated-image-meta {
+  flex: 1;
+  min-width: 220px;
+}
+
+.validation-result-panel {
+  margin-top: 0.5rem;
+}
+
+.validation-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  margin-bottom: 0.4rem;
+}
+
+.validation-pass {
+  color: #157a41;
+  background: #d9f2e3;
+}
+
+.validation-fail {
+  color: #a3271f;
+  background: #fbe2e0;
+}
+
+.field-check-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field-check-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.field-check-icon {
+  flex-shrink: 0;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.field-check-preserved .field-check-icon {
+  color: #157a41;
+}
+
+.field-check-violated .field-check-icon {
+  color: #a3271f;
+}
+
+.field-check-reason {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Phase 9.4/9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) */
+
+.validation-badge-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.validation-unknown {
+  color: #6b6b6b;
+  background: #ececec;
+}
+
+.field-list-label {
+  margin: 0.6rem 0 0.2rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.reference-set-strip {
+  margin-top: 0.5rem;
+}
+
+/* Phase 10.2-10.9 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+   ADR §11-§15) - the Decision -> Generation -> Quality retry loop UI. */
+
+.generate-creative-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.generate-creative-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.generate-creative-field select {
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.generate-creative-results {
+  margin-top: 0.75rem;
+}
+
+.generate-creative-outcome {
+  font-weight: 600;
+  margin: 0 0 0.6rem;
+}
+
+.generate-creative-outcome-winner {
+  color: #157a41;
+}
+
+.generate-creative-outcome-none {
+  color: #a3271f;
+}
+
+.final-output-panel {
+  margin-bottom: 0.75rem;
+}
+
+.generation-attempt-panel {
+  margin-top: 0.6rem;
+}
+
+.generation-candidate-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+.generation-candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 140px;
+  padding: 0.4rem;
+  border-radius: 8px;
+}
+
+.generation-candidate-winner {
+  background: #d9f2e3;
+}
+
+.generation-candidate-thumbnail {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e2e2e2;
+}
+
+.reference-library-panel {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.reference-library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.reference-library-role-group {
+  margin-top: 0.4rem;
+}
+
+.reference-library-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 90px;
+}
+
+.quality-score-badge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #2554c7;
+  background: #e8f0ff;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+}
+
+/* Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8/§9) */
+
+.reference-library-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.file-picker-button.secondary {
+  background: white;
+  color: #555;
+  border: 1px solid #d0d0d0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+}
+
+.file-picker-button.secondary:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.text-button {
+  border: none;
+  background: none;
+  color: #2554c7;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.text-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.reference-library-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.upgrade-prompt {
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.4rem;
+  background: #fff2e0;
+  border-radius: 6px;
+}
+
+.attribute-color-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.raw-evidence-details {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.raw-evidence-details summary {
+  cursor: pointer;
+  margin-bottom: 0.35rem;
+}
+
 .product-picker {
   display: flex;
   flex-wrap: wrap;
@@ -310,12 +786,29 @@ section h2 {
   cursor: pointer;
 }
 
+.assigned-product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .assigned-product {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.75rem;
   color: #157a41;
   background: #d9f2e3;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
+}
+
+.assigned-product .unassign-button {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
 }
 
 .unassign-button {
@@ -336,6 +829,133 @@ section h2 {
   border-radius: 6px;
   border: 1px solid #d0d0d0;
   max-width: 110px;
+}
+
+/* Catalogue layer (Phase 5.12, see MIGRATION_PLAN.md's frozen catalogue ADR) */
+
+.catalogue-importer-section {
+  margin-bottom: 1.5rem;
+}
+
+.catalogue-importer-intro {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 0.75rem;
+  max-width: 60ch;
+}
+
+.listing-review-panel {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.listing-review-source {
+  font-size: 0.75rem;
+  color: #777;
+  margin: 0 0 0.6rem;
+  word-break: break-all;
+}
+
+.listing-resolved-note {
+  font-size: 0.85rem;
+  color: #157a41;
+  margin: 0;
+}
+
+.bundle-review-heading {
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem;
+}
+
+.bundle-review-form label.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bundle-review-form label.field-row input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.bundle-member-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bundle-member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bundle-member-hint-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.bundle-member-row select,
+.bundle-member-row input,
+.single-product-review-form select,
+.single-product-review-form input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.single-product-review-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bundle-review-form button,
+.single-product-review-form button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.bundle-review-form button:disabled,
+.single-product-review-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bundle-view-panel {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #ddd;
+}
+
+.bundle-view-member {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.bundle-view-member:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
 }
 
 /* Shared */
@@ -435,6 +1055,29 @@ section h2 {
   cursor: default;
 }
 
+.slide-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.slide-selector button {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.slide-selector button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .blueprint-failure-banner {
   background: #fbdada;
   color: #7a1414;
@@ -502,6 +1145,39 @@ section h2 {
   line-height: 1.5;
   color: #333;
   margin: 0;
+}
+
+/* Phase 6.5 (multi per-slide product detection, see MIGRATION_PLAN.md) -
+   one of these per product in the blueprint's Products section, so a
+   multi-product slide's artifacts render distinctly instead of merged. */
+.product-subsection {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.product-subsection:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.product-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
+
+.prominence-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #157a41;
+  background: #d9f2e3;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
 }
 
 /* Field grid - the "spec sheet" layout for structured artifacts */

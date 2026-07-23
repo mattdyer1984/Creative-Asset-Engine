@@ -19,6 +19,9 @@ from app.db import Base
 from app.models.creative import Creative
 from app.models.creative_blueprint import CreativeBlueprint
 from app.models.product import Product
+from app.models.product_appearance import ProductAppearance
+from app.models.slide import Slide
+from app.models.slideshow import Slideshow
 
 
 @pytest.fixture(autouse=True)
@@ -38,13 +41,23 @@ def isolated_storage_dir(monkeypatch, tmp_path):
 
 
 @pytest.fixture()
-def db_session():
+def db_session(monkeypatch):
+    """
+    Also monkeypatches app.db.SessionLocal to this same per-test engine -
+    app.dependency_overrides[get_db] (see the `client` fixture in
+    test_slideshow_blueprint_api.py and friends) only redirects the
+    request-scoped session FastAPI injects via Depends(get_db); anything
+    that opens its own session directly against app.db.SessionLocal (e.g.
+    app.services.background_execution, Phase 3+) would otherwise silently
+    hit the real dev database on disk instead of this throwaway one.
+    """
     tmp_dir = tempfile.mkdtemp()
     db_path = Path(tmp_dir) / "test.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
 
     SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+    monkeypatch.setattr("app.db.SessionLocal", SessionLocal)
     session = SessionLocal()
     try:
         yield session
@@ -118,3 +131,78 @@ def creative_with_product(db_session, tmp_path):
     db_session.refresh(creative)
 
     return creative
+
+
+@pytest.fixture()
+def slideshow_with_slide(db_session, tmp_path):
+    """
+    A persisted Slideshow + single Slide, with a real (tiny) file on
+    disk - the new-pipeline (Phase 2.4+) equivalent of
+    creative_with_blueprint above.
+    """
+    image_path = tmp_path / "test-image.jpg"
+    image_path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
+
+    slideshow = Slideshow(imported_at=datetime.now(timezone.utc))
+    db_session.add(slideshow)
+    db_session.flush()
+
+    slide = Slide(
+        slideshow_id=slideshow.id,
+        slide_index=0,
+        stored_file_path=str(image_path),
+        original_filename="test-image.jpg",
+        source_type="local_file",
+        source_locator="test-image.jpg",
+    )
+    db_session.add(slide)
+    db_session.commit()
+    db_session.refresh(slideshow)
+
+    return slideshow
+
+
+@pytest.fixture()
+def slideshow_with_product(db_session, tmp_path):
+    """
+    Like slideshow_with_slide, but with a Product already assigned via a
+    current ProductAppearance - the new-pipeline equivalent of
+    creative_with_product above (see that fixture's docstring for why a
+    real, decodable JPEG is needed here).
+    """
+    from PIL import Image
+
+    product = Product(display_name="Sunrise Orange Juice")
+    db_session.add(product)
+    db_session.flush()
+
+    image_path = tmp_path / "test-image.jpg"
+    Image.new("RGB", (400, 400), color=(210, 160, 120)).save(image_path)
+
+    slideshow = Slideshow(imported_at=datetime.now(timezone.utc))
+    db_session.add(slideshow)
+    db_session.flush()
+
+    slide = Slide(
+        slideshow_id=slideshow.id,
+        slide_index=0,
+        stored_file_path=str(image_path),
+        original_filename="test-image.jpg",
+        source_type="local_file",
+        source_locator="test-image.jpg",
+    )
+    db_session.add(slide)
+    db_session.flush()
+
+    appearance = ProductAppearance(
+        slide_id=slide.id,
+        product_id=product.id,
+        prominence="primary",
+        confidence=1.0,
+        is_current=True,
+    )
+    db_session.add(appearance)
+    db_session.commit()
+    db_session.refresh(slideshow)
+
+    return slideshow

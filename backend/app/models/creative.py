@@ -12,7 +12,7 @@ until the user assigns this creative to a new or existing Product.
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -42,7 +42,7 @@ class Creative(Base):
     # the user via the Creative Blueprint's source references.
     source_type: Mapped[str] = mapped_column(String(64), nullable=False)
     source_locator: Mapped[str] = mapped_column(String(2048), nullable=False)
-    raw_metadata_json: Mapped[str] = mapped_column(Text, default="{}")
+    raw_metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
 
     imported_at: Mapped[datetime] = mapped_column(default=utcnow)
 

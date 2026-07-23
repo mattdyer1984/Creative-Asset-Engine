@@ -1,9 +1,10 @@
 # AI provider configuration (plan §4.2).
 #
 # Config is per-capability, not per-app - each capability below can point
-# at a different provider/model independently. All 5 of the plan's AI
-# capabilities are now used: ocr, product_isolation, vision_analysis
-# (M4), text_generation (M5), prompt_generation (M6).
+# at a different provider/model independently. All 6 capabilities are now
+# used: ocr, product_isolation, vision_analysis (M4), text_generation
+# (M5), prompt_generation (M6), image_generation (Phase 8.2 of the
+# Generation -> Validation proof of loop, see MIGRATION_PLAN.md).
 #
 # API keys are NOT stored here - see app/ai_providers/config.py
 # (get_api_key) for how credentials are resolved (macOS Keychain, with an
@@ -15,6 +16,16 @@ providers:
   vision_analysis: openai
   text_generation: openai
   prompt_generation: openai
+  # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+  # ADR §10) - Nano Banana Lite is the default image_generation
+  # provider, an implementation choice, not an architectural one: the
+  # ImageGenerationProvider abstraction (app/ai_providers/base.py) and
+  # the registry's multi-provider support (registry.py's
+  # image_generation(provider_name=...) override) are what make this a
+  # one-line config choice rather than a code change - OpenAI's adapter
+  # is unchanged and still fully registered/selectable, just not the
+  # default anymore.
+  image_generation: nano_banana
 
 models:
   openai:
@@ -23,3 +34,17 @@ models:
     vision_analysis: gpt-5.5
     text_generation: gpt-5.5
     prompt_generation: gpt-5.5
+    # "gpt-5.5" (used by every other capability above) is not a real
+    # OpenAI model - confirmed via a real 400 from OpenAI's Images API
+    # while live-verifying Phase 8.3 (see MIGRATION_PLAN.md). Scoped fix:
+    # image_generation only, since that's the one capability this
+    # session actually exercised against the real API with a real key -
+    # the other 5 values are unchanged, not confirmed working or broken.
+    image_generation: gpt-image-1
+  nano_banana:
+    # gemini-3.1-flash-lite-image - the real, documented model ID for
+    # "Nano Banana Lite" (Google's fastest/cheapest Gemini image tier),
+    # confirmed 2026-07-23 via Google's own developer docs, not guessed.
+    # Not yet live-verified against a real API key in this environment -
+    # see app/ai_providers/nano_banana_adapter.py's own docstring.
+    image_generation: gemini-3.1-flash-lite-image
