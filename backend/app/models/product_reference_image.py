@@ -37,9 +37,25 @@ mixin at all). Rows produced by the Product Isolation Stage continue to
 always populate it; only URL-sourced rows leave it null. The mixin
 itself stays unchanged for the other five artifact types, which remain
 exclusively AI-analysis-derived and should keep requiring a real run.
+
+quality_score / quality_reasons_json / role / library_status (Phase 9.1
+of Product Lock v2, see MIGRATION_PLAN.md's "ADR: Canonical Product
+Reference" §1/§3) are the Reference Scoring Stage's output - all four
+nullable, written once per image by that Stage (§4), not recomputed on
+every read. Together they turn this table into the Canonical Reference
+Library: "the Library" is not a new table, it's the query
+`library_status == "included"` for a given product_id - the same
+compute-on-read pattern assemble_product_profile/
+assemble_slideshow_blueprint already use elsewhere in this codebase for
+"the current state of things." library_status is a plain string
+("candidate" | "included" | "rejected" | "superseded"), not a hardcoded
+enum, matching ProductSourceImport.source_type's own precedent for
+this kind of open, provider/stage-extensible vocabulary; role is the
+same style ("hero"/"front"/"45_degree"/"packaging"/"branding_closeup",
+free string, not closed).
 """
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Float, ForeignKey, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -59,3 +75,8 @@ class ProductReferenceImage(Base, AnalysisArtifactMixin):
     )
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     isolation_method: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    quality_reasons_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    role: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    library_status: Mapped[str | None] = mapped_column(String(32), nullable=True)

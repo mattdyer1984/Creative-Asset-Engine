@@ -16,6 +16,15 @@ not an AI analysis run, so it has no AnalysisRun to point at. See its own
 docstring, and ProductReferenceImage's, for how this affected that
 table's normally-mixin-enforced analysis_run_id.
 
+GenerationReferenceSet and GenerationReferenceSetImage (Phase 9.1,
+Product Lock v2 - see MIGRATION_PLAN.md's "ADR: Canonical Product
+Reference") record which Library images (ProductReferenceImage rows
+with library_status="included") a specific generation call actually
+selected. The Canonical Reference Library itself is not a new table -
+it's a query over ProductReferenceImage's four new nullable columns
+(quality_score/quality_reasons_json/role/library_status), the same
+compute-on-read pattern used throughout this codebase.
+
 Listing, ProductBundle, and ProductBundleMember (Phase 5.8, catalogue
 layer - see MIGRATION_PLAN.md's frozen catalogue ADR) sit above Product
 Intelligence rather than inside it: Listing owns marketplace/commercial
@@ -37,6 +46,8 @@ from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
+from app.models.generation_reference_set import GenerationReferenceSet
+from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.image_validation_result import ImageValidationResult
 from app.models.listing import Listing
 from app.models.marketing_analysis import MarketingAnalysis
@@ -71,6 +82,8 @@ __all__ = [
     "NarrativeStructure",
     "CreativeSpecification",
     "GeneratedImage",
+    "GenerationReferenceSet",
+    "GenerationReferenceSetImage",
     "ImageValidationResult",
     "Slideshow",
     "Slide",

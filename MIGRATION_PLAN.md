@@ -3397,9 +3397,25 @@ A new prompt/schema (`app/slideshow_stages/image_validation_stage.py`), not a ne
 
 ---
 
+## Phase 9 reports log
+
+### Phase 9.1: Schema (expand) - GenerationReferenceSet + Library columns (2026-07-23)
+
+**What was built**: two new tables (`generation_reference_sets`, `generation_reference_set_images`) and six new nullable columns across three existing tables (`product_reference_images` gets `quality_score`/`quality_reasons_json`/`role`/`library_status`; `generated_images` gets `generation_reference_set_id`; `image_validation_results` gets `identity_passed`/`identity_checks_json`) - exactly ADR §1/§2's spec, no deviation. Three migrations, chained: `dab9d7104321` (both new tables + the four `product_reference_images` columns, no batch mode - no FK involved), `3af79717e420` (batch mode - `generated_images.generation_reference_set_id` adds a new FK), `de63f9128ab2` (no batch mode - `image_validation_results`' two new columns add no FK, correcting an imprecision in the ADR's own §2 wording, which lumped all three FK/non-FK column additions together as "batch mode required... each").
+
+**Real dev DB verified, same discipline as every prior migration**: backed up the real DB, ran the full upgrade→verify→downgrade→re-verify→re-upgrade cycle against an isolated `CAE_DATA_DIR` scratch copy first. Row counts and every existing table's data were unchanged after upgrade. The upgrade→downgrade→re-upgrade round trip's only diff was FK-constraint *ordering* inside `generated_images`' `CREATE TABLE` statement (confirmed via `diff`, not assumed from a hash mismatch) - a known, benign SQLite batch-mode table-recreation artifact, not a real schema difference (same columns, same constraints, same types). Applied to the real dev DB only after this passed; backup kept at `data/creative_asset_engine.db.pre-9.1-backup`.
+
+**Verification**: full existing test suite (248 tests) still passes unchanged - this phase is pure schema addition, no behavior touched yet. `ruff check` clean on every new/changed file.
+
+**Real gap found during grounding, not anticipated when the ADR was written**: none - the models mirror `GeneratedImage`/`ImageValidationResult`/`ProductReferenceImage`'s existing conventions closely enough that no new pattern was needed.
+
+- Commit: (see git log)
+
+---
+
 ## ADR: Canonical Product Reference (Product Lock v2) — 2026-07-23
 
-**Status: revised twice by the user on 2026-07-23 (see Revision #1 and Revision #2 below) - the sections below reflect the current, revised design. Design/planning only, per explicit instruction - no code, no migrations, no new files have been written for this ADR. Not to be implemented until confirmed.**
+**Status: implementation in progress as of 2026-07-23 (see "Phase 9 reports log" above and the standing authorization renewal) - revised twice by the user before implementation began (see Revision #1 and Revision #2 below). The sections below remain the authoritative design reference for Phase 9's sub-phases.**
 
 ### Revision #1 (2026-07-23) - explicit scoring/selection stage, prompt compiler philosophy, Product Intelligence goal
 
@@ -3622,7 +3638,7 @@ Each sub-phase gets its own commit, its own tests-first-then-live-verification t
 
 ## ADR: AI Creative Engine vNext — 2026-07-23
 
-**Status**: design-only, awaiting review. Does not modify, supersede, or implement anything in the "ADR: Canonical Product Reference (Product Lock v2)" above - that ADR is treated here as a dependency this document builds on, not a document this one edits. **No code, migration, or new file has been written for this ADR.** Every claim about "what exists today" below was verified by direct code investigation on 2026-07-23 (four parallel codebase surveys covering the domain model, the AI-provider abstraction, the product-source/evidence-ingestion code, and the stage pipeline/frontend), not assumed from the user's framing - several of the user's implicit assumptions about the current system turned out to be wrong in specific, important ways, documented inline below rather than silently corrected. Revised five times by the user on 2026-07-23 (see Revisions #1-#5 below); sections rewritten in place to stay internally consistent, no renumbering.
+**Status**: implementation authorized and in progress as of 2026-07-23 (Phase 10, see the Phase list and standing authorization renewal above) - the sections below remain the authoritative design reference. Does not modify, supersede, or implement anything in the "ADR: Canonical Product Reference (Product Lock v2)" above - that ADR (Phase 9) is a dependency this one builds on and is implemented first. Every claim about "what exists today" below was verified by direct code investigation on 2026-07-23 (four parallel codebase surveys covering the domain model, the AI-provider abstraction, the product-source/evidence-ingestion code, and the stage pipeline/frontend), not assumed from the user's framing - several of the user's implicit assumptions about the current system turned out to be wrong in specific, important ways, documented inline below rather than silently corrected. Revised five times by the user on 2026-07-23 before implementation began (see Revisions #1-#5 below); sections rewritten in place to stay internally consistent, no renumbering.
 
 ### Revision #5 (2026-07-23)
 

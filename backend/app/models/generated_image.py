@@ -24,6 +24,16 @@ Phase 8 architecture direction ("generate one slide first, not an
 entire slideshow") - slide_id is non-nullable, unlike the slideshow-
 scoped artifacts (MarketingAnalysis, CreativeSpecification) which have
 no slide_id at all.
+
+generation_reference_set_id (Phase 9.1 of Product Lock v2, see
+MIGRATION_PLAN.md's "ADR: Canonical Product Reference" §1) records
+which specific GenerationReferenceSet's images were actually sent to
+the provider for this generation - nullable because every row created
+before this ADR shipped genuinely has none (a pre-Product-Lock-v2
+generation used no reference images at all), and because this is a
+hard prerequisite for new generations (§6 of that ADR), not an optional
+enhancement, so a null value on a *new* row would itself be a bug, not
+a valid state to design around.
 """
 
 from sqlalchemy import Float, ForeignKey, String, Text
@@ -40,6 +50,9 @@ class GeneratedImage(Base, AnalysisArtifactMixin):
     slide_id: Mapped[str] = mapped_column(ForeignKey("slides.id"), nullable=False)
     creative_specification_id: Mapped[str] = mapped_column(
         ForeignKey("creative_specifications.id"), nullable=False
+    )
+    generation_reference_set_id: Mapped[str | None] = mapped_column(
+        ForeignKey("generation_reference_sets.id"), nullable=True
     )
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
     model_name: Mapped[str] = mapped_column(String(128), nullable=False)
