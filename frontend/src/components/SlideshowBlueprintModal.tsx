@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { api, type AssembledSlideshowBlueprint } from '../api';
+import {
+  api,
+  type AssembledSlideshowBlueprint,
+  type GeneratedImageData,
+  type ImageValidationResultData,
+} from '../api';
 
 interface SlideshowBlueprintModalProps {
   slideshowId: string;
@@ -54,6 +59,14 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
+  // Phase 8.5 (Generation -> Validation proof of loop, see
+  // MIGRATION_PLAN.md) - deliberately not part of `blueprint`: the
+  // backend scopes generation/validation to the primary slide only and
+  // never wires them into the analysis pipeline, so they're loaded and
+  // triggered independently rather than riding the blueprint's own
+  // polling/status machinery.
+  const [generatedImage, setGeneratedImage] = useState<GeneratedImageData | null>(null);
+  const [validationResult, setValidationResult] = useState<ImageValidationResultData | null>(null);
 
   const load = () => {
     api
@@ -131,6 +144,62 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   const currentBeat = slide
     ? blueprint?.narrative_structure?.structured.slides.find((s) => s.slide_id === slide.id)?.beat
     : undefined;
+
+  // Generation is scoped to the primary slide only (Phase 8's "one slide
+  // first" boundary, enforced by the backend) - independent of whichever
+  // slide the Prev/Next selector above is currently showing.
+  const primarySlideId = blueprint?.slides[0]?.id;
+
+  useEffect(() => {
+    if (!primarySlideId) return;
+    setGeneratedImage(null);
+    setValidationResult(null);
+    api
+      .getCurrentGeneratedImage(slideshowId, primarySlideId)
+      .then(setGeneratedImage)
+      .catch((err) => setError((err as Error).message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideshowId, primarySlideId]);
+
+  useEffect(() => {
+    if (!generatedImage) {
+      setValidationResult(null);
+      return;
+    }
+    api
+      .getCurrentValidationResult(slideshowId, generatedImage.id)
+      .then(setValidationResult)
+      .catch((err) => setError((err as Error).message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideshowId, generatedImage?.id]);
+
+  const handleGenerateImage = async () => {
+    if (!primarySlideId) return;
+    setBusyAction('generate_image');
+    setError(null);
+    try {
+      const image = await api.generateImage(slideshowId, primarySlideId);
+      setGeneratedImage(image);
+      setValidationResult(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleValidateImage = async () => {
+    if (!generatedImage) return;
+    setBusyAction('validate_image');
+    setError(null);
+    try {
+      setValidationResult(await api.validateGeneratedImage(slideshowId, generatedImage.id));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
   return (
     <div className="blueprint-backdrop" onClick={onClose}>
@@ -386,6 +455,61 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <CreativeSpecificationFields structured={blueprint.creative_specification.structured} />
               )}
             </BlueprintSection>
+
+            <section className="blueprint-section">
+              <div className="blueprint-section-header">
+                <h3>Generated Image</h3>
+                <div className="blueprint-section-actions">
+                  <button
+                    className="rerun-button"
+                    onClick={handleGenerateImage}
+                    disabled={busyAction !== null || runInFlight || !primarySlideId}
+                  >
+                    {busyAction === 'generate_image'
+                      ? 'Generating…'
+                      : generatedImage
+                        ? 'Regenerate Image'
+                        : 'Generate Image'}
+                  </button>
+                  {generatedImage && (
+                    <button
+                      className="rerun-button secondary"
+                      onClick={handleValidateImage}
+                      disabled={busyAction !== null || runInFlight}
+                    >
+                      {busyAction === 'validate_image' ? 'Validating…' : 'Validate'}
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="blueprint-meta">
+                Proof-of-loop, Phase 8 (see MIGRATION_PLAN.md) - always the primary slide, regardless
+                of which slide is shown above.
+              </p>
+              {!generatedImage ? (
+                <p className="empty-state">Not generated yet.</p>
+              ) : (
+                <div className="generated-image-panel">
+                  <img
+                    src={api.generatedImageFileUrl(blueprint.id, generatedImage.id)}
+                    alt="AI-generated recreation"
+                    className="generated-image-preview"
+                  />
+                  <div className="generated-image-meta">
+                    <p className="blueprint-meta">
+                      {generatedImage.provider} / {generatedImage.model_name} ·{' '}
+                      {generatedImage.generation_time_seconds.toFixed(1)}s
+                      {generatedImage.seed && ` · seed ${generatedImage.seed}`}
+                    </p>
+                    {validationResult ? (
+                      <ValidationResultPanel result={validationResult} />
+                    ) : (
+                      <p className="empty-state">Not validated yet.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
           </>
         )}
       </div>
@@ -455,6 +579,35 @@ function StaleBadge({ isStale, staleBecause }: { isStale?: boolean; staleBecause
     >
       stale
     </span>
+  );
+}
+
+/**
+ * Phase 8.4/8.5 (Generation -> Validation proof of loop, see
+ * MIGRATION_PLAN.md) - field_checks is rendered directly, one row per
+ * field with its own preserved/violated state and reason. This *is* the
+ * "explain why it failed" the user asked for - never summarized away
+ * into just a Pass/Fail badge.
+ */
+function ValidationResultPanel({ result }: { result: ImageValidationResultData }) {
+  return (
+    <div className="validation-result-panel">
+      <span className={`validation-badge ${result.passed ? 'validation-pass' : 'validation-fail'}`}>
+        {result.passed ? 'Pass' : 'Fail'}
+      </span>
+      <p className="narrative-text">{result.overall_explanation}</p>
+      <ul className="field-check-list">
+        {result.field_checks.map((check, i) => (
+          <li key={i} className={check.preserved ? 'field-check-preserved' : 'field-check-violated'}>
+            <span className="field-check-icon">{check.preserved ? '✓' : '✗'}</span>
+            <div>
+              <span className="field-label">{check.field_name}</span>
+              <p className="field-check-reason">{check.reason}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

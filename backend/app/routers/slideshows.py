@@ -275,6 +275,35 @@ def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_d
     return generated_image
 
 
+@router.get(
+    "/{slideshow_id}/slides/{slide_id}/generated-image",
+    response_model=GeneratedImageRead,
+)
+def get_current_generated_image(
+    slideshow_id: str, slide_id: str, db: Session = Depends(get_db)
+) -> GeneratedImage:
+    """
+    Phase 8.5 (see MIGRATION_PLAN.md) - lets the frontend show a
+    slide's already-generated image on load without spending a real,
+    paid regeneration call just to check whether one exists. 404 both
+    when the slideshow/slide is unknown and when no image has been
+    generated yet - the frontend treats both as "nothing to show".
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    generated_image = db.scalars(
+        select(GeneratedImage).where(
+            GeneratedImage.slide_id == slide_id,
+            GeneratedImage.is_current.is_(True),
+        )
+    ).first()
+    if generated_image is None:
+        raise HTTPException(status_code=404, detail="No generated image yet for this slide")
+    return generated_image
+
+
 @router.get("/{slideshow_id}/generated-images/{generated_image_id}/file")
 def get_generated_image_file(
     slideshow_id: str, generated_image_id: str, db: Session = Depends(get_db)
@@ -284,6 +313,20 @@ def get_generated_image_file(
     if generated_image is None or generated_image.slideshow_id != slideshow_id:
         raise HTTPException(status_code=404, detail="Generated image not found")
     return FileResponse(generated_image.file_path)
+
+
+def _to_validation_read(row: ImageValidationResult) -> ImageValidationResultRead:
+    return ImageValidationResultRead(
+        id=row.id,
+        schema_version=row.schema_version,
+        is_current=row.is_current,
+        generated_image_id=row.generated_image_id,
+        product_id=row.product_id,
+        passed=row.passed,
+        field_checks=[ImageValidationFieldCheckRead(**check) for check in row.field_checks_json],
+        overall_explanation=row.overall_explanation,
+        created_at=row.created_at,
+    )
 
 
 @router.post(
@@ -314,19 +357,34 @@ def validate_generated_image(
             ImageValidationResult.is_current.is_(True),
         )
     ).first()
-    return ImageValidationResultRead(
-        id=validation_result.id,
-        schema_version=validation_result.schema_version,
-        is_current=validation_result.is_current,
-        generated_image_id=validation_result.generated_image_id,
-        product_id=validation_result.product_id,
-        passed=validation_result.passed,
-        field_checks=[
-            ImageValidationFieldCheckRead(**check) for check in validation_result.field_checks_json
-        ],
-        overall_explanation=validation_result.overall_explanation,
-        created_at=validation_result.created_at,
-    )
+    return _to_validation_read(validation_result)
+
+
+@router.get(
+    "/{slideshow_id}/generated-images/{generated_image_id}/validation",
+    response_model=ImageValidationResultRead,
+)
+def get_current_validation_result(
+    slideshow_id: str, generated_image_id: str, db: Session = Depends(get_db)
+) -> ImageValidationResultRead:
+    """
+    Phase 8.5 (see MIGRATION_PLAN.md) - same "let the frontend show
+    existing state without a wasted paid call" reasoning as
+    get_current_generated_image above.
+    """
+    generated_image = db.get(GeneratedImage, generated_image_id)
+    if generated_image is None or generated_image.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Generated image not found")
+
+    validation_result = db.scalars(
+        select(ImageValidationResult).where(
+            ImageValidationResult.generated_image_id == generated_image_id,
+            ImageValidationResult.is_current.is_(True),
+        )
+    ).first()
+    if validation_result is None:
+        raise HTTPException(status_code=404, detail="No validation result yet for this generated image")
+    return _to_validation_read(validation_result)
 
 
 @router.post("/{slideshow_id}/slides/{slide_id}/assign-product", response_model=SlideshowRead)

@@ -12,11 +12,26 @@ from app.models.image_validation_result import ImageValidationResult
 from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
 from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
-from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
+from app.slideshow_stages.image_validation_stage import SlideImageValidationStage, _build_prompt
 from app.slideshow_stages.product_isolation_stage import SlideProductIsolationStage
 from app.slideshow_stages.product_lock_profile_stage import SlideProductLockProfileStage
 from tests.fakes import FakeAIProviderRegistry, FakeVisionAnalysisProvider
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
+
+
+def test_build_prompt_asks_for_the_short_field_name_only():
+    """
+    Real gap found live-verifying Phase 8.5 (see MIGRATION_PLAN.md): the
+    first prompt wording let the model return "brand: Bella Vita Luxury"
+    as field_name instead of just "brand", making the UI's field labels
+    unusably verbose. The fix is prompt wording, not schema - guard that
+    the prompt clearly separates field_name from its expected value.
+    """
+    prompt = _build_prompt([("brand", "Sunrise"), ("color", "orange (#FFA500)")])
+
+    assert 'field_name "brand": expected value = Sunrise' in prompt
+    assert 'field_name "color": expected value = orange (#FFA500)' in prompt
+    assert "ONLY the short field_name" in prompt
 
 
 def _build_generated_image(db_session, slideshow, monkeypatch) -> GeneratedImage:

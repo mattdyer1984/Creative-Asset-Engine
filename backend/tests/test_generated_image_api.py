@@ -129,6 +129,27 @@ def test_generated_image_file_404s_for_unknown_id(client):
     assert response.status_code == 404
 
 
+def test_get_current_generated_image_404s_when_none_exists_yet(client):
+    """Phase 8.5 - lets the frontend check without spending a real regeneration call."""
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    response = client.get(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/generated-image")
+    assert response.status_code == 404
+
+
+def test_get_current_generated_image_returns_the_real_current_one(client, monkeypatch):
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_generation_stage.default_registry", FakeAIProviderRegistry()
+    )
+    created = client.post(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/generate-image").json()
+
+    response = client.get(f"/api/slideshows/{slideshow_id}/slides/{slide_id}/generated-image")
+
+    assert response.status_code == 200
+    assert response.json()["id"] == created["id"]
+
+
 def _generate_image(client, monkeypatch, slideshow_id, slide_id) -> str:
     """Runs the full pipeline through a real (fake-backed) GeneratedImage, returns its id."""
     _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch)
@@ -173,3 +194,37 @@ def test_validate_image_succeeds_and_surfaces_field_checks(client, monkeypatch):
         {"field_name": "brand", "preserved": True, "reason": "Matches."},
         {"field_name": "color", "preserved": False, "reason": "Wrong shade of orange."},
     ]
+
+
+def test_get_current_validation_result_404s_when_none_exists_yet(client, monkeypatch):
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+
+    response = client.get(f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validation")
+
+    assert response.status_code == 404
+
+
+def test_get_current_validation_result_returns_the_real_current_one(client, monkeypatch):
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id)
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_validation_stage.default_registry",
+        FakeAIProviderRegistry(
+            vision_provider=FakeVisionAnalysisProvider(
+                result={
+                    "field_checks": [{"field_name": "brand", "preserved": True, "reason": "Matches."}],
+                    "overall_explanation": "All good.",
+                }
+            )
+        ),
+    )
+    created = client.post(
+        f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validate"
+    ).json()
+
+    response = client.get(f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/validation")
+
+    assert response.status_code == 200
+    assert response.json()["id"] == created["id"]

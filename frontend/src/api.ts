@@ -220,6 +220,44 @@ export interface CreativeSpecificationData {
   stale_because?: string[];
 }
 
+// Phase 8.3 of the Generation -> Validation proof of loop, see
+// MIGRATION_PLAN.md. No is_stale/stale_because - a generated image is a
+// point-in-time output, not something that goes stale relative to its
+// own inputs the way an analysis artifact does.
+export interface GeneratedImageData {
+  id: string;
+  schema_version: string;
+  is_current: boolean;
+  slide_id: string;
+  creative_specification_id: string;
+  provider: string;
+  model_name: string;
+  prompt_used: string;
+  seed: string | null;
+  generation_time_seconds: number;
+  created_at: string;
+}
+
+// Phase 8.4 - field_checks is surfaced directly, not summarized, so the
+// UI can show exactly why a generated image passed or failed.
+export interface ImageValidationFieldCheck {
+  field_name: string;
+  preserved: boolean;
+  reason: string;
+}
+
+export interface ImageValidationResultData {
+  id: string;
+  schema_version: string;
+  is_current: boolean;
+  generated_image_id: string;
+  product_id: string;
+  passed: boolean;
+  field_checks: ImageValidationFieldCheck[];
+  overall_explanation: string;
+  created_at: string;
+}
+
 // Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - structured is
 // {slides: [{slide_id, slide_index, beat}], arc_summary}.
 export interface NarrativeStructureData {
@@ -238,6 +276,14 @@ export interface NarrativeStructureData {
 // AssembledCreativeBlueprint (old /api/creatives/*'s single-response
 // view) was removed in Phase 2.7 of the Slideshow/Slide migration -
 // superseded by AssembledSlideshowBlueprint below.
+
+// Phase 8.5 (see MIGRATION_PLAN.md) - a 404 here means "nothing generated/
+// validated yet", an expected, common state for a fresh slide, not an
+// error to surface - resolves to null instead of throwing.
+async function handleOptional<T>(res: Response): Promise<T | null> {
+  if (res.status === 404) return null;
+  return handle<T>(res);
+}
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -411,6 +457,46 @@ export const api = {
   rerunSlideshowStage: (slideshowId: string, stageName: string): Promise<Slideshow> =>
     fetch(`/api/slideshows/${slideshowId}/stages/${stageName}/rerun`, { method: 'POST' }).then(
       (res) => handle<Slideshow>(res)
+    ),
+
+  // Phase 8.3 (Generation -> Validation proof of loop, see
+  // MIGRATION_PLAN.md) - deliberately synchronous (unlike
+  // analyzeSlideshow/rerunSlideshowStage above), so this resolves with
+  // the finished GeneratedImageData directly, not a queued status to poll.
+  generateImage: (slideshowId: string, slideId: string): Promise<GeneratedImageData> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/generate-image`, {
+      method: 'POST',
+    }).then((res) => handle<GeneratedImageData>(res)),
+
+  generatedImageFileUrl: (slideshowId: string, generatedImageId: string): string =>
+    `/api/slideshows/${slideshowId}/generated-images/${generatedImageId}/file`,
+
+  // Phase 8.5 - lets the modal show a slide's already-generated image on
+  // open without spending a real, paid regeneration call just to check.
+  getCurrentGeneratedImage: (
+    slideshowId: string,
+    slideId: string
+  ): Promise<GeneratedImageData | null> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/generated-image`).then((res) =>
+      handleOptional<GeneratedImageData>(res)
+    ),
+
+  // Phase 8.4 - also synchronous, resolves with the finished
+  // ImageValidationResultData directly.
+  validateGeneratedImage: (
+    slideshowId: string,
+    generatedImageId: string
+  ): Promise<ImageValidationResultData> =>
+    fetch(`/api/slideshows/${slideshowId}/generated-images/${generatedImageId}/validate`, {
+      method: 'POST',
+    }).then((res) => handle<ImageValidationResultData>(res)),
+
+  getCurrentValidationResult: (
+    slideshowId: string,
+    generatedImageId: string
+  ): Promise<ImageValidationResultData | null> =>
+    fetch(`/api/slideshows/${slideshowId}/generated-images/${generatedImageId}/validation`).then(
+      (res) => handleOptional<ImageValidationResultData>(res)
     ),
 
   // productId: null unassigns.

@@ -64,17 +64,19 @@ IMAGE_VALIDATION_SCHEMA = {
 
 
 def _build_prompt(immutable_fields: list[tuple[str, str]]) -> str:
-    field_lines = "\n".join(f"- {name}: {value}" for name, value in immutable_fields)
+    field_lines = "\n".join(f"- field_name \"{name}\": expected value = {value}" for name, value in immutable_fields)
     return (
         "This image was generated to recreate a marketing creative for a "
         "specific product while preserving the product's immutable "
         "physical characteristics. For EACH of the fields listed below, "
-        "judge whether the generated image preserves that exact "
-        "characteristic - return exactly one field_checks entry per "
-        "field below, using the exact field name given, with "
-        "preserved=true or preserved=false and a short reason explaining "
-        "your judgment. Then give one overall_explanation summarizing "
-        "the assessment across every field.\n\n"
+        "judge whether the generated image preserves that field's exact "
+        "expected value - return exactly one field_checks entry per "
+        "field below. field_name in your response must be ONLY the short "
+        "field_name given in quotes below (e.g. \"brand\"), never the "
+        "expected value or the two combined. Set preserved=true or "
+        "preserved=false and give a short reason explaining your "
+        "judgment. Then give one overall_explanation summarizing the "
+        "assessment across every field.\n\n"
         f"Fields to check:\n{field_lines}"
     )
 
