@@ -41,11 +41,22 @@ own explicit instruction). None by default; when given (a list of
 resulting `GenerationPlan` unchanged, and `generate_with_retry`/
 `run_bundle_generation_attempt` branch on its presence rather than a
 separate mode flag.
+
+`text_strategy` (Phase 10.8, §9) is `None` by default - a real,
+deliberate backward-compatibility choice, not a placeholder: `None`
+means "the caller hasn't adopted Text Intelligence," and
+`compile_generation_request` keeps its original, pre-Phase-10.8
+behavior (the model renders `text_overlays` directly) exactly as
+before. Only an explicit `"reuse_original" | "ai_rewrite" | "no_text"`
+opts into the new flow - once a winner is accepted,
+`generate_with_retry` runs Text Intelligence + the Rendering Engine on
+it and persists a `FinalOutput`.
 """
 
 from dataclasses import asdict, dataclass
 
 from app.ai_providers.registry import default_registry
+from app.services.text_intelligence import TEXT_STRATEGIES
 
 # Fast=1, Balanced=3, Maximum Quality=5+, exactly as §12 specifies.
 QUALITY_MODE_CANDIDATE_COUNTS = {"fast": 1, "balanced": 3, "maximum": 5}
@@ -63,6 +74,7 @@ class GenerationPlan:
     retry_of_generation_attempt_id: str | None = None
     retry_reason: str | None = None
     bundle_members: list[dict] | None = None
+    text_strategy: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -75,6 +87,7 @@ def decide_generation_plan(
     retry_of_generation_attempt_id: str | None = None,
     retry_reason: str | None = None,
     bundle_members: list[dict] | None = None,
+    text_strategy: str | None = None,
 ) -> GenerationPlan:
     if quality_mode not in QUALITY_MODE_CANDIDATE_COUNTS:
         raise ValueError(
@@ -86,6 +99,8 @@ def decide_generation_plan(
             f"Unknown creativity_level {creativity_level!r} - must be one of "
             f"{sorted(CREATIVITY_LEVELS)}"
         )
+    if text_strategy is not None and text_strategy not in TEXT_STRATEGIES:
+        raise ValueError(f"Unknown text_strategy {text_strategy!r} - must be one of {sorted(TEXT_STRATEGIES)}")
 
     # Only one real provider is ever eligible today - §10's Provider
     # Capability Framework has exactly one second candidate
@@ -103,4 +118,5 @@ def decide_generation_plan(
         retry_of_generation_attempt_id=retry_of_generation_attempt_id,
         retry_reason=retry_reason,
         bundle_members=bundle_members,
+        text_strategy=text_strategy,
     )

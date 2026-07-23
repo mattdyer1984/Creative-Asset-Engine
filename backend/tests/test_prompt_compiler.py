@@ -90,7 +90,14 @@ def test_missing_optional_creative_specification_fields_are_skipped_not_blank():
 
     request = compile_generation_request(minimal, _REFERENCE_PATHS)
 
-    assert request.creative_intent == ""
+    # Phase 10.8's unconditional photorealism directive means
+    # creative_intent is never truly blank anymore - only the optional
+    # scene fields themselves are skipped when absent.
+    assert request.creative_intent == (
+        "This must look like a real photograph, not an illustration, painting, "
+        "3D render, or cartoon - avoid stylized, plastic-looking, or "
+        "artificial textures."
+    )
     assert "Composition" not in request.creative_intent
     assert "Style" not in request.creative_intent
     assert "Color palette" not in request.creative_intent
@@ -127,3 +134,33 @@ def test_bundle_instruction_comes_before_the_ordinary_scene_fields():
         bundle_members=[{"role_in_scene": "hero", "image_count": 2}],
     )
     assert request.creative_intent.index("BUNDLE") < request.creative_intent.index("Composition:")
+
+
+# --- Phase 10.8 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+# §9/§15) -----------------------------------------------------------
+
+
+def test_photorealism_directive_is_unconditional():
+    """Every compiled prompt gets the photorealism directive, regardless of suppress_overlay_text."""
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "real photograph" in request.creative_intent
+
+    suppressed = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
+    )
+    assert "real photograph" in suppressed.creative_intent
+
+
+def test_default_behavior_still_renders_text_overlays_unchanged():
+    """suppress_overlay_text defaults to False - a real, deliberate backward-compatibility choice."""
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "Text overlays: headline: Start Fresh" in request.creative_intent
+    assert "Do not render any marketing" not in request.creative_intent
+
+
+def test_suppress_overlay_text_removes_the_render_instruction_and_adds_the_clean_area_instruction():
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
+    )
+    assert "Text overlays:" not in request.creative_intent
+    assert "Do not render any marketing" in request.creative_intent

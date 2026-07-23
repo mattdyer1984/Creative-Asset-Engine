@@ -48,8 +48,28 @@ OCR_RESPONSE_SCHEMA = {
                             "disclaimer, logo_text, other."
                         ),
                     },
+                    # Phase 10.8 of AI Creative Engine vNext (see
+                    # MIGRATION_PLAN.md's ADR §9) - a real, additive
+                    # correction: §9 assumed "layout data... already
+                    # largely available via OCRResult.structured_blocks_json",
+                    # which was wrong (structured_blocks previously had no
+                    # position at all). Same x_min/y_min/x_max/y_max
+                    # normalized (0.0-1.0) convention Scene Intelligence's
+                    # own regions already use (scene_intelligence_stage.py),
+                    # not a new one invented for this.
+                    "bounding_box": {
+                        "type": "object",
+                        "properties": {
+                            "x_min": {"type": "number"},
+                            "y_min": {"type": "number"},
+                            "x_max": {"type": "number"},
+                            "y_max": {"type": "number"},
+                        },
+                        "required": ["x_min", "y_min", "x_max", "y_max"],
+                        "additionalProperties": False,
+                    },
                 },
-                "required": ["text", "role"],
+                "required": ["text", "role", "bounding_box"],
                 "additionalProperties": False,
             },
         },
@@ -61,7 +81,10 @@ OCR_RESPONSE_SCHEMA = {
 OCR_PROMPT = (
     "Extract all visible text from this marketing image. Return the "
     "complete raw text, plus a structured breakdown of each distinct "
-    "text element and its marketing role."
+    "text element, its marketing role, and its normalized bounding box "
+    "(x_min/y_min/x_max/y_max, each 0.0-1.0, measured against the full "
+    "image width/height) - as precise as you can read it from the "
+    "actual rendered position of that text."
 )
 
 

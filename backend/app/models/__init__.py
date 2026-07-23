@@ -63,6 +63,14 @@ several distinct, independently-selected products into a single scene
 without relaxing Product Lock's own one-product-at-a-time reasoning
 anywhere else - see that model's own docstring for the full design.
 
+FinalOutput (Phase 10.8, AI Creative Engine vNext - see
+MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §15) is the
+Rendering Engine's composited, upload-ready artifact - a
+GeneratedImage candidate plus whatever marketing-overlay TextAssets
+Text Intelligence (app.services.text_intelligence) chose, a distinct
+entity from GeneratedImage since the raw model output and the
+composited final artifact have different lifecycles.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -78,6 +86,7 @@ from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.evidence_source import EvidenceSource
+from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
 from app.models.generation_reference_set import GenerationReferenceSet
@@ -129,6 +138,7 @@ __all__ = [
     "SceneAnalysis",
     "BundleComposition",
     "BundleCompositionMember",
+    "FinalOutput",
     "Slideshow",
     "Slide",
     "ProductAppearance",

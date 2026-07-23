@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
+from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_reference_set import GenerationReferenceSet
 from app.models.generation_reference_set_image import GenerationReferenceSetImage
@@ -31,6 +32,7 @@ from app.schemas import (
     AnalysisRunRead,
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
+    FinalOutputRead,
     GenerateCreativeRequest,
     GenerateCreativeResponse,
     GeneratedImageRead,
@@ -377,6 +379,7 @@ def generate_creative(
                 if payload.bundle_members
                 else None
             ),
+            text_strategy=payload.text_strategy,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -417,6 +420,15 @@ def generate_creative(
         ],
         winner=GeneratedImageRead.model_validate(result.winner.generated_image)
         if result.winner is not None
+        else None,
+        final_output=FinalOutputRead(
+            id=result.final_output.id,
+            generation_attempt_id=result.final_output.generation_attempt_id,
+            generated_image_id=result.final_output.generated_image_id,
+            text_assets=result.final_output.text_assets_json,
+            created_at=result.final_output.created_at,
+        )
+        if result.final_output is not None
         else None,
     )
 
@@ -459,6 +471,20 @@ def get_generated_image_file(
     if generated_image is None or generated_image.slideshow_id != slideshow_id:
         raise HTTPException(status_code=404, detail="Generated image not found")
     return FileResponse(generated_image.file_path)
+
+
+@router.get("/{slideshow_id}/final-outputs/{final_output_id}/file")
+def get_final_output_file(
+    slideshow_id: str, final_output_id: str, db: Session = Depends(get_db)
+) -> FileResponse:
+    """Serves one FinalOutput's composited file (Phase 10.8) - mirrors get_generated_image_file."""
+    final_output = db.get(FinalOutput, final_output_id)
+    if final_output is None:
+        raise HTTPException(status_code=404, detail="Final output not found")
+    generated_image = db.get(GeneratedImage, final_output.generated_image_id)
+    if generated_image is None or generated_image.slideshow_id != slideshow_id:
+        raise HTTPException(status_code=404, detail="Final output not found")
+    return FileResponse(final_output.file_path)
 
 
 @router.get(

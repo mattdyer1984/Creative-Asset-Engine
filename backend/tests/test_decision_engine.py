@@ -65,3 +65,16 @@ def test_bundle_members_defaults_to_none_and_is_carried_through():
     members = [{"product_id": "prod-1", "role_in_scene": "hero"}, {"product_id": "prod-2", "role_in_scene": "background"}]
     plan = decide_generation_plan("fast", bundle_members=members)
     assert plan.bundle_members == members
+
+
+def test_text_strategy_defaults_to_none_and_is_carried_through():
+    """Phase 10.8, §9 - None preserves pre-Phase-10.8 behavior; explicit opt-in otherwise."""
+    assert decide_generation_plan("fast").text_strategy is None
+
+    plan = decide_generation_plan("fast", text_strategy="reuse_original")
+    assert plan.text_strategy == "reuse_original"
+
+
+def test_unknown_text_strategy_raises():
+    with pytest.raises(ValueError, match="Unknown text_strategy"):
+        decide_generation_plan("fast", text_strategy="not_a_real_strategy")

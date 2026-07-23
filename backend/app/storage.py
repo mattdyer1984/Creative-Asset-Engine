@@ -57,3 +57,20 @@ def save_generated_image(
     dest = slide_dir / f"generated_{generated_image_id}{suffix}"
     dest.write_bytes(content)
     return dest
+
+
+def save_final_output(slide_id: str, final_output_id: str, content: bytes, suffix: str = ".png") -> Path:
+    """
+    Phase 10.8 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+    §15) - same per-Slide-owning-entity layout as save_generated_image
+    above, a sibling file rather than overwriting the source
+    GeneratedImage's own file (that file stays the untouched, raw
+    model output - see FinalOutput's own docstring for why these are
+    deliberately separate artifacts).
+    """
+    slide_dir = settings.storage_dir / "slides" / slide_id
+    slide_dir.mkdir(parents=True, exist_ok=True)
+
+    dest = slide_dir / f"final_{final_output_id}{suffix}"
+    dest.write_bytes(content)
+    return dest

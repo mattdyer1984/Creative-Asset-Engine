@@ -246,7 +246,9 @@ def run_generation_attempt(
     enriched_specification = _enriched_creative_specification(
         db, slide, product, creative_specification, plan
     )
-    request = compile_generation_request(enriched_specification, reference_image_paths)
+    request = compile_generation_request(
+        enriched_specification, reference_image_paths, suppress_overlay_text=plan.text_strategy is not None
+    )
 
     attempt = GenerationAttempt(
         slide_id=slide.id,
@@ -350,6 +352,7 @@ def run_bundle_generation_attempt(
         creative_specification.structured_json,
         reference_image_paths,
         bundle_members=bundle_member_prompt_metadata,
+        suppress_overlay_text=plan.text_strategy is not None,
     )
 
     attempt = GenerationAttempt(

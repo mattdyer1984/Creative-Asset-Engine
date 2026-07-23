@@ -140,7 +140,16 @@ class _SequentialFakeOCRProvider:
 def test_ocr_stage_runs_on_every_slide_in_a_multi_slide_slideshow(db_session, tmp_path, monkeypatch):
     slideshow = _make_multi_slide_slideshow(db_session, tmp_path, slide_count=3)
     extractions = [
-        OCRExtraction(raw_text=f"Slide {i} text", structured_blocks=[{"text": f"Slide {i}", "role": "headline"}])
+        OCRExtraction(
+            raw_text=f"Slide {i} text",
+            structured_blocks=[
+                {
+                    "text": f"Slide {i}",
+                    "role": "headline",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.1, "x_max": 0.9, "y_max": 0.2},
+                }
+            ],
+        )
         for i in range(3)
     ]
     fake_registry = FakeAIProviderRegistry(ocr_provider=_SequentialFakeOCRProvider(extractions))

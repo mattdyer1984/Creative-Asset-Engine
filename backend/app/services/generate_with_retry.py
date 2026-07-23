@@ -28,20 +28,35 @@ attempt through `run_bundle_generation_attempt`/`assess_bundle_candidate`
 instead of the single-product pair - the retry loop's own shape (chain
 attempts, pick the best accepted candidate) is identical either way,
 only which Generation/Quality Engine entry point runs differs.
+
+`text_strategy` (Phase 10.8, §9/§15), when given, runs Text
+Intelligence + the Rendering Engine on the accepted winner - once, not
+per-candidate, since only the winner is ever going anywhere - and
+persists the result as a `FinalOutput`. `None` (the default) skips
+this entirely, exactly as it did before this phase, per
+`GenerationPlan.text_strategy`'s own backward-compatibility reasoning.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
+from app import storage
+from app.ai_providers.registry import default_registry
 from app.models.creative_specification import CreativeSpecification
+from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
+from app.models.ocr_result import OCRResult
 from app.models.quality_assessment import QualityAssessment
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.services.decision_engine import decide_generation_plan
 from app.services.generation_engine import run_bundle_generation_attempt, run_generation_attempt
 from app.services.quality_engine import assess_bundle_candidate, assess_candidate
+from app.services.rendering_engine import render_final_output
+from app.services.text_intelligence import build_text_assets
 from app.slideshow_stages.base import StageResult
 
 # A small, real bound, not "retry forever" - §14 calls for a
@@ -65,6 +80,38 @@ class GenerationAttemptOutcome:
 class RetryLoopResult:
     attempts: list[GenerationAttemptOutcome]
     winner: CandidateAssessment | None
+    final_output: FinalOutput | None = None
+
+
+def _render_final_output_for_winner(
+    db: Session, slide: Slide, winner: CandidateAssessment, text_strategy: str
+) -> FinalOutput:
+    ocr_result = db.get(OCRResult, slide.current_ocr_result_id) if slide.current_ocr_result_id else None
+    text_generation_provider = default_registry.text_generation() if text_strategy == "ai_rewrite" else None
+    text_assets = build_text_assets(
+        text_strategy, ocr_result, text_generation_provider=text_generation_provider
+    )
+
+    source_bytes = Path(winner.generated_image.file_path).read_bytes()
+    rendered_bytes = render_final_output(source_bytes, text_assets)
+
+    final_output = FinalOutput(
+        generation_attempt_id=winner.generated_image.generation_attempt_id,
+        generated_image_id=winner.generated_image.id,
+        text_assets_json=text_assets,
+        file_path="",
+    )
+    db.add(final_output)
+    db.flush()
+
+    saved_path = storage.save_final_output(slide.id, final_output.id, rendered_bytes)
+    final_output.file_path = str(saved_path)
+    # A real commit - the last write for this call chain, with nothing
+    # after it to piggyback a commit on, same reasoning as every other
+    # "last write in the chain" fix this session already made
+    # (quality_engine.assess_candidate, the is_current flip below).
+    db.commit()
+    return final_output
 
 
 def generate_with_retry(
@@ -75,6 +122,7 @@ def generate_with_retry(
     creativity_level: str = "conservative",
     max_retries: int = DEFAULT_MAX_RETRIES,
     bundle_members: list[dict] | None = None,
+    text_strategy: str | None = None,
 ) -> RetryLoopResult | StageResult:
     slide = slideshow.primary_slide
     if slideshow.current_creative_specification_id is None:
@@ -102,6 +150,7 @@ def generate_with_retry(
             retry_of_generation_attempt_id=retry_of_id,
             retry_reason=retry_reason,
             bundle_members=bundle_members,
+            text_strategy=text_strategy,
         )
         if plan.bundle_members:
             attempt_result = run_bundle_generation_attempt(db, slide, creative_specification, plan)
@@ -148,7 +197,12 @@ def generate_with_retry(
             # request's session closes, silently leaving no "current"
             # generated image at all despite a real accepted winner.
             db.commit()
-            return RetryLoopResult(attempts=attempts, winner=winner)
+
+            final_output = None
+            if plan.text_strategy is not None:
+                final_output = _render_final_output_for_winner(db, slide, winner, plan.text_strategy)
+
+            return RetryLoopResult(attempts=attempts, winner=winner, final_output=final_output)
 
         retry_of_id = attempt_result.attempt.id
         retry_reason = "No candidate in the previous attempt passed Product Fidelity validation."

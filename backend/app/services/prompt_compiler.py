@@ -129,6 +129,7 @@ def compile_generation_request(
     reference_image_paths: list[str],
     platform: str = "generic",
     bundle_members: list[dict] | None = None,
+    suppress_overlay_text: bool = False,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -148,6 +149,21 @@ def compile_generation_request(
     order the caller concatenated each member's own reference images
     into reference_image_paths - see this function's own module
     docstring for why this exists and what confirmed it works.
+
+    suppress_overlay_text (Phase 10.8, §9): False by default, on
+    purpose - a real, deliberate backward-compatibility decision, not
+    an oversight. Before Phase 10.8, `creative_specification.
+    text_overlays` was always included as a literal render instruction
+    (the model was asked to bake marketing text into the pixels - the
+    original, still-supported behavior for any caller that hasn't
+    adopted the new Text Intelligence/Rendering Engine flow). Only a
+    caller that has genuinely opted into a real `text_strategy`
+    (app.services.decision_engine's `GenerationPlan.text_strategy`)
+    passes True here - suppressing that literal instruction and
+    replacing it with an explicit "leave this area clean, the app
+    composites it separately" instruction, since asking the model to
+    render text AND the app to composite text over the same area would
+    produce visibly broken, doubled-up output.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -170,10 +186,29 @@ def compile_generation_request(
     if color_palette:
         intent_parts.append("Color palette: " + ", ".join(color_palette))
 
-    text_overlays = creative_specification.get("text_overlays") or []
-    if text_overlays:
-        overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
-        intent_parts.append(f"Text overlays: {overlay_text}")
+    if suppress_overlay_text:
+        intent_parts.append(
+            "Do not render any marketing headline, subheadline, CTA, or price "
+            "text into the image - leave those areas visually clean and "
+            "uncluttered. That text is composited separately by the app "
+            "afterward, not by you."
+        )
+    else:
+        text_overlays = creative_specification.get("text_overlays") or []
+        if text_overlays:
+            overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
+            intent_parts.append(f"Text overlays: {overlay_text}")
+
+    # Phase 10.8, §9 Revision #1 - unconditional, every prompt, every
+    # strategy: a real photograph, not an illustration. Photorealism is
+    # already a hard-floor Quality Engine dimension (Phase 10.3); asking
+    # for it explicitly up front is the same objective, stated earlier
+    # in the pipeline rather than only measured after the fact.
+    intent_parts.append(
+        "This must look like a real photograph, not an illustration, painting, "
+        "3D render, or cartoon - avoid stylized, plastic-looking, or "
+        "artificial textures."
+    )
 
     things_to_avoid = list(creative_specification.get("things_to_avoid") or [])
 

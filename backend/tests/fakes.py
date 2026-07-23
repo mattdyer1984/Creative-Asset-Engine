@@ -25,12 +25,13 @@ def _assert_matches_ocr_response_shape(extraction: OCRExtraction) -> None:
     assert isinstance(extraction.raw_text, str)
     assert isinstance(extraction.structured_blocks, list)
     for block in extraction.structured_blocks:
-        assert set(block.keys()) == {"text", "role"}, (
-            f"structured_blocks entries must have exactly 'text' and 'role' keys "
-            f"to match OCR_RESPONSE_SCHEMA - got {block.keys()}"
+        assert set(block.keys()) == {"text", "role", "bounding_box"}, (
+            f"structured_blocks entries must have exactly 'text', 'role', and "
+            f"'bounding_box' keys to match OCR_RESPONSE_SCHEMA - got {block.keys()}"
         )
         assert isinstance(block["text"], str)
         assert isinstance(block["role"], str)
+        assert set(block["bounding_box"].keys()) == {"x_min", "y_min", "x_max", "y_max"}
 
 
 class FakeOCRProvider:
@@ -43,8 +44,16 @@ class FakeOCRProvider:
         self._extraction = extraction or OCRExtraction(
             raw_text="Fresh Squeezed. Zero Sugar Added.",
             structured_blocks=[
-                {"text": "Fresh Squeezed", "role": "headline"},
-                {"text": "Zero Sugar Added", "role": "subheadline"},
+                {
+                    "text": "Fresh Squeezed",
+                    "role": "headline",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.05, "x_max": 0.9, "y_max": 0.2},
+                },
+                {
+                    "text": "Zero Sugar Added",
+                    "role": "subheadline",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.22, "x_max": 0.7, "y_max": 0.32},
+                },
             ],
         )
         if raise_error is None:

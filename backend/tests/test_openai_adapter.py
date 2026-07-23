@@ -31,7 +31,13 @@ def test_openai_ocr_adapter_parses_structured_response():
     canned_response = _fake_chat_completion(
         {
             "raw_text": "20% Off Today Only",
-            "structured_blocks": [{"text": "20% Off Today Only", "role": "cta"}],
+            "structured_blocks": [
+                {
+                    "text": "20% Off Today Only",
+                    "role": "cta",
+                    "bounding_box": {"x_min": 0.1, "y_min": 0.8, "x_max": 0.9, "y_max": 0.95},
+                }
+            ],
         }
     )
 
@@ -46,7 +52,13 @@ def test_openai_ocr_adapter_parses_structured_response():
         result = adapter.extract_text(b"fake-image-bytes")
 
     assert result.raw_text == "20% Off Today Only"
-    assert result.structured_blocks == [{"text": "20% Off Today Only", "role": "cta"}]
+    assert result.structured_blocks == [
+        {
+            "text": "20% Off Today Only",
+            "role": "cta",
+            "bounding_box": {"x_min": 0.1, "y_min": 0.8, "x_max": 0.9, "y_max": 0.95},
+        }
+    ]
 
     # Confirm the request was actually shaped the way we expect - this is
     # what would break if the installed SDK version didn't support this

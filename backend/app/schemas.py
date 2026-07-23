@@ -471,6 +471,22 @@ class GenerateCreativeRequest(BaseModel):
     # inferred from anything about the slide/product. None (the
     # default) is the ordinary single-product path, unchanged.
     bundle_members: list[BundleMemberRequest] | None = None
+    # Phase 10.8 (§9/§15) - explicit opt-in into Text Intelligence +
+    # the Rendering Engine. None (the default) preserves the original,
+    # pre-Phase-10.8 behavior (the model renders text_overlays itself,
+    # no FinalOutput produced) - a real, deliberate backward-
+    # compatibility choice, not a placeholder.
+    text_strategy: str | None = None
+
+
+class FinalOutputRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    generation_attempt_id: str
+    generated_image_id: str
+    text_assets: list[dict]
+    created_at: datetime
 
 
 class GenerateCreativeResponse(BaseModel):
@@ -480,11 +496,14 @@ class GenerateCreativeResponse(BaseModel):
     and that candidate's QualityAssessment, so a user can see the whole
     loop's reasoning, not just the final pick. `winner` is null when no
     candidate across every attempt was accepted within the retry limit
-    - an honest, real outcome, not an error.
+    - an honest, real outcome, not an error. `final_output` is null
+    unless `text_strategy` was given and a winner was actually accepted
+    (Phase 10.8).
     """
 
     attempts: list[GenerationAttemptRead]
     winner: GeneratedImageRead | None
+    final_output: FinalOutputRead | None = None
 
 
 class OCRResultRead(BaseModel):
