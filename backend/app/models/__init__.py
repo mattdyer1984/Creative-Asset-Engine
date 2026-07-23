@@ -32,6 +32,14 @@ facts and resolves to either a Product or a ProductBundle; ProductBundle
 is a pure composition of Products, never a Product subtype or a new
 Product Profile vocabulary. See the ADR for the full reasoning.
 
+GenerationAttempt and QualityAssessment (Phase 10.2, AI Creative Engine
+vNext - see MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext")
+group N candidate GeneratedImage rows produced by one Decision Engine
+plan, and record the Quality Engine's per-candidate accept/reject
+verdict. QualityAssessment references ImageValidationResult for the
+Product Fidelity dimension rather than duplicating it - see that
+model's own docstring for why.
+
 Creative and CreativeBlueprint are legacy: the old pipeline that wrote
 to them was removed in Phase 2.7, but the models (and their tables)
 remain until Phase 2.8 explicitly drops them - app.services.
@@ -46,6 +54,7 @@ from app.models.creative_blueprint import CreativeBlueprint
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
+from app.models.generation_attempt import GenerationAttempt
 from app.models.generation_reference_set import GenerationReferenceSet
 from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.image_validation_result import ImageValidationResult
@@ -61,6 +70,7 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
+from app.models.quality_assessment import QualityAssessment
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 
@@ -85,6 +95,8 @@ __all__ = [
     "GenerationReferenceSet",
     "GenerationReferenceSetImage",
     "ImageValidationResult",
+    "GenerationAttempt",
+    "QualityAssessment",
     "Slideshow",
     "Slide",
     "ProductAppearance",

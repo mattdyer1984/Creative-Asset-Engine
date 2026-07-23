@@ -293,6 +293,12 @@ class GeneratedImageRead(BaseModel):
     slide_id: str
     creative_specification_id: str
     generation_reference_set_id: str | None = None
+    # Phase 10.2 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §12) - both null for every row created via the original
+    # Phase 8.3 single-call generate-image endpoint, which is untouched
+    # and still produces rows exactly as before.
+    generation_attempt_id: str | None = None
+    candidate_index: int | None = None
     provider: str
     model_name: str
     prompt_used: str
@@ -360,6 +366,59 @@ class ImageValidationResultRead(BaseModel):
     created_at: datetime
     identity_passed: bool | None = None
     identity_checks: list[ImageValidationFieldCheckRead] | None = None
+
+
+# --- Phase 10.2 of AI Creative Engine vNext (see MIGRATION_PLAN.md's
+# ADR §11-§14) - Decision Engine / Generation Engine / Quality Engine /
+# basic retry loop. -------------------------------------------------
+
+
+class QualityAssessmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    generated_image_id: str
+    image_validation_result_id: str
+    # creative_fidelity/photorealism/text_quality are deliberately
+    # absent from this read model, not just null-defaulted - those
+    # dimensions genuinely don't exist yet (Phases 10.3/10.4/the
+    # eventual Text Intelligence phase), and exposing empty-shaped
+    # fields for them now would misleadingly imply they're already
+    # being scored.
+    overall_confidence_score: float
+    accepted: bool
+    created_at: datetime
+
+
+class GenerationCandidateRead(BaseModel):
+    generated_image: GeneratedImageRead
+    quality_assessment: QualityAssessmentRead
+
+
+class GenerationAttemptRead(BaseModel):
+    id: str
+    quality_mode: str
+    retry_of_generation_attempt_id: str | None
+    created_at: datetime
+    candidates: list[GenerationCandidateRead]
+
+
+class GenerateCreativeRequest(BaseModel):
+    quality_mode: str
+
+
+class GenerateCreativeResponse(BaseModel):
+    """
+    POST .../generate-creative (§14) - every attempt the retry loop
+    made (not just the winner), each with every candidate it produced
+    and that candidate's QualityAssessment, so a user can see the whole
+    loop's reasoning, not just the final pick. `winner` is null when no
+    candidate across every attempt was accepted within the retry limit
+    - an honest, real outcome, not an error.
+    """
+
+    attempts: list[GenerationAttemptRead]
+    winner: GeneratedImageRead | None
 
 
 class OCRResultRead(BaseModel):

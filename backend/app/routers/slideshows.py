@@ -25,16 +25,23 @@ from app.schemas import (
     AnalysisRunRead,
     AssembledSlideshowBlueprint,
     AssignSlideProductRequest,
+    GenerateCreativeRequest,
+    GenerateCreativeResponse,
     GeneratedImageRead,
+    GenerationAttemptRead,
+    GenerationCandidateRead,
     GenerationReferenceSetImageRead,
     GenerationReferenceSetRead,
     ImageValidationFieldCheckRead,
     ImageValidationResultRead,
+    QualityAssessmentRead,
     SlideshowRead,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
+from app.services.generate_with_retry import generate_with_retry
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.services.slideshow_import import import_slideshows
+from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
 from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
@@ -277,6 +284,72 @@ def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_d
         )
     ).first()
     return generated_image
+
+
+@router.post(
+    "/{slideshow_id}/slides/{slide_id}/generate-creative",
+    response_model=GenerateCreativeResponse,
+    status_code=201,
+)
+def generate_creative(
+    slideshow_id: str, slide_id: str, payload: GenerateCreativeRequest, db: Session = Depends(get_db)
+) -> GenerateCreativeResponse:
+    """
+    Phase 10.2 of AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
+    §11-§14) - the candidate-count-aware, retry-looping counterpart to
+    generate-image above. Deliberately synchronous, same reasoning as
+    that endpoint: every candidate across every retry is a real, paid
+    provider call, so the response only returns once the whole loop
+    concludes (a candidate accepted, or the retry limit exhausted), not
+    a queued/polled background status - the explicit "Generate
+    Creative" action §14 calls for, with its real cost only spent once
+    a caller deliberately triggers it.
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    primary_slide = slideshow.primary_slide
+    if slide_id != primary_slide.id:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Only the primary slide supports image generation today "
+                "(Phase 8's 'one slide first' scope boundary)."
+            ),
+        )
+
+    try:
+        result = generate_with_retry(db, slideshow, payload.quality_mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    if isinstance(result, StageResult):
+        raise HTTPException(status_code=422, detail=result.error)
+
+    return GenerateCreativeResponse(
+        attempts=[
+            GenerationAttemptRead(
+                id=outcome.attempt.id,
+                quality_mode=outcome.attempt.quality_mode,
+                retry_of_generation_attempt_id=outcome.attempt.retry_of_generation_attempt_id,
+                created_at=outcome.attempt.created_at,
+                candidates=[
+                    GenerationCandidateRead(
+                        generated_image=GeneratedImageRead.model_validate(candidate.generated_image),
+                        quality_assessment=QualityAssessmentRead.model_validate(
+                            candidate.quality_assessment
+                        ),
+                    )
+                    for candidate in outcome.candidates
+                ],
+            )
+            for outcome in result.attempts
+        ],
+        winner=GeneratedImageRead.model_validate(result.winner.generated_image)
+        if result.winner is not None
+        else None,
+    )
 
 
 @router.get(

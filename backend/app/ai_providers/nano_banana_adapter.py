@@ -30,19 +30,20 @@ actual model string, not this class - the Lite default lives in
 `ModelsConfig.nano_banana`, not baked into this file, so switching
 tiers later is also a one-line config change.
 
-NOT YET LIVE-VERIFIED - no Gemini/Google API key has been added to this
-environment as of this sub-phase. Every claim below about the SDK's own
-shape (parameter names, response structure) is grounded in real
-introspection of the installed library; claims about runtime behavior
-(does a real call actually succeed, what does a real response look
-like, does aspect_ratio actually produce what it says) are NOT verified
-against a real call, unlike every other live-verified piece of this
-codebase. Flagged here rather than silently treated as equivalent to
-the OpenAI adapter's live-verified status - add a key
-(keyring.set_password('creative-asset-engine', 'nano_banana_api_key',
-'<key>') or NANO_BANANA_API_KEY env var, per get_api_key's existing,
-already-generic lookup) and re-run this adapter's tests with the fake
-swapped for a real call to close that gap.
+**Live-verified 2026-07-23** (Phase 10.2 of AI Creative Engine vNext, see
+MIGRATION_PLAN.md) - a Google AI Studio key with billing enabled was
+added via keyring.set_password('creative-asset-engine',
+'nano_banana_api_key', '<key>') and two real generate_content calls
+against gemini-3.1-flash-lite-image, each with 2 real reference images,
+both succeeded end-to-end (real image bytes returned, ~8-10s per call -
+genuinely fast, matching "Lite"'s "engineered for velocity" claim).
+**One real, confirmed limitation worth recording**: Google's free tier
+grants *zero* quota for this specific model (`limit: 0` on both the
+per-minute request and input-token metrics, confirmed via a real 429
+RESOURCE_EXHAUSTED response before billing was enabled) - a real
+account/billing-tier gate on Google's side, not an error in this
+adapter's request construction, and not something client code can work
+around.
 
 Multi-image conditioning is core to this model family (not an edge
 case bolted on, unlike OpenAI's separate generate/edit split) -

@@ -34,9 +34,19 @@ generation used no reference images at all), and because this is a
 hard prerequisite for new generations (§6 of that ADR), not an optional
 enhancement, so a null value on a *new* row would itself be a bug, not
 a valid state to design around.
+
+generation_attempt_id / candidate_index (Phase 10.2 of AI Creative
+Engine vNext, see MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext"
+§12) record which GenerationAttempt this candidate belongs to, and its
+0-based position within that attempt's N candidates - both nullable
+for the same "every pre-this-phase row genuinely has none" reason as
+generation_reference_set_id above. The original Phase 8.3
+single-call `generate-image` endpoint is untouched and keeps producing
+rows with both left null - Phase 10.2 is a genuinely new,
+candidate-count-aware path alongside it, not a replacement.
 """
 
-from sqlalchemy import Float, ForeignKey, String, Text
+from sqlalchemy import Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -54,6 +64,10 @@ class GeneratedImage(Base, AnalysisArtifactMixin):
     generation_reference_set_id: Mapped[str | None] = mapped_column(
         ForeignKey("generation_reference_sets.id"), nullable=True
     )
+    generation_attempt_id: Mapped[str | None] = mapped_column(
+        ForeignKey("generation_attempts.id"), nullable=True
+    )
+    candidate_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
     model_name: Mapped[str] = mapped_column(String(128), nullable=False)
     prompt_used: Mapped[str] = mapped_column(Text, nullable=False)

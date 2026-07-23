@@ -370,5 +370,13 @@ class FakeAIProviderRegistry:
     def prompt_generation(self) -> FakePromptGenerationProvider:
         return self._prompt_generation_provider
 
-    def image_generation(self) -> FakeImageGenerationProvider:
+    def image_generation(self, provider_name: str | None = None) -> FakeImageGenerationProvider:
+        """
+        provider_name (Phase 10.1, mirroring AIProviderRegistry.
+        image_generation's real override signature) - accepted and
+        ignored: every test that cares about a specific provider name
+        should construct FakeImageGenerationProvider with that name
+        directly rather than this fake actually branching on it, since
+        this double only ever holds one configured instance.
+        """
         return self._image_generation_provider
