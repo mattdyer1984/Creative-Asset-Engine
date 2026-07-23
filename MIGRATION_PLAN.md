@@ -100,11 +100,13 @@ implementation/production limitation.
 | 5 | **Product Intelligence** (evidence model, listing import, canonical profile, catalogue layer) | done (5.1-5.12, live-verified — TikTok Shop deliberately unsupported, see 5.4; catalogue layer per the frozen ADR) |
 | 6 | Multi per-slide product detection *(was Phase 5)* | done (6.1-6.5, live-verified) |
 | 7 | Narrative pass with dependency-aware staleness *(was Phase 6)* | done (7.1-7.5, live-verified) |
-| 8 | **Generation → Validation proof of loop** (ImageGenerationProvider, Prompt Compiler, single-slide generate/validate) | done (8.1-8.5, live-verified with real, paid OpenAI image-generation and vision-analysis calls — see reports log). Proves the loop end-to-end for one slide; Phases 9-12 below remain deprioritized per the standing 2026-07-22 directive unless one becomes a genuine blocker |
-| 9 | Frontend consolidation *(was Phase 8, was Phase 7)* | not started — deprioritized per the 2026-07-22 directive |
-| 10 | PerformanceRecord (additive) *(was Phase 9, was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** |
-| 11 | Pattern v0 (trivial candidate capture) *(was Phase 10, was Phase 9)* | **same as 10** |
-| 12 | Pattern curation lifecycle + ContextEfficacy + search *(was Phase 11, was Phase 10)* | **same as 10** — now understood to sit above both Product and Creative Intelligence, not just Creative |
+| 8 | **Generation → Validation proof of loop** (ImageGenerationProvider, Prompt Compiler, single-slide generate/validate) | done (8.1-8.5, live-verified with real, paid OpenAI image-generation and vision-analysis calls — see reports log). Proves the loop end-to-end for one slide |
+| 9 | **Canonical Product Reference (Product Lock v2)** (9.1-9.7, see ADR above) | in progress — autonomous implementation authorized 2026-07-23, no further approval required |
+| 10 | **AI Creative Engine vNext** (10.1-10.9, see ADR above, includes Bundle Composition) | in progress — autonomous implementation authorized 2026-07-23, no further approval required |
+| 11 | Frontend consolidation *(was Phase 9, was Phase 8, was Phase 7)* | not started |
+| 12 | PerformanceRecord (additive) *(was Phase 10, was Phase 9, was Phase 8)* | **explicitly out of scope for autonomous work — plan only if/when revisited, no implementation without direct review** (standing restriction, not addressed by the 2026-07-23 authorization above — confirm explicitly before treating this as included) |
+| 13 | Pattern v0 (trivial candidate capture) *(was Phase 11, was Phase 10, was Phase 9)* | **same as 12** |
+| 14 | Pattern curation lifecycle + ContextEfficacy + search *(was Phase 12, was Phase 11, was Phase 10)* | **same as 12** — now understood to sit above both Product and Creative Intelligence, not just Creative |
 
 ## Standing authorization (granted 2026-07-21/22, user away for an
 extended, unspecified period)
@@ -153,7 +155,8 @@ autonomous implementation again, explicitly stating they will not be
 reachable to approve or grant access going forward. Same discipline as
 the original grant (small sub-phase, tested, verified, committed,
 reported here), same standing exclusions (no push/PR, no Phase 2.8, no
-implementation on Phases 9-11). One addition specific to Phase 5, which
+implementation on Phases 12-14 per the 2026-07-23 renumbering below).
+One addition specific to Phase 5, which
 is genuinely new territory - it involves fetching real content from the
 open internet (5.3/5.4), not just local refactors:
 
@@ -198,13 +201,45 @@ involved real design decisions and bug fixes made and executed without
 asking first). The fixed boundaries from the original grant are
 unchanged by this and are not "conservative defaults to reconsider" -
 they are the actual edge of delegated authority: no `git push`/PR, no
-Phase 2.8, no implementation on Phases 9-11, nothing in the standing
-safety rules' Prohibited/Explicit-permission-required categories. Note
-for whoever (including a future me) re-reads this cold: the per-tool-call
-prompts the user was hitting are the Claude Code app's own permission
-mode, external to this document and outside this agent's control to
-change from within a session - this entry records delegated *decision*
-authority, not a mechanism for suppressing the app's own approval UI.
+Phase 2.8, no implementation on Phases 12-14 (renumbered below), nothing
+in the standing safety rules' Prohibited/Explicit-permission-required
+categories. Note for whoever (including a future me) re-reads this cold:
+the per-tool-call prompts the user was hitting are the Claude Code app's
+own permission mode, external to this document and outside this agent's
+control to change from within a session - this entry records delegated
+*decision* authority, not a mechanism for suppressing the app's own
+approval UI.
+
+**2026-07-23: renewed and extended, for Phase 9 (Canonical Product
+Reference / Product Lock v2) and Phase 10 (AI Creative Engine vNext).**
+Both ADRs went through multiple rounds of revision (Product Lock v2:
+Revisions #1-#2; vNext: Revisions #1-#5, plus the Bundle Composition
+resolution) and the user confirmed the resulting plan is accurate and
+ready, then explicitly granted full autonomous implementation - "do
+everything in one go without any requirement for further approvals."
+Same discipline as every prior grant (small sub-phase, tested,
+live-verified where a real provider call is involved, committed,
+reported in this document's phase reports logs). Three narrow decisions
+were confirmed with the user immediately before this grant took effect,
+rather than left as unilateral judgment calls: Bundle Composition stays
+product-centric (§12 addendum above), Project's role reversal is
+approved as designed (§3), and `PlaywrightTikTokImporter`/
+`DownieImporter` proceed now, with the ToS/scale-risk questions in §5a
+remaining the user's own business call before pointing this at real
+production traffic, not a technical gate on writing the code.
+
+The standing exclusions are unchanged and this grant does not touch
+them: no `git push`/PR, Phase 2.8 stays gated, nothing in the standing
+safety rules' Prohibited/Explicit-permission-required categories. **One
+interpretive note, logged rather than assumed**: Phases 12-14
+(PerformanceRecord/Pattern v0/Pattern curation, renumbered from 10-12)
+carry their own separate, explicit "no implementation without direct
+review" restriction, set independently of this ADR work - this grant is
+read as covering Phase 9 and Phase 10 specifically (what "the migration
+plan" being discussed throughout this session actually was), not as
+silently lifting that older, narrower restriction too. Phase 11
+(Frontend consolidation) carries no such hard restriction, only a
+deprioritization note, and is treated as in scope.
 
 ## Open questions
 
