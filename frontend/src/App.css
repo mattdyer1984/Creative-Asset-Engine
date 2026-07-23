@@ -981,6 +981,7 @@ section h2 {
   justify-content: center;
   padding: 3rem 1rem;
   overflow-y: auto;
+  scroll-behavior: smooth;
   z-index: 100;
 }
 
@@ -1011,6 +1012,53 @@ section h2 {
 
 .blueprint-close:hover {
   background: #e0e0e0;
+}
+
+/*
+ * Phase 11 discoverability fix (see MIGRATION_PLAN.md) - this modal runs
+ * to ~7800px once every section has real content; without this, nothing
+ * indicates there's a "Generate Creative" section at all below the fold.
+ * Sticky within .blueprint-backdrop's own scroll (the modal itself
+ * doesn't scroll independently), so it stays visible the whole time the
+ * modal is open, not just at the top.
+ */
+.blueprint-jump-nav {
+  position: sticky;
+  top: 0;
+  margin: -0.5rem -0.5rem 1.5rem;
+  padding: 0.75rem 0.5rem;
+  background: #fafafa;
+  border-bottom: 1px solid #e2e2e2;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  z-index: 5;
+}
+
+.blueprint-jump-nav button {
+  font-size: 0.8rem;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.blueprint-jump-nav button:hover {
+  background: #eee;
+}
+
+.blueprint-jump-nav-primary {
+  background: #1a1a1a;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.blueprint-jump-nav-primary:hover {
+  background: #333 !important;
 }
 
 .blueprint-header {
@@ -1093,6 +1141,9 @@ section h2 {
   border-radius: 10px;
   padding: 1.1rem 1.25rem;
   margin-bottom: 1rem;
+  /* so .blueprint-jump-nav's anchor links don't land with the section's
+     own heading tucked underneath the sticky nav bar */
+  scroll-margin-top: 3.5rem;
 }
 
 .blueprint-section-header {

@@ -356,6 +356,10 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     }
   };
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="blueprint-backdrop" onClick={onClose}>
       <div className="blueprint-modal" onClick={(e) => e.stopPropagation()}>
@@ -369,6 +373,50 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
           <p>Loading Slideshow Blueprint…</p>
         ) : (
           <>
+            {/*
+              Discoverability fix, found live during Phase 11 (see
+              MIGRATION_PLAN.md): this modal renders ~7800px tall once
+              every section below has real content - the Generate
+              Creative controls sat at the very bottom, reachable but
+              never actually found by a real user scrolling through
+              Product Lock Profile/Reference Library/Creative
+              Fingerprint/Marketing Analysis/Narrative Structure/OCR/
+              Creative Specification/the legacy Generated Image section
+              first, with nothing indicating there was more below.
+              Plain `<a href="#...">` was tried first and live-verified
+              NOT to work here: hash-navigation only reliably scrolls
+              the document's own scrolling element, and this modal's
+              scroll container is a nested `.blueprint-backdrop` div,
+              not the document - confirmed live (scrollTop stayed near
+              0 after a real click). `scrollIntoView` on the target
+              element is what's actually reliable within a nested
+              scroll container. A sticky jump-nav, not a redesign -
+              every section keeps its existing order and content
+              unchanged.
+            */}
+            <nav className="blueprint-jump-nav" aria-label="Jump to section">
+              {[
+                ['section-products', 'Products'],
+                ['section-creative-fingerprint', 'Fingerprint'],
+                ['section-marketing-analysis', 'Marketing'],
+                ['section-narrative-structure', 'Narrative'],
+                ['section-ocr', 'OCR'],
+                ['section-creative-specification', 'Spec'],
+                ['section-generated-image', 'Generated Image'],
+              ].map(([id, label]) => (
+                <button key={id} type="button" onClick={() => scrollToSection(id)}>
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="blueprint-jump-nav-primary"
+                onClick={() => scrollToSection('section-generate-creative')}
+              >
+                Generate Creative
+              </button>
+            </nav>
+
             <header className="blueprint-header">
               <img
                 src={api.slideFileUrl(blueprint.id, slide.id)}
@@ -434,7 +482,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               </div>
             )}
 
-            <section className="blueprint-section">
+            <section className="blueprint-section" id="section-products">
               <div className="blueprint-section-header">
                 <h3>Products</h3>
                 <div className="blueprint-section-actions">
@@ -517,6 +565,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </section>
 
             <BlueprintSection
+              id="section-creative-fingerprint"
               title="Creative Fingerprint"
               generated={slide.creative_fingerprint !== null}
               failed={blueprint.failed_stage === 'creative_fingerprint'}
@@ -533,6 +582,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
+              id="section-marketing-analysis"
               title="Marketing Analysis"
               generated={blueprint.marketing_analysis !== null}
               failed={blueprint.failed_stage === 'marketing_analysis'}
@@ -549,6 +599,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
+              id="section-narrative-structure"
               title="Narrative Structure"
               generated={blueprint.narrative_structure !== null}
               failed={blueprint.failed_stage === 'narrative_structure'}
@@ -575,6 +626,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
+              id="section-ocr"
               title="OCR Text"
               generated={slide.ocr_result !== null}
               failed={blueprint.failed_stage === 'ocr'}
@@ -603,6 +655,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
+              id="section-creative-specification"
               title="Creative Specification"
               generated={blueprint.creative_specification !== null}
               failed={blueprint.failed_stage === 'creative_specification'}
@@ -623,7 +676,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               )}
             </BlueprintSection>
 
-            <section className="blueprint-section">
+            <section className="blueprint-section" id="section-generated-image">
               <div className="blueprint-section-header">
                 <h3>Generated Image</h3>
                 <div className="blueprint-section-actions">
@@ -694,7 +747,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
               )}
             </section>
 
-            <section className="blueprint-section">
+            <section className="blueprint-section" id="section-generate-creative">
               <div className="blueprint-section-header">
                 <h3>Generate Creative</h3>
               </div>
@@ -764,6 +817,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
 }
 
 function BlueprintSection({
+  id,
   title,
   generated,
   failed,
@@ -776,6 +830,7 @@ function BlueprintSection({
   staleBecause,
   children,
 }: {
+  id: string;
   title: string;
   generated: boolean;
   failed: boolean;
@@ -789,7 +844,7 @@ function BlueprintSection({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="blueprint-section">
+    <section className="blueprint-section" id={id}>
       <div className="blueprint-section-header">
         <h3>
           {title}
