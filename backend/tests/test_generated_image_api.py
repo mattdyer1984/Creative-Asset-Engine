@@ -253,3 +253,33 @@ def test_get_current_validation_result_returns_the_real_current_one(client, monk
 
     assert response.status_code == 200
     assert response.json()["id"] == created["id"]
+
+
+def test_get_generation_reference_set_404s_for_unknown_generated_image(client):
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+    response = client.get(
+        f"/api/slideshows/{slideshow_id}/generated-images/does-not-exist/reference-set"
+    )
+    assert response.status_code == 404
+
+
+def test_get_generation_reference_set_returns_the_real_set(client, monkeypatch, db_session):
+    """
+    Phase 9.4 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §8/§9) -
+    the "reference images used" strip's data source. generate-image
+    (Phase 9.3) always populates a real GenerationReferenceSet now, so
+    a real generated image always has one to fetch.
+    """
+    slideshow_id, slide_id, product_id = _import_slideshow_with_product(client)
+    generated_image_id = _generate_image(client, monkeypatch, slideshow_id, slide_id, db_session)
+
+    response = client.get(
+        f"/api/slideshows/{slideshow_id}/generated-images/{generated_image_id}/reference-set"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["generated_image_id"] == generated_image_id
+    assert len(body["images"]) >= 1
+    assert body["images"][0]["product_id"] == product_id
+    assert body["images"][0]["role"] == "front"

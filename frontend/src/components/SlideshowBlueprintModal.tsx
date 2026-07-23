@@ -3,7 +3,9 @@ import {
   api,
   type AssembledSlideshowBlueprint,
   type GeneratedImageData,
+  type GenerationReferenceSet,
   type ImageValidationResultData,
+  type ProductReferenceImage,
 } from '../api';
 
 interface SlideshowBlueprintModalProps {
@@ -67,6 +69,21 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // polling/status machinery.
   const [generatedImage, setGeneratedImage] = useState<GeneratedImageData | null>(null);
   const [validationResult, setValidationResult] = useState<ImageValidationResultData | null>(null);
+  // Phase 9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) - the
+  // Canonical Reference Library is compute-on-read (never part of
+  // `blueprint`), keyed by product_id since a slide can carry 2+
+  // products, each with its own independent Library.
+  const [referenceLibraries, setReferenceLibraries] = useState<Record<string, ProductReferenceImage[]>>(
+    {}
+  );
+  // Which product's Library is currently being (re-)scored, if any -
+  // score-references is a background task (202) with no direct
+  // completion signal, so "scoring" here just means "within the fixed
+  // polling window below", not a real server-reported status.
+  const [scoringProductId, setScoringProductId] = useState<string | null>(null);
+  // Phase 9.5 - which real Library images fed the current
+  // GeneratedImage, for the "reference images used" strip.
+  const [referenceSet, setReferenceSet] = useState<GenerationReferenceSet | null>(null);
 
   const load = () => {
     api
@@ -172,6 +189,65 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
       .catch((err) => setError((err as Error).message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideshowId, generatedImage?.id]);
+
+  // Phase 9.5 - "reference images used" strip's data source.
+  useEffect(() => {
+    if (!generatedImage) {
+      setReferenceSet(null);
+      return;
+    }
+    api
+      .getGenerationReferenceSet(slideshowId, generatedImage.id)
+      .then(setReferenceSet)
+      .catch((err) => setError((err as Error).message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideshowId, generatedImage?.id]);
+
+  // Phase 9.5 - loads each current product's Canonical Reference
+  // Library whenever the selected slide's product set changes.
+  useEffect(() => {
+    if (!slide) return;
+    slide.products.forEach((product) => {
+      const productId = product.appearance.product_id;
+      api
+        .getReferenceLibrary(productId)
+        .then((images) => setReferenceLibraries((prev) => ({ ...prev, [productId]: images })))
+        .catch((err) => setError((err as Error).message));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slide?.id]);
+
+  const handleScoreReferences = async (productId: string) => {
+    setError(null);
+    try {
+      await api.scoreReferences(productId);
+      setScoringProductId(productId);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  // Fixed polling window rather than a real status check - the
+  // score-references endpoint (Phase 9.2, see MIGRATION_PLAN.md) is a
+  // fire-and-forget background task with no completion signal to poll
+  // against, unlike blueprint analysis's queued/analyzing status.
+  useEffect(() => {
+    if (!scoringProductId) return;
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts += 1;
+      api
+        .getReferenceLibrary(scoringProductId)
+        .then((images) =>
+          setReferenceLibraries((prev) => ({ ...prev, [scoringProductId]: images }))
+        )
+        .catch((err) => setError((err as Error).message))
+        .finally(() => {
+          if (attempts >= 8) setScoringProductId(null);
+        });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [scoringProductId]);
 
   const handleGenerateImage = async () => {
     if (!primarySlideId) return;
@@ -344,6 +420,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                     ) : (
                       <p className="empty-state">Lock Profile not generated yet.</p>
                     )}
+                    <ReferenceLibraryPanel
+                      images={referenceLibraries[product.appearance.product_id]}
+                      productId={product.appearance.product_id}
+                      onScore={() => handleScoreReferences(product.appearance.product_id)}
+                      scoring={scoringProductId === product.appearance.product_id}
+                    />
                   </div>
                 ))
               )}
@@ -501,6 +583,22 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                       {generatedImage.generation_time_seconds.toFixed(1)}s
                       {generatedImage.seed && ` · seed ${generatedImage.seed}`}
                     </p>
+                    {referenceSet && referenceSet.images.length > 0 && (
+                      <div className="reference-set-strip">
+                        <p className="field-list-label">Reference images used</p>
+                        <div className="reference-images-row">
+                          {referenceSet.images.map((img) => (
+                            <img
+                              key={img.product_reference_image_id}
+                              src={api.referenceImageFileUrl(img.product_id, img.product_reference_image_id)}
+                              alt={img.role ?? 'Reference'}
+                              title={img.role ?? undefined}
+                              className="reference-image-thumbnail"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {validationResult ? (
                       <ValidationResultPanel result={validationResult} />
                     ) : (
@@ -584,29 +682,139 @@ function StaleBadge({ isStale, staleBecause }: { isStale?: boolean; staleBecause
 
 /**
  * Phase 8.4/8.5 (Generation -> Validation proof of loop, see
- * MIGRATION_PLAN.md) - field_checks is rendered directly, one row per
- * field with its own preserved/violated state and reason. This *is* the
- * "explain why it failed" the user asked for - never summarized away
- * into just a Pass/Fail badge.
+ * MIGRATION_PLAN.md); gains an Identity badge in Phase 9.4 of Product
+ * Lock v2 (ADR §9) - shown above the existing creative Pass/Fail, so a
+ * user immediately sees *which kind* of failure occurred: "wrong
+ * product" (Identity) reads completely differently from "wrong
+ * lighting" (the creative Pass/Fail below it), and conflating them
+ * into one badge would be a real regression from what Phase 8.5 built.
+ * identity_passed===null (not false) means Stage 1 never ran - a
+ * GeneratedImage from before this ADR shipped - shown as its own
+ * "Not checked" state, never silently rendered as a pass or a fail.
+ * field_checks is still rendered directly, one row per field with its
+ * own preserved/violated state and reason - this *is* the "explain why
+ * it failed" the user asked for, never summarized away into just a
+ * badge.
  */
 function ValidationResultPanel({ result }: { result: ImageValidationResultData }) {
   return (
     <div className="validation-result-panel">
-      <span className={`validation-badge ${result.passed ? 'validation-pass' : 'validation-fail'}`}>
-        {result.passed ? 'Pass' : 'Fail'}
-      </span>
+      <div className="validation-badge-row">
+        <span
+          className={`validation-badge identity-badge ${
+            result.identity_passed === null
+              ? 'validation-unknown'
+              : result.identity_passed
+                ? 'validation-pass'
+                : 'validation-fail'
+          }`}
+          title="Does the generated image faithfully preserve the real product's visual identity?"
+        >
+          Identity:{' '}
+          {result.identity_passed === null ? 'Not checked' : result.identity_passed ? 'Pass' : 'Fail'}
+        </span>
+        <span className={`validation-badge ${result.passed ? 'validation-pass' : 'validation-fail'}`}>
+          Creative: {result.passed ? 'Pass' : 'Fail'}
+        </span>
+      </div>
+      {result.identity_checks && result.identity_checks.length > 0 && (
+        <>
+          <p className="field-list-label">Identity checks</p>
+          <ul className="field-check-list">
+            {result.identity_checks.map((check, i) => (
+              <li key={i} className={check.preserved ? 'field-check-preserved' : 'field-check-violated'}>
+                <span className="field-check-icon">{check.preserved ? '✓' : '✗'}</span>
+                <div>
+                  <span className="field-label">{check.field_name}</span>
+                  <p className="field-check-reason">{check.reason}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <p className="narrative-text">{result.overall_explanation}</p>
-      <ul className="field-check-list">
-        {result.field_checks.map((check, i) => (
-          <li key={i} className={check.preserved ? 'field-check-preserved' : 'field-check-violated'}>
-            <span className="field-check-icon">{check.preserved ? '✓' : '✗'}</span>
-            <div>
-              <span className="field-label">{check.field_name}</span>
-              <p className="field-check-reason">{check.reason}</p>
+      {result.field_checks.length > 0 && (
+        <>
+          <p className="field-list-label">Creative checks</p>
+          <ul className="field-check-list">
+            {result.field_checks.map((check, i) => (
+              <li key={i} className={check.preserved ? 'field-check-preserved' : 'field-check-violated'}>
+                <span className="field-check-icon">{check.preserved ? '✓' : '✗'}</span>
+                <div>
+                  <span className="field-label">{check.field_name}</span>
+                  <p className="field-check-reason">{check.reason}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Phase 9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) - the
+ * Canonical Reference Library is compute-on-read
+ * (library_status="included"), so `images` is just whatever the last
+ * fetch returned, not a persisted artifact with its own is_stale
+ * concept. Grouped by role and showing quality_score/quality_reasons_json
+ * directly is the "why was this scored this way" surface the ADR calls
+ * for - never collapsed into a single number.
+ */
+function ReferenceLibraryPanel({
+  images,
+  productId,
+  onScore,
+  scoring,
+}: {
+  images: ProductReferenceImage[] | undefined;
+  productId: string;
+  onScore: () => void;
+  scoring: boolean;
+}) {
+  const grouped = new Map<string, ProductReferenceImage[]>();
+  (images ?? []).forEach((img) => {
+    const role = img.role ?? 'unassigned';
+    if (!grouped.has(role)) grouped.set(role, []);
+    grouped.get(role)!.push(img);
+  });
+
+  return (
+    <div className="reference-library-panel">
+      <div className="reference-library-header">
+        <span className="field-label">Canonical Reference Library</span>
+        <button className="rerun-button secondary" onClick={onScore} disabled={scoring}>
+          {scoring ? 'Scoring…' : 'Score References'}
+        </button>
+      </div>
+      {!images || images.length === 0 ? (
+        <p className="empty-state">No images in the Library yet.</p>
+      ) : (
+        Array.from(grouped.entries()).map(([role, roleImages]) => (
+          <div key={role} className="reference-library-role-group">
+            <span className="tag">{role}</span>
+            <div className="reference-images-row">
+              {roleImages.map((img) => (
+                <div key={img.id} className="reference-library-item">
+                  <img
+                    src={api.referenceImageFileUrl(productId, img.id)}
+                    alt="Reference"
+                    className="reference-image-thumbnail"
+                  />
+                  {img.quality_score !== null && (
+                    <span className="quality-score-badge">{img.quality_score.toFixed(2)}</span>
+                  )}
+                  {img.quality_reasons_json && img.quality_reasons_json.length > 0 && (
+                    <p className="field-check-reason">{img.quality_reasons_json.join('; ')}</p>
+                  )}
+                </div>
+              ))}
             </div>
-          </li>
-        ))}
-      </ul>
+          </div>
+        ))
+      )}
     </div>
   );
 }

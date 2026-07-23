@@ -16,6 +16,11 @@ export interface ProjectCreateInput {
   notes?: string;
 }
 
+// Phase 9.1/9.2 of Product Lock v2 (see MIGRATION_PLAN.md's "ADR:
+// Canonical Product Reference" §3/§4) - quality_score/role/
+// library_status are all optional/nullable since they're written once
+// by the Reference Scoring Stage, not present on every row (e.g. a
+// row that's never been scored yet).
 export interface ProductReferenceImage {
   id: string;
   // Nullable since Phase 2.3 of the Slideshow/Slide migration - rows
@@ -26,6 +31,10 @@ export interface ProductReferenceImage {
   isolation_method: string;
   is_current: boolean;
   created_at: string;
+  quality_score: number | null;
+  quality_reasons_json: string[] | null;
+  role: string | null;
+  library_status: 'candidate' | 'included' | 'rejected' | 'superseded' | null;
 }
 
 export interface ProductLockProfile {
@@ -220,21 +229,41 @@ export interface CreativeSpecificationData {
   stale_because?: string[];
 }
 
-// Phase 8.3 of the Generation -> Validation proof of loop, see
-// MIGRATION_PLAN.md. No is_stale/stale_because - a generated image is a
-// point-in-time output, not something that goes stale relative to its
-// own inputs the way an analysis artifact does.
+// Phase 8.3 of the Generation -> Validation proof of loop; gains
+// generation_reference_set_id in Phase 9.3 of Product Lock v2 (see
+// MIGRATION_PLAN.md). No is_stale/stale_because - a generated image is
+// a point-in-time output, not something that goes stale relative to
+// its own inputs the way an analysis artifact does.
 export interface GeneratedImageData {
   id: string;
   schema_version: string;
   is_current: boolean;
   slide_id: string;
   creative_specification_id: string;
+  generation_reference_set_id: string | null;
   provider: string;
   model_name: string;
   prompt_used: string;
   seed: string | null;
   generation_time_seconds: number;
+  created_at: string;
+}
+
+// Phase 9.4 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §8/§9) -
+// which Library images, with what role/rank, fed one specific
+// generation - the "reference images used" strip's data source.
+export interface GenerationReferenceSetImage {
+  product_reference_image_id: string;
+  product_id: string;
+  role: string | null;
+  rank: number;
+}
+
+export interface GenerationReferenceSet {
+  id: string;
+  generated_image_id: string | null;
+  selection_method: Record<string, unknown>;
+  images: GenerationReferenceSetImage[];
   created_at: string;
 }
 
@@ -246,6 +275,10 @@ export interface ImageValidationFieldCheck {
   reason: string;
 }
 
+// identity_passed/identity_checks (Phase 9.4 of Product Lock v2, see
+// MIGRATION_PLAN.md's ADR §7) - both nullable/tri-state: null means
+// Stage 1 never ran (a GeneratedImage that predates this ADR), not
+// "unknown counted as failed."
 export interface ImageValidationResultData {
   id: string;
   schema_version: string;
@@ -256,6 +289,8 @@ export interface ImageValidationResultData {
   field_checks: ImageValidationFieldCheck[];
   overall_explanation: string;
   created_at: string;
+  identity_passed: boolean | null;
+  identity_checks: ImageValidationFieldCheck[] | null;
 }
 
 // Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - structured is
@@ -336,6 +371,24 @@ export const api = {
   getLockProfile: (productId: string): Promise<ProductLockProfile> =>
     fetch(`/api/products/${productId}/lock-profile`).then((res) =>
       handle<ProductLockProfile>(res)
+    ),
+
+  // Phase 9.1/9.2 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §3/§8)
+  // - the Canonical Reference Library is compute-on-read
+  // (library_status="included"), not a single fetchable artifact, so
+  // this returns a plain list.
+  getReferenceLibrary: (productId: string): Promise<ProductReferenceImage[]> =>
+    fetch(`/api/products/${productId}/reference-library`).then((res) =>
+      handle<ProductReferenceImage[]>(res)
+    ),
+
+  // Background-task-triggered (202), matching Phase 8.3/8.4's real-cost-
+  // stays-out-of-the-automatic-pipeline discipline - the caller polls
+  // getReferenceLibrary afterward to see the result, same pattern as
+  // analyzeSlideshow/getSlideshowBlueprint.
+  scoreReferences: (productId: string): Promise<{ status: string }> =>
+    fetch(`/api/products/${productId}/score-references`, { method: 'POST' }).then((res) =>
+      handle<{ status: string }>(res)
     ),
 
   // Product Intelligence (Phase 5.6, see MIGRATION_PLAN.md). Synchronous
@@ -497,6 +550,18 @@ export const api = {
   ): Promise<ImageValidationResultData | null> =>
     fetch(`/api/slideshows/${slideshowId}/generated-images/${generatedImageId}/validation`).then(
       (res) => handleOptional<ImageValidationResultData>(res)
+    ),
+
+  // Phase 9.4 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §8/§9) -
+  // 404s (resolves null) when the image predates this ADR or has no
+  // Set, same "don't fabricate data for a genuinely unmet precondition"
+  // discipline as getCurrentGeneratedImage/getCurrentValidationResult.
+  getGenerationReferenceSet: (
+    slideshowId: string,
+    generatedImageId: string
+  ): Promise<GenerationReferenceSet | null> =>
+    fetch(`/api/slideshows/${slideshowId}/generated-images/${generatedImageId}/reference-set`).then(
+      (res) => handleOptional<GenerationReferenceSet>(res)
     ),
 
   // productId: null unassigns.

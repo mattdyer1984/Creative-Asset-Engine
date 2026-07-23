@@ -301,6 +301,12 @@ class GenerationReferenceSetImageRead(BaseModel):
     """
 
     product_reference_image_id: str
+    # Included explicitly (not re-derived by the frontend) so the
+    # "reference images used" strip can build each thumbnail's file URL
+    # (/api/products/{product_id}/reference-images/{id}/file) without a
+    # second round trip - the same reasoning GenerationReferenceSetImage
+    # itself carries product_id per row (Product Lock v2 ADR §3).
+    product_id: str
     role: str | None
     rank: int
 

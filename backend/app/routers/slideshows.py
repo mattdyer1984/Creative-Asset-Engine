@@ -361,6 +361,7 @@ def get_generation_reference_set(
         images=[
             GenerationReferenceSetImageRead(
                 product_reference_image_id=member.product_reference_image_id,
+                product_id=member.product_id,
                 role=member.role,
                 rank=member.rank,
             )

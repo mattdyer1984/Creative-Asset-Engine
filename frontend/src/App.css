@@ -498,6 +498,67 @@ section h2 {
   color: #555;
 }
 
+/* Phase 9.4/9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) */
+
+.validation-badge-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.validation-unknown {
+  color: #6b6b6b;
+  background: #ececec;
+}
+
+.field-list-label {
+  margin: 0.6rem 0 0.2rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.reference-set-strip {
+  margin-top: 0.5rem;
+}
+
+.reference-library-panel {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.reference-library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.reference-library-role-group {
+  margin-top: 0.4rem;
+}
+
+.reference-library-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 90px;
+}
+
+.quality-score-badge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #2554c7;
+  background: #e8f0ff;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+}
+
 .attribute-color-value {
   display: inline-flex;
   align-items: center;
