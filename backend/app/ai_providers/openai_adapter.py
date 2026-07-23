@@ -420,6 +420,15 @@ class OpenAIImageGenerationAdapter:
             supports_masking=True,
             supports_inpainting=True,
             supported_resolutions=["1024x1024", "1536x1024", "1024x1536"],
+            # Phase 10.3 (see MIGRATION_PLAN.md's vNext ADR §2/§10.3) -
+            # confirmed real via direct `openai==2.46.0` SDK introspection:
+            # both images.edit/generate accept quality="high" and it's
+            # genuinely applicable to gpt-image-1 (the model actually
+            # configured), not just to dall-e-3. preferred_style is
+            # deliberately left unset - the SDK's own docstring says
+            # style is "only supported for dall-e-3," not confirmed for
+            # gpt-image-1, so wiring it here would be an unverified guess.
+            preferred_quality="high",
         )
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
@@ -434,6 +443,7 @@ class OpenAIImageGenerationAdapter:
             prompt=prompt,
             size=size,
             input_fidelity="high",
+            quality=self.capabilities.preferred_quality,
             n=1,
         )
         elapsed = time.monotonic() - start

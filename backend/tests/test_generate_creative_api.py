@@ -19,6 +19,19 @@ _CREATIVE_PASSES = {
     "field_checks": [{"field_name": "color", "preserved": True, "reason": "Matches."}],
     "overall_explanation": "Everything preserved.",
 }
+_PHOTOREALISM_PASSES = {
+    "realistic_lighting": True,
+    "believable_shadows": True,
+    "material_accuracy": True,
+    "reflections_correct": True,
+    "texture_quality": "excellent",
+    "perspective_correct": True,
+    "object_integrity": True,
+    "human_anatomy": "not_applicable",
+    "ai_artefacts_detected": False,
+    "image_sharpness": "excellent",
+    "reasons": ["clean, photorealistic render"],
+}
 
 
 @pytest.fixture()
@@ -72,16 +85,20 @@ def test_generate_creative_succeeds_and_returns_the_winner(client, monkeypatch, 
         "app.services.generation_engine.default_registry",
         FakeAIProviderRegistry(image_generation_provider=FakeImageGenerationProvider()),
     )
+    fake_vision = FakeVisionAnalysisProvider(
+        results_by_schema_name={
+            "identity_validation": _IDENTITY_PASSES,
+            "image_validation": _CREATIVE_PASSES,
+            "photorealism": _PHOTOREALISM_PASSES,
+        }
+    )
     monkeypatch.setattr(
         "app.slideshow_stages.image_validation_stage.default_registry",
-        FakeAIProviderRegistry(
-            vision_provider=FakeVisionAnalysisProvider(
-                results_by_schema_name={
-                    "identity_validation": _IDENTITY_PASSES,
-                    "image_validation": _CREATIVE_PASSES,
-                }
-            )
-        ),
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
     )
 
     response = client.post(
@@ -95,6 +112,7 @@ def test_generate_creative_succeeds_and_returns_the_winner(client, monkeypatch, 
     assert len(body["attempts"][0]["candidates"]) == 1
     candidate = body["attempts"][0]["candidates"][0]
     assert candidate["quality_assessment"]["accepted"] is True
+    assert candidate["quality_assessment"]["photorealism"] == _PHOTOREALISM_PASSES
     assert body["winner"] is not None
     assert body["winner"]["id"] == candidate["generated_image"]["id"]
 

@@ -1,42 +1,129 @@
 """
 Quality Engine — Phase 10.2 of AI Creative Engine vNext (see
-MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §13).
+MIGRATION_PLAN.md's "ADR: AI Creative Engine vNext" §13); Photorealism
+dimension added in Phase 10.3.
 
 **Product Fidelity reuses `ImageValidationResult`/Stage 1 Identity
 Validation unchanged** (§13's own explicit instruction) - this module
 runs the existing `SlideImageValidationStage` (Phase 8.4/9.4) exactly
 as the standalone `POST .../validate` endpoint already does, then
 wraps its result in a `QualityAssessment` row rather than duplicating
-any of its logic or fields.
+any of its logic or fields. It remains a hard *floor*: if it fails, no
+Photorealism call is spent at all (same short-circuit-to-save-real-cost
+discipline Stage 1/Stage 2 already use inside SlideImageValidationStage
+itself) and `accepted=False`/`overall_confidence_score=0.0` - a real
+identity/creative failure is disqualifying regardless of how
+photorealistic the (wrong) image looks.
 
-`creative_fidelity_json`/`photorealism_json`/`text_quality_json` are
-never populated by this sub-phase - those dimensions don't exist yet
-(Phases 10.3/10.4/the eventual Text Intelligence phase). `accepted`/
-`overall_confidence_score` are computed purely from
-`image_validation_result.passed` for now: 1.0/True if it passed,
-0.0/False if not. This is a deliberately honest, single-input
-computation, not the full multi-dimension weighting §13 eventually
-describes - weighting scores that don't exist yet would be fabricating
-a signal, not computing one. Both are still computed in code, never
-asked of the AI as a bare boolean, matching this codebase's standing
-rule; there is just only one real input so far.
+Photorealism (§13, Phase 10.3) is the graded dimension once that floor
+clears - the full checklist from the request (lighting, shadows,
+material accuracy, reflections, texture, perspective, object
+integrity, human anatomy, AI-artefact detection, sharpness), evaluated
+by one `VisionAnalysisProvider.analyze_creative` call against the
+candidate image alone (no reference images, no Product Profile - this
+is a self-contained visual-quality judgment, unlike Product Fidelity's
+comparison-based checks). `PHOTOREALISM_FLOOR`/scoring are computed in
+code from the structured per-field judgments, never asked of the AI as
+a bare score, matching this codebase's standing rule everywhere else a
+pass/fail or score is derived from AI-provided facts.
+
+`creative_fidelity_json`/`text_quality_json` are still never populated
+by this sub-phase - those remain later, separate sub-phases (10.4/the
+eventual Text Intelligence phase).
 """
+
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
+from app.ai_providers.registry import default_registry
 from app.models.generated_image import GeneratedImage
 from app.models.image_validation_result import ImageValidationResult
 from app.models.quality_assessment import QualityAssessment
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
 
+PHOTOREALISM_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "realistic_lighting": {"type": "boolean"},
+        "believable_shadows": {"type": "boolean"},
+        "material_accuracy": {"type": "boolean"},
+        "reflections_correct": {"type": "boolean"},
+        "texture_quality": {"type": "string", "enum": ["poor", "fair", "good", "excellent"]},
+        "perspective_correct": {"type": "boolean"},
+        "object_integrity": {"type": "boolean"},
+        # A tri-state, not a boolean: most product-ad images have no
+        # humans in them at all, and forcing an AI to judge "correct/
+        # incorrect" anatomy that isn't present would fabricate a
+        # signal - "not_applicable" is a real, distinct answer, not a
+        # default to guess between the other two.
+        "human_anatomy": {"type": "string", "enum": ["correct", "incorrect", "not_applicable"]},
+        "ai_artefacts_detected": {"type": "boolean"},
+        "image_sharpness": {"type": "string", "enum": ["poor", "fair", "good", "excellent"]},
+        "reasons": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "realistic_lighting", "believable_shadows", "material_accuracy",
+        "reflections_correct", "texture_quality", "perspective_correct",
+        "object_integrity", "human_anatomy", "ai_artefacts_detected",
+        "image_sharpness", "reasons",
+    ],
+    "additionalProperties": False,
+}
+
+_QUALITY_TIER_SCORE = {"poor": 0.0, "fair": 0.33, "good": 0.67, "excellent": 1.0}
+
+# Photorealism is weighted heavily in `accepted`, per §13's explicit
+# instruction ("this dimension is weighted heavily... not treated as a
+# soft/optional signal") - a floor comparable to Reference Scoring's
+# own QUALITY_FLOOR, not a token pass-most-things gate.
+PHOTOREALISM_FLOOR = 0.6
+
+
+def _build_photorealism_prompt() -> str:
+    return (
+        "This is an AI-generated marketing creative. Judge its photorealism "
+        "- does it look like a real photograph, not an AI generation? "
+        "Assess: is the lighting realistic, are shadows believable, do "
+        "materials look physically accurate, are reflections correct, "
+        "how would you rate texture quality and overall image sharpness, "
+        "is the perspective/geometry correct, are objects structurally "
+        "intact (no warping/melting/impossible geometry), are there any "
+        "visible AI-generation artefacts (extra limbs, garbled text, "
+        "impossible reflections, etc.), and if any human is depicted, is "
+        "their anatomy correct (use \"not_applicable\" if no human "
+        "appears in the image at all). Give short reasons for your "
+        "overall judgment."
+    )
+
+
+def _score_photorealism(result: dict) -> float:
+    boolean_checks = [
+        result["realistic_lighting"],
+        result["believable_shadows"],
+        result["material_accuracy"],
+        result["reflections_correct"],
+        result["perspective_correct"],
+        result["object_integrity"],
+        not result["ai_artefacts_detected"],
+        result["human_anatomy"] != "incorrect",
+    ]
+    boolean_fraction = sum(1 for check in boolean_checks if check) / len(boolean_checks)
+    texture_component = _QUALITY_TIER_SCORE[result["texture_quality"]]
+    sharpness_component = _QUALITY_TIER_SCORE[result["image_sharpness"]]
+    return (boolean_fraction * 0.6) + (texture_component * 0.2) + (sharpness_component * 0.2)
+
 
 def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAssessment | StageResult:
     """
     Runs Stage 1 Identity Validation + Stage 2 creative validation
-    (unchanged, Phase 8.4/9.4) against this specific candidate, then
-    computes and persists this sub-phase's `QualityAssessment`. Returns
-    a `StageResult` (never raises) on the rare case validation itself
+    (unchanged, Phase 8.4/9.4) against this specific candidate first -
+    a hard floor. Only once that passes does this spend a second, real
+    vision call judging Photorealism (Phase 10.3); a floor failure
+    never reaches that call at all, saving the cost on a candidate
+    already disqualified for a different reason. Returns a
+    `StageResult` (never raises) on the rare case validation itself
     can't run (e.g. no immutable Product Profile fields yet) - the same
     "clean, explained failure" shape `run_generation_attempt` already
     returns, so a caller checking one type covers both engines.
@@ -54,11 +141,28 @@ def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAss
         .one()
     )
 
+    photorealism_json: dict | None = None
+    if image_validation_result.passed:
+        vision_provider = default_registry.vision()
+        generated_image_bytes = Path(generated_image.file_path).read_bytes()
+        photorealism_json = vision_provider.analyze_creative(
+            image_bytes=generated_image_bytes,
+            prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
+            response_schema=PHOTOREALISM_SCHEMA,
+        )
+        photorealism_score = _score_photorealism(photorealism_json)
+        accepted = photorealism_score >= PHOTOREALISM_FLOOR
+        overall_confidence_score = photorealism_score
+    else:
+        accepted = False
+        overall_confidence_score = 0.0
+
     assessment = QualityAssessment(
         generated_image_id=generated_image.id,
         image_validation_result_id=image_validation_result.id,
-        overall_confidence_score=1.0 if image_validation_result.passed else 0.0,
-        accepted=image_validation_result.passed,
+        photorealism_json=photorealism_json,
+        overall_confidence_score=overall_confidence_score,
+        accepted=accepted,
     )
     db.add(assessment)
     # A real commit, not just a flush - unlike every other write in this
@@ -66,6 +170,6 @@ def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAss
     # on (SlideImageValidationStage's own mark_succeeded/mark_failed
     # already committed its own row before this point). Without this,
     # get_db()'s session.close() rolls the assessment back - a real bug
-    # found via live verification, not a style preference.
+    # found via live verification in Phase 10.2, not a style preference.
     db.commit()
     return assessment

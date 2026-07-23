@@ -337,8 +337,19 @@ def generate_creative(
                 candidates=[
                     GenerationCandidateRead(
                         generated_image=GeneratedImageRead.model_validate(candidate.generated_image),
-                        quality_assessment=QualityAssessmentRead.model_validate(
-                            candidate.quality_assessment
+                        # Built explicitly, not via model_validate - the
+                        # ORM's photorealism_json doesn't match this
+                        # schema's photorealism name, same "computed/
+                        # renamed fields need explicit construction"
+                        # reasoning as ImageValidationResultRead.
+                        quality_assessment=QualityAssessmentRead(
+                            id=candidate.quality_assessment.id,
+                            generated_image_id=candidate.quality_assessment.generated_image_id,
+                            image_validation_result_id=candidate.quality_assessment.image_validation_result_id,
+                            photorealism=candidate.quality_assessment.photorealism_json,
+                            overall_confidence_score=candidate.quality_assessment.overall_confidence_score,
+                            accepted=candidate.quality_assessment.accepted,
+                            created_at=candidate.quality_assessment.created_at,
                         ),
                     )
                     for candidate in outcome.candidates

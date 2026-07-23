@@ -1,7 +1,8 @@
 """
 Unit tests for the basic automatic retry loop (Phase 10.2 of AI
 Creative Engine vNext, see MIGRATION_PLAN.md's "ADR: AI Creative
-Engine vNext" §14). No real provider calls - Fake providers throughout.
+Engine vNext" §14; Photorealism dimension added Phase 10.3). No real
+provider calls - Fake providers throughout.
 """
 
 from sqlalchemy import select
@@ -22,6 +23,19 @@ _CREATIVE_FAILS = {
     "field_checks": [{"field_name": "color", "preserved": False, "reason": "Wrong shade."}],
     "overall_explanation": "Color mismatch.",
 }
+_PHOTOREALISM_PASSES = {
+    "realistic_lighting": True,
+    "believable_shadows": True,
+    "material_accuracy": True,
+    "reflections_correct": True,
+    "texture_quality": "excellent",
+    "perspective_correct": True,
+    "object_integrity": True,
+    "human_anatomy": "not_applicable",
+    "ai_artefacts_detected": False,
+    "image_sharpness": "excellent",
+    "reasons": ["clean, photorealistic render"],
+}
 
 
 def _patch_generation(monkeypatch):
@@ -32,16 +46,20 @@ def _patch_generation(monkeypatch):
 
 
 def _patch_validation(monkeypatch, *, creative_result):
+    fake_vision = FakeVisionAnalysisProvider(
+        results_by_schema_name={
+            "identity_validation": _IDENTITY_PASSES,
+            "image_validation": creative_result,
+            "photorealism": _PHOTOREALISM_PASSES,
+        }
+    )
     monkeypatch.setattr(
         "app.slideshow_stages.image_validation_stage.default_registry",
-        FakeAIProviderRegistry(
-            vision_provider=FakeVisionAnalysisProvider(
-                results_by_schema_name={
-                    "identity_validation": _IDENTITY_PASSES,
-                    "image_validation": creative_result,
-                }
-            )
-        ),
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
     )
 
 
@@ -83,14 +101,21 @@ def test_retries_once_then_accepts_when_the_second_attempt_passes(
             schema_name = prompt_spec.get("schema_name")
             if schema_name == "identity_validation":
                 return _IDENTITY_PASSES
+            if schema_name == "photorealism":
+                return _PHOTOREALISM_PASSES
             call_count["n"] += 1
             # First attempt's one "fast"-mode candidate fails creative
             # validation; the retry's candidate passes.
             return _CREATIVE_FAILS if call_count["n"] == 1 else _CREATIVE_PASSES
 
+    alternating_provider = _AlternatingVisionProvider()
     monkeypatch.setattr(
         "app.slideshow_stages.image_validation_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=_AlternatingVisionProvider()),
+        FakeAIProviderRegistry(vision_provider=alternating_provider),
+    )
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=alternating_provider),
     )
 
     result = generate_with_retry(db_session, slideshow_with_product, "fast", max_retries=1)

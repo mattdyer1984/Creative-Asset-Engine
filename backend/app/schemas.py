@@ -379,12 +379,15 @@ class QualityAssessmentRead(BaseModel):
     id: str
     generated_image_id: str
     image_validation_result_id: str
-    # creative_fidelity/photorealism/text_quality are deliberately
-    # absent from this read model, not just null-defaulted - those
-    # dimensions genuinely don't exist yet (Phases 10.3/10.4/the
-    # eventual Text Intelligence phase), and exposing empty-shaped
-    # fields for them now would misleadingly imply they're already
-    # being scored.
+    # Phase 10.3 - null whenever Product Fidelity didn't pass (the
+    # short-circuit that saves the real vision call), never a fabricated
+    # score for a candidate that was never actually assessed for it.
+    photorealism: dict | None = None
+    # creative_fidelity/text_quality are still deliberately absent from
+    # this read model, not just null-defaulted - those dimensions
+    # genuinely don't exist yet (Phase 10.4/the eventual Text
+    # Intelligence phase), and exposing empty-shaped fields for them now
+    # would misleadingly imply they're already being scored.
     overall_confidence_score: float
     accepted: bool
     created_at: datetime

@@ -131,6 +131,17 @@ class ProviderCapabilities:
     supports_masking: bool
     supports_inpainting: bool
     supported_resolutions: list[str]
+    # Phase 10.3 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
+    # ADR §2/§10.3/§13, "Photorealism by Default") - the provider-side
+    # levers this codebase confirmed real for at least one adapter
+    # (OpenAI's images.edit/generate `quality` parameter for gpt-image-1
+    # specifically). Both default to None rather than a guessed value -
+    # a provider only sets one of these once it's actually been
+    # confirmed applicable to *its own* configured model, the same
+    # "prove it before wiring it" discipline this project applies to
+    # every other provider-specific capability claim.
+    preferred_quality: str | None = None
+    preferred_style: str | None = None
 
 
 @dataclass
