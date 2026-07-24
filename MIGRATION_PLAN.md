@@ -4430,3 +4430,13 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+
+### Phase 11 (Low tier): Remove dead assignSlideProduct method (2026-07-24)
+
+`api.assignSlideProduct` (the single-slot replace endpoint's client) had no callers anywhere in the frontend - `SlideProductPicker.tsx` was rebuilt around the additive `addSlideProduct`/`removeSlideProduct` endpoints back in Phase 6.5, and nothing was ever updated to call the old one again. Removed the dead method and its now-stale referencing comment. The backend `assign-product` endpoint itself is untouched (out of scope - this was specifically about the dead frontend method named in the Phase 11 gap list).
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes.
+
+- Commit: (see git log)
+
+---

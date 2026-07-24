@@ -430,9 +430,6 @@ export const api = {
   listProducts: (): Promise<Product[]> =>
     fetch('/api/products').then((res) => handle<Product[]>(res)),
 
-  // assignProduct (old, Creative-level) was removed in Phase 2.7 -
-  // superseded by assignSlideProduct further down this file.
-
   listReferenceImages: (productId: string): Promise<ProductReferenceImage[]> =>
     fetch(`/api/products/${productId}/reference-images`).then((res) =>
       handle<ProductReferenceImage[]>(res)
@@ -707,22 +704,12 @@ export const api = {
       (res) => handleOptional<GenerationReferenceSet>(res)
     ),
 
-  // productId: null unassigns.
-  assignSlideProduct: (
-    slideshowId: string,
-    slideId: string,
-    productId: string | null
-  ): Promise<Slideshow> =>
-    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/assign-product`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId }),
-    }).then((res) => handle<Slideshow>(res)),
-
   // Additive, multi-product endpoints (Phase 6.1, see MIGRATION_PLAN.md) -
-  // unlike assignSlideProduct above, adding a second product doesn't
-  // replace the first. addSlideProduct is idempotent: re-adding an
-  // already-current product no-ops rather than duplicating.
+  // unlike the backend's single-slot assign-product endpoint (superseded
+  // in the UI since Phase 6.5, see SlideProductPicker.tsx), adding a
+  // second product doesn't replace the first. addSlideProduct is
+  // idempotent: re-adding an already-current product no-ops rather than
+  // duplicating.
   addSlideProduct: (slideshowId: string, slideId: string, productId: string): Promise<Slideshow> =>
     fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/products`, {
       method: 'POST',
