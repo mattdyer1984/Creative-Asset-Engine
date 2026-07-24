@@ -4473,3 +4473,15 @@ Everything from this point onward follows a different mandate than the rest of P
 - Commit: (see git log)
 
 ---
+
+### Phase 11.9: Creative gallery home view (2026-07-24)
+
+**What was built**: `App.tsx`'s default view is now `CreateCreativeFlow` + a new `CreativeGallery.tsx` (past/in-progress creatives, plain-language status - "Working…"/"Done"/"Needs attention" instead of the technical imported/queued/analyzing/ready/failed vocabulary, click a card to open the existing, unmodified `SlideshowBlueprintModal`). Everything the old default view showed - Projects, Products, Import a Listing, the old Import Creatives form, the technical Creatives grid (`SlideshowGrid`, with its per-slide product picker and Analyze/Retry buttons) - moved behind a single `▸ Advanced` toggle, collapsed by default. None of those components were modified - only where they render, gated by a new `showAdvanced` boolean in `App.tsx`. Folded the plan's originally-separate "wire gallery cards into the modal" step (11.10) into this phase rather than shipping an inert, unclickable gallery as an intermediate commit - a gallery that does nothing on click isn't a meaningful independently-verifiable unit. Phase 11.10 is now scoped to just the remaining piece: wiring "View technical details" from `CreateCreativeFlow`'s own results screen.
+
+**Live verification**: confirmed via DOM query the default view shows `CreateCreativeFlow` + "Your Creatives" gallery with 4 real cards (friendly status badges: "Done" ×3, "Imported" ×1, matching real slideshow data from earlier this session), and the Advanced toggle starts collapsed (`.advanced-section` absent from the DOM). Clicked the toggle: confirmed all 5 original sections (Projects, Products, Import a Listing, Import Creatives, Creatives) render correctly, unchanged. Collapsed it again, clicked a real gallery card, confirmed the real `SlideshowBlueprintModal` opens (`.blueprint-backdrop` present) and closes normally.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes.
+
+- Commit: (see git log)
+
+---

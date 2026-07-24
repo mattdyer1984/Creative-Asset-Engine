@@ -6,6 +6,7 @@ import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
 import { CatalogueImporter } from './components/CatalogueImporter';
 import { CreateCreativeFlow } from './components/CreateCreativeFlow';
+import { CreativeGallery } from './components/CreativeGallery';
 import './App.css';
 
 function App() {
@@ -25,6 +26,12 @@ function App() {
   // section here already uses, rather than introducing new routing
   // infrastructure just for this one view.
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  // Phase 11.9 (Product Experience, see MIGRATION_PLAN.md) - everything
+  // below this toggle (Projects, Products, Import a Listing, the old
+  // Import Creatives form, the technical Creatives grid) is unchanged,
+  // just no longer the default view - a normal user's whole workflow is
+  // CreateCreativeFlow + CreativeGallery above the toggle.
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const loadProjects = () => {
     setLoadingProjects(true);
@@ -113,82 +120,96 @@ function App() {
         <h1>Creative Asset Engine</h1>
       </header>
 
-      {/*
-        Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the
-        simplified Create flow, additive above the existing sections for
-        now so it can be live-verified end to end. Phase 11.9
-        restructures this page into a gallery home view with everything
-        below re-homed behind an Advanced entry point - not done here.
-      */}
       <CreateCreativeFlow onCreated={reloadProductsAndSlideshows} />
-
-      <section className="projects-section">
-        <h2>Projects</h2>
-        <form className="create-project-form" onSubmit={handleCreateProject}>
-          <input
-            type="text"
-            placeholder="New project name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            disabled={creatingProject}
-          />
-          <button type="submit" disabled={creatingProject || !newName.trim()}>
-            {creatingProject ? 'Creating…' : 'Create Project'}
-          </button>
-        </form>
-
-        {loadingProjects ? (
-          <p>Loading projects…</p>
-        ) : projects.length === 0 ? (
-          <p className="empty-state">
-            No projects yet. Projects are optional — creatives can be
-            imported without one.
-          </p>
-        ) : (
-          <ul className="project-list">
-            {projects.map((project) => (
-              <li key={project.id} className="project-list-item">
-                <button
-                  type="button"
-                  className="project-row-toggle"
-                  onClick={() =>
-                    setExpandedProjectId((current) =>
-                      current === project.id ? null : project.id
-                    )
-                  }
-                >
-                  <span className="project-name">{project.name}</span>
-                  <span className="project-meta">
-                    Created {new Date(project.created_at).toLocaleString()}
-                  </span>
-                  <span className="project-row-chevron">
-                    {expandedProjectId === project.id ? '▾' : '▸'}
-                  </span>
-                </button>
-                {expandedProjectId === project.id && <ProjectWorkspace project={project} />}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <ProductManager products={products} loading={loadingProducts} onCreated={loadProducts} />
-
-      <CatalogueImporter products={products} onProductsChanged={loadProducts} />
 
       {error && <p className="error">{error}</p>}
 
-      <ImportPanel projects={projects} onImported={loadSlideshows} />
-
-      <section className="creatives-section">
-        <h2>Creatives</h2>
-        <SlideshowGrid
+      <section className="creative-gallery-section">
+        <h2>Your Creatives</h2>
+        <CreativeGallery
           slideshows={slideshows}
           loading={loadingSlideshows}
-          onStatusChange={reloadProductsAndSlideshows}
-          products={products}
+          onChanged={reloadProductsAndSlideshows}
         />
       </section>
+
+      <button
+        type="button"
+        className="advanced-toggle"
+        onClick={() => setShowAdvanced((current) => !current)}
+      >
+        {showAdvanced ? '▾ Hide Advanced' : '▸ Advanced'}
+      </button>
+
+      {showAdvanced && (
+        <div className="advanced-section">
+          <section className="projects-section">
+            <h2>Projects</h2>
+            <form className="create-project-form" onSubmit={handleCreateProject}>
+              <input
+                type="text"
+                placeholder="New project name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                disabled={creatingProject}
+              />
+              <button type="submit" disabled={creatingProject || !newName.trim()}>
+                {creatingProject ? 'Creating…' : 'Create Project'}
+              </button>
+            </form>
+
+            {loadingProjects ? (
+              <p>Loading projects…</p>
+            ) : projects.length === 0 ? (
+              <p className="empty-state">
+                No projects yet. Projects are optional — creatives can be
+                imported without one.
+              </p>
+            ) : (
+              <ul className="project-list">
+                {projects.map((project) => (
+                  <li key={project.id} className="project-list-item">
+                    <button
+                      type="button"
+                      className="project-row-toggle"
+                      onClick={() =>
+                        setExpandedProjectId((current) =>
+                          current === project.id ? null : project.id
+                        )
+                      }
+                    >
+                      <span className="project-name">{project.name}</span>
+                      <span className="project-meta">
+                        Created {new Date(project.created_at).toLocaleString()}
+                      </span>
+                      <span className="project-row-chevron">
+                        {expandedProjectId === project.id ? '▾' : '▸'}
+                      </span>
+                    </button>
+                    {expandedProjectId === project.id && <ProjectWorkspace project={project} />}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <ProductManager products={products} loading={loadingProducts} onCreated={loadProducts} />
+
+          <CatalogueImporter products={products} onProductsChanged={loadProducts} />
+
+          <ImportPanel projects={projects} onImported={loadSlideshows} />
+
+          <section className="creatives-section">
+            <h2>Creatives</h2>
+            <SlideshowGrid
+              slideshows={slideshows}
+              loading={loadingSlideshows}
+              onStatusChange={reloadProductsAndSlideshows}
+              products={products}
+            />
+          </section>
+        </div>
+      )}
     </div>
   );
 }
