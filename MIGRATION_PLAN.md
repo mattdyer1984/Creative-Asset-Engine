@@ -4585,3 +4585,13 @@ New `frontend/src/api.ts` additions: `AppSettingsData`, `MainIssue`, `Generation
 - Commit: (see git log)
 
 ---
+
+### Phase 12.6: Regenerate action + polish (2026-07-24)
+
+**What was built**: nothing new - Regenerate was already built as part of 12.5's footer (it's one action among several sharing the same modal-local state and error handling, not a separable concern), and was already live-verified there (its error path, since the real quota exhaustion also blocks its success path from a live run). Re-reviewed the finished modal against the spec's remaining asks: "Instead of Import -> Analyse -> Generate -> Validate -> Export, [...] internally perform all of those steps after a single Generate action" (true since Phase 11.8's `CreateCreativeFlow`); "Automatic Generation Log" and "never automatically download files" (true since 12.2 - archiving is automatic, `.zip` is opt-in); "Regenerate [...] the modal's content in place" (true - `handleRegenerate` never calls `onClose`); every other Phase 12 spec line (Learning Mode toggle, mandatory review while it's on, `generation.json`/`review.json` shape, permanent `generation_log_id`, searchable `GET /api/generation-logs` with product/score filters) was built and live-verified in 12.1-12.5. No further gaps found - Phase 12 is feature-complete against the spec as delivered.
+
+**Verification**: no code changes, so no new test/lint/build run beyond the ones already recorded in 12.1-12.5.
+
+- Commit: n/a (no changes)
+
+---
