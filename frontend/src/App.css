@@ -645,6 +645,38 @@ section h2 {
   background: white;
 }
 
+/* Phase 11.4 (see MIGRATION_PLAN.md) - Bundle Composition product/role
+   picker, only shown when the primary slide has 2+ current products. */
+.bundle-product-picker {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.bundle-product-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.bundle-product-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.bundle-product-role {
+  flex: 1;
+  max-width: 260px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.85rem;
+}
+
 .generate-creative-results {
   margin-top: 0.75rem;
 }

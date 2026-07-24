@@ -4370,3 +4370,17 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+
+### Phase 11.4: Product/Bundle selection for Generate Creative (2026-07-24)
+
+**Closes a real gap the Phase 11 audit found**: when a slide has 2+ current products, `generate-creative` has always silently targeted whichever product `resolve_primary_appearance` (`app/slideshow_stages/creative_specification_stage.py`) resolves to (prefer `prominence == "primary"`, tie-break by earliest `(created_at, id)`) unless the caller explicitly passes `bundle_members` - and Bundle Composition itself (Phase 10.7) has existed on the backend with no UI path to reach it at all. Both were completely invisible: a user with a multi-product slide had no way to see which product would be used, or to opt into a bundle scene with 2+ products together.
+
+**What was built**: a product picker in the Generate Creative section (`SlideshowBlueprintModal.tsx`), rendered only when the primary slide (`blueprint.slides[0]`, not whichever slide Prev/Next is currently showing - generation is always scoped to the primary slide) has 2+ current products. A `useEffect` computes the default selection client-side using the exact same rule as the backend's `resolve_primary_appearance`, so a slide with only one product - the overwhelming common case - sends nothing different than before this phase, and a multi-product slide's default selection (checkbox state) matches what generation would already have silently done. Checking a product in; checking a second one reveals a "Role in scene" text input per selected product, pre-filled with that product's `display_name` (editable) rather than left blank, since `role_in_scene` gets baked directly into the compiled prompt (`_bundle_composition_instruction`, `app/services/prompt_compiler.py`) and an empty role would silently degrade the prompt. `handleGenerateCreative` only includes `bundle_members` in the request when 2+ products are selected; a single selection sends exactly the same request shape as before this phase.
+
+**Live verification, real data, not a hypothesis**: no slide in the dev DB had 2+ current products, so one was created for the purpose using the existing, already-tested `add-product` endpoint (added Evoband to the "Two luxury perfume bottles" slide's existing Bellavita), then removed again afterward via the existing `remove` endpoint to restore prior state. Confirmed via direct DOM inspection: the picker rendered, defaulted to exactly one product selected (Bellavita - the earlier-created appearance, matching the backend's own default), no role inputs shown. Checked the second product (Evoband): both became selected, both role inputs appeared, both pre-filled with the correct `display_name`. Clicked Generate Creative for real: the network log shows a real request that reached the backend's bundle-generation code path and was rejected with a real, expected `422` - `"No Generation Reference Set available for product a711675d... - its Canonical Reference Library is empty"` - a legitimate, unrelated precondition failure (Evoband has no scored reference images) that itself proves `bundle_members` was serialized correctly and reached the real per-member validation logic, not a wiring bug. Did not spend a real paid generation call completing a synthetic bundle solely built for this test.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes (Bundle Composition itself already existed, Phase 10.7).
+
+- Commit: (see git log)
+
+---

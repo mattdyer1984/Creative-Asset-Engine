@@ -87,6 +87,19 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // strategy, not the same "no text" outcome. See GenerationPlan.
   // text_strategy's own docstring in decision_engine.py.
   const [textStrategy, setTextStrategy] = useState<TextStrategy | ''>('');
+  // Phase 11.4 (see MIGRATION_PLAN.md) - a real gap the Phase 11 audit
+  // found: when a slide has 2+ current products, generate-creative
+  // silently targets whichever one the backend's own
+  // resolve_primary_appearance resolves to (prominence == "primary",
+  // ties broken by earliest-created) unless bundle_members is given -
+  // that choice was completely invisible in the UI. Defaults are
+  // recomputed below whenever the primary slide's product set changes,
+  // matching the backend's exact default so a slide with only one
+  // product (the overwhelmingly common case) behaves identically to
+  // before this phase - no bundle_members sent unless the user
+  // explicitly selects 2+ products.
+  const [selectedBundleProductIds, setSelectedBundleProductIds] = useState<string[]>([]);
+  const [bundleRoles, setBundleRoles] = useState<Record<string, string>>({});
   const [generateCreativeResult, setGenerateCreativeResult] =
     useState<GenerateCreativeResponseData | null>(null);
   // Phase 11.2 (see MIGRATION_PLAN.md) - every persisted attempt for this
@@ -198,6 +211,50 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // first" boundary, enforced by the backend) - independent of whichever
   // slide the Prev/Next selector above is currently showing.
   const primarySlideId = blueprint?.slides[0]?.id;
+  const primarySlideProducts = blueprint?.slides[0]?.products;
+  const primarySlideProductIdsKey = primarySlideProducts
+    ?.map((p) => p.appearance.product_id)
+    .join(',');
+
+  // Phase 11.4 - defaults to exactly what the backend's own
+  // resolve_primary_appearance would pick when bundle_members is
+  // omitted (prominence == "primary", ties broken by earliest-created),
+  // so a slide with only one product sends nothing different than
+  // before this phase - selecting 2+ is what actually opts into Bundle
+  // Composition.
+  useEffect(() => {
+    if (!primarySlideProducts || primarySlideProducts.length === 0) {
+      setSelectedBundleProductIds([]);
+      setBundleRoles({});
+      return;
+    }
+    const primaryMarked = primarySlideProducts.filter(
+      (p) => p.appearance.prominence === 'primary'
+    );
+    const candidates = primaryMarked.length > 0 ? primaryMarked : primarySlideProducts;
+    const earliest = candidates.reduce((a, b) => {
+      if (a.appearance.created_at !== b.appearance.created_at) {
+        return a.appearance.created_at < b.appearance.created_at ? a : b;
+      }
+      return a.appearance.id < b.appearance.id ? a : b;
+    });
+    setSelectedBundleProductIds([earliest.appearance.product_id]);
+    setBundleRoles(
+      Object.fromEntries(
+        primarySlideProducts.map((p) => [
+          p.appearance.product_id,
+          p.appearance.product?.display_name ?? p.appearance.product_id,
+        ])
+      )
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primarySlideId, primarySlideProductIdsKey]);
+
+  const toggleBundleProduct = (productId: string) => {
+    setSelectedBundleProductIds((prev) =>
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
+    );
+  };
 
   useEffect(() => {
     if (!primarySlideId) return;
@@ -368,6 +425,18 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
         quality_mode: qualityMode,
         creativity_level: creativityLevel,
         ...(textStrategy ? { text_strategy: textStrategy } : {}),
+        // Phase 11.4 - only sent when the user has explicitly selected
+        // 2+ products (Bundle Composition); a single selection matches
+        // the backend's own resolve_primary_appearance default, so
+        // omitting bundle_members there preserves prior behavior exactly.
+        ...(selectedBundleProductIds.length > 1
+          ? {
+              bundle_members: selectedBundleProductIds.map((productId) => ({
+                product_id: productId,
+                role_in_scene: bundleRoles[productId]?.trim() || productId,
+              })),
+            }
+          : {}),
       });
       setGenerateCreativeResult(result);
       loadGenerationHistory();
@@ -824,6 +893,44 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                   {busyAction === 'generate_creative' ? 'Generating…' : 'Generate Creative'}
                 </button>
               </div>
+              {primarySlideProducts && primarySlideProducts.length > 1 && (
+                <div className="bundle-product-picker">
+                  <p className="blueprint-meta">
+                    This slide has multiple current products. By default only one is used
+                    (whichever the backend would pick automatically). Select 2 or more to
+                    generate a Bundle Composition scene instead.
+                  </p>
+                  {primarySlideProducts.map((product) => {
+                    const productId = product.appearance.product_id;
+                    const checked = selectedBundleProductIds.includes(productId);
+                    return (
+                      <div className="bundle-product-row" key={productId}>
+                        <label className="bundle-product-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleBundleProduct(productId)}
+                            disabled={busyAction !== null}
+                          />
+                          {product.appearance.product?.display_name ?? productId}
+                        </label>
+                        {checked && selectedBundleProductIds.length > 1 && (
+                          <input
+                            type="text"
+                            className="bundle-product-role"
+                            placeholder="Role in scene"
+                            value={bundleRoles[productId] ?? ''}
+                            onChange={(e) =>
+                              setBundleRoles((prev) => ({ ...prev, [productId]: e.target.value }))
+                            }
+                            disabled={busyAction !== null}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {generateCreativeResult && (
                 <GenerateCreativeResultsPanel
                   slideshowId={slideshowId}
