@@ -170,6 +170,49 @@ section h2 {
   cursor: pointer;
 }
 
+/* Phase 11.1 (see MIGRATION_PLAN.md) - URL import, alongside file upload */
+.import-url-controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #e2e2e2;
+}
+
+.import-url-controls input[type='url'] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.9rem;
+}
+
+.import-url-controls select {
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.import-url-controls button {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  border: none;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.import-url-controls button:disabled {
+  background: #999;
+  cursor: default;
+}
+
 /* Creatives grid */
 
 .creative-grid {

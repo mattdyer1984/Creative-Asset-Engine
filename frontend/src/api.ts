@@ -580,6 +580,39 @@ export const api = {
     }).then((res) => handle<Slideshow[]>(res));
   },
 
+  // Phase 11.1 (see MIGRATION_PLAN.md) - the URL counterpart to
+  // importSlideshows above, backed by POST /api/slideshows/import-url
+  // (built in Phase 10.6/10.6b, never exposed in the UI until now - a
+  // real "missing from the frontend, not the backend" gap found during
+  // the Phase 11 audit). provider defaults to "tiktok" (the native,
+  // recommended importer) - "downie" is a real, explicit opt-in only,
+  // never inferred, matching the backend's own contract. Deliberately
+  // does not reuse the shared `handle` helper: the backend's per-failure-
+  // mode error strings (anti-bot block, timeout, unsupported content,
+  // Downie not installed, ...) are real, specific, human-readable
+  // messages worth surfacing directly rather than wrapped in
+  // `handle`'s generic "Request failed (503): {raw JSON body}" format.
+  importSlideshowFromUrl: async (
+    url: string,
+    projectId?: string,
+    provider?: 'tiktok' | 'downie'
+  ): Promise<Slideshow[]> => {
+    const res = await fetch('/api/slideshows/import-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url,
+        project_id: projectId || undefined,
+        provider: provider ?? 'tiktok',
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.detail ?? `Request failed (${res.status})`);
+    }
+    return res.json() as Promise<Slideshow[]>;
+  },
+
   listSlideshows: (projectId?: string): Promise<Slideshow[]> => {
     const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
     return fetch(`/api/slideshows${query}`).then((res) => handle<Slideshow[]>(res));

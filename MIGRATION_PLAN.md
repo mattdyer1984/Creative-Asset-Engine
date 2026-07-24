@@ -4331,4 +4331,16 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 
 - Commit: (see git log)
 
+### Phase 11.1: TikTok/Downie URL import UI (2026-07-24)
+
+**Closes the Critical gap named in the Phase 11 audit**: `POST /api/slideshows/import-url` (native `PlaywrightTikTokImporter` + `DownieImporter` fallback, real per-failure-mode error mapping) has existed and been live-verified server-side since Phase 10.6/10.6b, but had zero frontend surface - `ImportPanel.tsx` was local-file-upload only.
+
+**What was built**: `api.importSlideshowFromUrl(url, projectId?, provider?)` in `api.ts`, calling the endpoint directly rather than through the shared `handle<T>` helper - the backend's per-failure-mode messages (anti-bot block, timeout, unsupported content, Downie-not-installed, ...) are real, specific, human-readable strings worth surfacing as-is, not wrapped in `handle`'s generic `Request failed (503): {raw JSON body}` format every other endpoint in this app uses. `ImportPanel.tsx` gained a second form beneath the existing file-picker: a URL input, a provider select (`tiktok` default/native, `downie` an explicit opt-in, never inferred - matching the backend's own contract), and its own independent loading/error state so it can't interfere with the file-upload flow. `group_as_one` is not exposed here - the backend already always groups a URL import's media as one Slideshow, correctly, so there's nothing to ask the user.
+
+**Live verification, real end-to-end, through the actual running app, not curl**: typed a real TikTok URL (one of the three the user supplied earlier this session, not yet used for a UI-triggered import) into the new field, left provider at the default "TikTok (native)", clicked "Import from URL". Confirmed via the browser's own network log a real `201 Created`, and confirmed in the actual rendered Creatives grid a new real card appeared - "5 slides", `tiktok_7663771200274959638_0.jpeg`, status "Imported" - a genuine real TikTok photo-mode slideshow imported through the new UI path end-to-end. Test data (the Slideshow, its 5 Slides, its EvidenceSource, and the stored image files) cleaned up from the dev DB and disk after verification, matching this migration's established discipline.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes (the endpoint already existed and was already tested/live-verified in Phase 10.6/10.6b) - this phase is frontend-only.
+
+- Commit: (see git log)
+
 ---
