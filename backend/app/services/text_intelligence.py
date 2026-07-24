@@ -25,6 +25,19 @@ blocks, the same tri-state discipline this codebase already holds
 everywhere else a genuinely new prerequisite doesn't exist yet for
 older data - not an error, just nothing to reuse.
 
+**Second real, additive correction, real-world-diagnosed** (see
+MIGRATION_PLAN.md): "marketing-overlay text" turned out not to be
+fully determined by `role` alone - a real generation showed OCR
+tagging text physically printed on the product's own packaging, and
+separately a shelf's own price tags, with roles ("headline", "price")
+this module otherwise treats as overlay-eligible, causing the
+Rendering Engine to duplicate text the base image generation had
+already faithfully reproduced as part of the photographed scene. OCR's
+`OCR_RESPONSE_SCHEMA` gained an explicit per-block `surface` field
+("physical" vs "overlay") as this correction's own prerequisite fix -
+see `_eligible_blocks`' own docstring for the full reasoning and the
+tri-state handling of pre-migration OCR data with no `surface` at all.
+
 **Typography is deliberately NOT literally extracted or font-matched**
 - identifying an arbitrary real font from pixels is a genuinely hard,
 unsolved problem this codebase makes no claim to solve, and this ADR
@@ -93,13 +106,50 @@ _REWRITE_SCHEMA = {
 }
 
 
-def _eligible_blocks(ocr_result: OCRResult | None) -> list[dict]:
+def _is_packaging_text(text: str, packaging_text: list[str]) -> bool:
+    normalized = text.strip().casefold()
+    return any(normalized == candidate.strip().casefold() for candidate in packaging_text)
+
+
+def _eligible_blocks(ocr_result: OCRResult | None, packaging_text: list[str]) -> list[dict]:
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): a real generation
+    duplicated text that the base image generation already reproduces
+    as part of the photographed scene - product packaging text AND,
+    more broadly, other physical text like shelf price tags - by
+    re-compositing it a second time as a marketing overlay. `role`
+    alone can't tell "text a camera would have captured" apart from
+    "text someone added on top of the photo afterward" (both can share
+    a role like "headline"); only genuinely creator-added overlay text
+    (a caption, a watermark) belongs to this module at all - anything
+    physically in the scene is the base image generation's job to
+    reproduce, never this pipeline's, and it's up to whichever
+    `text_strategy` the user picked whether overlay text is reused
+    verbatim, rewritten, or dropped.
+
+    `block["surface"] == "overlay"` is OCR's own explicit classification
+    of that distinction - the primary filter. A pre-migration OCRResult
+    has no `surface` key at all; `.get("surface")` then returns `None`,
+    which correctly excludes it (nothing to reuse yet), the same
+    tri-state precedent this module already holds for OCRResults with
+    no `bounding_box`.
+
+    packaging_text (the product's own branding_text) is kept as a
+    second, narrower line of defense specifically for packaging text -
+    catches the case where OCR's own surface classification gets a
+    genuinely packaging-printed block wrong, reusing the exact source
+    of truth Stage 2 validation's `branding_text` field_check already
+    compares against.
+    """
     if ocr_result is None:
         return []
     return [
         block
         for block in ocr_result.structured_blocks_json
-        if block.get("role") in _ROLE_TO_HIERARCHY and block.get("bounding_box")
+        if block.get("role") in _ROLE_TO_HIERARCHY
+        and block.get("bounding_box")
+        and block.get("surface") == "overlay"
+        and not _is_packaging_text(block.get("text", ""), packaging_text)
     ]
 
 
@@ -129,12 +179,23 @@ def build_text_assets(
     ocr_result: OCRResult | None,
     *,
     text_generation_provider=None,
+    packaging_text: list[str] | None = None,
 ) -> list[dict]:
     """
     Returns the list of TextAsset dicts the Rendering Engine should
     composite. `no_text` (and any slide with nothing eligible to
     reuse) returns `[]` - a real, valid outcome the Rendering Engine
     treats as a straight pass-through, not an error.
+
+    packaging_text (real-world-diagnosed fix, see MIGRATION_PLAN.md and
+    `_eligible_blocks`'s own docstring): the product's own
+    branding_text (text physically printed on its packaging) - any OCR
+    block whose text matches an entry here is excluded, regardless of
+    its OCR-assigned role, since the base generated image already
+    preserves it. `None`/`[]` (a slide with no resolved product, or a
+    product with no current Lock Profile) skips this filter entirely -
+    the same tri-state discipline this module already holds for
+    OCR-less slides above.
     """
     if text_strategy not in TEXT_STRATEGIES:
         raise ValueError(f"Unknown text_strategy {text_strategy!r} - must be one of {sorted(TEXT_STRATEGIES)}")
@@ -142,7 +203,7 @@ def build_text_assets(
     if text_strategy == TEXT_STRATEGY_NO_TEXT:
         return []
 
-    blocks = _eligible_blocks(ocr_result)
+    blocks = _eligible_blocks(ocr_result, packaging_text or [])
     if not blocks:
         return []
 

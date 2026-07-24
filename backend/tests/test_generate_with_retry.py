@@ -266,6 +266,89 @@ def test_final_output_reuses_real_ocr_positions_for_reuse_original_strategy(
     assert rendered.size == (400, 400)
 
 
+def test_reuse_original_excludes_the_products_own_packaging_text(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): an OCR block whose
+    text matches the product's own branding_text (packaging text
+    already preserved in the base generated image) must be excluded
+    from the FinalOutput's text_assets, even if OCR tagged it as a
+    marketing-overlay role like "headline" - FakeVisionAnalysisProvider's
+    default canned Product Lock Profile (see tests/fakes.py) has
+    branding_text=["Sunrise"] (from its labels_and_text), so an OCR
+    block reading "Sunrise" must be dropped while a genuine marketing
+    headline survives.
+    """
+    from PIL import Image as PILImage
+
+    from app.ai_providers.base import GeneratedImageResult, OCRExtraction
+    from app.models.ocr_result import OCRResult
+    from app.slideshow_stages.ocr_stage import SlideOCRStage
+
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+
+    class _FakeOCRProviderWithPackagingText:
+        model = "fake-ocr-model"
+        provider = "openai"
+
+        def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+            return OCRExtraction(
+                raw_text="Sunrise Start Fresh",
+                structured_blocks=[
+                    {
+                        "text": "Sunrise",
+                        "role": "headline",
+                        # OCR's own surface classification got this one
+                        # wrong too - the real case (see MIGRATION_PLAN.md).
+                        "surface": "overlay",
+                        "bounding_box": {"x_min": 0.05, "y_min": 0.05, "x_max": 0.4, "y_max": 0.15},
+                    },
+                    {
+                        "text": "Start Fresh",
+                        "role": "headline",
+                        "surface": "overlay",
+                        "bounding_box": {"x_min": 0.1, "y_min": 0.8, "x_max": 0.4, "y_max": 0.92},
+                    },
+                ],
+            )
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.ocr_stage.default_registry",
+        FakeAIProviderRegistry(ocr_provider=_FakeOCRProviderWithPackagingText()),
+    )
+    SlideOCRStage().run(db_session, slideshow_with_product)
+    db_session.commit()
+    slide = slideshow_with_product.primary_slide
+    ocr_result = db_session.get(OCRResult, slide.current_ocr_result_id)
+    assert ocr_result.structured_blocks_json[0]["text"] == "Sunrise"
+
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(
+            image_generation_provider=FakeImageGenerationProvider(
+                result=GeneratedImageResult(
+                    image_bytes=_real_png_bytes(),
+                    provider="openai",
+                    model="fake-image-model",
+                    prompt_used="prompt",
+                    seed=None,
+                    generation_time_seconds=0.1,
+                )
+            )
+        ),
+    )
+    _patch_validation(monkeypatch, creative_result=_CREATIVE_PASSES)
+
+    result = generate_with_retry(db_session, slideshow_with_product, "fast", text_strategy="reuse_original")
+
+    assert result.winner is not None
+    assert result.final_output is not None
+    wordings = [asset["wording"] for asset in result.final_output.text_assets_json]
+    assert wordings == ["Start Fresh"]  # "Sunrise" excluded - it's the product's own packaging text
+    PILImage.open(result.final_output.file_path)  # still a valid, real composited image
+
+
 def _fake_ocr_provider_with_bbox():
     from app.ai_providers.base import OCRExtraction
 
@@ -280,6 +363,7 @@ def _fake_ocr_provider_with_bbox():
                     {
                         "text": "SHOP NOW",
                         "role": "cta",
+                        "surface": "overlay",
                         "bounding_box": {"x_min": 0.1, "y_min": 0.8, "x_max": 0.4, "y_max": 0.92},
                     }
                 ],

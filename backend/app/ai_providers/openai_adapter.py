@@ -48,6 +48,35 @@ OCR_RESPONSE_SCHEMA = {
                             "disclaimer, logo_text, other."
                         ),
                     },
+                    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a
+                    # real generation duplicated text that was already
+                    # physically part of the photographed scene (product
+                    # packaging, shelf price tags) by re-compositing it a
+                    # second time as a marketing overlay - `role` alone
+                    # can't distinguish "text a camera would have
+                    # captured" from "text someone added on top of the
+                    # photo afterward" (both can share a role like
+                    # "headline"). `surface` is that explicit distinction,
+                    # letting app.services.text_intelligence only ever
+                    # treat genuine creator-added overlays as reusable -
+                    # anything physically in the scene is the base image
+                    # generation's job to reproduce, never this pipeline's.
+                    "surface": {
+                        "type": "string",
+                        "enum": ["physical", "overlay"],
+                        "description": (
+                            "'physical': text printed, molded, or "
+                            "displayed on a real object the camera "
+                            "photographed - product packaging, a shelf "
+                            "price tag, a sign, a screen. 'overlay': "
+                            "text added digitally on top of the photo "
+                            "or video afterward by whoever created or "
+                            "edited it - a social-media caption, "
+                            "meme-style commentary, a watermark, a "
+                            "burned-in subtitle. It was never part of "
+                            "the physical scene itself."
+                        ),
+                    },
                     # Phase 10.8 of AI Creative Engine vNext (see
                     # MIGRATION_PLAN.md's ADR §9) - a real, additive
                     # correction: §9 assumed "layout data... already
@@ -69,7 +98,7 @@ OCR_RESPONSE_SCHEMA = {
                         "additionalProperties": False,
                     },
                 },
-                "required": ["text", "role", "bounding_box"],
+                "required": ["text", "role", "surface", "bounding_box"],
                 "additionalProperties": False,
             },
         },
@@ -81,10 +110,17 @@ OCR_RESPONSE_SCHEMA = {
 OCR_PROMPT = (
     "Extract all visible text from this marketing image. Return the "
     "complete raw text, plus a structured breakdown of each distinct "
-    "text element, its marketing role, and its normalized bounding box "
+    "text element, its marketing role, its normalized bounding box "
     "(x_min/y_min/x_max/y_max, each 0.0-1.0, measured against the full "
     "image width/height) - as precise as you can read it from the "
-    "actual rendered position of that text."
+    "actual rendered position of that text - and its surface: "
+    "'physical' if it's printed, molded, or displayed on a real object "
+    "the camera photographed (product packaging, a shelf price tag, a "
+    "sign, a screen), or 'overlay' if it was added digitally on top of "
+    "the photo or video afterward by whoever created or edited it (a "
+    "social-media caption, meme-style commentary, a watermark, a "
+    "burned-in subtitle) and was never part of the physical scene "
+    "itself. If you're unsure, prefer 'physical'."
 )
 
 

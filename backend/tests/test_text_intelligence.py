@@ -23,19 +23,28 @@ def _ocr_result(blocks: list[dict]) -> OCRResult:
 _HEADLINE_BLOCK = {
     "text": "SMELL LIKE YOU MEAN IT",
     "role": "headline",
+    "surface": "overlay",
     "bounding_box": {"x_min": 0.05, "y_min": 0.05, "x_max": 0.9, "y_max": 0.2},
 }
 _CTA_BLOCK = {
     "text": "SHOP NOW",
     "role": "cta",
+    "surface": "overlay",
     "bounding_box": {"x_min": 0.05, "y_min": 0.85, "x_max": 0.3, "y_max": 0.95},
 }
 _LOGO_BLOCK = {
     "text": "BELLA VITA",
     "role": "logo_text",
+    "surface": "physical",
     "bounding_box": {"x_min": 0.4, "y_min": 0.4, "x_max": 0.6, "y_max": 0.45},
 }
-_NO_BBOX_BLOCK = {"text": "Old-style block", "role": "headline"}
+_NO_BBOX_BLOCK = {"text": "Old-style block", "role": "headline", "surface": "overlay"}
+_PHYSICAL_PRICE_BLOCK = {
+    "text": "£25",
+    "role": "price",
+    "surface": "physical",
+    "bounding_box": {"x_min": 0.05, "y_min": 0.78, "x_max": 0.15, "y_max": 0.82},
+}
 
 
 def test_no_text_returns_empty_regardless_of_ocr_content():
@@ -109,3 +118,98 @@ def test_ai_rewrite_raises_on_count_mismatch():
 
     with pytest.raises(ValueError, match="must be exactly one per block"):
         build_text_assets(TEXT_STRATEGY_AI_REWRITE, ocr, text_generation_provider=_BadFakeTextProvider())
+
+
+# --- packaging_text exclusion (real-world-diagnosed fix, see MIGRATION_PLAN.md) ---
+
+
+def test_reuse_original_excludes_blocks_matching_packaging_text():
+    """
+    Real bug: OCR tagged packaging-printed text ("STARTS WHITENING FROM
+    DAY 1*") as role="headline" - already preserved on the product by
+    Product Lock's branding_text, so re-compositing it as a marketing
+    overlay duplicated it. Filtering against the product's own
+    branding_text list catches this even when OCR's role tagging gets
+    it wrong.
+    """
+    packaging_block = {
+        "text": "STARTS WHITENING FROM DAY 1*",
+        "role": "headline",
+        "surface": "overlay",  # OCR's own surface classification got this one wrong too - the real case
+        "bounding_box": {"x_min": 0.4, "y_min": 0.45, "x_max": 0.6, "y_max": 0.51},
+    }
+    ocr = _ocr_result([_HEADLINE_BLOCK, packaging_block, _CTA_BLOCK])
+
+    assets = build_text_assets(
+        TEXT_STRATEGY_REUSE_ORIGINAL, ocr, packaging_text=["Colgate", "STARTS WHITENING FROM DAY 1*"]
+    )
+
+    wordings = [a["wording"] for a in assets]
+    assert wordings == ["SMELL LIKE YOU MEAN IT", "SHOP NOW"]
+
+
+def test_packaging_text_match_is_case_and_whitespace_insensitive():
+    packaging_block = {
+        "text": "  starts whitening from day 1*  ",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.4, "y_min": 0.45, "x_max": 0.6, "y_max": 0.51},
+    }
+    ocr = _ocr_result([packaging_block])
+
+    assets = build_text_assets(
+        TEXT_STRATEGY_REUSE_ORIGINAL, ocr, packaging_text=["STARTS WHITENING FROM DAY 1*"]
+    )
+
+    assert assets == []
+
+
+def test_no_packaging_text_excludes_nothing():
+    ocr = _ocr_result([_HEADLINE_BLOCK, _CTA_BLOCK])
+
+    assert build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr, packaging_text=None) == build_text_assets(
+        TEXT_STRATEGY_REUSE_ORIGINAL, ocr, packaging_text=[]
+    )
+    assert len(build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr, packaging_text=[])) == 2
+
+
+# --- surface classification (real-world-diagnosed fix, see MIGRATION_PLAN.md) ---
+
+
+def test_reuse_original_excludes_physical_price_tags_even_with_an_eligible_role():
+    """
+    Real bug: shelf price tags are physically part of the photographed
+    scene (the base image generation already reproduces them) but OCR
+    tags them role="price", which this module's own vocabulary
+    otherwise treats as overlay-eligible. surface="physical" must
+    exclude them regardless of role.
+    """
+    ocr = _ocr_result([_HEADLINE_BLOCK, _PHYSICAL_PRICE_BLOCK])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert [a["wording"] for a in assets] == ["SMELL LIKE YOU MEAN IT"]
+
+
+def test_reuse_original_excludes_blocks_with_no_surface_field():
+    """
+    Pre-migration OCRResult data has no `surface` key at all - tri-state,
+    same precedent as a missing bounding_box: nothing to reuse yet, not
+    an error.
+    """
+    old_style_block = {
+        "text": "SHOP NOW",
+        "role": "cta",
+        "bounding_box": {"x_min": 0.05, "y_min": 0.85, "x_max": 0.3, "y_max": 0.95},
+    }
+    ocr = _ocr_result([old_style_block])
+
+    assert build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr) == []
+
+
+def test_reuse_original_keeps_genuine_overlay_text():
+    ocr = _ocr_result([_HEADLINE_BLOCK, _CTA_BLOCK, _PHYSICAL_PRICE_BLOCK])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert [a["wording"] for a in assets] == ["SMELL LIKE YOU MEAN IT", "SHOP NOW"]

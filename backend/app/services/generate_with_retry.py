@@ -40,6 +40,7 @@ this entirely, exactly as it did before this phase, per
 from dataclasses import dataclass
 from pathlib import Path
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -49,15 +50,18 @@ from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
 from app.models.ocr_result import OCRResult
+from app.models.product_lock_profile import ProductLockProfile
 from app.models.quality_assessment import QualityAssessment
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.services.decision_engine import decide_generation_plan
 from app.services.generation_engine import run_bundle_generation_attempt, run_generation_attempt
+from app.services.product_profile import extract_branding_text
 from app.services.quality_engine import assess_bundle_candidate, assess_candidate
 from app.services.rendering_engine import render_final_output
 from app.services.text_intelligence import build_text_assets
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 
 # A small, real bound, not "retry forever" - §14 calls for a
 # "configured retry limit," this is Phase 10.2's default value for it.
@@ -83,13 +87,41 @@ class RetryLoopResult:
     final_output: FinalOutput | None = None
 
 
+def _packaging_text_for_winner(db: Session, slide: Slide) -> list[str]:
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md and
+    text_intelligence.py's own docstring) - the winning candidate's
+    product's own branding_text, so build_text_assets can exclude any
+    OCR block that duplicates text already preserved on the packaging
+    itself. `[]` (no product assigned, or no current Lock Profile yet)
+    is a real, valid outcome - the filter simply has nothing to
+    exclude, same tri-state discipline as everywhere else this
+    codebase handles a not-yet-available prerequisite.
+    """
+    appearance = resolve_primary_appearance(slide.current_product_appearances)
+    if appearance is None:
+        return []
+    lock_profile = db.scalars(
+        select(ProductLockProfile).where(
+            ProductLockProfile.product_id == appearance.product_id,
+            ProductLockProfile.is_current.is_(True),
+        )
+    ).first()
+    if lock_profile is None:
+        return []
+    return extract_branding_text(lock_profile)
+
+
 def _render_final_output_for_winner(
     db: Session, slide: Slide, winner: CandidateAssessment, text_strategy: str
 ) -> FinalOutput:
     ocr_result = db.get(OCRResult, slide.current_ocr_result_id) if slide.current_ocr_result_id else None
     text_generation_provider = default_registry.text_generation() if text_strategy == "ai_rewrite" else None
     text_assets = build_text_assets(
-        text_strategy, ocr_result, text_generation_provider=text_generation_provider
+        text_strategy,
+        ocr_result,
+        text_generation_provider=text_generation_provider,
+        packaging_text=_packaging_text_for_winner(db, slide),
     )
 
     source_bytes = Path(winner.generated_image.file_path).read_bytes()
