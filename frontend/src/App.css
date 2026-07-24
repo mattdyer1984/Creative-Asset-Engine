@@ -1092,7 +1092,8 @@ section h2 {
 }
 
 .bundle-review-form button,
-.single-product-review-form button {
+.single-product-review-form button,
+.existing-bundle-resolve-form button {
   padding: 0.4rem 0.8rem;
   border: none;
   border-radius: 6px;
@@ -1103,9 +1104,56 @@ section h2 {
 }
 
 .bundle-review-form button:disabled,
-.single-product-review-form button:disabled {
+.single-product-review-form button:disabled,
+.existing-bundle-resolve-form button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* Phase 11 (see MIGRATION_PLAN.md) - resolve-to-existing-bundle path +
+   per-member quantity, closing a real gap: resolveListingToExistingBundle
+   already existed with no UI path, and bundle members could only ever
+   be created with quantity 1. */
+.bundle-resolution-mode-toggle {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.bundle-resolution-mode-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.existing-bundle-resolve-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.existing-bundle-resolve-form select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.bundle-member-quantity {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.bundle-member-quantity input {
+  width: 3.5rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.8rem;
 }
 
 .bundle-view-panel {

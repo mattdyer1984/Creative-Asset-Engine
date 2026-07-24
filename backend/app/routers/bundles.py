@@ -13,14 +13,31 @@ exists anywhere in this router.
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from sqlalchemy import select
+
 from app.db import get_db
 from app.models.product import Product
 from app.models.product_bundle import ProductBundle
 from app.models.product_bundle_member import ProductBundleMember
-from app.schemas import BundleMemberProfileRead, BundleViewRead
+from app.schemas import BundleMemberProfileRead, BundleViewRead, ProductBundleRead
 from app.services.product_profile import assemble_product_profile
 
 router = APIRouter(prefix="/api/bundles", tags=["bundles"])
+
+
+@router.get("", response_model=list[ProductBundleRead])
+def list_bundles(project_id: str | None = None, db: Session = Depends(get_db)) -> list[ProductBundle]:
+    """
+    Phase 11 (frontend consolidation, see MIGRATION_PLAN.md) - a real gap
+    the audit found: resolve-existing-bundle already existed on the
+    listing router, but there was no way to list bundles to resolve a
+    listing *to*, so that path was unreachable from the UI. Mirrors
+    list_products exactly.
+    """
+    stmt = select(ProductBundle).order_by(ProductBundle.created_at.desc())
+    if project_id is not None:
+        stmt = stmt.where(ProductBundle.project_id == project_id)
+    return list(db.scalars(stmt))
 
 
 @router.get("/{bundle_id}", response_model=BundleViewRead)

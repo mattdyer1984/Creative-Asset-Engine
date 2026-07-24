@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { api, type BundleView, type ListingDetail, type Product } from '../api';
+import { useEffect, useState } from 'react';
+import { api, type BundleView, type ListingDetail, type Product, type ProductBundle } from '../api';
 import { ProductProfileFields } from './ProductManager';
 
 interface CatalogueImporterProps {
@@ -11,6 +11,7 @@ interface MemberChoice {
   mode: 'existing' | 'new';
   existingProductId: string;
   newDisplayName: string;
+  quantity: number;
 }
 
 /**
@@ -33,6 +34,16 @@ export function CatalogueImporter({ products, onProductsChanged }: CatalogueImpo
   const [singleNewName, setSingleNewName] = useState('');
   const [resolving, setResolving] = useState(false);
   const [resolvedBundleView, setResolvedBundleView] = useState<BundleView | null>(null);
+  // Phase 11 (see MIGRATION_PLAN.md) - resolveListingToExistingBundle
+  // already existed but had no UI path: this listing could only ever
+  // become a *new* bundle, never link to one that already exists.
+  const [bundles, setBundles] = useState<ProductBundle[]>([]);
+  const [bundleResolutionMode, setBundleResolutionMode] = useState<'new' | 'existing'>('new');
+  const [existingBundleId, setExistingBundleId] = useState('');
+
+  useEffect(() => {
+    api.listBundles().then(setBundles).catch(() => undefined);
+  }, []);
 
   const resetReviewState = () => {
     setBundleDisplayName('');
@@ -40,6 +51,8 @@ export function CatalogueImporter({ products, onProductsChanged }: CatalogueImpo
     setSingleProductId('');
     setSingleNewName('');
     setResolvedBundleView(null);
+    setBundleResolutionMode('new');
+    setExistingBundleId('');
   };
 
   const handleImport = async (event: React.FormEvent) => {
@@ -58,6 +71,7 @@ export function CatalogueImporter({ products, onProductsChanged }: CatalogueImpo
           mode: 'new' as const,
           existingProductId: '',
           newDisplayName: hint.label,
+          quantity: 1,
         }))
       );
       setUrl('');
@@ -74,17 +88,36 @@ export function CatalogueImporter({ products, onProductsChanged }: CatalogueImpo
     setResolving(true);
     setError(null);
     try {
-      const members = memberChoices.map((choice) =>
-        choice.mode === 'existing'
+      const members = memberChoices.map((choice) => ({
+        ...(choice.mode === 'existing'
           ? { existing_product_id: choice.existingProductId }
-          : { new_product_display_name: choice.newDisplayName.trim() }
-      );
+          : { new_product_display_name: choice.newDisplayName.trim() }),
+        quantity: choice.quantity,
+      }));
       const resolved = await api.resolveListingToNewBundle(listing.id, bundleDisplayName.trim(), members);
       setListing(resolved as ListingDetail);
       onProductsChanged();
       if (resolved.resolved_bundle_id) {
         setResolvedBundleView(await api.getBundleView(resolved.resolved_bundle_id));
+        setBundles(await api.listBundles());
       }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  const handleResolveExistingBundle = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!listing || !existingBundleId) return;
+    setResolving(true);
+    setError(null);
+    try {
+      const resolved = await api.resolveListingToExistingBundle(listing.id, existingBundleId);
+      setListing(resolved as ListingDetail);
+      onProductsChanged();
+      setResolvedBundleView(await api.getBundleView(existingBundleId));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -156,59 +189,113 @@ export function CatalogueImporter({ products, onProductsChanged }: CatalogueImpo
                 : `Resolved to bundle ${listing.resolved_bundle_id}.`}
             </p>
           ) : hasPendingBundle ? (
-            <form className="bundle-review-form" onSubmit={handleResolveBundle}>
+            <div className="bundle-review-panel">
               <p className="bundle-review-heading">
-                This listing looks like a bundle of {listing.pending_bundle_hints.length} items -
-                resolve each one below.
+                This listing looks like a bundle of {listing.pending_bundle_hints.length} items.
               </p>
-              <label className="field-row">
-                <span className="field-label">Bundle name</span>
-                <input
-                  type="text"
-                  value={bundleDisplayName}
-                  onChange={(e) => setBundleDisplayName(e.target.value)}
-                  disabled={resolving}
-                />
-              </label>
+              {bundles.length > 0 && (
+                <div className="bundle-resolution-mode-toggle">
+                  <label>
+                    <input
+                      type="radio"
+                      checked={bundleResolutionMode === 'new'}
+                      onChange={() => setBundleResolutionMode('new')}
+                    />
+                    Create a new bundle
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      checked={bundleResolutionMode === 'existing'}
+                      onChange={() => setBundleResolutionMode('existing')}
+                    />
+                    Link to an existing bundle
+                  </label>
+                </div>
+              )}
 
-              <ul className="bundle-member-list">
-                {listing.pending_bundle_hints.map((hint, i) => (
-                  <li key={i} className="bundle-member-row">
-                    <span className="bundle-member-hint-label">{hint.label}</span>
-                    <select
-                      value={memberChoices[i]?.mode === 'existing' ? memberChoices[i].existingProductId : ''}
-                      onChange={(e) =>
-                        updateMemberChoice(i, {
-                          mode: e.target.value ? 'existing' : 'new',
-                          existingProductId: e.target.value,
-                        })
-                      }
+              {bundleResolutionMode === 'existing' && bundles.length > 0 ? (
+                <form className="existing-bundle-resolve-form" onSubmit={handleResolveExistingBundle}>
+                  <select
+                    value={existingBundleId}
+                    onChange={(e) => setExistingBundleId(e.target.value)}
+                    disabled={resolving}
+                  >
+                    <option value="">Select a bundle…</option>
+                    {bundles.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.display_name}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" disabled={resolving || !existingBundleId}>
+                    {resolving ? 'Linking…' : 'Link Listing'}
+                  </button>
+                </form>
+              ) : (
+                <form className="bundle-review-form" onSubmit={handleResolveBundle}>
+                  <label className="field-row">
+                    <span className="field-label">Bundle name</span>
+                    <input
+                      type="text"
+                      value={bundleDisplayName}
+                      onChange={(e) => setBundleDisplayName(e.target.value)}
                       disabled={resolving}
-                    >
-                      <option value="">Create new product…</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.display_name}
-                        </option>
-                      ))}
-                    </select>
-                    {memberChoices[i]?.mode === 'new' && (
-                      <input
-                        type="text"
-                        placeholder="New product name"
-                        value={memberChoices[i]?.newDisplayName ?? ''}
-                        onChange={(e) => updateMemberChoice(i, { newDisplayName: e.target.value })}
-                        disabled={resolving}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
+                    />
+                  </label>
 
-              <button type="submit" disabled={resolving || !bundleDisplayName.trim() || !memberChoicesValid}>
-                {resolving ? 'Creating…' : 'Create Bundle'}
-              </button>
-            </form>
+                  <ul className="bundle-member-list">
+                    {listing.pending_bundle_hints.map((hint, i) => (
+                      <li key={i} className="bundle-member-row">
+                        <span className="bundle-member-hint-label">{hint.label}</span>
+                        <select
+                          value={memberChoices[i]?.mode === 'existing' ? memberChoices[i].existingProductId : ''}
+                          onChange={(e) =>
+                            updateMemberChoice(i, {
+                              mode: e.target.value ? 'existing' : 'new',
+                              existingProductId: e.target.value,
+                            })
+                          }
+                          disabled={resolving}
+                        >
+                          <option value="">Create new product…</option>
+                          {products.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.display_name}
+                            </option>
+                          ))}
+                        </select>
+                        {memberChoices[i]?.mode === 'new' && (
+                          <input
+                            type="text"
+                            placeholder="New product name"
+                            value={memberChoices[i]?.newDisplayName ?? ''}
+                            onChange={(e) => updateMemberChoice(i, { newDisplayName: e.target.value })}
+                            disabled={resolving}
+                          />
+                        )}
+                        <label className="bundle-member-quantity">
+                          Qty
+                          <input
+                            type="number"
+                            min={1}
+                            value={memberChoices[i]?.quantity ?? 1}
+                            onChange={(e) =>
+                              updateMemberChoice(i, { quantity: Math.max(1, Number(e.target.value) || 1) })
+                            }
+                            disabled={resolving}
+                          />
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button type="submit" disabled={resolving || !bundleDisplayName.trim() || !memberChoicesValid}>
+                    {resolving ? 'Creating…' : 'Create Bundle'}
+                  </button>
+                </form>
+              )}
+            </div>
           ) : needsSingleProductResolution ? (
             <form className="single-product-review-form" onSubmit={handleResolveSingleProduct}>
               <p className="bundle-review-heading">What product does this listing represent?</p>

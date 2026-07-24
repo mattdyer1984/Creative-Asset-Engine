@@ -4414,3 +4414,19 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+
+### Phase 11 (Medium tier): Bundle/listing resolution UI completion (2026-07-24)
+
+**Closes a real gap the Phase 11 audit found**: `resolveListingToExistingBundle` (Phase 5.11) already existed on both the backend and the frontend API client, but no UI ever called it - a listing detected as a bundle could only ever become a *brand new* bundle, never link to one that already existed, silently fragmenting what should be one catalogue entry across duplicates. There was also no way to list bundles at all (`GET /api/bundles/{id}` existed, listing them didn't) - the existing-bundle path was unreachable even in principle. Separately, `BundleMemberResolutionRequest.quantity` (backend) and `BundleMemberResolutionInput.quantity` (frontend type) both already existed, but the UI never collected a value for it - every bundle member was silently created with quantity 1 regardless of what the page actually said.
+
+**What was built**:
+- Backend (additive): `GET /api/bundles` (`list_bundles`), mirroring `list_products` exactly. 1 new test (`test_list_bundles_returns_created_bundles`) confirming it starts empty and reflects a real bundle created via the existing resolve-new-bundle path.
+- Frontend: `api.listBundles()`. `CatalogueImporter` now fetches bundles on mount and, when a listing looks like a bundle, offers a real choice between "Create a new bundle" (existing flow, unchanged) and "Link to an existing bundle" (new - a dropdown of real bundles, submitting via the already-existing `resolveListingToExistingBundle`), shown only when at least one bundle exists. Each member row in the "create new bundle" form gained a quantity number input (default 1, min 1), threaded through to the real `quantity` field on submit.
+
+**Live verification, real data, not a hypothesis**: no unresolved bundle-hinting listing existed in the dev DB to test against, so a local HTTP server was started serving two small pages with real schema.org `@graph` JSON-LD (the exact structure `app/product_sources/generic.py`'s `_find_all_product_jsonld` bundle-detection heuristic requires - 2+ `Product` entities under one `@graph`), imported for real through the running app's own URL-import form. First page: real import → real "looks like a bundle of 2 items" → switched to "Link to an existing bundle" → real dropdown showing the actual pre-existing "Bella Vita Luxury Gift Set" bundle (created earlier this session) → real `POST .../resolve-existing-bundle 200` → UI correctly showed "Resolved to bundle" and rendered that bundle's real member profiles. Second page: real import → set one member's quantity to 3 → real `POST .../resolve-new-bundle 200` → the resulting Bundle View correctly showed `Coastal Vanilla Candle ×3` and the untouched second member with no quantity badge (quantity 1, as designed). Local test server was stopped after verification; the two real listings/products/bundle created by this test were left in the dev DB - no delete endpoint exists for listings, products, or bundles anywhere in the app (an intentional, additive-only design, consistent with `ProductAppearance`'s own `is_current` pattern elsewhere), so removing them would require an out-of-band DB edit rather than a real app action.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean, full backend suite green (412 passed).
+
+- Commit: (see git log)
+
+---

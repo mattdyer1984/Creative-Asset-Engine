@@ -558,6 +558,12 @@ export const api = {
   getBundleView: (bundleId: string): Promise<BundleView> =>
     fetch(`/api/bundles/${bundleId}`).then((res) => handle<BundleView>(res)),
 
+  // Phase 11 (frontend consolidation, see MIGRATION_PLAN.md) - a real
+  // gap the audit found: resolveListingToExistingBundle above already
+  // existed but had no way to list bundles to resolve a listing to.
+  listBundles: (): Promise<ProductBundle[]> =>
+    fetch('/api/bundles').then((res) => handle<ProductBundle[]>(res)),
+
   // ---------------------------------------------------------------------
   // Slideshow/Slide (new pipeline), added in Phase 2.6 of the Slideshow/
   // Slide migration as new methods alongside the old Creative-pipeline

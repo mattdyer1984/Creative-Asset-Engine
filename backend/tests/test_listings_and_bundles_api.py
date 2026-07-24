@@ -211,6 +211,28 @@ def test_get_bundle_unknown_404s(client):
     assert response.status_code == 404
 
 
+def test_list_bundles_returns_created_bundles(client, monkeypatch):
+    """
+    Phase 11 (frontend consolidation, see MIGRATION_PLAN.md) - a real gap
+    the audit found: resolve-existing-bundle had no UI path since there
+    was no way to list bundles to resolve a listing to. GET /api/bundles
+    closes that.
+    """
+    assert client.get("/api/bundles").json() == []
+
+    evidence = NormalizedProductEvidence(source_type="generic_url", source_url="https://shop.example/bundle")
+    _register_fake(monkeypatch, _FakeAdapter(evidence=evidence))
+    listing_id = client.post("/api/listings/source-import", json={"url": "https://shop.example/bundle"}).json()["id"]
+    bundle_id = client.post(
+        f"/api/listings/{listing_id}/resolve-new-bundle",
+        json={"display_name": "Gift Set", "members": [{"new_product_display_name": "Candle"}]},
+    ).json()["resolved_bundle_id"]
+
+    bundles = client.get("/api/bundles").json()
+    assert [b["id"] for b in bundles] == [bundle_id]
+    assert bundles[0]["display_name"] == "Gift Set"
+
+
 def test_full_bundle_flow_import_resolve_and_view(client, monkeypatch):
     """
     The plan's own stated test strategy: import a bundle-shaped listing,
