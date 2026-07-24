@@ -1712,6 +1712,13 @@ section h2 {
   margin-bottom: 1rem;
 }
 
+/* Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) */
+.create-flow-advanced-link {
+  display: block;
+  margin: 0.75rem auto 0;
+  font-size: 0.8rem;
+}
+
 /* Phase 11.9 (Product Experience, see MIGRATION_PLAN.md) - the gallery
    home view + Advanced toggle, replacing the flat section stack as the
    default landing view. */

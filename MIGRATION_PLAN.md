@@ -4485,3 +4485,15 @@ Everything from this point onward follows a different mandate than the rest of P
 - Commit: (see git log)
 
 ---
+
+### Phase 11.10: Advanced-mode link from results into the blueprint modal (2026-07-24)
+
+**What was built**: `CreateCreativeFlow`'s results view now has a "View technical details" link (present whether the generation produced an image or not - shown even on the "nothing passed our quality checks" empty state, since that outcome is exactly when a power user most wants to see why) that opens the same, unmodified `SlideshowBlueprintModal` used everywhere else, scoped to the real slideshow this run just created. No changes to the modal itself.
+
+**Live verification, real data**: ran the full 4-step flow for real (upload path, existing product) through to a real completed result. Confirmed via DOM query the link renders on the "nothing passed" outcome. Clicked it: confirmed the real `SlideshowBlueprintModal` opens (`.blueprint-backdrop` present) showing the exact real creative this run produced - real filename (`Two_luxury_perfume_bottles.jpeg`), real assigned product (`Bellavita`), real import timestamp matching the test run - not a stale or wrong slideshow. Closed normally.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes.
+
+- Commit: (see git log)
+
+---

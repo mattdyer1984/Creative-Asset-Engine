@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { resolveDefaultBundleSelection } from '../bundleDefaults';
 import { api, type GenerateCreativeResponseData, type Product, type TextStrategy } from '../api';
+import { SlideshowBlueprintModal } from './SlideshowBlueprintModal';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -61,6 +62,12 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateCreativeResponseData | null>(null);
   const [resultSlideshowId, setResultSlideshowId] = useState<string | null>(null);
+  // Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) - opens the
+  // existing, unmodified SlideshowBlueprintModal (Advanced) for anyone
+  // who wants the full technical picture behind this result - every
+  // capability that existed before this flow stays reachable, just not
+  // first.
+  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
 
   useEffect(() => {
     api.listProducts().then(setProducts).catch(() => undefined);
@@ -225,6 +232,18 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
         <button className="rerun-button secondary" onClick={handleReset}>
           Create Another
         </button>
+        {resultSlideshowId && (
+          <button type="button" className="text-button create-flow-advanced-link" onClick={() => setShowAdvancedModal(true)}>
+            View technical details
+          </button>
+        )}
+        {showAdvancedModal && resultSlideshowId && (
+          <SlideshowBlueprintModal
+            slideshowId={resultSlideshowId}
+            onClose={() => setShowAdvancedModal(false)}
+            onChanged={onCreated}
+          />
+        )}
       </div>
     );
   }
