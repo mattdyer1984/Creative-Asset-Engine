@@ -235,3 +235,32 @@ def test_with_a_scene_analysis_the_optimized_description_replaces_the_background
     # The persisted CreativeSpecification row itself is never mutated.
     db_session.refresh(creative_specification)
     assert creative_specification.structured_json["background_environment"] == original_background
+
+
+def test_compiled_prompt_includes_the_products_own_branding_text(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): Stage 2 validation's
+    branding_text field_check compares against the current Product Lock
+    Profile's labels_and_text - previously never surfaced to the model,
+    so it failed almost every real attempt. FakeVisionAnalysisProvider's
+    default canned profile (see tests/fakes.py) includes
+    labels_and_text=[{"text": "Sunrise", ...}], so a full-prerequisites
+    run must carry "Sunrise" into the compiled creative_intent.
+    """
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    slide = slideshow_with_product.primary_slide
+    creative_specification = _get_creative_specification(db_session, slideshow_with_product)
+    plan = decide_generation_plan("fast")
+
+    run_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert '"Sunrise"' in fake_image_provider.last_request.creative_intent
+    assert "reproduce it verbatim" in fake_image_provider.last_request.creative_intent

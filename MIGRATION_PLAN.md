@@ -4670,3 +4670,53 @@ Test slideshows created purely for this verification (the curl-driven single-end
 - Commit: (see git log)
 
 ---
+
+## Fix: GenerationResultsModal silently showed the original image with no explanation when nothing passed quality checks (2026-07-24)
+
+**Bug report** (found live): after a generation where no candidate was accepted, the results modal showed an image that looked "100% identical to the original," with zero indication of what had actually happened.
+
+**Root cause**: `currentImageUrl = showBefore || !afterImageUrl ? beforeImageUrl : afterImageUrl` - a fallback added so the viewer always has *something* to display - made `currentImageUrl` permanently truthy. The modal's existing "nothing passed our quality checks" message was gated on `currentImageUrl` being falsy, which, because of the fallback above, could never actually happen - dead code since the day it was written. A real "no winner" outcome (confirmed via a direct DB check: `winning_generated_image_id=None` on the relevant `GenerationLog`) silently rendered the original slide with no explanation at all, directly contradicting this app's own established "honest outcome" discipline for this exact case.
+
+**Fix**: `frontend/src/components/GenerationResultsModal.tsx` adds a banner keyed on `!afterImageUrl` (the real "did anything win" signal) instead of the dead `currentImageUrl` check: *"No generated candidate passed our quality checks this time - the image below is the original slide, not a result. Try Regenerate, or a different text option."* Styled via a new `.results-modal-no-winner-banner` rule in `App.css` (red-tinted, matching this app's existing error/warning color language).
+
+**Live verification**: mounted the real component directly against real backend data (generation_log_id `d611c1c3-a10f-4f6e-a1bc-bd3449ccf9eb`, a confirmed real no-winner outcome) via the harness-mounting technique used elsewhere this session - confirmed the banner renders with the exact expected text. No backend changes; frontend-only.
+
+- Commit: `374ef14`
+
+---
+
+## Fix: branding_text validation failing on nearly every real generation - two real, compounding causes (2026-07-24)
+
+### Context
+
+Live, repeated bug report: after several real generation attempts against a real product (a Colgate Max White powered toothbrush, imported from the exact 4-slide TikTok post from the import fix above), no candidate ever passed quality checks. The user's own hypothesis, refined over the course of the conversation, correctly converged on two real, independent, compounding causes - confirmed by direct investigation, not assumed from either hypothesis alone.
+
+### Cause 1 (real, but not the dominant one): the compiled prompt never told the model what packaging text to reproduce
+
+Phase 9.3's Prompt Compiler rewrite (see its own "ADR: Canonical Product Reference" §6) deliberately dropped all product description from the compiled prompt in favor of reference-image conditioning alone - correct for physical geometry (shape, color, materials), but it gives the model no reliable way to know precisely which characters make up small printed label text. Stage 2 validation's `branding_text` field_check (`app/slideshow_stages/image_validation_stage.py`) compares the generated image against the Product Lock Profile's `labels_and_text` field regardless - a real, structural gap: the model was being judged on text it was never told existed.
+
+**Fix**: `app/services/product_profile.py` gains `extract_branding_text(lock_profile) -> list[str]` - the exact extraction `_fields_from_current_lock_profile` already used inline for the canonical `branding_text` field, now public so `generation_engine.py` can reuse it. `app/services/prompt_compiler.py`'s `compile_generation_request` gains a `branding_text: list[str] | None` parameter - when given, appends an explicit instruction: *"The product's own packaging/label shows this exact text - reproduce it verbatim, spelled and worded exactly as given, in the same position(s) shown in the reference images: \"...\"."* `app/services/generation_engine.py`'s `run_generation_attempt` fetches the slide's product's current `ProductLockProfile` and threads its branding text through; `run_bundle_generation_attempt` does the same per bundle member, extending `_bundle_composition_instruction` to attach each member's own branding text to its own line rather than a single flat list with no per-product attribution.
+
+### Cause 2 (real, and the dominant one): Nano Banana Lite is the wrong tier for text fidelity
+
+While live-testing Cause 1's fix, the user made a critical, decisive observation: text fidelity is not a problem when they use Nano Banana directly themselves - directly contradicting "this is an inherent model-family limitation." `providers.yaml` had `models.nano_banana.image_generation: gemini-3.1-flash-lite-image` - "Nano Banana Lite," per Google's own docs "engineered for velocity and scale," not per-request text fidelity, set as the Phase 10.1 default purely as an implementation/cost choice, never live-verified against real text-heavy packaging before now.
+
+**Fix**: `providers.yaml` and `app/ai_providers/config.py`'s `ModelsConfig` default switched `nano_banana.image_generation` from `gemini-3.1-flash-lite-image` to `gemini-3.1-flash-image-preview` - "Nano Banana 2," the general-purpose tier (per `app/ai_providers/nano_banana_adapter.py`'s own docstring, which already documented all four real Gemini image tiers). `NanoBananaImageGenerationAdapter.__init__`'s constructor default updated to match, for any caller that constructs it directly without going through the registry.
+
+### Test coverage
+
+- `tests/test_product_profile_service.py`: `extract_branding_text` - returns every `labels_and_text` entry, skips entries with no/blank text or malformed shapes, returns `[]` when the field is absent entirely.
+- `tests/test_prompt_compiler.py`: no instruction when `branding_text` is `None`/empty; text quoted verbatim when given; per-bundle-member branding text attached to that member's own line, not leaked onto a member with none.
+- `tests/test_generation_engine.py`: a full-prerequisites run's compiled `creative_intent` contains the Product Lock Profile's real `labels_and_text` value (via the existing `FakeVisionAnalysisProvider`'s canned profile), quoted and paired with the "reproduce it verbatim" instruction.
+- `tests/test_ai_provider_registry.py`: default `image_generation()` now asserts `gemini-3.1-flash-image-preview`, not the Lite model ID.
+- Full backend suite: 474 passed (up from 467); `ruff check` clean on every touched file (8 pre-existing, unrelated `F821` warnings remain in `app/models/slideshow.py`, confirmed untouched by this fix).
+
+### Live verification, real generation call, real product
+
+Re-ran `POST .../generate-creative` (`quality_mode="fast"`) against the exact slide/product this bug was originally reported against (`slideshow_id=7f6fd1e0-cae6-47cc-bcfb-b38f697ecad5`, `slide_id=e13a9be4-7525-47c0-8cfb-26056f520e66`, the Colgate Max White product) - two real candidates, both against the real `nano_banana`/`gemini-3.1-flash-image-preview` model, confirmed via each `GeneratedImage.model_name` in the response.
+
+Both candidates' Stage 1 Identity Validation passed in full (silhouette, aspect_ratio, cap_geometry, corners_edges, brand_placement, typography_placement, color, materials, packaging - all 9 preserved). Stage 2's `branding_text` field_check confirmed, in its own real explanation text, that the core packaging text - "Colgate," "MAX WHITE," "POWERED TOOTHBRUSH," "STARTS WHITENING FROM DAY 1*," the "£24" shelf price - was correctly reproduced in both candidates, a dramatic, directly-observed improvement over every prior real attempt this session. **Neither candidate was ultimately accepted** for one remaining, narrower, real reason: the same `labels_and_text` field also picked up "Why would u pay £24 for this..." - which is not text printed on the product's own packaging at all, but the original TikTok creator's own caption/overlay baked into the source photo's pixels (confirmed via the slide's own OCR `raw_text`, which contains the identical phrase). `extract_branding_text` has no way to distinguish "printed on packaging" from "overlaid on the photo by whoever posted it" - both look identical to a field that only knows "text visible somewhere in the reference image." This is a real, different, narrower gap than either original hypothesis (not a missing-instruction problem, not a model-tier problem) - flagged here rather than fixed unilaterally, since resolving it means deciding how the Product Lock Profile Stage's own vision prompt (or a post-processing filter) should distinguish packaging-printed text from photo-overlay text, a scope decision the user should weigh in on rather than have assumed.
+
+- Commit: (see git log)
+
+---

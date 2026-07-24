@@ -62,7 +62,11 @@ class ModelsConfig(BaseModel):
     # via providers.yaml or an explicit registry.image_generation("nano_banana")
     # call, never silent.
     nano_banana: dict[str, str] = {
-        "image_generation": "gemini-3.1-flash-lite-image",
+        # "Nano Banana 2" (general-purpose tier), not the Lite tier -
+        # switched after the Lite tier was diagnosed as the real cause
+        # of near-universal branding_text validation failures (see
+        # providers.yaml's own comment and MIGRATION_PLAN.md).
+        "image_generation": "gemini-3.1-flash-image-preview",
     }
 
 

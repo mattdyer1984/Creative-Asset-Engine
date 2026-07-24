@@ -17,8 +17,8 @@ providers:
   text_generation: openai
   prompt_generation: openai
   # Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's
-  # ADR §10) - Nano Banana Lite is the default image_generation
-  # provider, an implementation choice, not an architectural one: the
+  # ADR §10) - Nano Banana is the default image_generation provider, an
+  # implementation choice, not an architectural one: the
   # ImageGenerationProvider abstraction (app/ai_providers/base.py) and
   # the registry's multi-provider support (registry.py's
   # image_generation(provider_name=...) override) are what make this a
@@ -42,9 +42,15 @@ models:
     # the other 5 values are unchanged, not confirmed working or broken.
     image_generation: gpt-image-1
   nano_banana:
-    # gemini-3.1-flash-lite-image - the real, documented model ID for
-    # "Nano Banana Lite" (Google's fastest/cheapest Gemini image tier),
-    # confirmed 2026-07-23 via Google's own developer docs, not guessed.
-    # Not yet live-verified against a real API key in this environment -
-    # see app/ai_providers/nano_banana_adapter.py's own docstring.
-    image_generation: gemini-3.1-flash-lite-image
+    # gemini-3.1-flash-image-preview - "Nano Banana 2," the general-
+    # purpose tier (per app/ai_providers/nano_banana_adapter.py's own
+    # docstring). Switched from gemini-3.1-flash-lite-image ("Nano
+    # Banana Lite"/"Nano Banana 2 Lite") after the user, who also uses
+    # Nano Banana directly outside this app, diagnosed the Lite tier
+    # itself as the real cause of near-universal branding_text
+    # validation failures - Lite is "engineered for velocity and
+    # scale," not per-request text-fidelity quality, unlike the
+    # general-purpose tier. Must be live-verified with a real API call
+    # before being trusted, same discipline as every other provider
+    # change in this codebase.
+    image_generation: gemini-3.1-flash-image-preview

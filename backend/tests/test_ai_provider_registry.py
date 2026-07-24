@@ -15,14 +15,14 @@ def _make_registry() -> AIProviderRegistry:
     return AIProviderRegistry(providers_config=ProvidersConfig(), models_config=ModelsConfig())
 
 
-def test_default_image_generation_provider_is_nano_banana_lite():
+def test_default_image_generation_provider_is_nano_banana_2():
     registry = _make_registry()
 
     provider = registry.image_generation()
 
     assert isinstance(provider, NanoBananaImageGenerationAdapter)
     assert provider.provider == "nano_banana"
-    assert provider.model == "gemini-3.1-flash-lite-image"
+    assert provider.model == "gemini-3.1-flash-image-preview"
 
 
 def test_no_argument_returns_the_same_cached_instance_every_call():

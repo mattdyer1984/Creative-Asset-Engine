@@ -164,3 +164,45 @@ def test_suppress_overlay_text_removes_the_render_instruction_and_adds_the_clean
     )
     assert "Text overlays:" not in request.creative_intent
     assert "Do not render any marketing" in request.creative_intent
+
+
+# --- branding_text (real-world-diagnosed prompting fix, see MIGRATION_PLAN.md) ---
+
+
+def test_no_branding_text_instruction_when_branding_text_is_none_or_empty():
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "packaging/label" not in request.creative_intent
+
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS, branding_text=[])
+    assert "packaging/label" not in request.creative_intent
+
+
+def test_branding_text_is_quoted_verbatim_in_creative_intent():
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, branding_text=["BELLA VITA", "Net Wt 8 oz"]
+    )
+
+    assert 'reproduce it verbatim' in request.creative_intent
+    assert '"BELLA VITA"' in request.creative_intent
+    assert '"Net Wt 8 oz"' in request.creative_intent
+
+
+def test_bundle_instruction_includes_each_members_own_branding_text():
+    bundle_members = [
+        {"role_in_scene": "hero perfume bottle", "image_count": 2, "branding_text": ["BELLA VITA"]},
+        {"role_in_scene": "background mug", "image_count": 1},
+    ]
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS + ["/data/storage/products/prod-2/ref-1.jpg"],
+        bundle_members=bundle_members,
+    )
+
+    lines = request.creative_intent.splitlines()
+    hero_line = next(line for line in lines if line.startswith("- hero perfume bottle"))
+    mug_line = next(line for line in lines if line.startswith("- background mug"))
+    assert hero_line == (
+        '- hero perfume bottle: shown in reference images 1-2. Its own packaging/label '
+        'shows this exact text - reproduce it verbatim: "BELLA VITA".'
+    )
+    # the second member has no branding_text - its line must not gain the extra sentence
+    assert mug_line == "- background mug: shown in reference image 3"

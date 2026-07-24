@@ -75,11 +75,21 @@ from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.services.creative_intelligence import optimize_scene_description
 from app.services.decision_engine import GenerationPlan
+from app.services.product_profile import extract_branding_text
 from app.services.prompt_compiler import compile_generation_request
 from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+
+def _current_lock_profile(db: Session, product_id: str) -> ProductLockProfile | None:
+    return db.scalars(
+        select(ProductLockProfile).where(
+            ProductLockProfile.product_id == product_id,
+            ProductLockProfile.is_current.is_(True),
+        )
+    ).first()
 
 
 def _enriched_creative_specification(
@@ -109,12 +119,7 @@ def _enriched_creative_specification(
         if slide.slideshow.current_marketing_analysis_id
         else None
     )
-    lock_profile = db.scalars(
-        select(ProductLockProfile).where(
-            ProductLockProfile.product_id == product.id,
-            ProductLockProfile.is_current.is_(True),
-        )
-    ).first()
+    lock_profile = _current_lock_profile(db, product.id)
 
     result = optimize_scene_description(
         scene_analysis,
@@ -246,8 +251,13 @@ def run_generation_attempt(
     enriched_specification = _enriched_creative_specification(
         db, slide, product, creative_specification, plan
     )
+    lock_profile = _current_lock_profile(db, product.id)
+    branding_text = extract_branding_text(lock_profile) if lock_profile else None
     request = compile_generation_request(
-        enriched_specification, reference_image_paths, suppress_overlay_text=plan.text_strategy is not None
+        enriched_specification,
+        reference_image_paths,
+        suppress_overlay_text=plan.text_strategy is not None,
+        branding_text=branding_text,
     )
 
     attempt = GenerationAttempt(
@@ -343,8 +353,14 @@ def run_bundle_generation_attempt(
             )
         )
         reference_image_paths.extend(member_paths)
+        member_lock_profile = _current_lock_profile(db, product.id)
+        member_branding_text = extract_branding_text(member_lock_profile) if member_lock_profile else None
         bundle_member_prompt_metadata.append(
-            {"role_in_scene": member_request["role_in_scene"], "image_count": len(member_paths)}
+            {
+                "role_in_scene": member_request["role_in_scene"],
+                "image_count": len(member_paths),
+                "branding_text": member_branding_text,
+            }
         )
     db.flush()
 

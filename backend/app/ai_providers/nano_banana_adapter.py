@@ -1,14 +1,27 @@
 """
 Nano Banana (Google's Gemini image generation models) adapter -
 Phase 10.1 of the AI Creative Engine vNext (see MIGRATION_PLAN.md's ADR
-§10). **Nano Banana Lite is the default `image_generation` provider**
-(providers.yaml, `ProvidersConfig.image_generation`) - an implementation
-choice the user made explicitly, not an architectural one: this class
-implements the same `ImageGenerationProvider` Protocol as
-`OpenAIImageGenerationAdapter`, which remains fully intact and
-selectable (`registry.image_generation("openai")`) without any code
-change - the provider abstraction is exactly what makes swapping the
-default a one-line providers.yaml change, not a rewrite.
+§10). **Nano Banana 2 (`gemini-3.1-flash-image-preview`, the general-
+purpose tier) is the default `image_generation` model** (providers.yaml,
+`ModelsConfig.nano_banana`) - an implementation choice the user made
+explicitly, not an architectural one: this class implements the same
+`ImageGenerationProvider` Protocol as `OpenAIImageGenerationAdapter`,
+which remains fully intact and selectable
+(`registry.image_generation("openai")`) without any code change - the
+provider abstraction is exactly what makes swapping the model a
+one-line providers.yaml change, not a rewrite.
+
+**Real-world-diagnosed switch away from the Lite tier** (see
+MIGRATION_PLAN.md): Nano Banana Lite (`gemini-3.1-flash-lite-image`, the
+original Phase 10.1 default) was the actual cause of near-universal
+`branding_text` validation failures - the user, who also uses Nano
+Banana directly outside this app, confirmed the general-purpose tier
+reproduces packaging text reliably while the Lite tier ("engineered for
+velocity and scale," per Google's own docs) does not. This was
+mis-diagnosed at first as a missing-prompt-instruction problem (see the
+`branding_text` param on `app.services.prompt_compiler.
+compile_generation_request`, still correct and kept) - the real,
+dominant cause was the model tier itself, not the prompt.
 
 Built against the real, installed google-genai SDK (2.14.0), not
 guessed: every method/field referenced here was confirmed via direct
@@ -98,7 +111,7 @@ class NanoBananaImageGenerationAdapter:
     isn't verified yet.
     """
 
-    def __init__(self, model: str = "gemini-3.1-flash-lite-image", provider: str = "nano_banana"):
+    def __init__(self, model: str = "gemini-3.1-flash-image-preview", provider: str = "nano_banana"):
         self.model = model
         self.provider = provider
         self._client: genai.Client | None = None

@@ -119,7 +119,12 @@ def _bundle_composition_instruction(bundle_members: list[dict]) -> str:
         count = member["image_count"]
         end = start + count - 1
         image_ref = f"reference image {start}" if start == end else f"reference images {start}-{end}"
-        lines.append(f"- {member['role_in_scene']}: shown in {image_ref}")
+        line = f"- {member['role_in_scene']}: shown in {image_ref}"
+        member_branding_text = member.get("branding_text")
+        if member_branding_text:
+            quoted = "; ".join(f'"{text}"' for text in member_branding_text)
+            line += f". Its own packaging/label shows this exact text - reproduce it verbatim: {quoted}."
+        lines.append(line)
         start = end + 1
     return "\n".join(lines)
 
@@ -130,6 +135,7 @@ def compile_generation_request(
     platform: str = "generic",
     bundle_members: list[dict] | None = None,
     suppress_overlay_text: bool = False,
+    branding_text: list[str] | None = None,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -148,7 +154,25 @@ def compile_generation_request(
     list of `{"role_in_scene": str, "image_count": int}` in the same
     order the caller concatenated each member's own reference images
     into reference_image_paths - see this function's own module
-    docstring for why this exists and what confirmed it works.
+    docstring for why this exists and what confirmed it works. Each
+    member dict may also carry an optional `"branding_text": list[str]`
+    (same real-world-diagnosed fix as the top-level branding_text
+    param below, applied per-member since a bundle scene has no single
+    product to attribute packaging text to).
+
+    branding_text (real-world-diagnosed fix, see MIGRATION_PLAN.md): the
+    exact text printed on the product's own packaging/label
+    (app.services.product_profile.extract_branding_text, the same
+    extraction Stage 2 validation's branding_text field_check compares
+    against). Phase 9.3 deliberately dropped all product description
+    from this prompt in favor of reference-image conditioning alone -
+    correct for physical geometry, but reference images alone give the
+    model no reliable way to know precisely which characters make up
+    small printed label text, so branding_text validation failed on
+    most real generations. This is a narrow, deliberate exception to
+    the "no product text" rule (ADR §6) - not text describing the
+    product, but a verbatim transcript of text the product itself
+    already carries, given to help the model reproduce it correctly.
 
     suppress_overlay_text (Phase 10.8, §9): False by default, on
     purpose - a real, deliberate backward-compatibility decision, not
@@ -185,6 +209,14 @@ def compile_generation_request(
     color_palette = creative_specification.get("color_palette") or []
     if color_palette:
         intent_parts.append("Color palette: " + ", ".join(color_palette))
+
+    if branding_text:
+        quoted_text = "; ".join(f'"{text}"' for text in branding_text)
+        intent_parts.append(
+            "The product's own packaging/label shows this exact text - reproduce "
+            "it verbatim, spelled and worded exactly as given, in the same "
+            f"position(s) shown in the reference images: {quoted_text}."
+        )
 
     if suppress_overlay_text:
         intent_parts.append(

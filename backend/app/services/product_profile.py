@@ -114,6 +114,29 @@ def _fields_from_current_source_import(db: Session, product_id: str) -> dict[str
     return result
 
 
+def extract_branding_text(lock_profile: ProductLockProfile) -> list[str]:
+    """
+    The exact text printed on the product's own packaging/label, per the
+    Product Lock Profile's vision-derived `labels_and_text` field - the
+    same extraction `_fields_from_current_lock_profile` below uses to
+    populate the canonical `branding_text` field. Public so
+    app.services.generation_engine can reuse this exact list to tell the
+    image generation model what text to reproduce, not just imply it via
+    reference-image conditioning - a real fix for a real, live-confirmed
+    bottleneck (see MIGRATION_PLAN.md): the generation prompt previously
+    never told the model what the packaging's own text actually says, so
+    Stage 2 validation's `branding_text` check (which compares against
+    this exact same field) failed almost every real attempt. Reusing the
+    identical extraction here keeps what the model is told to reproduce
+    and what it's judged against from ever silently drifting apart.
+    """
+    return [
+        label["text"]
+        for label in (lock_profile.structured_json.get("labels_and_text") or [])
+        if isinstance(label, dict) and label.get("text")
+    ]
+
+
 def _fields_from_current_lock_profile(db: Session, product_id: str) -> dict[str, _Candidate]:
     row = db.scalars(
         select(ProductLockProfile).where(
@@ -157,11 +180,7 @@ def _fields_from_current_lock_profile(db: Session, product_id: str) -> dict[str,
     if branding.get("brand_name"):
         add("brand", TextValue(text=branding["brand_name"]))
 
-    label_texts = [
-        label["text"]
-        for label in (data.get("labels_and_text") or [])
-        if isinstance(label, dict) and label.get("text")
-    ]
+    label_texts = extract_branding_text(row)
     if label_texts:
         add("branding_text", ListValue(items=label_texts))
 

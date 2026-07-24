@@ -6,7 +6,7 @@ Tests for app.services.product_profile.assemble_product_profile (Phase
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_source_import import FETCH_STATUS_SUCCEEDED, ProductSourceImport
-from app.services.product_profile import SOURCE_TYPE_VISION, assemble_product_profile
+from app.services.product_profile import SOURCE_TYPE_VISION, assemble_product_profile, extract_branding_text
 
 VISION_STRUCTURED = {
     "product_category": "Fragrance",
@@ -175,3 +175,44 @@ def test_only_current_rows_are_considered(db_session):
 
     profile = assemble_product_profile(db_session, product)
     assert "brand" not in profile.fields
+
+
+def test_extract_branding_text_returns_every_labels_and_text_entry(db_session):
+    """
+    Public extraction reused directly by app.services.generation_engine
+    (real-world-diagnosed fix, see MIGRATION_PLAN.md) - must return the
+    same values assemble_product_profile's own branding_text field uses,
+    not a re-derivation that could silently drift from it.
+    """
+    product = _make_product(db_session)
+    structured = {
+        **VISION_STRUCTURED,
+        "labels_and_text": [
+            {"text": "EAU DE PARFUM", "location": "front"},
+            {"text": "100ml", "location": "back"},
+        ],
+    }
+    profile_row = _add_lock_profile(db_session, product, structured)
+
+    assert extract_branding_text(profile_row) == ["EAU DE PARFUM", "100ml"]
+
+
+def test_extract_branding_text_skips_entries_with_no_text():
+    from app.models.product_lock_profile import ProductLockProfile
+
+    row = ProductLockProfile(
+        analysis_run_id="fake",
+        product_id="fake",
+        structured_json={"labels_and_text": [{"text": ""}, {"location": "front"}, "not-a-dict", None]},
+        reference_image_ids_json=[],
+    )
+    assert extract_branding_text(row) == []
+
+
+def test_extract_branding_text_returns_empty_list_when_no_labels_and_text():
+    from app.models.product_lock_profile import ProductLockProfile
+
+    row = ProductLockProfile(
+        analysis_run_id="fake", product_id="fake", structured_json={}, reference_image_ids_json=[]
+    )
+    assert extract_branding_text(row) == []
