@@ -305,14 +305,22 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideshowId, generatedImage?.id]);
 
-  // Phase 9.5 - loads each current product's Canonical Reference
-  // Library whenever the selected slide's product set changes.
+  // Phase 9.5 - loads each current product's reference images whenever
+  // the selected slide's product set changes.
+  //
+  // Phase 11.5 (see MIGRATION_PLAN.md) - switched from getReferenceLibrary
+  // (library_status="included" only) to listReferenceImages (every current
+  // image, any status) - a real gap the Phase 11 audit found: an unscored
+  // upload, a rejected candidate, or a superseded image were all
+  // completely invisible in the UI before this, with no way to review or
+  // manually include one. ReferenceLibraryPanel itself now renders every
+  // status, not just the Library subset.
   useEffect(() => {
     if (!slide) return;
     slide.products.forEach((product) => {
       const productId = product.appearance.product_id;
       api
-        .getReferenceLibrary(productId)
+        .listReferenceImages(productId)
         .then((images) => setReferenceLibraries((prev) => ({ ...prev, [productId]: images })))
         .catch((err) => setError((err as Error).message));
     });
@@ -339,7 +347,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     const interval = setInterval(() => {
       attempts += 1;
       api
-        .getReferenceLibrary(scoringProductId)
+        .listReferenceImages(scoringProductId)
         .then((images) =>
           setReferenceLibraries((prev) => ({ ...prev, [scoringProductId]: images }))
         )
@@ -356,9 +364,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     setError(null);
     try {
       await api.uploadReferenceImage(productId, file);
-      // A freshly-uploaded image is an unscored candidate - it won't
-      // appear in the Library (compute-on-read, "included" only) until
-      // Score References runs, so there's nothing to re-fetch yet.
+      // Phase 11.5 - an unscored candidate won't appear in the Library
+      // proper (library_status="included") until Score References runs,
+      // but it's a real current image now, so re-fetch the full list
+      // (every status) rather than leaving it invisible until scored.
+      const images = await api.listReferenceImages(productId);
+      setReferenceLibraries((prev) => ({ ...prev, [productId]: images }));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -375,7 +386,27 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
     setError(null);
     try {
       await api.updateLibraryStatus(productId, referenceImageId, status);
-      const images = await api.getReferenceLibrary(productId);
+      const images = await api.listReferenceImages(productId);
+      setReferenceLibraries((prev) => ({ ...prev, [productId]: images }));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUpdatingLibraryStatusId(null);
+    }
+  };
+
+  // Phase 11.5 - the manual role override, mirroring
+  // handleUpdateLibraryStatus exactly.
+  const handleUpdateReferenceImageRole = async (
+    productId: string,
+    referenceImageId: string,
+    role: string
+  ) => {
+    setUpdatingLibraryStatusId(referenceImageId);
+    setError(null);
+    try {
+      await api.updateReferenceImageRole(productId, referenceImageId, role);
+      const images = await api.listReferenceImages(productId);
       setReferenceLibraries((prev) => ({ ...prev, [productId]: images }));
     } catch (err) {
       setError((err as Error).message);
@@ -647,6 +678,9 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                       uploading={uploadingProductId === product.appearance.product_id}
                       onUpdateStatus={(imageId, status) =>
                         handleUpdateLibraryStatus(product.appearance.product_id, imageId, status)
+                      }
+                      onUpdateRole={(imageId, role) =>
+                        handleUpdateReferenceImageRole(product.appearance.product_id, imageId, role)
                       }
                       updatingStatusId={updatingLibraryStatusId}
                     />
@@ -1367,6 +1401,19 @@ function GenerationHistoryPanel({
  * higher-quality near-duplicate of an older included image -
  * confirming it is an ordinary manual supersede write on the *older*
  * image, never a silent swap.
+ *
+ * Phase 11.5 (see MIGRATION_PLAN.md) - closes a real gap the Phase 11
+ * audit found: `images` now comes from listReferenceImages (every
+ * current image, any status), not just the included-only Library, so
+ * an unscored upload, a rejected candidate, or a superseded image are
+ * all reviewable here instead of silently disappearing. Each card shows
+ * its real library_status and isolation_method (candidate/isolation
+ * crop/user upload/source import - the actual evidence source, not
+ * inferred), an Include action alongside Reject/Supersede (the
+ * plumbing already existed via updateLibraryStatus; only the "included"
+ * call was never exposed as a button), and role is now directly
+ * editable (a real, additive backend endpoint - role previously had no
+ * manual-override path at all, unlike library_status).
  */
 function ReferenceLibraryPanel({
   images,
@@ -1376,6 +1423,7 @@ function ReferenceLibraryPanel({
   onUpload,
   uploading,
   onUpdateStatus,
+  onUpdateRole,
   updatingStatusId,
 }: {
   images: ProductReferenceImage[] | undefined;
@@ -1385,6 +1433,7 @@ function ReferenceLibraryPanel({
   onUpload: (file: File) => void;
   uploading: boolean;
   onUpdateStatus: (imageId: string, status: 'included' | 'rejected' | 'superseded') => void;
+  onUpdateRole: (imageId: string, role: string) => void;
   updatingStatusId: string | null;
 }) {
   const grouped = new Map<string, ProductReferenceImage[]>();
@@ -1394,6 +1443,7 @@ function ReferenceLibraryPanel({
     grouped.get(role)!.push(img);
   });
   const imagesById = new Map((images ?? []).map((img) => [img.id, img]));
+  const includedCount = (images ?? []).filter((img) => img.library_status === 'included').length;
 
   const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1401,10 +1451,15 @@ function ReferenceLibraryPanel({
     event.target.value = '';
   };
 
+  const statusLabel = (status: ProductReferenceImage['library_status']) =>
+    status === null ? 'Unscored' : status.charAt(0).toUpperCase() + status.slice(1);
+
   return (
     <div className="reference-library-panel">
       <div className="reference-library-header">
-        <span className="field-label">Canonical Reference Library</span>
+        <span className="field-label">
+          Reference Images{images && images.length > 0 ? ` (${includedCount} in Library)` : ''}
+        </span>
         <div className="reference-library-header-actions">
           <label className="file-picker-button secondary">
             {uploading ? 'Uploading…' : 'Upload Image'}
@@ -1416,7 +1471,7 @@ function ReferenceLibraryPanel({
         </div>
       </div>
       {!images || images.length === 0 ? (
-        <p className="empty-state">No images in the Library yet.</p>
+        <p className="empty-state">No reference images yet.</p>
       ) : (
         Array.from(grouped.entries()).map(([role, roleImages]) => (
           <div key={role} className="reference-library-role-group">
@@ -1434,27 +1489,58 @@ function ReferenceLibraryPanel({
                       alt="Reference"
                       className="reference-image-thumbnail"
                     />
-                    {img.quality_score !== null && (
-                      <span className="quality-score-badge">{img.quality_score.toFixed(2)}</span>
-                    )}
+                    <div className="reference-library-item-badges">
+                      <span className={`library-status-badge library-status-${img.library_status ?? 'unscored'}`}>
+                        {statusLabel(img.library_status)}
+                      </span>
+                      <span className="isolation-method-badge">{img.isolation_method}</span>
+                      {img.quality_score !== null && (
+                        <span className="quality-score-badge">{img.quality_score.toFixed(2)}</span>
+                      )}
+                    </div>
                     {img.quality_reasons_json && img.quality_reasons_json.length > 0 && (
                       <p className="field-check-reason">{img.quality_reasons_json.join('; ')}</p>
                     )}
+                    <input
+                      key={`${img.id}-${img.role ?? ''}`}
+                      type="text"
+                      className="reference-role-input"
+                      placeholder="Role (e.g. front)"
+                      defaultValue={img.role ?? ''}
+                      disabled={busy}
+                      onBlur={(e) => {
+                        const value = e.target.value.trim();
+                        if (value !== (img.role ?? '')) onUpdateRole(img.id, value);
+                      }}
+                    />
                     <div className="reference-library-item-actions">
-                      <button
-                        className="text-button"
-                        disabled={busy}
-                        onClick={() => onUpdateStatus(img.id, 'rejected')}
-                      >
-                        Reject
-                      </button>
-                      <button
-                        className="text-button"
-                        disabled={busy}
-                        onClick={() => onUpdateStatus(img.id, 'superseded')}
-                      >
-                        Supersede
-                      </button>
+                      {img.library_status !== 'included' && (
+                        <button
+                          className="text-button"
+                          disabled={busy}
+                          onClick={() => onUpdateStatus(img.id, 'included')}
+                        >
+                          Include
+                        </button>
+                      )}
+                      {img.library_status !== 'rejected' && (
+                        <button
+                          className="text-button"
+                          disabled={busy}
+                          onClick={() => onUpdateStatus(img.id, 'rejected')}
+                        >
+                          Reject
+                        </button>
+                      )}
+                      {img.library_status !== 'superseded' && (
+                        <button
+                          className="text-button"
+                          disabled={busy}
+                          onClick={() => onUpdateStatus(img.id, 'superseded')}
+                        >
+                          Supersede
+                        </button>
+                      )}
                     </div>
                     {upgradeTarget && (
                       <div className="upgrade-prompt">

@@ -160,3 +160,33 @@ def test_update_library_status_lets_a_user_manually_include_an_image(client):
 
     library = client.get(f"/api/products/{product['id']}/reference-library").json()
     assert [image["id"] for image in library] == [uploaded["id"]]
+
+
+# --- Phase 11.5 (frontend consolidation, see MIGRATION_PLAN.md) - the
+# human-in-the-loop override on role, mirroring library-status. ---
+
+
+def test_update_role_404s_for_unknown_image(client):
+    product = client.post("/api/products", json={"display_name": "Sunrise Orange Juice"}).json()
+    response = client.post(
+        f"/api/products/{product['id']}/reference-images/does-not-exist/role",
+        json={"role": "front"},
+    )
+    assert response.status_code == 404
+
+
+def test_update_role_lets_a_user_manually_set_role(client):
+    product = client.post("/api/products", json={"display_name": "Sunrise Orange Juice"}).json()
+    uploaded = client.post(
+        f"/api/products/{product['id']}/reference-images/upload",
+        files={"file": ("ref.jpg", b"some-bytes", "image/jpeg")},
+    ).json()
+    assert uploaded["role"] is None  # a real, ordinary unscored candidate has no role yet
+
+    response = client.post(
+        f"/api/products/{product['id']}/reference-images/{uploaded['id']}/role",
+        json={"role": "packaging"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "packaging"

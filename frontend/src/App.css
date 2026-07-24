@@ -790,7 +790,7 @@ section h2 {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  max-width: 90px;
+  max-width: 130px;
 }
 
 .quality-score-badge {
@@ -801,6 +801,61 @@ section h2 {
   background: #e8f0ff;
   padding: 0.05rem 0.4rem;
   border-radius: 999px;
+}
+
+/* Phase 11.5 (see MIGRATION_PLAN.md) - status/evidence-source badges
+   and the editable role input, closing a real gap: rejected/superseded/
+   unscored images and each image's real acquisition source used to be
+   invisible entirely. */
+.reference-library-item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.library-status-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: #eee;
+  color: #555;
+}
+
+.library-status-included {
+  background: #e3f5e6;
+  color: #157a41;
+}
+
+.library-status-rejected {
+  background: #fbe8e6;
+  color: #a3271f;
+}
+
+.library-status-superseded {
+  background: #fff4e0;
+  color: #a3670b;
+}
+
+.library-status-unscored {
+  background: #eee;
+  color: #666;
+}
+
+.isolation-method-badge {
+  font-size: 0.6rem;
+  color: #777;
+  background: #efefef;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+}
+
+.reference-role-input {
+  width: 100%;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
 }
 
 /* Phase 9.6 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §4/§8/§9) */

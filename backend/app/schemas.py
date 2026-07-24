@@ -77,6 +77,15 @@ class LibraryStatusUpdateRequest(BaseModel):
     status: str
 
 
+# Phase 11.5 (frontend consolidation, see MIGRATION_PLAN.md) - a real,
+# additive gap the Phase 11 audit found: role is written once by the
+# Reference Scoring Stage but had no manual-override path at all, unlike
+# library_status. Mirrors LibraryStatusUpdateRequest's own reasoning
+# exactly (same open-vocabulary field, same human-in-the-loop override).
+class RoleUpdateRequest(BaseModel):
+    role: str
+
+
 class ProductLockProfileRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

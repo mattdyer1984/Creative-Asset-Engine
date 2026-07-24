@@ -446,18 +446,9 @@ export const api = {
       handle<ProductLockProfile>(res)
     ),
 
-  // Phase 9.1/9.2 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §3/§8)
-  // - the Canonical Reference Library is compute-on-read
-  // (library_status="included"), not a single fetchable artifact, so
-  // this returns a plain list.
-  getReferenceLibrary: (productId: string): Promise<ProductReferenceImage[]> =>
-    fetch(`/api/products/${productId}/reference-library`).then((res) =>
-      handle<ProductReferenceImage[]>(res)
-    ),
-
   // Background-task-triggered (202), matching Phase 8.3/8.4's real-cost-
   // stays-out-of-the-automatic-pipeline discipline - the caller polls
-  // getReferenceLibrary afterward to see the result, same pattern as
+  // listReferenceImages afterward to see the result, same pattern as
   // analyzeSlideshow/getSlideshowBlueprint.
   scoreReferences: (productId: string): Promise<{ status: string }> =>
     fetch(`/api/products/${productId}/score-references`, { method: 'POST' }).then((res) =>
@@ -489,6 +480,19 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
+    }).then((res) => handle<ProductReferenceImage>(res)),
+
+  // Phase 11.5 (see MIGRATION_PLAN.md) - the human-in-the-loop override
+  // on role, mirroring updateLibraryStatus exactly.
+  updateReferenceImageRole: (
+    productId: string,
+    referenceImageId: string,
+    role: string
+  ): Promise<ProductReferenceImage> =>
+    fetch(`/api/products/${productId}/reference-images/${referenceImageId}/role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
     }).then((res) => handle<ProductReferenceImage>(res)),
 
   // Product Intelligence (Phase 5.6, see MIGRATION_PLAN.md). Synchronous

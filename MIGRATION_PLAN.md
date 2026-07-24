@@ -4384,3 +4384,19 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+
+### Phase 11.5: Reference Library management completion (2026-07-24)
+
+**Closes a real gap the Phase 11 audit found**: `ReferenceLibraryPanel` only ever fetched `GET .../reference-library` - the compute-on-read `library_status="included"` subset - so an unscored upload, a rejected candidate, or a superseded image were all completely invisible in the UI with no way to review or recover one, even though the backend already stored and could serve every current image regardless of status (`GET .../reference-images`). The include half of the manual override was also missing as a button: `updateLibraryStatus` already accepted `"included"` as a valid write, but nothing in the UI ever called it with that value - Reject and Supersede existed, Include did not. `role`, unlike `library_status`, had no manual-override endpoint at all.
+
+**What was built**:
+- Backend (additive, one new endpoint): `POST /api/products/{product_id}/reference-images/{reference_image_id}/role` (`RoleUpdateRequest{role: str}`), mirroring `update_library_status` exactly - same human-in-the-loop-override reasoning, same open-vocabulary field design. 2 new tests in `test_reference_library_api.py` (404 for unknown image, real role write and read-back).
+- Frontend: `ReferenceLibraryPanel`'s data source switched from `getReferenceLibrary` (included-only) to `listReferenceImages` (every current image, any status) at all three of its call sites - initial load, the post-score-references polling window, and the refetch after any manual status/role write - so nothing acquired ever goes invisible again, including the moment right after upload (previously explicitly "nothing to re-fetch yet" until Score References ran). Each card now shows a real `library_status` badge (Included/Rejected/Superseded/Unscored, color-coded) and a real `isolation_method` badge (the actual evidence source - `llm_bounding_box_v1` crop, `user_upload`, product-source-import, etc. - not inferred), an "Include" button next to Reject/Supersede (hiding whichever button matches the image's current status rather than showing all three unconditionally), and a directly editable role text field (save-on-blur via the new endpoint, pre-filled with the current role). The now-dead `getReferenceLibrary` frontend method was removed (backend endpoint kept - still legitimate API surface, just no longer a frontend caller); the header now shows an "(N in Library)" count computed client-side from the same all-statuses list instead of a separate fetch.
+
+**Live verification, real data**: opened the same "Two luxury perfume bottles" slide's Bellavita product panel used in earlier Phase 11 verifications. The panel had a real, previously-invisible artifact sitting in the dev DB from earlier Phase 9.6 testing - a synthetic `user_upload` candidate with real `library_status="rejected"`, empty role - now visible with a "Rejected" badge, `user_upload` isolation badge, and only Include/Supersede buttons (no Reject, since it's already rejected). Clicked Include: a real `POST .../library-status 200`, the header's Library count went from 2 to 3, badge flipped to "Included" and its buttons to Reject/Supersede (Include now hidden). Set its role field to "packaging" and blurred: a real `POST .../role 200`, value persisted through the refetch. Reverted the artifact back to `library_status="rejected"` afterward via the same real endpoint to restore prior dev DB state (role restored to empty - the original was `null`; the schema's `role: str` doesn't accept null so this is now `""`, an inconsequential difference on data that was already synthetic test debris, not real product data).
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean, full backend suite green (411 passed).
+
+- Commit: (see git log)
+
+---

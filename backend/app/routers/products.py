@@ -31,6 +31,7 @@ from app.schemas import (
     ProductReferenceImageRead,
     ProductSourceImportRead,
     ProductSourceImportRequest,
+    RoleUpdateRequest,
 )
 from app.services.background_execution import run_reference_scoring_in_background
 from app.services.product_profile import ProductProfile, assemble_product_profile
@@ -211,6 +212,31 @@ def update_library_status(
         raise HTTPException(status_code=404, detail="Reference image not found")
 
     image.library_status = payload.status
+    db.commit()
+    db.refresh(image)
+    return image
+
+
+@router.post(
+    "/{product_id}/reference-images/{reference_image_id}/role",
+    response_model=ProductReferenceImageRead,
+)
+def update_reference_image_role(
+    product_id: str, reference_image_id: str, payload: RoleUpdateRequest, db: Session = Depends(get_db)
+) -> ProductReferenceImage:
+    """
+    Phase 11.5 (frontend consolidation, see MIGRATION_PLAN.md) - the
+    human-in-the-loop override on role, mirroring update_library_status
+    exactly. role stays an open string (same reasoning as
+    library_status): the Reference Scoring Stage's own vocabulary is
+    provider/scene-extensible, so this never validates against a
+    hardcoded set.
+    """
+    image = db.get(ProductReferenceImage, reference_image_id)
+    if image is None or image.product_id != product_id:
+        raise HTTPException(status_code=404, detail="Reference image not found")
+
+    image.role = payload.role
     db.commit()
     db.refresh(image)
     return image
