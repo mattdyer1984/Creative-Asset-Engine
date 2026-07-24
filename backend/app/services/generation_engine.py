@@ -258,6 +258,7 @@ def run_generation_attempt(
         reference_image_paths,
         suppress_overlay_text=plan.text_strategy is not None,
         branding_text=branding_text,
+        user_feedback=plan.user_feedback,
     )
 
     attempt = GenerationAttempt(
@@ -369,6 +370,7 @@ def run_bundle_generation_attempt(
         reference_image_paths,
         bundle_members=bundle_member_prompt_metadata,
         suppress_overlay_text=plan.text_strategy is not None,
+        user_feedback=plan.user_feedback,
     )
 
     attempt = GenerationAttempt(

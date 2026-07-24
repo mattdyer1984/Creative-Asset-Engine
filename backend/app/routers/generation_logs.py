@@ -11,7 +11,7 @@ import subprocess
 import zipfile
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -73,6 +73,54 @@ def list_generation_logs(
         stmt = stmt.order_by(GenerationLog.created_at.desc())
 
     return list(db.scalars(stmt))
+
+
+@router.get("/download-zip-batch")
+def download_zip_batch(
+    generation_log_ids: list[str] = Query(...), db: Session = Depends(get_db)
+) -> StreamingResponse:
+    """
+    Generate All's "Download All (.zip)" action (see MIGRATION_PLAN.md) -
+    one zip spanning every slide's current GenerationLog, given as a
+    repeated query param so this stays a plain `<a href download>` link
+    like the single-log endpoint above, not a POST. No new DB entity:
+    `GenerationLog.slide_id` already makes "one row per slide" the
+    caller's own in-memory knowledge (it made every generate-creative
+    call itself), so a list of ids is a sufficient description of "the
+    group" for this one-off action. Fails closed (404) if any id is
+    unknown, rather than silently zipping a partial set - same
+    reasoning as every other "honest failure over silent partial data"
+    convention in this codebase.
+
+    Each archive's generated/ folder already names its file
+    `slide_{index:02d}.ext` (generation_log_archive.create_archive) -
+    unique across slides in one slideshow, so concatenating every log's
+    generated/ contents into one zip can't collide, without this
+    endpoint needing to know slide indices itself.
+    """
+    generation_logs = []
+    for generation_log_id in generation_log_ids:
+        generation_log = db.get(GenerationLog, generation_log_id)
+        if generation_log is None:
+            raise HTTPException(
+                status_code=404, detail=f"Generation log {generation_log_id} not found"
+            )
+        generation_logs.append(generation_log)
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for generation_log in generation_logs:
+            generated_dir = Path(generation_log.archive_path) / "generated"
+            if generated_dir.is_dir():
+                for file_path in sorted(generated_dir.iterdir()):
+                    zip_file.write(file_path, arcname=file_path.name)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="generated-images.zip"'},
+    )
 
 
 @router.get("/{generation_log_id}", response_model=GenerationLogDetailRead)

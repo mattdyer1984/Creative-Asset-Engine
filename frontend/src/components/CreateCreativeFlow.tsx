@@ -27,8 +27,20 @@ const PROGRESS_LABELS: Record<Exclude<Phase, 'form' | 'done' | 'error'>, string>
   resolving_product: 'Understanding your product…',
   analyzing: 'Analyzing your creative…',
   building_references: 'Building product references…',
-  generating: 'Creating your image…',
+  generating: 'Creating your images…',
 };
+
+// Generate All (see MIGRATION_PLAN.md) - one result per slide the
+// slideshow attempted to generate. A slide with no resolvable product
+// legitimately fails per-slide (response null, error set) rather than
+// aborting the whole batch - the carousel (GenerationResultsModal)
+// shows that honestly instead of hiding it.
+export interface SlideGenerationOutcome {
+  slideId: string;
+  response: GenerateCreativeResponseData | null;
+  error: string | null;
+  regenerateRequest: GenerateCreativeRequest;
+}
 
 // Score References (Phase 9.2) is a background task with no completion
 // signal - same fixed-polling-window reasoning as
@@ -67,20 +79,20 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
   const [phase, setPhase] = useState<Phase>('form');
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<GenerateCreativeResponseData | null>(null);
+  // Generate All (see MIGRATION_PLAN.md) - one outcome per slide,
+  // replacing the old singular result/resultSlideId/resultRequest state.
+  const [results, setResults] = useState<SlideGenerationOutcome[] | null>(null);
   const [resultSlideshowId, setResultSlideshowId] = useState<string | null>(null);
-  const [resultSlideId, setResultSlideId] = useState<string | null>(null);
-  // The exact request generateCreative was called with - Regenerate (Phase
-  // 12.6) re-invokes the same call rather than guessing settings back out
-  // of the response.
-  const [resultRequest, setResultRequest] = useState<GenerateCreativeRequest | null>(null);
+  const [generatingProgress, setGeneratingProgress] = useState<{ current: number; total: number } | null>(
+    null
+  );
   // Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) - the
   // required pre-generation confirmation. Set once import succeeds (so
   // it reflects the real, gate-verified slide count, not a guess) and
-  // shown for the rest of the flow. Generation is still scoped to the
-  // primary slide only (an unchanged, deliberate boundary - see Phase
-  // 8), so this deliberately says so rather than implying every
-  // imported slide gets generated.
+  // shown for the rest of the flow. Generate All (see MIGRATION_PLAN.md)
+  // now attempts every imported slide, not just the primary one - a
+  // slide with no resolvable product simply fails per-slide, shown
+  // honestly in the results carousel rather than silently skipped here.
   const [importedSlideCount, setImportedSlideCount] = useState<number | null>(null);
   // Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) - opens the
   // existing, unmodified SlideshowBlueprintModal (Advanced) for anyone
@@ -105,7 +117,8 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
   const handleGenerate = async () => {
     setError(null);
-    setResult(null);
+    setResults(null);
+    setGeneratingProgress(null);
     try {
       setPhase('importing');
       const slideshows =
@@ -182,15 +195,21 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       // once scored - generate-creative 422s on an empty Library
       // otherwise. Found live: a real generate-creative call against a
       // freshly-analyzed product failed with exactly this error before
-      // this step was added. Runs for every product the generation will
-      // actually use, not just the primary one, so Bundle Composition
-      // scenes aren't left with an empty Library for a secondary member.
+      // this step was added. Generate All (see MIGRATION_PLAN.md) widens
+      // this across every slide's own selection, not just the primary
+      // slide's - each slide can carry a genuinely different product
+      // (multi per-slide product detection, Phase 6), and a product
+      // left unscored here 422s that slide's own generate-creative call
+      // later with exactly the error this step exists to prevent.
       setPhase('building_references');
-      const { selectedProductIds, roles } = resolveDefaultBundleSelection(blueprint.slides[0]?.products);
-      for (const productId of selectedProductIds) {
+      const perSlideSelection = blueprint.slides.map((slide) => resolveDefaultBundleSelection(slide.products));
+      const allProductIds = Array.from(
+        new Set(perSlideSelection.flatMap((selection) => selection.selectedProductIds))
+      );
+      for (const productId of allProductIds) {
         await api.scoreReferences(productId);
       }
-      for (const productId of selectedProductIds) {
+      for (const productId of allProductIds) {
         // Poll until scoring has actually finished (every current
         // candidate has a real library_status), not just until one gets
         // included - a candidate can legitimately score too low and get
@@ -212,25 +231,40 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       }
 
       setPhase('generating');
-      const bundleMembers =
-        selectedProductIds.length > 1
-          ? selectedProductIds.map((productId) => ({
-              product_id: productId,
-              role_in_scene: roles[productId] ?? productId,
-            }))
-          : undefined;
-      const request: GenerateCreativeRequest = {
-        quality_mode: 'fast',
-        creativity_level: 'conservative',
-        text_strategy: textStrategy,
-        ...(bundleMembers ? { bundle_members: bundleMembers } : {}),
-      };
-      const generated = await api.generateCreative(slideshow.id, primarySlideId, request);
+      const outcomes: SlideGenerationOutcome[] = [];
+      for (let i = 0; i < blueprint.slides.length; i++) {
+        const slide = blueprint.slides[i];
+        setGeneratingProgress({ current: i + 1, total: blueprint.slides.length });
+        const { selectedProductIds, roles } = perSlideSelection[i];
+        const bundleMembers =
+          selectedProductIds.length > 1
+            ? selectedProductIds.map((productId) => ({
+                product_id: productId,
+                role_in_scene: roles[productId] ?? productId,
+              }))
+            : undefined;
+        const request: GenerateCreativeRequest = {
+          quality_mode: 'fast',
+          creativity_level: 'conservative',
+          text_strategy: textStrategy,
+          ...(bundleMembers ? { bundle_members: bundleMembers } : {}),
+        };
+        try {
+          const response = await api.generateCreative(slideshow.id, slide.id, request);
+          outcomes.push({ slideId: slide.id, response, error: null, regenerateRequest: request });
+        } catch (err) {
+          outcomes.push({
+            slideId: slide.id,
+            response: null,
+            error: (err as Error).message,
+            regenerateRequest: request,
+          });
+        }
+      }
 
-      setResult(generated);
+      setResults(outcomes);
       setResultSlideshowId(slideshow.id);
-      setResultSlideId(primarySlideId);
-      setResultRequest(request);
+      setGeneratingProgress(null);
       setPhase('done');
       onCreated();
     } catch (err) {
@@ -242,22 +276,19 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   const handleReset = () => {
     setPhase('form');
     setError(null);
-    setResult(null);
+    setResults(null);
     setResultSlideshowId(null);
-    setResultSlideId(null);
-    setResultRequest(null);
+    setGeneratingProgress(null);
     setShowAdvancedModal(false);
     setImportedSlideCount(null);
   };
 
-  if (phase === 'done' && result && resultSlideshowId && resultSlideId && resultRequest) {
+  if (phase === 'done' && results && resultSlideshowId) {
     return (
       <>
         <GenerationResultsModal
           slideshowId={resultSlideshowId}
-          slideId={resultSlideId}
-          initialResult={result}
-          regenerateRequest={resultRequest}
+          slides={results}
           onClose={handleReset}
           onChanged={onCreated}
           onOpenAdvanced={() => setShowAdvancedModal(true)}
@@ -378,12 +409,17 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
       {busy && importedSlideCount !== null && importedSlideCount > 1 && (
         <p className="create-flow-import-confirmation">
-          {importedSlideCount} source slides imported — the primary slide will be generated.
+          {importedSlideCount} source slides imported — every slide with a resolvable product will be
+          generated.
         </p>
       )}
 
       <button className="create-flow-generate-button" onClick={handleGenerate} disabled={busy || !canGenerate}>
-        {busy ? PROGRESS_LABELS[phase as Exclude<Phase, 'form' | 'done' | 'error'>] : 'Generate'}
+        {phase === 'generating' && generatingProgress
+          ? `Creating your images… (${generatingProgress.current} of ${generatingProgress.total})`
+          : busy
+            ? PROGRESS_LABELS[phase as Exclude<Phase, 'form' | 'done' | 'error'>]
+            : 'Generate'}
       </button>
     </div>
   );

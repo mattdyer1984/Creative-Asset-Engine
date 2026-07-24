@@ -6,6 +6,8 @@ same discipline as test_generated_image_api.py, whose pipeline-setup
 helper this file reuses rather than duplicating.
 """
 
+import io
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -58,13 +60,133 @@ def test_generate_creative_404s_for_unknown_slideshow(client):
     assert response.status_code == 404
 
 
-def test_generate_creative_400s_for_a_non_primary_slide_id(client):
+def test_generate_creative_404s_for_an_unknown_slide_id(client):
+    """
+    Real-world-diagnosed change (Generate All, see MIGRATION_PLAN.md):
+    generate-creative is no longer restricted to the primary slide - a
+    slide id that doesn't exist at all is the real 404 case now, not
+    "any slide other than the primary."
+    """
     slideshow_id, _, _ = _import_slideshow_with_product(client)
     response = client.post(
-        f"/api/slideshows/{slideshow_id}/slides/not-the-primary-slide/generate-creative",
+        f"/api/slideshows/{slideshow_id}/slides/does-not-exist/generate-creative",
         json={"quality_mode": "fast"},
     )
-    assert response.status_code == 400
+    assert response.status_code == 404
+
+
+def test_generate_creative_404s_for_a_slide_from_a_different_slideshow(client):
+    slideshow_id, _, _ = _import_slideshow_with_product(client)
+    other_slideshow_id, other_slide_id, _ = _import_slideshow_with_product(client)
+
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{other_slide_id}/generate-creative",
+        json={"quality_mode": "fast"},
+    )
+    assert response.status_code == 404
+
+
+def _import_slideshow_with_two_products(client) -> tuple[str, str, str, str, str]:
+    """
+    Returns (slideshow_id, primary_slide_id, primary_product_id,
+    second_slide_id, second_product_id) - two slides in one grouped
+    slideshow, each assigned a genuinely different product, exactly the
+    shape Generate All produces and the real bug this fix targets (see
+    MIGRATION_PLAN.md).
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    product_a = client.post("/api/products", json={"display_name": "Product A"}).json()
+    product_b = client.post("/api/products", json={"display_name": "Product B"}).json()
+
+    def _jpeg_bytes(color):
+        buffer = BytesIO()
+        Image.new("RGB", (300, 300), color=color).save(buffer, format="JPEG")
+        return buffer.getvalue()
+
+    slideshows = client.post(
+        "/api/slideshows/import",
+        files=[
+            ("files", ("slide-a.jpg", io.BytesIO(_jpeg_bytes((210, 160, 120))), "image/jpeg")),
+            ("files", ("slide-b.jpg", io.BytesIO(_jpeg_bytes((80, 130, 200))), "image/jpeg")),
+        ],
+        data={"group_as_one": "true"},
+    ).json()
+    slideshow = slideshows[0]
+    slide_a_id = slideshow["slides"][0]["id"]
+    slide_b_id = slideshow["slides"][1]["id"]
+
+    client.post(
+        f"/api/slideshows/{slideshow['id']}/slides/{slide_a_id}/assign-product",
+        json={"product_id": product_a["id"]},
+    )
+    client.post(
+        f"/api/slideshows/{slideshow['id']}/slides/{slide_b_id}/assign-product",
+        json={"product_id": product_b["id"]},
+    )
+    return slideshow["id"], slide_a_id, product_a["id"], slide_b_id, product_b["id"]
+
+
+def test_generate_creative_succeeds_for_a_non_primary_slide_with_its_own_product(
+    client, monkeypatch, db_session
+):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): the exact scenario
+    Generate All produces - two slides, two different products, one
+    shared CreativeSpecification built from the primary slide alone.
+    Generating for the *second* slide must validate against *that
+    slide's own* product, not silently succeed-or-fail against the
+    primary slide's product (the bug §0 fixed in
+    image_validation_stage.py's _resolve_product).
+    """
+    slideshow_id, _, _, slide_b_id, product_b_id = _import_slideshow_with_two_products(client)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=FakeImageGenerationProvider()),
+    )
+    fake_vision = FakeVisionAnalysisProvider(
+        results_by_schema_name={
+            "identity_validation": _IDENTITY_PASSES,
+            "image_validation": _CREATIVE_PASSES,
+            "photorealism": _PHOTOREALISM_PASSES,
+        }
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_validation_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+    monkeypatch.setattr(
+        "app.services.creative_intelligence.default_registry",
+        FakeAIProviderRegistry(
+            text_generation_provider=FakeTextGenerationProvider(
+                result={"optimized_scene_description": "A staged product scene.", "reasoning": "Fake."}
+            )
+        ),
+    )
+
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_b_id}/generate-creative",
+        json={"quality_mode": "fast"},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["winner"] is not None
+    candidate = body["attempts"][0]["candidates"][0]
+    assert candidate["quality_assessment"]["accepted"] is True
+
+    # The generated image and its GenerationLog are stamped to slide B,
+    # not the primary slide - product_b_id used only to document intent.
+    log = client.get(f"/api/generation-logs/{body['generation_log_id']}").json()
+    assert log["slide_id"] == slide_b_id
+    assert log["product_id"] == product_b_id
 
 
 def test_generate_creative_422s_for_an_unknown_quality_mode(client, monkeypatch, db_session):

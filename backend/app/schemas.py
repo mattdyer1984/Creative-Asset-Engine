@@ -497,6 +497,14 @@ class GenerateCreativeRequest(BaseModel):
     # no FinalOutput produced) - a real, deliberate backward-
     # compatibility choice, not a placeholder.
     text_strategy: str | None = None
+    # Generate All (see MIGRATION_PLAN.md) - a free-text "what's wrong
+    # with this one" note from a per-slide regenerate action, injected
+    # as an explicit correction instruction for this call only. Kept
+    # deliberately separate from GenerationReviewCreateRequest.comment
+    # (only ever written for future ML training, never read back into a
+    # live call) - this one flows synchronously into the very next
+    # compiled prompt, so the model can actually act on it.
+    regenerate_feedback: str | None = None
 
 
 class FinalOutputRead(BaseModel):

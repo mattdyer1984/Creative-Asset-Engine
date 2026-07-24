@@ -222,3 +222,22 @@ def test_bundle_instruction_includes_each_members_own_branding_text():
     )
     # the second member has no branding_text - its line must not gain the extra sentence
     assert mug_line == "- background mug: shown in reference image 3"
+
+
+# --- user_feedback (Generate All feedback-driven regenerate, see MIGRATION_PLAN.md) ---
+
+
+def test_no_user_feedback_instruction_when_omitted():
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "a previous attempt" not in request.creative_intent
+
+
+def test_user_feedback_is_quoted_verbatim_and_comes_first():
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, user_feedback="the logo is upside down"
+    )
+
+    assert '"the logo is upside down"' in request.creative_intent
+    lines = request.creative_intent.splitlines()
+    assert lines[0].startswith("IMPORTANT - a previous attempt")
+    assert '"the logo is upside down"' in lines[0]

@@ -24,6 +24,14 @@ failure. A slide with 2+ current appearances fails clearly instead (see
 _MULTI_PRODUCT_ERROR below) - real product-targeted isolation is future
 work, logged in MIGRATION_PLAN.md, not guessed at here.
 
+Real-world-diagnosed widening (Generate All, see MIGRATION_PLAN.md): now
+loops over every slide in the slideshow, not just the primary one -
+mirrors app.slideshow_stages.ocr_stage.SlideOCRStage's own Phase 7.1
+precedent, which this module previously, deliberately deferred (see that
+Stage's own docstring) until something actually needed per-slide
+isolation for a non-primary slide. See SlideProductIsolationStage.run's
+own docstring for the exact per-slide skip/fail semantics.
+
 _crop_bounding_boxes is deliberately duplicated from the old stage
 rather than shared, to keep this sub-phase from touching any file the
 old, still-live pipeline depends on (the whole point of building this
@@ -64,70 +72,97 @@ class SlideProductIsolationStage:
     name = "product_isolation"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.primary_slide
+        """
+        Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+        widened from `slideshow.primary_slide` only to every slide in
+        `slideshow.slides`, mirroring `SlideOCRStage`'s own Phase 7.1
+        precedent exactly - the same widening this stage's own module
+        docstring once explicitly deferred as "a real cost/design
+        tradeoff not required" until something actually needed it.
+        Generate All is that something: a non-primary slide's own
+        assigned product needs its own isolated reference images before
+        that slide can build a Reference Library or generate at all.
 
-        current_appearances = slide.current_product_appearances
-        if not current_appearances:
-            return StageResult(
-                succeeded=False,
-                error="No product assigned to this slide - assign one before running Product Isolation.",
-            )
-        distinct_product_ids = {a.product_id for a in current_appearances}
-        if len(distinct_product_ids) > 1:
-            return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
-        product_id = current_appearances[0].product_id
-
+        A slide with no current product appearance is skipped, not
+        failed - a completely normal, expected state for a slide that
+        hasn't been assigned a product yet (most non-primary slides,
+        most of the time). The *primary* slide having no product is
+        still a hard failure, exactly as before - that's a real setup
+        problem, not a transient one. A slide with 2+ appearances (the
+        still-unsupported multi-product-per-slide case) still fails the
+        whole stage loudly, same as it always has for the primary slide -
+        silently skipping a real, actionable problem would be worse than
+        an honest failure, unlike "nothing assigned yet."
+        """
+        primary_slide = slideshow.primary_slide
         isolation_provider = default_registry.isolation()
+        result: StageResult = StageResult(succeeded=True)
 
-        # Committed immediately as a durable "pending" record - same
-        # reasoning as the old stage: if anything below fails and we
-        # roll back, this row survives, so the failure is never silently
-        # lost.
-        analysis_run = start_analysis_run(
-            db,
-            slide_id=slide.id,
-            analysis_type=ANALYSIS_TYPE_PRODUCT_ISOLATION,
-            provider=isolation_provider.provider,
-            model_name=isolation_provider.model,
-            durable=True,
-        )
+        for slide in slideshow.slides:
+            current_appearances = slide.current_product_appearances
+            if not current_appearances:
+                if slide.id == primary_slide.id:
+                    return StageResult(
+                        succeeded=False,
+                        error="No product assigned to this slide - assign one before running Product Isolation.",
+                    )
+                continue
+            distinct_product_ids = {a.product_id for a in current_appearances}
+            if len(distinct_product_ids) > 1:
+                return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
+            product_id = current_appearances[0].product_id
 
-        try:
-            image_bytes = Path(slide.stored_file_path).read_bytes()
-            bounding_boxes = isolation_provider.isolate_product(image_bytes)
-            if not bounding_boxes:
-                raise ValueError("No product detected in the image")
-            crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
+            # Committed immediately as a durable "pending" record - same
+            # reasoning as the old stage: if anything below fails and we
+            # roll back, this row survives, so the failure is never silently
+            # lost.
+            analysis_run = start_analysis_run(
+                db,
+                slide_id=slide.id,
+                analysis_type=ANALYSIS_TYPE_PRODUCT_ISOLATION,
+                provider=isolation_provider.provider,
+                model_name=isolation_provider.model,
+                durable=True,
+            )
 
-            new_reference_images = []
-            for crop_bytes in crops:
-                reference_image = ProductReferenceImage(
-                    analysis_run_id=analysis_run.id,
-                    product_id=product_id,
-                    source_slide_id=slide.id,
-                    isolation_method=ISOLATION_METHOD,
-                    file_path="",  # placeholder, set below once we have the row's id
-                )
-                db.add(reference_image)
-                db.flush()
+            try:
+                image_bytes = Path(slide.stored_file_path).read_bytes()
+                bounding_boxes = isolation_provider.isolate_product(image_bytes)
+                if not bounding_boxes:
+                    raise ValueError("No product detected in the image")
+                crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
 
-                stored_path = save_product_reference_image(
-                    product_id, reference_image.id, crop_bytes
-                )
-                reference_image.file_path = str(stored_path)
-                new_reference_images.append(reference_image)
+                new_reference_images = []
+                for crop_bytes in crops:
+                    reference_image = ProductReferenceImage(
+                        analysis_run_id=analysis_run.id,
+                        product_id=product_id,
+                        source_slide_id=slide.id,
+                        isolation_method=ISOLATION_METHOD,
+                        file_path="",  # placeholder, set below once we have the row's id
+                    )
+                    db.add(reference_image)
+                    db.flush()
 
-            new_ids = [img.id for img in new_reference_images]
-            db.query(ProductReferenceImage).filter(
-                ProductReferenceImage.product_id == product_id,
-                ProductReferenceImage.is_current.is_(True),
-                ProductReferenceImage.id.notin_(new_ids),
-            ).update({"is_current": False}, synchronize_session=False)
+                    stored_path = save_product_reference_image(
+                        product_id, reference_image.id, crop_bytes
+                    )
+                    reference_image.file_path = str(stored_path)
+                    new_reference_images.append(reference_image)
 
-        except Exception as exc:
-            return mark_failed(db, analysis_run, exc, rollback=True)
+                new_ids = [img.id for img in new_reference_images]
+                db.query(ProductReferenceImage).filter(
+                    ProductReferenceImage.product_id == product_id,
+                    ProductReferenceImage.is_current.is_(True),
+                    ProductReferenceImage.id.notin_(new_ids),
+                ).update({"is_current": False}, synchronize_session=False)
 
-        return mark_succeeded(db, analysis_run)
+            except Exception as exc:
+                return mark_failed(db, analysis_run, exc, rollback=True)
+
+            result = mark_succeeded(db, analysis_run)
+
+        return result
 
 
 def _crop_bounding_boxes(image_bytes: bytes, bounding_boxes: list[dict]) -> list[bytes]:

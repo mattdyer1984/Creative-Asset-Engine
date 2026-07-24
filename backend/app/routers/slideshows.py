@@ -469,26 +469,30 @@ def generate_creative(
     a queued/polled background status - the explicit "Generate
     Creative" action §14 calls for, with its real cost only spent once
     a caller deliberately triggers it.
+
+    Real-world-diagnosed change (Generate All, see MIGRATION_PLAN.md):
+    no longer restricted to `slideshow.primary_slide` - any slide that
+    actually belongs to this slideshow is a valid target. Generation
+    itself (generate_with_retry.py, generation_engine.py) was already
+    fully slide-agnostic under the hood; this was the one remaining
+    hard guard. A caller wanting the old primary-slide-only behavior
+    for one call still gets it by passing that slide's own id, exactly
+    as before - nothing about a single-slide call changes.
     """
     slideshow = db.get(Slideshow, slideshow_id)
     if slideshow is None:
         raise HTTPException(status_code=404, detail="Slideshow not found")
 
-    primary_slide = slideshow.primary_slide
-    if slide_id != primary_slide.id:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Only the primary slide supports image generation today "
-                "(Phase 8's 'one slide first' scope boundary)."
-            ),
-        )
+    slide = db.get(Slide, slide_id)
+    if slide is None or slide.slideshow_id != slideshow.id:
+        raise HTTPException(status_code=404, detail="Slide not found in this slideshow")
 
     try:
         result = generate_with_retry(
             db,
             slideshow,
             payload.quality_mode,
+            slide=slide,
             creativity_level=payload.creativity_level,
             bundle_members=(
                 [member.model_dump() for member in payload.bundle_members]
@@ -496,6 +500,7 @@ def generate_creative(
                 else None
             ),
             text_strategy=payload.text_strategy,
+            user_feedback=payload.regenerate_feedback,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -503,7 +508,7 @@ def generate_creative(
     if isinstance(result, StageResult):
         raise HTTPException(status_code=422, detail=result.error)
 
-    generation_log = _create_generation_log(db, slideshow, primary_slide, payload, result)
+    generation_log = _create_generation_log(db, slideshow, slide, payload, result)
 
     return GenerateCreativeResponse(
         attempts=[

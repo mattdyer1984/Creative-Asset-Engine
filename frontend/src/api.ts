@@ -322,6 +322,10 @@ export interface GenerateCreativeRequest {
   creativity_level?: CreativityLevel;
   bundle_members?: BundleMemberInput[];
   text_strategy?: TextStrategy;
+  // Generate All (see MIGRATION_PLAN.md) - a free-text "what's wrong with
+  // this one" note from a per-slide regenerate action, flowing straight
+  // into the next compiled prompt as an explicit correction instruction.
+  regenerate_feedback?: string;
 }
 
 // Mutually exclusive with image_validation_result_ids (Phase 10.7's
@@ -875,6 +879,13 @@ export const api = {
 
   generationLogZipUrl: (generationLogId: string): string =>
     `/api/generation-logs/${generationLogId}/download-zip`,
+
+  // Generate All's "Download All (.zip)" action (see MIGRATION_PLAN.md) -
+  // one zip spanning every slide's current GenerationLog.
+  generationLogZipBatchUrl: (generationLogIds: string[]): string =>
+    `/api/generation-logs/download-zip-batch?${generationLogIds
+      .map((id) => `generation_log_ids=${encodeURIComponent(id)}`)
+      .join('&')}`,
 
   openGenerationLogFolder: (generationLogId: string): Promise<void> =>
     fetch(`/api/generation-logs/${generationLogId}/open-folder`, { method: 'POST' }).then((res) => {

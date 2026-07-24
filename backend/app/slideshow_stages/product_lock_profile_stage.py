@@ -171,72 +171,100 @@ class SlideProductLockProfileStage:
     name = "product_lock_profile"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.primary_slide
+        """
+        Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+        widened from `slideshow.primary_slide` only to every slide in
+        `slideshow.slides`, mirroring `SlideOCRStage`'s own Phase 7.1
+        precedent exactly - the same widening this stage's own module
+        docstring once explicitly deferred as "a real cost/design
+        tradeoff not required" until something actually needed it.
+        Generate All is that something: a non-primary slide's own
+        assigned product needs its own Lock Profile before that slide
+        can generate at all.
 
-        current_appearances = slide.current_product_appearances
-        if not current_appearances:
-            return StageResult(
-                succeeded=False,
-                error="No product assigned to this slide - assign one before generating a Product Lock Profile.",
+        A slide with no current product appearance is skipped, not
+        failed - a completely normal, expected state for a slide that
+        hasn't been assigned a product yet (most non-primary slides,
+        most of the time). The *primary* slide having no product is
+        still a hard failure, exactly as before - that's a real setup
+        problem, not a transient one. A slide with 2+ appearances (the
+        still-unsupported multi-product-per-slide case) still fails the
+        whole stage loudly, same as it always has for the primary slide -
+        silently skipping a real, actionable problem would be worse than
+        an honest failure, unlike "nothing assigned yet."
+        """
+        primary_slide = slideshow.primary_slide
+        result: StageResult = StageResult(succeeded=True)
+
+        for slide in slideshow.slides:
+            current_appearances = slide.current_product_appearances
+            if not current_appearances:
+                if slide.id == primary_slide.id:
+                    return StageResult(
+                        succeeded=False,
+                        error="No product assigned to this slide - assign one before generating a Product Lock Profile.",
+                    )
+                continue
+            distinct_product_ids = {a.product_id for a in current_appearances}
+            if len(distinct_product_ids) > 1:
+                return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
+            product_id = current_appearances[0].product_id
+
+            # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+            # explicit provider_name="gemini" override: this is one of only
+            # two vision_analysis tasks moved to Gemini (Creative Fingerprint
+            # is the other), a narrower scope the user chose over moving
+            # every vision_analysis task at once.
+            vision_provider = default_registry.vision(provider_name="gemini")
+
+            analysis_run = start_analysis_run(
+                db,
+                slide_id=slide.id,
+                analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+                provider=vision_provider.provider,
+                model_name=vision_provider.model,
+                durable=False,
             )
-        distinct_product_ids = {a.product_id for a in current_appearances}
-        if len(distinct_product_ids) > 1:
-            return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
-        product_id = current_appearances[0].product_id
 
-        # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
-        # explicit provider_name="gemini" override: this is one of only
-        # two vision_analysis tasks moved to Gemini (Creative Fingerprint
-        # is the other), a narrower scope the user chose over moving
-        # every vision_analysis task at once.
-        vision_provider = default_registry.vision(provider_name="gemini")
-
-        analysis_run = start_analysis_run(
-            db,
-            slide_id=slide.id,
-            analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
-            provider=vision_provider.provider,
-            model_name=vision_provider.model,
-            durable=False,
-        )
-
-        # Reads the Product's current reference images - if Product
-        # Isolation hasn't produced any yet (e.g. this stage is rerun
-        # standalone before isolation ever succeeded), we still proceed
-        # using the Slide's own image; the snapshot below is simply
-        # empty in that case, rather than a hard prerequisite failure.
-        current_reference_images = list(
-            db.query(ProductReferenceImage).filter(
-                ProductReferenceImage.product_id == product_id,
-                ProductReferenceImage.is_current.is_(True),
+            # Reads the Product's current reference images - if Product
+            # Isolation hasn't produced any yet (e.g. this stage is rerun
+            # standalone before isolation ever succeeded), we still proceed
+            # using the Slide's own image; the snapshot below is simply
+            # empty in that case, rather than a hard prerequisite failure.
+            current_reference_images = list(
+                db.query(ProductReferenceImage).filter(
+                    ProductReferenceImage.product_id == product_id,
+                    ProductReferenceImage.is_current.is_(True),
+                )
             )
-        )
 
-        try:
-            image_bytes = Path(slide.stored_file_path).read_bytes()
-            result = vision_provider.analyze_creative(
-                image_bytes=image_bytes,
-                prompt_spec={
-                    "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
-                    "schema_name": "product_lock_profile",
-                },
-                response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+            try:
+                image_bytes = Path(slide.stored_file_path).read_bytes()
+                analysis_result = vision_provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={
+                        "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
+                        "schema_name": "product_lock_profile",
+                    },
+                    response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+                )
+            except Exception as exc:
+                return mark_failed(db, analysis_run, exc, rollback=False)
+
+            db.query(ProductLockProfile).filter(
+                ProductLockProfile.product_id == product_id,
+                ProductLockProfile.is_current.is_(True),
+            ).update({"is_current": False})
+
+            profile = ProductLockProfile(
+                analysis_run_id=analysis_run.id,
+                product_id=product_id,
+                structured_json=analysis_result,
+                reference_image_ids_json=[img.id for img in current_reference_images],
             )
-        except Exception as exc:
-            return mark_failed(db, analysis_run, exc, rollback=False)
+            db.add(profile)
+            db.flush()
 
-        db.query(ProductLockProfile).filter(
-            ProductLockProfile.product_id == product_id,
-            ProductLockProfile.is_current.is_(True),
-        ).update({"is_current": False})
+            result = mark_succeeded(db, analysis_run)
 
-        profile = ProductLockProfile(
-            analysis_run_id=analysis_run.id,
-            product_id=product_id,
-            structured_json=result,
-            reference_image_ids_json=[img.id for img in current_reference_images],
-        )
-        db.add(profile)
-        db.flush()
-
-        return mark_succeeded(db, analysis_run)
+        return result

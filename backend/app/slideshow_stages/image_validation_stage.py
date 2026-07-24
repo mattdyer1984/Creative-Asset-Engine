@@ -50,15 +50,15 @@ from sqlalchemy.orm import Session
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_IMAGE_VALIDATION
 from app.models.bundle_composition import BundleCompositionMember
-from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
 from app.models.image_validation_result import ImageValidationResult
 from app.models.product import Product
-from app.models.product_lock_profile import ProductLockProfile
+from app.models.slide import Slide
 from app.services.product_profile import assemble_product_profile
 from app.services.prompt_compiler import format_attribute_value
 from app.services.reference_selection import get_reference_image_paths
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 IMAGE_VALIDATION_SCHEMA = {
@@ -162,19 +162,31 @@ def _build_identity_prompt() -> str:
 
 def _resolve_product(db: Session, generated_image: GeneratedImage) -> Product | None:
     """
-    GeneratedImage has no product_id of its own - resolved via the same
-    Creative Specification -> Product Lock Profile -> Product chain the
-    Prompt Compiler used to build the request in the first place, so
-    Validation always judges against the exact product Generation was
-    told to preserve.
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): GeneratedImage has
+    no product_id of its own. This used to resolve via
+    `CreativeSpecification.product_lock_profile_id` - but CreativeSpecification
+    is one row per Slideshow, always built from the *primary* slide
+    (creative_specification_stage.py), so that chain silently pointed at
+    the primary slide's product regardless of which slide's
+    GeneratedImage was actually being validated - harmless while
+    generation was primary-slide-only, but wrong the moment a
+    non-primary slide with a different assigned product generates an
+    image (Generate All, see MIGRATION_PLAN.md). Resolved instead via
+    the image's own `slide_id` -> that slide's current product
+    appearance - the exact same resolution
+    app.services.generation_engine.run_generation_attempt already used
+    to pick the product Generation was actually told to preserve for
+    this specific slide, reused here rather than re-derived so
+    Validation and Generation can never disagree about which product a
+    given GeneratedImage belongs to.
     """
-    creative_specification = db.get(CreativeSpecification, generated_image.creative_specification_id)
-    if creative_specification is None:
+    slide = db.get(Slide, generated_image.slide_id)
+    if slide is None:
         return None
-    lock_profile = db.get(ProductLockProfile, creative_specification.product_lock_profile_id)
-    if lock_profile is None:
+    appearance = resolve_primary_appearance(slide.current_product_appearances)
+    if appearance is None:
         return None
-    return db.get(Product, lock_profile.product_id)
+    return db.get(Product, appearance.product_id)
 
 
 class SlideImageValidationStage:

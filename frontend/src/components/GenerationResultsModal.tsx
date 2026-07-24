@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import {
   api,
-  type GenerateCreativeRequest,
   type GenerateCreativeResponseData,
+  type GenerationReviewData,
   type MainIssue,
 } from '../api';
+import type { SlideGenerationOutcome } from './CreateCreativeFlow';
 
 const MAIN_ISSUE_OPTIONS: { value: MainIssue; label: string }[] = [
   { value: 'none', label: 'None' },
@@ -20,9 +21,7 @@ const MAIN_ISSUE_OPTIONS: { value: MainIssue; label: string }[] = [
 
 interface GenerationResultsModalProps {
   slideshowId: string;
-  slideId: string;
-  initialResult: GenerateCreativeResponseData;
-  regenerateRequest: GenerateCreativeRequest;
+  slides: SlideGenerationOutcome[];
   onClose: () => void;
   onChanged: () => void;
   onOpenAdvanced: () => void;
@@ -36,106 +35,164 @@ interface GenerationResultsModalProps {
  * result card. Full-screen (not the capped-width .blueprint-modal
  * pattern) since this is the primary workflow surface after every
  * generation, not a secondary detail view.
+ *
+ * Generate All (see MIGRATION_PLAN.md) widened this from one slide to a
+ * real carousel across every slide the batch attempted - every piece of
+ * per-generation state below is keyed by slideId (was singular),
+ * mirroring the carousel pattern already proven in
+ * SlideshowBlueprintModal.tsx (selectedSlideIndex + Prev/Next +
+ * thumbnail strip) rather than inventing a new one.
  */
 export function GenerationResultsModal({
   slideshowId,
-  slideId,
-  initialResult,
-  regenerateRequest,
+  slides,
   onClose,
   onChanged,
   onOpenAdvanced,
 }: GenerationResultsModalProps) {
-  const [result, setResult] = useState<GenerateCreativeResponseData>(initialResult);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
+  const clampedSlideIndex = Math.min(selectedSlideIndex, slides.length - 1);
+  const activeSlide = slides[clampedSlideIndex];
+
+  const [resultBySlide, setResultBySlide] = useState<Record<string, GenerateCreativeResponseData | null>>(
+    () => Object.fromEntries(slides.map((s) => [s.slideId, s.response]))
+  );
   const [learningModeEnabled, setLearningModeEnabled] = useState<boolean | null>(null);
-  const [review, setReview] = useState<{
-    overall_score: number;
-    main_issue: MainIssue;
-    comment: string | null;
-  } | null>(null);
-  const [reviewLoaded, setReviewLoaded] = useState(false);
+  const [reviewBySlide, setReviewBySlide] = useState<Record<string, GenerationReviewData | null>>({});
+  const [reviewLoadedBySlide, setReviewLoadedBySlide] = useState<Record<string, boolean>>({});
 
   const [showBefore, setShowBefore] = useState(false);
   const [zoomed, setZoomed] = useState(false);
 
-  const [score, setScore] = useState(50);
-  const [mainIssue, setMainIssue] = useState<MainIssue>('none');
-  const [comment, setComment] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [scoreBySlide, setScoreBySlide] = useState<Record<string, number>>({});
+  const [mainIssueBySlide, setMainIssueBySlide] = useState<Record<string, MainIssue>>({});
+  const [commentBySlide, setCommentBySlide] = useState<Record<string, string>>({});
+  const [savingBySlide, setSavingBySlide] = useState<Record<string, boolean>>({});
+  const [saveErrorBySlide, setSaveErrorBySlide] = useState<Record<string, string | null>>({});
 
-  const [regenerating, setRegenerating] = useState(false);
-  const [regenerateError, setRegenerateError] = useState<string | null>(null);
+  const [feedbackBySlide, setFeedbackBySlide] = useState<Record<string, string>>({});
+  const [regeneratingBySlide, setRegeneratingBySlide] = useState<Record<string, boolean>>({});
+  const [regenerateErrorBySlide, setRegenerateErrorBySlide] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     api.getSettings().then((settings) => setLearningModeEnabled(settings.learning_mode_enabled));
   }, []);
 
-  useEffect(() => {
-    setReviewLoaded(false);
-    setReview(null);
+  const refreshReview = (slideId: string, generationLogId: string) => {
+    setReviewLoadedBySlide((prev) => ({ ...prev, [slideId]: false }));
     api
-      .getGenerationLog(result.generation_log_id)
+      .getGenerationLog(generationLogId)
       .then((detail) => {
-        setReview(detail.review);
-        setReviewLoaded(true);
+        setReviewBySlide((prev) => ({ ...prev, [slideId]: detail.review }));
+        setReviewLoadedBySlide((prev) => ({ ...prev, [slideId]: true }));
       })
-      .catch(() => setReviewLoaded(true));
-  }, [result.generation_log_id]);
+      .catch(() => setReviewLoadedBySlide((prev) => ({ ...prev, [slideId]: true })));
+  };
 
-  const afterImageUrl = result.final_output
-    ? api.finalOutputFileUrl(slideshowId, result.final_output.id)
-    : result.winner
-      ? api.generatedImageFileUrl(slideshowId, result.winner.id)
+  // Loads every slide's review up front (not just the active one) - the
+  // Learning Mode close gate below needs to know whether EVERY slide has
+  // been reviewed, not just whichever one happens to be showing.
+  useEffect(() => {
+    for (const slide of slides) {
+      const generationLogId = resultBySlide[slide.slideId]?.generation_log_id;
+      if (generationLogId) refreshReview(slide.slideId, generationLogId);
+    }
+    // Only ever run once per slide set - regenerate below refreshes its
+    // own slide's review explicitly instead of re-running this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset the before/after + zoom view whenever the active slide changes,
+  // same reasoning as the old single-slide reset-on-regenerate behavior.
+  useEffect(() => {
+    setShowBefore(false);
+    setZoomed(false);
+  }, [clampedSlideIndex]);
+
+  if (!activeSlide) return null;
+
+  const activeResult = resultBySlide[activeSlide.slideId];
+  const activeReview = reviewBySlide[activeSlide.slideId] ?? null;
+  const activeScore = scoreBySlide[activeSlide.slideId] ?? 50;
+  const activeMainIssue = mainIssueBySlide[activeSlide.slideId] ?? 'none';
+  const activeComment = commentBySlide[activeSlide.slideId] ?? '';
+  const activeSaving = savingBySlide[activeSlide.slideId] ?? false;
+  const activeSaveError = saveErrorBySlide[activeSlide.slideId] ?? null;
+  const activeFeedback = feedbackBySlide[activeSlide.slideId] ?? '';
+  const activeRegenerating = regeneratingBySlide[activeSlide.slideId] ?? false;
+  const activeRegenerateError = regenerateErrorBySlide[activeSlide.slideId] ?? null;
+
+  const afterImageUrl = activeResult?.final_output
+    ? api.finalOutputFileUrl(slideshowId, activeResult.final_output.id)
+    : activeResult?.winner
+      ? api.generatedImageFileUrl(slideshowId, activeResult.winner.id)
       : null;
-  const beforeImageUrl = api.slideFileUrl(slideshowId, slideId);
+  const beforeImageUrl = api.slideFileUrl(slideshowId, activeSlide.slideId);
   const currentImageUrl = showBefore || !afterImageUrl ? beforeImageUrl : afterImageUrl;
 
-  // Forward-compatible N-slide carousel (see MIGRATION_PLAN.md's Phase
-  // 12 context note) - generate-creative is still scoped to one slide
-  // (Phase 8's boundary, unchanged here), so this always renders
-  // exactly one entry today, not a claim that multi-slide works.
-  const carouselSlides = [{ key: slideId, thumbUrl: afterImageUrl ?? beforeImageUrl }];
-
-  const closeBlocked = learningModeEnabled === true && reviewLoaded && review === null;
+  // Learning Mode's mandatory-review gate now spans every slide that has
+  // a real generation_log_id (an attempt that actually ran, whether or
+  // not it won), not just the one currently showing - closing the modal
+  // shouldn't let an unreviewed slide slip through just because the user
+  // never clicked over to it.
+  const closeBlocked =
+    learningModeEnabled === true &&
+    slides.some((slide) => {
+      const generationLogId = resultBySlide[slide.slideId]?.generation_log_id;
+      if (!generationLogId) return false;
+      return reviewLoadedBySlide[slide.slideId] === true && reviewBySlide[slide.slideId] == null;
+    });
 
   const handleBackdropClick = () => {
     if (!closeBlocked) onClose();
   };
 
   const handleSaveReview = async () => {
-    setSaving(true);
-    setSaveError(null);
+    const result = activeResult;
+    if (!result) return;
+    setSavingBySlide((prev) => ({ ...prev, [activeSlide.slideId]: true }));
+    setSaveErrorBySlide((prev) => ({ ...prev, [activeSlide.slideId]: null }));
     try {
       const saved = await api.submitGenerationReview(result.generation_log_id, {
-        overall_score: score,
-        main_issue: mainIssue,
-        comment: comment.trim() ? comment.trim() : null,
+        overall_score: activeScore,
+        main_issue: activeMainIssue,
+        comment: activeComment.trim() ? activeComment.trim() : null,
       });
-      setReview(saved);
+      setReviewBySlide((prev) => ({ ...prev, [activeSlide.slideId]: saved }));
       onChanged();
     } catch (err) {
-      setSaveError((err as Error).message);
+      setSaveErrorBySlide((prev) => ({ ...prev, [activeSlide.slideId]: (err as Error).message }));
     } finally {
-      setSaving(false);
+      setSavingBySlide((prev) => ({ ...prev, [activeSlide.slideId]: false }));
     }
   };
 
   const handleRegenerate = async () => {
-    setRegenerating(true);
-    setRegenerateError(null);
+    const slideId = activeSlide.slideId;
+    setRegeneratingBySlide((prev) => ({ ...prev, [slideId]: true }));
+    setRegenerateErrorBySlide((prev) => ({ ...prev, [slideId]: null }));
     try {
-      const regenerated = await api.generateCreative(slideshowId, slideId, regenerateRequest);
-      setResult(regenerated);
+      const feedback = activeFeedback.trim();
+      const regenerated = await api.generateCreative(slideshowId, slideId, {
+        ...activeSlide.regenerateRequest,
+        ...(feedback ? { regenerate_feedback: feedback } : {}),
+      });
+      setResultBySlide((prev) => ({ ...prev, [slideId]: regenerated }));
+      setFeedbackBySlide((prev) => ({ ...prev, [slideId]: '' }));
       setShowBefore(false);
       setZoomed(false);
+      refreshReview(slideId, regenerated.generation_log_id);
       onChanged();
     } catch (err) {
-      setRegenerateError((err as Error).message);
+      setRegenerateErrorBySlide((prev) => ({ ...prev, [slideId]: (err as Error).message }));
     } finally {
-      setRegenerating(false);
+      setRegeneratingBySlide((prev) => ({ ...prev, [slideId]: false }));
     }
   };
+
+  const generationLogIds = slides
+    .map((slide) => resultBySlide[slide.slideId]?.generation_log_id)
+    .filter((id): id is string => Boolean(id));
 
   return (
     <div className="results-modal-backdrop" onClick={handleBackdropClick}>
@@ -147,15 +204,12 @@ export function GenerationResultsModal({
         )}
 
         <div className="results-modal-viewer">
-          {/* Found live (real bug, not hypothetical): currentImageUrl falls
-              back to the original slide whenever there's no winner, so it's
-              never falsy - the old "nothing passed quality checks" message
-              below could never actually render, leaving the original shown
-              with zero indication it wasn't a real result. This banner is
-              keyed on afterImageUrl (the real signal for "did anything win")
-              instead, so it always fires when it should, independent of
-              whatever currentImageUrl happens to resolve to. */}
-          {!afterImageUrl && (
+          {activeSlide.error && (
+            <p className="results-modal-no-winner-banner">
+              This slide couldn't be generated: {activeSlide.error}
+            </p>
+          )}
+          {!activeSlide.error && !afterImageUrl && (
             <p className="results-modal-no-winner-banner">
               No generated candidate passed our quality checks this time - the image below is the
               original slide, not a result. Try Regenerate, or a different text option.
@@ -196,24 +250,74 @@ export function GenerationResultsModal({
             </div>
           )}
 
-          <div className="results-modal-carousel">
-            {carouselSlides.map((slide) => (
-              <div key={slide.key} className="results-modal-carousel-thumb active">
-                {slide.thumbUrl && <img src={slide.thumbUrl} alt="" />}
+          {slides.length > 1 && (
+            <div className="slide-selector">
+              <button
+                onClick={() => setSelectedSlideIndex((i) => Math.max(0, i - 1))}
+                disabled={clampedSlideIndex === 0}
+                aria-label="Previous slide"
+              >
+                ← Prev
+              </button>
+              <div className="slide-carousel" role="tablist" aria-label="Slides">
+                {slides.map((slide, i) => {
+                  const thumbResult = resultBySlide[slide.slideId];
+                  const thumbAfterUrl = thumbResult?.final_output
+                    ? api.finalOutputFileUrl(slideshowId, thumbResult.final_output.id)
+                    : thumbResult?.winner
+                      ? api.generatedImageFileUrl(slideshowId, thumbResult.winner.id)
+                      : null;
+                  const failed = slide.error !== null;
+                  return (
+                    <button
+                      key={slide.slideId}
+                      type="button"
+                      role="tab"
+                      aria-selected={i === clampedSlideIndex}
+                      className={`slide-carousel-thumb${i === clampedSlideIndex ? ' active' : ''}${failed ? ' failed' : ''}`}
+                      onClick={() => setSelectedSlideIndex(i)}
+                      title={failed ? `Slide ${i + 1} · failed: ${slide.error}` : `Slide ${i + 1}`}
+                    >
+                      <img
+                        src={thumbAfterUrl ?? api.slideFileUrl(slideshowId, slide.slideId)}
+                        alt={`Slide ${i + 1}`}
+                        className="slide-carousel-thumb-image"
+                      />
+                      <span className="slide-carousel-thumb-index">{failed ? '!' : i + 1}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+              <button
+                onClick={() => setSelectedSlideIndex((i) => Math.min(slides.length - 1, i + 1))}
+                disabled={clampedSlideIndex === slides.length - 1}
+                aria-label="Next slide"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+          {slides.length > 1 && (
+            <p className="slide-carousel-caption">
+              Slide {clampedSlideIndex + 1} of {slides.length}
+            </p>
+          )}
         </div>
 
         <div className="results-modal-review">
-          {review ? (
+          {activeSlide.error ? (
+            <p className="empty-state">This slide failed - nothing to review yet.</p>
+          ) : activeReview ? (
             <div className="results-modal-review-saved">
               <h3>Review saved</h3>
               <p>
-                <strong>{review.overall_score}/100</strong> &middot;{' '}
-                {MAIN_ISSUE_OPTIONS.find((o) => o.value === review.main_issue)?.label ?? review.main_issue}
+                <strong>{activeReview.overall_score}/100</strong> &middot;{' '}
+                {MAIN_ISSUE_OPTIONS.find((o) => o.value === activeReview.main_issue)?.label ??
+                  activeReview.main_issue}
               </p>
-              {review.comment && <p className="results-modal-review-comment">"{review.comment}"</p>}
+              {activeReview.comment && (
+                <p className="results-modal-review-comment">"{activeReview.comment}"</p>
+              )}
             </div>
           ) : (
             <>
@@ -225,15 +329,22 @@ export function GenerationResultsModal({
                     type="range"
                     min={0}
                     max={100}
-                    value={score}
-                    onChange={(e) => setScore(Number(e.target.value))}
+                    value={activeScore}
+                    onChange={(e) =>
+                      setScoreBySlide((prev) => ({ ...prev, [activeSlide.slideId]: Number(e.target.value) }))
+                    }
                   />
                   <input
                     type="number"
                     min={0}
                     max={100}
-                    value={score}
-                    onChange={(e) => setScore(Math.max(0, Math.min(100, Number(e.target.value))))}
+                    value={activeScore}
+                    onChange={(e) =>
+                      setScoreBySlide((prev) => ({
+                        ...prev,
+                        [activeSlide.slideId]: Math.max(0, Math.min(100, Number(e.target.value))),
+                      }))
+                    }
                   />
                 </div>
               </label>
@@ -244,8 +355,10 @@ export function GenerationResultsModal({
                   <label key={option.value} className="results-modal-issue-option">
                     <input
                       type="radio"
-                      checked={mainIssue === option.value}
-                      onChange={() => setMainIssue(option.value)}
+                      checked={activeMainIssue === option.value}
+                      onChange={() =>
+                        setMainIssueBySlide((prev) => ({ ...prev, [activeSlide.slideId]: option.value }))
+                      }
                     />
                     {option.label}
                   </label>
@@ -256,22 +369,36 @@ export function GenerationResultsModal({
                 Comment (optional)
                 <textarea
                   placeholder="e.g. Product slightly too small, text feels weaker than original…"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  value={activeComment}
+                  onChange={(e) =>
+                    setCommentBySlide((prev) => ({ ...prev, [activeSlide.slideId]: e.target.value }))
+                  }
                   rows={2}
                 />
               </label>
 
-              {saveError && <p className="error card-error">{saveError}</p>}
+              {activeSaveError && <p className="error card-error">{activeSaveError}</p>}
 
-              <button className="rerun-button" disabled={saving} onClick={handleSaveReview}>
-                {saving ? 'Saving…' : 'Save Review'}
+              <button className="rerun-button" disabled={activeSaving} onClick={handleSaveReview}>
+                {activeSaving ? 'Saving…' : 'Save Review'}
               </button>
             </>
           )}
+
+          <label className="results-modal-comment-label">
+            What's wrong with this one? (optional, used on Regenerate)
+            <textarea
+              placeholder="e.g. The bottle looks too dark, make it brighter…"
+              value={activeFeedback}
+              onChange={(e) =>
+                setFeedbackBySlide((prev) => ({ ...prev, [activeSlide.slideId]: e.target.value }))
+              }
+              rows={2}
+            />
+          </label>
         </div>
 
-        {regenerateError && <p className="error card-error">{regenerateError}</p>}
+        {activeRegenerateError && <p className="error card-error">{activeRegenerateError}</p>}
 
         <div className="results-modal-footer">
           {currentImageUrl && (
@@ -279,21 +406,29 @@ export function GenerationResultsModal({
               Download Current Slide
             </a>
           )}
-          <a
-            href={api.generationLogZipUrl(result.generation_log_id)}
-            download
-            className="results-modal-primary-download"
-          >
-            Download All (.zip)
-          </a>
-          <button
-            className="rerun-button secondary"
-            onClick={() => api.openGenerationLogFolder(result.generation_log_id)}
-          >
-            Open Generation Log
-          </button>
-          <button className="rerun-button secondary" disabled={regenerating} onClick={handleRegenerate}>
-            {regenerating ? 'Regenerating…' : 'Regenerate'}
+          {generationLogIds.length > 0 && (
+            <a
+              href={
+                generationLogIds.length > 1
+                  ? api.generationLogZipBatchUrl(generationLogIds)
+                  : api.generationLogZipUrl(generationLogIds[0])
+              }
+              download
+              className="results-modal-primary-download"
+            >
+              Download All (.zip)
+            </a>
+          )}
+          {activeResult && (
+            <button
+              className="rerun-button secondary"
+              onClick={() => api.openGenerationLogFolder(activeResult.generation_log_id)}
+            >
+              Open Generation Log
+            </button>
+          )}
+          <button className="rerun-button secondary" disabled={activeRegenerating} onClick={handleRegenerate}>
+            {activeRegenerating ? 'Regenerating…' : 'Regenerate'}
           </button>
           <button className="rerun-button secondary" onClick={onOpenAdvanced}>
             Advanced
@@ -304,7 +439,7 @@ export function GenerationResultsModal({
         </div>
         {closeBlocked && (
           <p className="results-modal-close-hint">
-            Save a review to close this window (Learning Mode is on).
+            Save a review for every slide to close this window (Learning Mode is on).
           </p>
         )}
       </div>

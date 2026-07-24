@@ -1883,29 +1883,15 @@ section h2 {
   border-color: #1a1a1a;
 }
 
-.results-modal-carousel {
-  display: flex;
-  gap: 0.4rem;
+/* Generate All (see MIGRATION_PLAN.md) - a slide whose generate-creative
+   call itself failed (e.g. no resolvable product), shown distinctly in
+   the shared .slide-carousel-thumb filmstrip this modal now reuses. */
+.slide-carousel-thumb.failed {
+  border-color: #c0392b;
 }
 
-.results-modal-carousel-thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #eee;
-  border: 2px solid transparent;
-}
-
-.results-modal-carousel-thumb.active {
-  border-color: #1a1a1a;
-}
-
-.results-modal-carousel-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.slide-carousel-thumb.failed .slide-carousel-thumb-index {
+  background: #c0392b;
 }
 
 .results-modal-review {

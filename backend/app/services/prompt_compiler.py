@@ -136,6 +136,7 @@ def compile_generation_request(
     bundle_members: list[dict] | None = None,
     suppress_overlay_text: bool = False,
     branding_text: list[str] | None = None,
+    user_feedback: str | None = None,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -203,6 +204,14 @@ def compile_generation_request(
     instruction below is now an explicit, absolute override of
     anything stated earlier in this same compiled prompt, not just a
     parallel instruction alongside it.
+
+    user_feedback (Generate All, see MIGRATION_PLAN.md): a free-text
+    note from a per-slide regenerate action describing what was wrong
+    with a previous attempt. Deliberately distinct from
+    decision_engine.py's `retry_reason` (an internal, generic
+    validation-failure signal, never seen by the model) - this is the
+    user's own words, given directly to the model as the first,
+    highest-priority instruction so it can actually act on it.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -213,6 +222,13 @@ def compile_generation_request(
         )
 
     intent_parts = []
+    if user_feedback:
+        intent_parts.append(
+            "IMPORTANT - a previous attempt at this exact image had a "
+            f'specific problem the user flagged: "{user_feedback}". '
+            "Directly address and fix this in the new image, while still "
+            "following every other instruction in this description."
+        )
     if bundle_members:
         intent_parts.append(_bundle_composition_instruction(bundle_members))
 

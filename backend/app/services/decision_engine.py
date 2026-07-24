@@ -75,6 +75,7 @@ class GenerationPlan:
     retry_reason: str | None = None
     bundle_members: list[dict] | None = None
     text_strategy: str | None = None
+    user_feedback: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -88,6 +89,7 @@ def decide_generation_plan(
     retry_reason: str | None = None,
     bundle_members: list[dict] | None = None,
     text_strategy: str | None = None,
+    user_feedback: str | None = None,
 ) -> GenerationPlan:
     if quality_mode not in QUALITY_MODE_CANDIDATE_COUNTS:
         raise ValueError(
@@ -119,4 +121,5 @@ def decide_generation_plan(
         retry_reason=retry_reason,
         bundle_members=bundle_members,
         text_strategy=text_strategy,
+        user_feedback=user_feedback,
     )

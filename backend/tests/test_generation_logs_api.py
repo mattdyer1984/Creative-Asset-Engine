@@ -270,6 +270,62 @@ def test_download_zip_contains_only_the_generated_images(client, monkeypatch, db
     assert not any(name.endswith(".json") for name in names)
 
 
+# --- GET /api/generation-logs/download-zip-batch (Generate All, see MIGRATION_PLAN.md) ---
+
+
+def test_download_zip_batch_unknown_generation_log_id_404s(client, monkeypatch, db_session):
+    generation_log_id, _ = _create_a_real_generation_log(client, monkeypatch, db_session)
+
+    response = client.get(
+        "/api/generation-logs/download-zip-batch",
+        params={"generation_log_ids": [generation_log_id, "does-not-exist"]},
+    )
+
+    assert response.status_code == 404
+
+
+def test_download_zip_batch_contains_every_slides_generated_image(client, monkeypatch, db_session, tmp_path):
+    """
+    Two real GenerationLog rows, each redirected to its own archive
+    folder under tmp_path (real generation_log_archive folders are
+    named by created_at at second precision - two real calls in one
+    fast test run can land in the very same folder, which would mask a
+    real bug in this endpoint's own file-collection logic behind an
+    unrelated timing quirk). generation_log_archive.create_archive's
+    own slide_{index:02d} naming (which prevents this collision in
+    real usage) is exercised separately by
+    test_generate_creative_succeeds_for_a_non_primary_slide_with_its_own_product
+    in test_generate_creative_api.py.
+    """
+    import io
+    import zipfile
+
+    from app.models.generation_log import GenerationLog
+
+    log_id_a, _ = _create_a_real_generation_log(client, monkeypatch, db_session)
+    log_id_b, _ = _create_a_real_generation_log(client, monkeypatch, db_session)
+
+    for suffix, log_id in (("a", log_id_a), ("b", log_id_b)):
+        generated_dir = tmp_path / suffix / "generated"
+        generated_dir.mkdir(parents=True)
+        (generated_dir / f"slide_01_{suffix}.png").write_bytes(b"fake-image-bytes")
+        db_session.get(GenerationLog, log_id).archive_path = str(tmp_path / suffix)
+    db_session.commit()
+
+    response = client.get(
+        "/api/generation-logs/download-zip-batch",
+        params={"generation_log_ids": [log_id_a, log_id_b]},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+    names = zip_file.namelist()
+    assert len(names) == 2
+    assert "slide_01_a.png" in names
+    assert "slide_01_b.png" in names
+
+
 # --- POST /api/generation-logs/{id}/open-folder --------------------------
 
 

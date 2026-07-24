@@ -95,42 +95,54 @@ class SceneIntelligenceStage:
     name = "scene_intelligence"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.primary_slide
-        vision_provider = default_registry.vision()
+        """
+        Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+        widened from `slideshow.primary_slide` only to every slide in
+        `slideshow.slides`, mirroring `SlideOCRStage`'s own Phase 7.1
+        precedent - like Creative Fingerprint, this stage never depended
+        on a product appearance, so every slide is processed
+        unconditionally.
+        """
+        result: StageResult = StageResult(succeeded=True)
 
-        analysis_run = start_analysis_run(
-            db,
-            slide_id=slide.id,
-            analysis_type=ANALYSIS_TYPE_SCENE_INTELLIGENCE,
-            provider=vision_provider.provider,
-            model_name=vision_provider.model,
-            durable=True,
-        )
+        for slide in slideshow.slides:
+            vision_provider = default_registry.vision()
 
-        try:
-            image_bytes = Path(slide.stored_file_path).read_bytes()
-            result = vision_provider.analyze_creative(
-                image_bytes=image_bytes,
-                prompt_spec={"prompt": SCENE_INTELLIGENCE_PROMPT, "schema_name": "scene_intelligence"},
-                response_schema=SCENE_REGION_SCHEMA,
-            )
-            regions = _enforce_product_region_is_essential(result["regions"])
-
-            db.query(SceneAnalysis).filter(
-                SceneAnalysis.slide_id == slide.id,
-                SceneAnalysis.is_current.is_(True),
-            ).update({"is_current": False})
-
-            scene_analysis = SceneAnalysis(
-                analysis_run_id=analysis_run.id,
+            analysis_run = start_analysis_run(
+                db,
                 slide_id=slide.id,
-                regions_json=regions,
+                analysis_type=ANALYSIS_TYPE_SCENE_INTELLIGENCE,
+                provider=vision_provider.provider,
+                model_name=vision_provider.model,
+                durable=True,
             )
-            db.add(scene_analysis)
-            db.flush()
 
-        except Exception as exc:
-            return mark_failed(db, analysis_run, exc, rollback=True)
+            try:
+                image_bytes = Path(slide.stored_file_path).read_bytes()
+                analysis_result = vision_provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={"prompt": SCENE_INTELLIGENCE_PROMPT, "schema_name": "scene_intelligence"},
+                    response_schema=SCENE_REGION_SCHEMA,
+                )
+                regions = _enforce_product_region_is_essential(analysis_result["regions"])
 
-        slide.current_scene_analysis_id = scene_analysis.id
-        return mark_succeeded(db, analysis_run)
+                db.query(SceneAnalysis).filter(
+                    SceneAnalysis.slide_id == slide.id,
+                    SceneAnalysis.is_current.is_(True),
+                ).update({"is_current": False})
+
+                scene_analysis = SceneAnalysis(
+                    analysis_run_id=analysis_run.id,
+                    slide_id=slide.id,
+                    regions_json=regions,
+                )
+                db.add(scene_analysis)
+                db.flush()
+
+            except Exception as exc:
+                return mark_failed(db, analysis_run, exc, rollback=True)
+
+            slide.current_scene_analysis_id = scene_analysis.id
+            result = mark_succeeded(db, analysis_run)
+
+        return result

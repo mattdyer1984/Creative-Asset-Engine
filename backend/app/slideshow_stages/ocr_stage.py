@@ -15,11 +15,13 @@ had only ever operated on the first slide, even after Phase 4 made
 multi-slide slideshows real, and Narrative Structure (Phase 7.2) needs
 per-slide OCR text across the whole sequence to do anything useful. Pure
 orchestration-logic change - `Slide.current_ocr_result_id` has been a
-per-slide column since Phase 2.1, no migration needed. Deliberately NOT
-extended to Product Isolation/Lock Profile/Creative Fingerprint in this
-phase - each of those widened to multi-slide means N vision/AI calls per
-slideshow instead of one, a real cost/design tradeoff not required here
-(see MIGRATION_PLAN.md's Suggested future improvements).
+per-slide column since Phase 2.1, no migration needed. At the time, this
+was deliberately NOT extended to Product Isolation/Lock Profile/Creative
+Fingerprint/Scene Intelligence - each of those widened to multi-slide
+means N vision/AI calls per slideshow instead of one, a real cost/design
+tradeoff not required until something actually needed it. Generate All
+(see MIGRATION_PLAN.md) was that something - all four now follow this
+exact same pattern.
 
 One slide's OCR failure fails the whole stage (matches the existing
 single-slide failure semantics, and "honest failure over silent partial

@@ -151,12 +151,34 @@ def generate_with_retry(
     slideshow: Slideshow,
     quality_mode: str,
     *,
+    slide: Slide | None = None,
     creativity_level: str = "conservative",
     max_retries: int = DEFAULT_MAX_RETRIES,
     bundle_members: list[dict] | None = None,
     text_strategy: str | None = None,
+    user_feedback: str | None = None,
 ) -> RetryLoopResult | StageResult:
-    slide = slideshow.primary_slide
+    """
+    slide (Generate All, see MIGRATION_PLAN.md) - `None` (the default,
+    and every pre-existing call site's behavior) resolves to
+    `slideshow.primary_slide`, exactly as this function always did.
+    Every other line in this function already reads `slide`, not
+    `slideshow.primary_slide` - this was the one hardcoded line
+    blocking generation on any other slide in the slideshow. The
+    Creative Specification stays shared/slideshow-scoped regardless of
+    which slide is passed (see `compile_generation_request`'s own
+    docstring for why that's safe: only scene/marketing fields ever
+    reach the compiled prompt, never product identity, which each
+    generation attempt already resolves independently from the actual
+    `slide` passed in here).
+
+    user_feedback (Generate All, see MIGRATION_PLAN.md) - the same
+    free-text note carried unchanged across every retry attempt within
+    this one call, deliberately separate from `retry_reason` below
+    (that's the internal, per-attempt auto-retry signal; this is one
+    user note for the whole call).
+    """
+    slide = slide if slide is not None else slideshow.primary_slide
     if slideshow.current_creative_specification_id is None:
         return StageResult(
             succeeded=False,
@@ -183,6 +205,7 @@ def generate_with_retry(
             retry_reason=retry_reason,
             bundle_members=bundle_members,
             text_strategy=text_strategy,
+            user_feedback=user_feedback,
         )
         if plan.bundle_members:
             attempt_result = run_bundle_generation_attempt(db, slide, creative_specification, plan)

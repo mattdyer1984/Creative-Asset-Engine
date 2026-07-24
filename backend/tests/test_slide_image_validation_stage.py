@@ -102,13 +102,20 @@ def _build_generated_image(db_session, slideshow, monkeypatch) -> GeneratedImage
     ).first()
 
 
-def test_fails_gracefully_when_the_product_cannot_be_resolved(db_session, slideshow_with_product):
-    """A bare GeneratedImage row with no real upstream chain - creative_specification_id points nowhere."""
+def test_fails_gracefully_when_the_product_cannot_be_resolved(db_session, slideshow_with_slide):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): product resolution
+    now goes through GeneratedImage.slide_id -> that slide's own current
+    product appearance, not creative_specification_id - so a bare
+    GeneratedImage on a slide with no product assigned yet is the real
+    "cannot resolve" case, not a bad creative_specification_id (which no
+    longer factors into resolution at all).
+    """
     result = SlideImageValidationStage().run(
         db_session,
         GeneratedImage(
-            slideshow_id=slideshow_with_product.id,
-            slide_id=slideshow_with_product.primary_slide.id,
+            slideshow_id=slideshow_with_slide.id,
+            slide_id=slideshow_with_slide.primary_slide.id,
             creative_specification_id="does-not-exist",
             provider="openai",
             model_name="fake",
@@ -122,6 +129,115 @@ def test_fails_gracefully_when_the_product_cannot_be_resolved(db_session, slides
 
     assert result.succeeded is False
     assert "Could not resolve the product" in result.error
+
+
+def test_resolves_the_generated_images_own_slides_product_not_the_shared_specs(db_session):
+    """
+    Real bug (see MIGRATION_PLAN.md): CreativeSpecification is one row
+    per Slideshow, always built from the *primary* slide - so resolving
+    a GeneratedImage's product via CreativeSpecification.product_lock_profile_id
+    silently pointed every validation at the primary slide's product,
+    even when validating a different slide's own GeneratedImage. This
+    is the exact scenario Generate All produces: two slides, two
+    different products, one shared CreativeSpecification built from
+    slide 1 alone.
+    """
+    from app.models.analysis_run import AnalysisRun
+    from app.models.creative_fingerprint import CreativeFingerprint
+    from app.models.creative_specification import CreativeSpecification
+    from app.models.product import Product
+    from app.models.product_appearance import ProductAppearance
+    from app.models.product_lock_profile import ProductLockProfile
+    from app.models.slide import Slide
+    from app.models.slideshow import Slideshow
+    from app.slideshow_stages.image_validation_stage import _resolve_product
+
+    def _fake_analysis_run(analysis_type: str) -> AnalysisRun:
+        run = AnalysisRun(analysis_type=analysis_type, provider="fake", model_name="fake")
+        db_session.add(run)
+        db_session.flush()
+        return run
+
+    slideshow = Slideshow()
+    db_session.add(slideshow)
+    db_session.flush()
+
+    product_a = Product(display_name="Product A")
+    product_b = Product(display_name="Product B")
+    db_session.add_all([product_a, product_b])
+    db_session.flush()
+
+    slide_1 = Slide(
+        slideshow_id=slideshow.id, slide_index=0, stored_file_path="/dev/null",
+        original_filename="a.jpg", source_type="local_file", source_locator="a.jpg",
+    )
+    slide_2 = Slide(
+        slideshow_id=slideshow.id, slide_index=1, stored_file_path="/dev/null",
+        original_filename="b.jpg", source_type="local_file", source_locator="b.jpg",
+    )
+    db_session.add_all([slide_1, slide_2])
+    db_session.flush()
+
+    db_session.add_all([
+        ProductAppearance(
+            slide_id=slide_1.id, product_id=product_a.id, prominence="primary", confidence=1.0, is_current=True
+        ),
+        ProductAppearance(
+            slide_id=slide_2.id, product_id=product_b.id, prominence="primary", confidence=1.0, is_current=True
+        ),
+    ])
+    db_session.flush()
+
+    lock_profile_a = ProductLockProfile(
+        analysis_run_id=_fake_analysis_run("product_lock_profile").id,
+        product_id=product_a.id,
+        structured_json={},
+        reference_image_ids_json=[],
+    )
+    db_session.add(lock_profile_a)
+    db_session.flush()
+
+    fingerprint = CreativeFingerprint(
+        analysis_run_id=_fake_analysis_run("creative_fingerprint").id,
+        slide_id=slide_1.id,
+        structured_json={},
+    )
+    db_session.add(fingerprint)
+    db_session.flush()
+
+    # The shared CreativeSpecification - built from slide 1 (product A) only, exactly as
+    # creative_specification_stage.py always does, regardless of how many slides exist.
+    creative_specification = CreativeSpecification(
+        analysis_run_id=_fake_analysis_run("creative_specification").id,
+        slideshow_id=slideshow.id,
+        product_lock_profile_id=lock_profile_a.id,
+        creative_fingerprint_id=fingerprint.id,
+        structured_json={},
+    )
+    db_session.add(creative_specification)
+    db_session.commit()
+
+    # A GeneratedImage that was actually produced for slide 2 (product B),
+    # using the shared spec - exactly what Generate All produces.
+    generated_image = GeneratedImage(
+        slideshow_id=slideshow.id,
+        slide_id=slide_2.id,
+        creative_specification_id=creative_specification.id,
+        provider="openai",
+        model_name="fake",
+        prompt_used="fake",
+        seed=None,
+        generation_time_seconds=0.1,
+        file_path="/dev/null",
+        analysis_run_id=_fake_analysis_run("generated_image").id,
+    )
+    db_session.add(generated_image)
+    db_session.commit()
+
+    resolved = _resolve_product(db_session, generated_image)
+
+    assert resolved is not None
+    assert resolved.id == product_b.id  # slide 2's own product - NOT product A, the shared spec's product
 
 
 def test_fails_gracefully_without_any_immutable_profile_fields(db_session, slideshow_with_product, monkeypatch):
