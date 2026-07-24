@@ -4529,3 +4529,17 @@ New `GET /api/settings` / `PUT /api/settings` (`app/routers/settings.py`), regis
 - Commit: (see git log)
 
 ---
+
+### Phase 12.2: Archive creation wired into generate-creative (2026-07-24)
+
+**What was built**: `app/services/generation_log_archive.py` (`create_archive`, `write_review`) - creates the real `Generation Logs/{YYYY-MM-DD_HH-MM-SS}/{generated,original,references}/` folder and `generation.json`, copying (`shutil.copy2`, not re-generating) already-materialized files straight from their existing `file_path` columns. Wired into `generate_creative` (`app/routers/slideshows.py`) via a new `_create_generation_log` helper, called after `generate_with_retry` returns with the real `RetryLoopResult` already in hand - `generate_with_retry.py`/`generation_engine.py`/`decision_engine.py` are all untouched. `product_id` resolution reuses the existing `resolve_primary_appearance` (Phase 6.3/8.3) rather than duplicating it. Every `GenerationAttempt` this call produced gets `generation_log_id` set. `GenerateCreativeResponse` gains `generation_log_id`. Runs synchronously (not backgrounded) - the response already waits for the full paid retry loop, so a few local file copies add negligible latency and guarantee the archive exists by the time the frontend gets the response.
+
+**A real "no winner" outcome correctly still archives** (found live, not hypothesized): `generated/` is left empty, `ai_provider`/`ai_model`/`prompt_used` stay `null` in both the DB row and `generation.json` - the archive is created either way, matching the same "no candidate passing is a real, honest outcome" discipline established since Phase 11.4. Bundle Composition calls get an empty `references/` folder for now (a real, small, documented gap - a bundle winner has no `generation_reference_set_id`, see the model's own docstring - not guessed at).
+
+**Live verification, real data**: 2 new backend tests (`test_generation_log_archive.py`) using the existing Fakes pattern - one confirming a real winning generation produces a real `GenerationLog` row (correct `product_id`/`quality_mode`/`retry_count`/duration/provider/model/prompt), a real archive folder with real `generated/`/`original/` files and a correctly-shaped `generation.json`, and every `GenerationAttempt` linked back to the log; one confirming the no-winner case still archives correctly. Then a **real, paid, live call** against the real running dev server, reusing an already-analyzed real slideshow (no need to re-import/re-analyze): `POST .../generate-creative` returned a real `201` with a real `generation_log_id`. Queried the real dev DB directly - a real `GenerationLog` row exists with the correct real `product_id` (Bellavita), `archive_path`. Inspected the real folder on disk (`find`/`cat`): `generated/` correctly empty (no candidate passed - fast mode, 1 candidate), `original/slide_01.jpeg` present, `references/` empty, `generation.json` exactly matches the DB row - `creative_id` correctly substituted with the real `slideshow_id`, `retry_count: 1` (2 real attempts), real `generation_duration_seconds`.
+
+**Verification**: full backend suite green (420 passed, up from 418).
+
+- Commit: (see git log)
+
+---

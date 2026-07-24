@@ -523,6 +523,10 @@ class GenerateCreativeResponse(BaseModel):
     attempts: list[GenerationAttemptRead]
     winner: GeneratedImageRead | None
     final_output: FinalOutputRead | None = None
+    # Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+    # the permanent Generation UUID this call's GenerationLog was created
+    # under - the Results Modal's own handle for archiving/review/download.
+    generation_log_id: str
 
 
 class OCRResultRead(BaseModel):

@@ -11,9 +11,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
 from app.models.analysis_run import AnalysisRun
+from app.models.creative_specification import CreativeSpecification
 from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
+from app.models.generation_log import GenerationLog
 from app.models.generation_reference_set import GenerationReferenceSet
 from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.image_validation_result import ImageValidationResult
@@ -55,9 +57,11 @@ from app.schemas import (
     SlideshowUrlImportRequest,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
-from app.services.generate_with_retry import generate_with_retry
+from app.services.generate_with_retry import RetryLoopResult, generate_with_retry
+from app.services.generation_log_archive import create_archive
 from app.services.project_product import ensure_project_product_membership
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
+from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.services.slideshow_import import import_slideshows
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
@@ -378,6 +382,74 @@ def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_d
     return generated_image
 
 
+def _create_generation_log(
+    db: Session,
+    slideshow: Slideshow,
+    slide: Slide,
+    payload: GenerateCreativeRequest,
+    result: RetryLoopResult,
+) -> GenerationLog:
+    """
+    Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+    one row per generate-creative call, built from the RetryLoopResult
+    the caller already has in hand - no changes needed to
+    generate_with_retry.py/generation_engine.py themselves. Also
+    archives this call's files to a permanent
+    Generation Logs/{timestamp}/ folder and links every GenerationAttempt
+    this call produced back to the new row.
+    """
+    creative_specification_id = result.attempts[0].attempt.creative_specification_id
+    creative_specification = db.get(CreativeSpecification, creative_specification_id)
+
+    bundle_product_ids = (
+        [member.product_id for member in payload.bundle_members] if payload.bundle_members else None
+    )
+    product_id = None
+    if bundle_product_ids is None:
+        primary_appearance = resolve_primary_appearance(slide.current_product_appearances)
+        product_id = primary_appearance.product_id if primary_appearance is not None else None
+
+    winner = result.winner
+    duration = sum(
+        candidate.generated_image.generation_time_seconds
+        for outcome in result.attempts
+        for candidate in outcome.candidates
+    )
+
+    generation_log = GenerationLog(
+        slideshow_id=slideshow.id,
+        slide_id=slide.id,
+        project_id=slideshow.project_id,
+        product_id=product_id,
+        bundle_product_ids_json=bundle_product_ids,
+        winning_generated_image_id=winner.generated_image.id if winner is not None else None,
+        final_output_id=result.final_output.id if result.final_output is not None else None,
+        quality_mode=payload.quality_mode,
+        creativity_level=payload.creativity_level,
+        text_strategy=payload.text_strategy,
+        ai_provider=winner.generated_image.provider if winner is not None else None,
+        ai_model=winner.generated_image.model_name if winner is not None else None,
+        prompt_used=winner.generated_image.prompt_used if winner is not None else None,
+        creative_specification_id=creative_specification_id,
+        creative_specification_schema_version=creative_specification.schema_version,
+        retry_count=len(result.attempts) - 1,
+        generation_duration_seconds=duration,
+        archive_path="",
+    )
+    db.add(generation_log)
+    db.flush()
+
+    for outcome in result.attempts:
+        outcome.attempt.generation_log_id = generation_log.id
+
+    archive_folder = create_archive(db, generation_log, result, slide)
+    generation_log.archive_path = str(archive_folder)
+
+    db.commit()
+    db.refresh(generation_log)
+    return generation_log
+
+
 @router.post(
     "/{slideshow_id}/slides/{slide_id}/generate-creative",
     response_model=GenerateCreativeResponse,
@@ -430,6 +502,8 @@ def generate_creative(
     if isinstance(result, StageResult):
         raise HTTPException(status_code=422, detail=result.error)
 
+    generation_log = _create_generation_log(db, slideshow, primary_slide, payload, result)
+
     return GenerateCreativeResponse(
         attempts=[
             GenerationAttemptRead(
@@ -459,6 +533,7 @@ def generate_creative(
         )
         if result.final_output is not None
         else None,
+        generation_log_id=generation_log.id,
     )
 
 
