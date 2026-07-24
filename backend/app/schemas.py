@@ -6,7 +6,7 @@ the frontend, the ORM's shape is a contract with the database.
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.services.product_profile import ProductProfile
 
@@ -712,3 +712,52 @@ class AppSettingRead(BaseModel):
 
 class AppSettingUpdateRequest(BaseModel):
     learning_mode_enabled: bool
+
+
+class GenerationReviewRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    generation_log_id: str
+    overall_score: int
+    main_issue: str
+    comment: str | None
+    learning_mode_enabled: bool
+    created_at: datetime
+
+
+# The closed set validated in the router (app/routers/generation_logs.py),
+# same "open column, closed set enforced at the API layer" pattern as
+# LibraryStatusUpdateRequest/VALID_LIBRARY_STATUSES.
+class GenerationReviewCreateRequest(BaseModel):
+    overall_score: int = Field(ge=0, le=100)
+    main_issue: str
+    comment: str | None = None
+
+
+class GenerationLogRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    slideshow_id: str
+    slide_id: str
+    project_id: str | None
+    product_id: str | None
+    bundle_product_ids_json: list[str] | None
+    winning_generated_image_id: str | None
+    final_output_id: str | None
+    quality_mode: str
+    creativity_level: str
+    text_strategy: str | None
+    ai_provider: str | None
+    ai_model: str | None
+    retry_count: int
+    generation_duration_seconds: float
+    archive_path: str
+    created_at: datetime
+
+
+class GenerationLogDetailRead(GenerationLogRead):
+    """GET /api/generation-logs/{id} - GenerationLogRead plus its review, if one has been submitted."""
+
+    review: GenerationReviewRead | None = None

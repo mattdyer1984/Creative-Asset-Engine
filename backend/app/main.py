@@ -17,7 +17,15 @@ from fastapi.staticfiles import StaticFiles
 
 from app.ai_providers import registry as ai_provider_registry
 from app.config import settings
-from app.routers import bundles, listings, products, projects, settings as settings_router, slideshows
+from app.routers import (
+    bundles,
+    generation_logs,
+    listings,
+    products,
+    projects,
+    settings as settings_router,
+    slideshows,
+)
 
 settings.ensure_directories()
 
@@ -44,6 +52,7 @@ app.include_router(slideshows.router)
 app.include_router(listings.router)
 app.include_router(bundles.router)
 app.include_router(settings_router.router)
+app.include_router(generation_logs.router)
 
 
 @app.get("/api/health")
