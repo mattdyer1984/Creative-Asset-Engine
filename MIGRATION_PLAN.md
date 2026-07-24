@@ -4440,3 +4440,16 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+### Phase 11.7: Multi-slide carousel (2026-07-24)
+
+**Closes the open item explicitly deferred from Phase 4.4**: the blueprint modal's slide selector was plain text - "Slide N of M" plus Prev/Next buttons - with no visual indication of what any other slide actually contained. A user had to click through blind to find a specific slide. Phase 4.4's own docstring called this out directly: *"Still minimal, not a real filmstrip/carousel - that's a later phase."*
+
+**What was built**: `SlideshowBlueprintModal.tsx`'s slide selector now renders a real horizontal thumbnail filmstrip between the Prev/Next buttons - one real `<img>` per slide via the already-existing `api.slideFileUrl(slideshowId, slideId)`, each a clickable tab (`role="tab"`/`aria-selected`) that jumps `selectedSlideIndex` straight to that slide, with a 1-based index badge and the currently-selected slide outlined. Each thumbnail's `title` attribute includes its narrative beat when known (reusing the same per-slide beat lookup already used for the caption). Prev/Next remain, now driving and staying in sync with the same `selectedSlideIndex` state as the filmstrip - not a separate mechanism. The old "Slide N of M" text became a caption below the filmstrip rather than being replaced outright, so nothing that worked before was removed.
+
+**Live verification, real data**: found the one real multi-slide slideshow in the dev DB (3 slides, `9bdc85f3-...`) and opened its blueprint. Confirmed via DOM query that all 3 thumbnails render with the correct real per-slide file URLs and the first is marked active by default. Clicked the third thumbnail directly (`element.click()`, not a coordinate click - a coordinate click missed and closed the modal instead, a stale-viewport-vs-screenshot mismatch, not an app bug) and confirmed both the active thumbnail and the "Slide N of M" caption updated to 3. Clicked Prev and confirmed both updated back to 2, staying in lockstep with the filmstrip - one shared state, not two selectors that could drift.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes (`slideFileUrl` already existed, Phase 2.6).
+
+- Commit: (see git log)
+
+---

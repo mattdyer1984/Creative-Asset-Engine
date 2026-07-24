@@ -1342,6 +1342,59 @@ section h2 {
   cursor: default;
 }
 
+/* Phase 4.4/11 (see MIGRATION_PLAN.md) - real thumbnail filmstrip,
+   replacing the plain "Slide N of M" text-only selector deferred back
+   in Phase 4.4. */
+.slide-carousel {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.25rem;
+  flex: 1;
+}
+
+.slide-carousel-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #eee;
+}
+
+.slide-carousel-thumb.active {
+  border-color: #1a1a1a;
+}
+
+.slide-carousel-thumb-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.slide-carousel-thumb-index {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0 0.25rem;
+  border-radius: 3px;
+}
+
+.slide-carousel-caption {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #444;
+}
+
 .blueprint-failure-banner {
   background: #fbdada;
   color: #7a1414;

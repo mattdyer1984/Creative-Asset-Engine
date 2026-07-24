@@ -577,24 +577,53 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <button
                   onClick={() => setSelectedSlideIndex((i) => Math.max(0, i - 1))}
                   disabled={clampedSlideIndex === 0}
+                  aria-label="Previous slide"
                 >
                   ← Prev
                 </button>
-                <span>
-                  Slide {clampedSlideIndex + 1} of {blueprint.slides.length}
-                  {currentBeat && (
-                    <span className="beat-badge">{BEAT_LABELS[currentBeat] ?? currentBeat}</span>
-                  )}
-                </span>
+                <div className="slide-carousel" role="tablist" aria-label="Slides">
+                  {blueprint.slides.map((carouselSlide, i) => {
+                    const beat = blueprint.narrative_structure?.structured.slides.find(
+                      (s) => s.slide_id === carouselSlide.id
+                    )?.beat;
+                    return (
+                      <button
+                        key={carouselSlide.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={i === clampedSlideIndex}
+                        className={`slide-carousel-thumb${i === clampedSlideIndex ? ' active' : ''}`}
+                        onClick={() => setSelectedSlideIndex(i)}
+                        title={`Slide ${i + 1}${beat ? ` · ${BEAT_LABELS[beat] ?? beat}` : ''}`}
+                      >
+                        <img
+                          src={api.slideFileUrl(slideshowId, carouselSlide.id)}
+                          alt={`Slide ${i + 1}`}
+                          className="slide-carousel-thumb-image"
+                        />
+                        <span className="slide-carousel-thumb-index">{i + 1}</span>
+                      </button>
+                    );
+                  })}
+                </div>
                 <button
                   onClick={() =>
                     setSelectedSlideIndex((i) => Math.min(blueprint.slides.length - 1, i + 1))
                   }
                   disabled={clampedSlideIndex === blueprint.slides.length - 1}
+                  aria-label="Next slide"
                 >
                   Next →
                 </button>
               </div>
+            )}
+            {blueprint.slides.length > 1 && (
+              <p className="slide-carousel-caption">
+                Slide {clampedSlideIndex + 1} of {blueprint.slides.length}
+                {currentBeat && (
+                  <span className="beat-badge">{BEAT_LABELS[currentBeat] ?? currentBeat}</span>
+                )}
+              </p>
             )}
 
             {blueprint.status === 'failed' && blueprint.failed_stage && (
