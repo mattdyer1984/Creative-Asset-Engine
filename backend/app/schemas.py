@@ -183,6 +183,10 @@ class ListingDetailRead(ListingRead):
     # purely a hint the human can override, same as the member hints
     # themselves. None when there's no bundle evidence, or none was found.
     pending_bundle_title: str | None = None
+    # Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the
+    # single-product counterpart, for a listing with no bundle hints.
+    # Same "suggested default, never authoritative" reasoning.
+    pending_product_title: str | None = None
 
 
 class ListingSourceImportRequest(BaseModel):

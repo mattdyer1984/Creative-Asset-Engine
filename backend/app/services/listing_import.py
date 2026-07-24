@@ -247,6 +247,35 @@ def get_pending_bundle_title(db: Session, listing_id: str) -> str | None:
     return title if isinstance(title, str) else None
 
 
+def get_pending_product_title(db: Session, listing_id: str) -> str | None:
+    """
+    Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the single-
+    product counterpart to get_pending_bundle_title, closing the same
+    real gap for the non-bundle case: the simplified Create flow needs
+    to auto-create a Product from a pasted product URL with no user-
+    typed name at all, and the adapter-suggested title
+    (NormalizedProductEvidence.title) was already captured in every
+    import's normalized_json but never exposed for anything other than
+    a bundle's title. Never authoritative - purely a suggested default,
+    same as get_pending_bundle_title.
+    """
+    listing = db.get(Listing, listing_id)
+    if listing is None or listing.resolved_product_id is not None or listing.resolved_bundle_id is not None:
+        return None
+
+    current_import = db.scalars(
+        select(ProductSourceImport).where(
+            ProductSourceImport.listing_id == listing_id,
+            ProductSourceImport.is_current.is_(True),
+        )
+    ).first()
+    if current_import is None or not current_import.normalized_json:
+        return None
+
+    title = current_import.normalized_json.get("title")
+    return title if isinstance(title, str) else None
+
+
 def _current_pending_bundle_evidence(db: Session, listing_id: str) -> dict | None:
     listing = db.get(Listing, listing_id)
     if listing is None or listing.resolved_product_id is not None or listing.resolved_bundle_id is not None:

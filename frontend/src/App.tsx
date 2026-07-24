@@ -5,6 +5,7 @@ import { ImportPanel } from './components/ImportPanel';
 import { SlideshowGrid } from './components/SlideshowGrid';
 import { ProductManager } from './components/ProductManager';
 import { CatalogueImporter } from './components/CatalogueImporter';
+import { CreateCreativeFlow } from './components/CreateCreativeFlow';
 import './App.css';
 
 function App() {
@@ -111,6 +112,15 @@ function App() {
       <header className="app-header">
         <h1>Creative Asset Engine</h1>
       </header>
+
+      {/*
+        Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the
+        simplified Create flow, additive above the existing sections for
+        now so it can be live-verified end to end. Phase 11.9
+        restructures this page into a gallery home view with everything
+        below re-homed behind an Advanced entry point - not done here.
+      */}
+      <CreateCreativeFlow onCreated={reloadProductsAndSlideshows} />
 
       <section className="projects-section">
         <h2>Projects</h2>

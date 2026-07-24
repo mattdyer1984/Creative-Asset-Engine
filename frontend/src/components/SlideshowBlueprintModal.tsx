@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { resolveDefaultBundleSelection } from '../bundleDefaults';
 import {
   api,
   type AssembledSlideshowBlueprint,
@@ -218,35 +219,15 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
 
   // Phase 11.4 - defaults to exactly what the backend's own
   // resolve_primary_appearance would pick when bundle_members is
-  // omitted (prominence == "primary", ties broken by earliest-created),
-  // so a slide with only one product sends nothing different than
-  // before this phase - selecting 2+ is what actually opts into Bundle
-  // Composition.
+  // omitted, so a slide with only one product sends nothing different
+  // than before this phase - selecting 2+ is what actually opts into
+  // Bundle Composition. Phase 11.8 - shared with the simplified Create
+  // flow via resolveDefaultBundleSelection (bundleDefaults.ts), not a
+  // second copy of the same rule.
   useEffect(() => {
-    if (!primarySlideProducts || primarySlideProducts.length === 0) {
-      setSelectedBundleProductIds([]);
-      setBundleRoles({});
-      return;
-    }
-    const primaryMarked = primarySlideProducts.filter(
-      (p) => p.appearance.prominence === 'primary'
-    );
-    const candidates = primaryMarked.length > 0 ? primaryMarked : primarySlideProducts;
-    const earliest = candidates.reduce((a, b) => {
-      if (a.appearance.created_at !== b.appearance.created_at) {
-        return a.appearance.created_at < b.appearance.created_at ? a : b;
-      }
-      return a.appearance.id < b.appearance.id ? a : b;
-    });
-    setSelectedBundleProductIds([earliest.appearance.product_id]);
-    setBundleRoles(
-      Object.fromEntries(
-        primarySlideProducts.map((p) => [
-          p.appearance.product_id,
-          p.appearance.product?.display_name ?? p.appearance.product_id,
-        ])
-      )
-    );
+    const { selectedProductIds, roles } = resolveDefaultBundleSelection(primarySlideProducts);
+    setSelectedBundleProductIds(selectedProductIds);
+    setBundleRoles(roles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primarySlideId, primarySlideProductIdsKey]);
 

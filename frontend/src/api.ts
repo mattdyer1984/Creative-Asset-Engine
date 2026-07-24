@@ -158,6 +158,10 @@ export interface PendingBundleMemberHint {
 export interface ListingDetail extends Listing {
   pending_bundle_hints: PendingBundleMemberHint[];
   pending_bundle_title: string | null;
+  // Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the
+  // single-product counterpart, used to auto-name a new Product from a
+  // pasted product URL with no user-typed name.
+  pending_product_title: string | null;
 }
 
 export interface BundleMemberResolutionInput {

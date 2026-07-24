@@ -133,6 +133,41 @@ def test_get_listing_has_no_pending_hints_for_ordinary_evidence(client, monkeypa
     assert body["pending_bundle_hints"] == []
 
 
+def test_get_listing_exposes_pending_product_title(client, monkeypatch):
+    """
+    Phase 11.8 (Product Experience, see MIGRATION_PLAN.md) - the single-
+    product counterpart to test_get_listing_exposes_pending_bundle_hints:
+    a real gap the simplified Create flow found - the adapter-suggested
+    title was captured for every import but never exposed for the
+    non-bundle case, so there was no way to auto-name a Product from a
+    pasted product URL without asking the user to type one.
+    """
+    evidence = NormalizedProductEvidence(
+        source_type="generic_url", source_url="https://shop.example/widget", title="Deluxe Widget", brand="Acme"
+    )
+    _register_fake(monkeypatch, _FakeAdapter(evidence=evidence))
+    listing_id = client.post("/api/listings/source-import", json={"url": "https://shop.example/widget"}).json()["id"]
+
+    body = client.get(f"/api/listings/{listing_id}").json()
+
+    assert body["pending_product_title"] == "Deluxe Widget"
+    assert body["pending_bundle_title"] is None
+
+
+def test_get_listing_has_no_pending_product_title_once_resolved(client, monkeypatch):
+    evidence = NormalizedProductEvidence(
+        source_type="generic_url", source_url="https://shop.example/widget2", title="Deluxe Widget"
+    )
+    _register_fake(monkeypatch, _FakeAdapter(evidence=evidence))
+    listing_id = client.post("/api/listings/source-import", json={"url": "https://shop.example/widget2"}).json()["id"]
+    product_id = _create_product(client)
+    client.post(f"/api/listings/{listing_id}/resolve-existing-product", json={"product_id": product_id})
+
+    body = client.get(f"/api/listings/{listing_id}").json()
+
+    assert body["pending_product_title"] is None
+
+
 # --- resolve-existing-product / resolve-new-product --------------------------
 
 
