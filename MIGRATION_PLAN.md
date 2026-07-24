@@ -4357,4 +4357,16 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 
 - Commit: (see git log)
 
+### Phase 11.3: Validation drill-down for Generate Creative candidates (2026-07-24)
+
+**Closes a real, specific gap the Phase 11 audit found**: every candidate in a `generate-creative` response already carried its own `quality_assessment.photorealism` inline, and a rich per-field validation view (`ValidationResultPanel`) already existed for the legacy single-shot path - but the vNext retry-loop's own candidates only ever showed a bare accepted/rejected badge and a number. The detail existed one already-live endpoint away and was never wired in. No new backend needed - `GET .../generated-images/{id}/validation` already existed and every candidate already carries its own `generated_image.id`.
+
+**What was built**: a new `GenerationCandidateCard` component (replacing the near-duplicate inline candidate-rendering markup that previously lived separately in `GenerateCreativeResultsPanel` and Phase 11.2's `GenerationHistoryPanel` - one shared component now, not two drifting copies), click-to-expand, lazily fetching and caching `getCurrentValidationResult` per candidate id so re-expanding doesn't re-fetch. Reuses `ValidationResultPanel` unchanged for identity/creative checks. A new `PhotorealismFields` renders the full, real `PHOTOREALISM_SCHEMA` (Phase 10.3, `app.services.quality_engine`) - lighting/shadows/materials/reflections/perspective/object integrity/AI-artefact detection as a checklist, texture/sharpness/human-anatomy as labeled text, real `reasons` as a list - a real field set that was fetched into every generate-creative response all along and never rendered anywhere until now. Handles the Bundle Composition case honestly: a candidate whose `quality_assessment.image_validation_result_id` is null (bundle candidates set the plural `image_validation_result_ids` instead) resolves to a real "no single-product identity check for this candidate" note, not a crash or a silently-empty panel.
+
+**Live verification, real historical data, not a screenshot claim**: expanded a real candidate from the same slide's real 14-candidate history (Phase 11.2) - confirmed via the browser's own network log a real `200 OK` to `GET .../generated-images/{real-id}/validation`, and via direct DOM inspection the actual rendered content: `Identity: Pass`, `Creative: Fail`, six real per-field identity checks (silhouette, aspect_ratio, cap_geometry, corners_edges, brand_placement, typography_placement) each with a real ✓ and a real reason string. Photorealism correctly did not render for this candidate - honest, expected behavior, not a bug: every one of this slide's 14 real historical candidates failed Stage 2 (Creative Fidelity), and Photorealism is only ever spent after Product Fidelity passes (the established floor-before-spend design) - none of them ever reached it. `PhotorealismFields`'s own field names were double-checked against the real `PHOTOREALISM_SCHEMA` rather than re-triggering a fresh paid generation solely to exercise that one render branch, whose real data shape this session's own Phase 10.7 live verification already confirmed (`"Photorealism ran and scored 0.793"`).
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes.
+
+- Commit: (see git log)
+
 ---

@@ -697,6 +697,37 @@ section h2 {
   border: 1px solid #e2e2e2;
 }
 
+/* Phase 11.3 (see MIGRATION_PLAN.md) - click a candidate to drill into
+   its real validation/photorealism detail, previously fetched but
+   never rendered anywhere for the vNext retry-loop path. */
+.generation-candidate:has(.generation-candidate-detail) {
+  max-width: 320px;
+}
+
+.generation-candidate-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 0;
+}
+
+.generation-candidate-detail {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e2e2;
+  text-align: left;
+}
+
+.photorealism-panel {
+  margin-bottom: 0.6rem;
+}
+
 /* Phase 11.2 (see MIGRATION_PLAN.md) */
 .generation-history {
   margin-top: 1.2rem;

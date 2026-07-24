@@ -6,6 +6,7 @@ import {
   type GenerateCreativeResponseData,
   type GeneratedImageData,
   type GenerationAttemptData,
+  type GenerationCandidateData,
   type GenerationReferenceSet,
   type ImageValidationResultData,
   type ProductReferenceImage,
@@ -1036,35 +1037,161 @@ function GenerateCreativeResultsPanel({
             {attempt.retry_of_generation_attempt_id ? ' (retry)' : ''}
           </p>
           <div className="generation-candidate-row">
-            {attempt.candidates.map((candidate) => {
-              const isWinner = result.winner?.id === candidate.generated_image.id;
-              return (
-                <div
-                  key={candidate.generated_image.id}
-                  className={`generation-candidate ${isWinner ? 'generation-candidate-winner' : ''}`}
-                >
-                  <img
-                    src={api.generatedImageFileUrl(slideshowId, candidate.generated_image.id)}
-                    alt="Candidate"
-                    className="generation-candidate-thumbnail"
-                  />
-                  <span
-                    className={`validation-badge ${
-                      candidate.quality_assessment.accepted ? 'validation-pass' : 'validation-fail'
-                    }`}
-                  >
-                    {candidate.quality_assessment.accepted ? 'Accepted' : 'Rejected'}
-                    {isWinner && ' · Winner'}
-                  </span>
-                  <span className="blueprint-meta">
-                    Score: {candidate.quality_assessment.overall_confidence_score.toFixed(2)}
-                  </span>
-                </div>
-              );
-            })}
+            {attempt.candidates.map((candidate) => (
+              <GenerationCandidateCard
+                key={candidate.generated_image.id}
+                slideshowId={slideshowId}
+                candidate={candidate}
+                isWinner={result.winner?.id === candidate.generated_image.id}
+              />
+            ))}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Phase 11.3 (see MIGRATION_PLAN.md) - a real, specific gap the Phase
+ * 11 audit found: each candidate already carried its own
+ * quality_assessment.photorealism inline, and a rich per-field
+ * validation view (ValidationResultPanel) already existed for the
+ * legacy single-shot path, but the vNext retry-loop candidates only
+ * ever showed a bare accepted/rejected badge and a number - the same
+ * detail existed one endpoint away and was never wired in. Click a
+ * candidate to fetch and expand it, lazily and cached per candidate id
+ * so re-expanding doesn't re-fetch. `getCurrentValidationResult` can
+ * genuinely return null for a Bundle Composition candidate (which sets
+ * quality_assessment.image_validation_result_ids, plural, instead) -
+ * rendered as an honest "no single-product identity check for this
+ * candidate" note, not hidden or crashed on.
+ */
+function GenerationCandidateCard({
+  slideshowId,
+  candidate,
+  isWinner,
+  showProvider,
+}: {
+  slideshowId: string;
+  candidate: GenerationCandidateData;
+  isWinner: boolean;
+  showProvider?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [validation, setValidation] = useState<ImageValidationResultData | null | undefined>(
+    undefined
+  );
+
+  const handleToggle = () => {
+    setExpanded((prev) => !prev);
+    if (validation === undefined) {
+      api
+        .getCurrentValidationResult(slideshowId, candidate.generated_image.id)
+        .then(setValidation)
+        .catch(() => setValidation(null));
+    }
+  };
+
+  return (
+    <div
+      className={`generation-candidate ${isWinner ? 'generation-candidate-winner' : ''}`}
+    >
+      <button type="button" className="generation-candidate-toggle" onClick={handleToggle}>
+        <img
+          src={api.generatedImageFileUrl(slideshowId, candidate.generated_image.id)}
+          alt="Candidate"
+          className="generation-candidate-thumbnail"
+        />
+        <span
+          className={`validation-badge ${
+            candidate.quality_assessment.accepted ? 'validation-pass' : 'validation-fail'
+          }`}
+        >
+          {candidate.quality_assessment.accepted ? 'Accepted' : 'Rejected'}
+          {isWinner && ' · Winner'}
+        </span>
+        <span className="blueprint-meta">
+          {showProvider && `${candidate.generated_image.provider} · `}
+          Score: {candidate.quality_assessment.overall_confidence_score.toFixed(2)}
+        </span>
+      </button>
+      {expanded && (
+        <div className="generation-candidate-detail">
+          {candidate.quality_assessment.photorealism && (
+            <PhotorealismFields photorealism={candidate.quality_assessment.photorealism} />
+          )}
+          {validation === undefined ? (
+            <p className="blueprint-meta">Loading validation detail…</p>
+          ) : validation === null ? (
+            <p className="empty-state">
+              No single-product identity/creative check for this candidate (Bundle Composition
+              candidates validate per-product - see the reference set instead).
+            </p>
+          ) : (
+            <ValidationResultPanel result={validation} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Phase 11.3 - the Photorealism dimension's real, full field set (Phase
+ * 10.3, see MIGRATION_PLAN.md's vNext ADR §13's PHOTOREALISM_SCHEMA in
+ * app.services.quality_engine) - never previously rendered anywhere,
+ * despite being fetched into every generate-creative response all along.
+ */
+function PhotorealismFields({ photorealism }: { photorealism: Record<string, unknown> }) {
+  const booleanChecks: [string, string][] = [
+    ['realistic_lighting', 'Realistic lighting'],
+    ['believable_shadows', 'Believable shadows'],
+    ['material_accuracy', 'Material accuracy'],
+    ['reflections_correct', 'Reflections correct'],
+    ['perspective_correct', 'Perspective correct'],
+    ['object_integrity', 'Object integrity'],
+  ];
+  const reasons = Array.isArray(photorealism.reasons) ? (photorealism.reasons as string[]) : [];
+
+  return (
+    <div className="photorealism-panel">
+      <p className="field-list-label">Photorealism</p>
+      <ul className="field-check-list">
+        {booleanChecks.map(([key, label]) => (
+          <li
+            key={key}
+            className={photorealism[key] ? 'field-check-preserved' : 'field-check-violated'}
+          >
+            <span className="field-check-icon">{photorealism[key] ? '✓' : '✗'}</span>
+            <span className="field-label">{label}</span>
+          </li>
+        ))}
+        <li
+          className={
+            photorealism.ai_artefacts_detected ? 'field-check-violated' : 'field-check-preserved'
+          }
+        >
+          <span className="field-check-icon">{photorealism.ai_artefacts_detected ? '✗' : '✓'}</span>
+          <span className="field-label">
+            {photorealism.ai_artefacts_detected ? 'AI artefacts detected' : 'No AI artefacts detected'}
+          </span>
+        </li>
+      </ul>
+      <p className="blueprint-meta">
+        Texture: {String(photorealism.texture_quality)} · Sharpness:{' '}
+        {String(photorealism.image_sharpness)} · Human anatomy:{' '}
+        {String(photorealism.human_anatomy).replace('_', ' ')}
+      </p>
+      {reasons.length > 0 && (
+        <ul className="field-check-list">
+          {reasons.map((reason, i) => (
+            <li key={i}>
+              <p className="field-check-reason">{reason}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -1100,24 +1227,13 @@ function GenerationHistoryPanel({
           </p>
           <div className="generation-candidate-row">
             {attempt.candidates.map((candidate) => (
-              <div key={candidate.generated_image.id} className="generation-candidate">
-                <img
-                  src={api.generatedImageFileUrl(slideshowId, candidate.generated_image.id)}
-                  alt="Candidate"
-                  className="generation-candidate-thumbnail"
-                />
-                <span
-                  className={`validation-badge ${
-                    candidate.quality_assessment.accepted ? 'validation-pass' : 'validation-fail'
-                  }`}
-                >
-                  {candidate.quality_assessment.accepted ? 'Accepted' : 'Rejected'}
-                </span>
-                <span className="blueprint-meta">
-                  {candidate.generated_image.provider} · Score:{' '}
-                  {candidate.quality_assessment.overall_confidence_score.toFixed(2)}
-                </span>
-              </div>
+              <GenerationCandidateCard
+                key={candidate.generated_image.id}
+                slideshowId={slideshowId}
+                candidate={candidate}
+                isWinner={false}
+                showProvider
+              />
             ))}
           </div>
         </div>
