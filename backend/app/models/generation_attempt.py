@@ -33,6 +33,12 @@ only when this attempt used Bundle Composition (several distinct
 products composed into one scene), in which case
 generation_reference_set_id stays null (a bundle attempt has N Sets,
 one per member, not one - see BundleCompositionMember, not this row).
+
+generation_log_id (Phase 12, Human Feedback & Learning System - see
+MIGRATION_PLAN.md) links this attempt back to the one GenerationLog
+row its owning generate-creative *call* produced - nullable because the
+link is set by the router after generate_with_retry returns (this
+model, and the retry loop itself, know nothing about GenerationLog).
 """
 
 from datetime import datetime
@@ -62,5 +68,8 @@ class GenerationAttempt(Base):
     decision_json: Mapped[dict] = mapped_column(JSON, nullable=False)
     retry_of_generation_attempt_id: Mapped[str | None] = mapped_column(
         ForeignKey("generation_attempts.id"), nullable=True
+    )
+    generation_log_id: Mapped[str | None] = mapped_column(
+        ForeignKey("generation_logs.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(default=utcnow)

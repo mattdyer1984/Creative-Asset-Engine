@@ -79,9 +79,22 @@ app.services.slideshow_backfill (which read Creative to backfill
 historical data) is also gone; the backfill logic it held now lives
 frozen inside alembic/versions/8a76d08b06fe, which no longer depends on
 live model code - see that migration's own docstring.
+
+AppSetting, GenerationLog, and GenerationReview (Phase 12, Human
+Feedback & Learning System - see MIGRATION_PLAN.md) build the permanent,
+searchable dataset a future personalised quality model would train
+against, without attempting to build that model now. AppSetting is a
+one-row singleton holding the "Learning Mode" toggle. GenerationLog is
+the searchable index (one row per generate-creative call) over each
+call's self-contained on-disk archive folder
+(app.services.generation_log_archive). GenerationReview is the
+permanent, 1:1 human-labelled verdict on one GenerationLog - the actual
+training signal. GenerationAttempt.generation_log_id (nullable,
+additive) links attempts back to the call that produced them.
 """
 
 from app.models.analysis_run import AnalysisRun
+from app.models.app_setting import AppSetting
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
@@ -89,8 +102,10 @@ from app.models.evidence_source import EvidenceSource
 from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
+from app.models.generation_log import GenerationLog
 from app.models.generation_reference_set import GenerationReferenceSet
 from app.models.generation_reference_set_image import GenerationReferenceSetImage
+from app.models.generation_review import GenerationReview
 from app.models.image_validation_result import ImageValidationResult
 from app.models.listing import Listing
 from app.models.marketing_analysis import MarketingAnalysis
@@ -140,4 +155,7 @@ __all__ = [
     "Slideshow",
     "Slide",
     "ProductAppearance",
+    "AppSetting",
+    "GenerationLog",
+    "GenerationReview",
 ]

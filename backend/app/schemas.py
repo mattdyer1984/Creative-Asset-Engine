@@ -695,3 +695,16 @@ class AssembledSlideshowBlueprint(BaseModel):
 
     failed_stage: str | None = None
     failed_stage_error: str | None = None
+
+
+# --- Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) ----
+
+
+class AppSettingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    learning_mode_enabled: bool
+
+
+class AppSettingUpdateRequest(BaseModel):
+    learning_mode_enabled: bool

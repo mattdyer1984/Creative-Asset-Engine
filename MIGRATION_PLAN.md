@@ -4511,3 +4511,21 @@ No code changes. This closes the plan's implementation order (`/Users/apple/.cla
 - Commit: (see git log)
 
 ---
+
+## Phase 12: Human Feedback & Learning System
+
+The user redirected priorities again: with the engine complete and the UI now simple, the next need is to start collecting a permanent, human-labelled dataset for a future personalized quality model - without building that model now. Every generation becomes a labelled training example: a mandatory human review (score, issue category, comment) while "Learning Mode" is on, archived to a self-contained, reproducible folder on disk plus a searchable DB record. See the plan file this phase was implemented from (`/Users/apple/.claude/plans/jaunty-splashing-starfish.md`) for the full design, including three real spec/schema mismatches resolved there (no more `Creative` entity post-Phase-2.8 - `creative_id` maps to `slideshow_id`; no explicit "blueprint version"/"prompt version" counters exist - mapped to `CreativeSpecification.id`/`schema_version` and the winner's compiled `prompt_used`; the Results Modal's carousel is built for N slides but generation is still primary-slide-only, Phase 8's boundary, unchanged here).
+
+### Phase 12.1: Migration + models + Learning Mode setting (2026-07-24)
+
+**What was built**: three new tables (`app_settings`, `generation_logs`, `generation_reviews`) plus a nullable `generation_attempts.generation_log_id` FK, in one migration (`75c0ba1ec9fc`, follows the exact `f3ab7b7888f5` create-table-plus-batch-alter pattern). `AppSetting` is a one-row singleton (`id="singleton"`, lazily created on first read) holding `learning_mode_enabled` (default `True`) - deliberately a concrete boolean column, not a generic key-value settings store, since exactly one real setting exists today (matches this codebase's own "concrete columns over speculative generality" convention). `GenerationLog`/`GenerationReview` models added now (schema only) - not yet populated by `generate_creative`, that's Phase 12.2.
+
+New `GET /api/settings` / `PUT /api/settings` (`app/routers/settings.py`), registered in `main.py`. 4 new tests (`test_settings_api.py`) covering lazy creation, persistence across calls, and toggling both directions.
+
+**Live verification, real data**: ran the real migration against the real dev DB (`alembic upgrade head`), confirmed a real downgrade/upgrade round-trip and `alembic check` report zero drift. Hit the real running dev backend directly: `GET /api/settings` returned `{"learning_mode_enabled": true}` on first call (lazy-created), `PUT` with `false` then `true` both persisted correctly on the real singleton row, confirmed via a follow-up real `GET`.
+
+**Verification**: `tsc --noEmit`/`oxlint` unaffected (backend-only phase). Full backend suite green (418 passed, up from 411).
+
+- Commit: (see git log)
+
+---

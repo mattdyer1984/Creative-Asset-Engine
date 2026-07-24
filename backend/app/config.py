@@ -33,9 +33,23 @@ class Settings(BaseSettings):
         """Root for imported/generated files, organised Project -> Slideshow/Slide -> asset type."""
         return self.data_dir / "storage"
 
+    @property
+    def generation_logs_dir(self) -> Path:
+        """
+        Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+        root for the permanent, self-contained archive folder created for
+        every generate-creative call - one subfolder per call, named by
+        its exact timestamp (YYYY-MM-DD_HH-MM-SS). Deliberately separate
+        from storage_dir: this is a human-facing archive meant to be
+        browsed/opened directly (see "Generation Logs" in the spec),
+        not internal asset storage keyed by entity id.
+        """
+        return self.data_dir / "Generation Logs"
+
     def ensure_directories(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
+        self.generation_logs_dir.mkdir(parents=True, exist_ok=True)
 
 
 settings = Settings()
