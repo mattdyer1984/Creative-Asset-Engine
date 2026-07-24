@@ -4557,3 +4557,15 @@ New `GET /api/settings` / `PUT /api/settings` (`app/routers/settings.py`), regis
 - Commit: (see git log)
 
 ---
+
+### Phase 12.4: ZIP download + open-folder endpoints (2026-07-24)
+
+**What was built**: `GET /api/generation-logs/{id}/download-zip` and `POST /api/generation-logs/{id}/open-folder`, both in `app/routers/generation_logs.py`. The ZIP is built in-memory (`zipfile.ZipFile` + `io.BytesIO`, no temp file on disk) from whatever real files already sit in the archive's `generated/` folder - correctly empty when no candidate won, matching Phase 12.2's own "no winner is a real, honest outcome" archiving. Deliberately contains only the publish-ready images (`Content-Disposition: attachment`), never `generation.json`/`review.json` - the spec's own "standard download" boundary. `open-folder` shells out `subprocess.run(["open", archive_path], check=False)`, the same locally-scoped macOS automation pattern already established for Downie (`app/importers/downie.py`) - appropriate since this whole app runs on Matt's own machine. This is the first `StreamingResponse`/ZIP endpoint in the codebase (confirmed via research during planning - no prior precedent to follow).
+
+**Live verification, real data**: 4 new backend tests (`test_generation_logs_api.py`, now 16 total in the file) - 404s for both endpoints against an unknown id, a real ZIP response inspected via `zipfile.ZipFile(io.BytesIO(...))` confirming exactly the generated image(s) and no JSON files, and `open-folder` confirmed to call `subprocess.run` with exactly `["open", archive_path]` via a monkeypatched spy. Then hit the real running dev server: `GET .../download-zip` on the same real "no winner" `GenerationLog` from Phase 12.2/12.3's own live verification returned a real `200 application/zip` with a correctly empty archive (`[]` - no candidate had won, so nothing belongs in `generated/`); the same call against an unknown id returned `404`; `POST .../open-folder` returned a real `204` and genuinely opened a real Finder window on the archive folder; the same call against an unknown id returned `404`.
+
+**Verification**: full backend suite green (436 passed, up from 432).
+
+- Commit: (see git log)
+
+---

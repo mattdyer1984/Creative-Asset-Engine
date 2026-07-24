@@ -242,3 +242,53 @@ def test_create_review_snapshots_learning_mode_disabled(client, monkeypatch, db_
     )
 
     assert response.json()["learning_mode_enabled"] is False
+
+
+# --- GET /api/generation-logs/{id}/download-zip -------------------------
+
+
+def test_download_zip_unknown_generation_log_404s(client):
+    response = client.get("/api/generation-logs/does-not-exist/download-zip")
+    assert response.status_code == 404
+
+
+def test_download_zip_contains_only_the_generated_images(client, monkeypatch, db_session):
+    import io
+    import zipfile
+
+    generation_log_id, _ = _create_a_real_generation_log(client, monkeypatch, db_session)
+
+    response = client.get(f"/api/generation-logs/{generation_log_id}/download-zip")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+    names = zip_file.namelist()
+    # Only the publish-ready image(s) - no generation.json/review.json.
+    assert len(names) == 1
+    assert names[0].startswith("slide_01")
+    assert not any(name.endswith(".json") for name in names)
+
+
+# --- POST /api/generation-logs/{id}/open-folder --------------------------
+
+
+def test_open_folder_unknown_generation_log_404s(client):
+    response = client.post("/api/generation-logs/does-not-exist/open-folder")
+    assert response.status_code == 404
+
+
+def test_open_folder_shells_out_to_open_with_the_archive_path(client, monkeypatch, db_session):
+    generation_log_id, _ = _create_a_real_generation_log(client, monkeypatch, db_session)
+    archive_path = client.get(f"/api/generation-logs/{generation_log_id}").json()["archive_path"]
+
+    calls = []
+    monkeypatch.setattr(
+        "app.routers.generation_logs.subprocess.run",
+        lambda args, **kwargs: calls.append(args),
+    )
+
+    response = client.post(f"/api/generation-logs/{generation_log_id}/open-folder")
+
+    assert response.status_code == 204
+    assert calls == [["open", archive_path]]

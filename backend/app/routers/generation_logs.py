@@ -6,7 +6,13 @@ the one human review each log can carry - the actual training signal a
 future personalised quality model would learn from.
 """
 
+import io
+import subprocess
+import zipfile
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -130,3 +136,45 @@ def create_review(
     write_review(generation_log, review)
 
     return review
+
+
+@router.get("/{generation_log_id}/download-zip")
+def download_zip(generation_log_id: str, db: Session = Depends(get_db)) -> StreamingResponse:
+    """
+    The primary download action from the spec - only the final,
+    publish-ready images already sitting in the archive's generated/
+    folder, never generation.json/review.json or any other internal
+    metadata. Built in-memory (no temp file on disk) since these
+    archives are small (one slide's worth of candidates today).
+    """
+    generation_log = db.get(GenerationLog, generation_log_id)
+    if generation_log is None:
+        raise HTTPException(status_code=404, detail="Generation log not found")
+
+    generated_dir = Path(generation_log.archive_path) / "generated"
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        if generated_dir.is_dir():
+            for file_path in sorted(generated_dir.iterdir()):
+                zip_file.write(file_path, arcname=file_path.name)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{generation_log_id}.zip"'},
+    )
+
+
+@router.post("/{generation_log_id}/open-folder", status_code=204)
+def open_folder(generation_log_id: str, db: Session = Depends(get_db)) -> None:
+    """
+    macOS-only, same locally-scoped `open` automation already
+    established for Downie (app/importers/downie.py) - appropriate
+    since this whole app runs on Matt's own machine.
+    """
+    generation_log = db.get(GenerationLog, generation_log_id)
+    if generation_log is None:
+        raise HTTPException(status_code=404, detail="Generation log not found")
+
+    subprocess.run(["open", generation_log.archive_path], check=False)
