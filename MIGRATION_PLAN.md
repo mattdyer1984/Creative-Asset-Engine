@@ -4497,3 +4497,17 @@ Everything from this point onward follows a different mandate than the rest of P
 - Commit: (see git log)
 
 ---
+
+### Phase 11.11: Polish pass (2026-07-24)
+
+Reviewed the plan's three named polish items against the app as it stood after Phase 11.9's restructure, rather than assuming new code was needed:
+
+- **"Remove the provider dropdown from the primary path"**: already true. `CreateCreativeFlow` (the primary path) never had a provider selector - `importSlideshowFromUrl` has always defaulted to `'tiktok'` (Phase 11.1). The `TikTok (native)` / `Downie (fallback)` dropdown only exists in `ImportPanel.tsx`, which Phase 11.9 moved entirely behind the Advanced toggle. Nothing to change.
+- **"Simplify per-slide product terminology"**: `SlideProductPicker`'s "Assign product…"/"Add another product…" labels are now Advanced-only surface (`SlideshowGrid`, inside the collapsed section) - a power user knowingly opting into the technical view. Left unchanged rather than rewriting working copy nobody in the primary path ever sees, per the standing "don't redesign unnecessarily" principle from earlier in Phase 11.
+- **"Revisit whether Quick Generate needs to remain reachable"**: recommendation is keep it, unchanged, in Advanced (inside `SlideshowBlueprintModal`) - it's a real, distinct capability (one-shot, no retries) documented as such since Phase 11.6, not a legacy relic, and Phase 11.9 already resolved the "competes with the primary path" problem by making the whole modal Advanced-only.
+
+No code changes. This closes the plan's implementation order (`/Users/apple/.claude/plans/jaunty-splashing-starfish.md`): review -> design -> implement (11.8) -> re-home (11.9-11.10) -> polish (11.11).
+
+- Commit: (see git log)
+
+---
