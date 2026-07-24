@@ -4847,3 +4847,34 @@ Scoped correctly to compile-time, not generation-time: `background_environment` 
 Ran a real `POST .../generate-creative` (`quality_mode="fast"`, `text_strategy="reuse_original"`) against the exact slide from the original bug report. The real base `GeneratedImage` (Nano Banana 2) now has **no caption baked in at all** - confirmed by inspecting the raw image before any compositing. The real `FinalOutput` shows the caption rendered exactly once, via the Rendering Engine's own overlay box, with a correct £ symbol and no collision - the caption now appears in the final image exactly once, for the right reason.
 
 - Commit: (see git log)
+
+---
+
+## Redesign: one unified, centered, stroked, no-background text style (2026-07-24)
+
+### Context
+
+Direct user follow-up, describing the Rendering Engine's original per-hierarchy design (a solid, semi-transparent black scrim rectangle behind `headline`/`subhead` text, a solid rounded badge behind `cta` text) as not what they wanted: *"I want the text to always be in the same style. The font that was used in the uploaded slideshow with a little bit of stroke, always centered as well never left justified... and always with no background. I don't like the black background."*
+
+### What changed
+
+**`app/services/text_intelligence.py`**: `_HIERARCHY_STYLE` simplified to `{"size_class": ...}` per hierarchy tier - `weight` and `render_style` dropped entirely. Every other styling concern (typeface, stroke, centering, background) is no longer a per-hierarchy design choice; it's now one unconditional treatment every `TextAsset` gets, applied entirely in the Rendering Engine.
+
+**`app/services/rendering_engine.py`**, rewritten:
+- **Real bold typeface**: `_SYSTEM_FONT_CANDIDATES` (already added for £ glyph coverage in the previous fix) now pairs each font path with its actual Bold face index (`Helvetica.ttc`/`HelveticaNeue.ttc` index 1, confirmed via direct introspection - both are `.ttc` collections containing Regular/Bold/Oblique/etc. as separate indexed faces), replacing the old "faux-bold via a tiny double-draw offset" hack (`_draw_faux_bold`, removed) that a single-weight bundled font previously needed.
+- **Stroke outline**: Pillow's own native `stroke_width`/`stroke_fill` parameters on `draw.multiline_text`/`multiline_textbbox` (not previously used anywhere in this file) - white fill, black stroke, `_STROKE_WIDTH_FRACTION = 0.006` of image height ("a little bit," not a heavy comic-book outline).
+- **Always centered**: `_render_text_asset` computes the wrapped text block's true width via `multiline_textbbox(..., align="center")`, then positions it so the block itself is horizontally centered on the *full image width* - not confined to wherever the original slide's OCR happened to find a narrow bounding box (which is what produced the visibly left-justified block in the screenshot that prompted this). `align="center"` also centers each wrapped line relative to the others, so multi-line captions read correctly, not just the block's overall position.
+- **No background of any kind**: `_render_scrim_text`/`_render_badge_text` and every fill-rectangle/badge-rectangle call removed outright - `_SCRIM_FILL`, `_BADGE_FILL`, `_BADGE_TEXT_COLOR` deleted. Legibility now comes entirely from the stroke outline, the same technique the original creator's own on-screen caption visibly used.
+- **Collision-avoidance simplified in effect, not code**: `_resolve_y`'s 2D (x-and-y) collision logic (added in the previous fix) is unchanged, but every asset now renders across nearly the same full-width centered band, so in practice every pair of assets always overlaps horizontally - the stacking pass now always resolves to straightforward top-to-bottom ordering, which is exactly correct for centered captions (they can never legitimately sit side-by-side, unlike the old per-hierarchy layout where a `cta` badge might sit beside other text).
+
+**Literal font-matching remains explicitly out of scope**, same reasoning `text_intelligence.py` already documented before this change: identifying an arbitrary real typeface from pixels is a genuinely hard, unsolved problem this codebase makes no claim to solve. What changed is real bold weight + stroke + centering + no box - the combination that actually reads as "the original caption style" regardless of whether the literal font family matches pixel-for-pixel.
+
+### Test coverage
+
+`tests/test_text_intelligence.py`: `styling` dict assertions updated to the simplified `{"size_class": ...}` shape. `tests/test_rendering_engine.py`: the old scrim/badge-specific tests merged into style-agnostic mechanical tests; three new pixel-level tests added (not just "doesn't crash," real `ImageChops.difference`-based pixel inspection) - text renders horizontally centered on the image regardless of its original left-anchored position; the area immediately beside short rendered text is provably untouched (still the exact original background color, proving no fill rectangle); both white fill and black stroke pixels are present in the output. Full backend suite: 502 passed (up from 500); `ruff check` clean.
+
+### Live verification, real data, the exact reported case
+
+Rebuilt `TextAsset`s and re-rendered against the real base `GeneratedImage` from this session's own live-verified, caption-free generation (`slide_id=43d104a2-adc1-4ec8-9027-01b9e83bef8a`) - a pure function over already-real bytes, no new paid generation call needed. The result: bold white text with a thin black stroke, horizontally centered on the image, with no background box of any kind - directly matching every element of the user's request.
+
+- Commit: (see git log)

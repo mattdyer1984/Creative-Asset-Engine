@@ -42,17 +42,18 @@ tri-state handling of pre-migration OCR data with no `surface` at all.
 - identifying an arbitrary real font from pixels is a genuinely hard,
 unsolved problem this codebase makes no claim to solve, and this ADR
 never asked for it (§9 only ever says "typography... extracted or
-chosen", explicitly leaving room for "chosen"). Font weight/size here
-are a deterministic function of `hierarchy` (computed in code from
-`role`, never asked of an AI), rendered by
-app.services.rendering_engine with Pillow's own bundled default font
-(`PIL.ImageFont.load_default`) - portable everywhere Pillow runs, no
-external font files to source, download, or license. A real,
-live-verified feasibility spike (see this phase's report in
-MIGRATION_PLAN.md) confirmed this combination - deterministic sizing +
-a semi-transparent legibility scrim - reads as clean, professional
-overlay text even over a busy, real generated photograph, not the
-harder, unsolved problem of exact typographic reproduction.
+chosen", explicitly leaving room for "chosen"). Font size here is a
+deterministic function of `hierarchy` (computed in code from `role`,
+never asked of an AI); everything else about how it's drawn (real bold
+system typeface, black stroke outline, centered, no background box) is
+a single, unconditional style app.services.rendering_engine applies to
+every TextAsset - a real-world-diagnosed, user-directed simplification
+(see MIGRATION_PLAN.md) from the original per-hierarchy scrim/badge
+design: a real generated image's overlay boxes read as inconsistent
+and visually heavy (a solid black rectangle behind every line), and
+the user asked for one consistent treatment matching how the original
+creator's own on-screen caption actually looked - centered, stroked,
+no box - rather than a design system per marketing role.
 
 A TextAsset is a plain dict, not its own DB table (deliberately,
 mirroring SceneAnalysis.regions_json's own "no separate join table,
@@ -81,12 +82,15 @@ _ROLE_TO_HIERARCHY = {
     "cta": "cta",
 }
 
-# hierarchy -> deterministic styling, computed in code (see module
-# docstring for why this isn't literal font extraction).
+# hierarchy -> deterministic size only (see module docstring - every
+# other styling concern, real bold typeface/stroke/centering/no
+# background, is now a single unconditional treatment
+# app.services.rendering_engine applies to every TextAsset, not a
+# per-hierarchy design choice made here).
 _HIERARCHY_STYLE = {
-    "headline": {"size_class": "large", "weight": "bold", "render_style": "scrim"},
-    "subhead": {"size_class": "medium", "weight": "regular", "render_style": "scrim"},
-    "cta": {"size_class": "medium", "weight": "bold", "render_style": "badge"},
+    "headline": {"size_class": "large"},
+    "subhead": {"size_class": "medium"},
+    "cta": {"size_class": "medium"},
 }
 
 # hierarchy -> semantic_role, reusing NarrativeStructure's own beat
@@ -168,8 +172,6 @@ def _text_asset_from_block(block: dict, wording: str) -> dict:
         },
         "styling": {
             "size_class": style["size_class"],
-            "weight": style["weight"],
-            "render_style": style["render_style"],
         },
     }
 

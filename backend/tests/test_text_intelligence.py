@@ -70,12 +70,12 @@ def test_reuse_original_builds_one_text_asset_per_eligible_block():
     assert assets[0]["hierarchy"] == "headline"
     assert assets[0]["semantic_role"] == "hook"
     assert assets[0]["positioning"] == {"x": 0.05, "y": 0.05, "width": pytest.approx(0.85)}
-    assert assets[0]["styling"] == {"size_class": "large", "weight": "bold", "render_style": "scrim"}
+    assert assets[0]["styling"] == {"size_class": "large"}
 
     assert assets[1]["wording"] == "SHOP NOW"
     assert assets[1]["hierarchy"] == "cta"
     assert assets[1]["semantic_role"] == "cta"
-    assert assets[1]["styling"]["render_style"] == "badge"
+    assert assets[1]["styling"] == {"size_class": "medium"}
 
 
 def test_reuse_original_skips_blocks_with_no_bounding_box():
