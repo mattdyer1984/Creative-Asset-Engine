@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { resolveDefaultBundleSelection } from '../bundleDefaults';
-import { api, type GenerateCreativeResponseData, type Product, type TextStrategy } from '../api';
+import {
+  api,
+  type GenerateCreativeRequest,
+  type GenerateCreativeResponseData,
+  type Product,
+  type TextStrategy,
+} from '../api';
+import { GenerationResultsModal } from './GenerationResultsModal';
 import { SlideshowBlueprintModal } from './SlideshowBlueprintModal';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,6 +69,11 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateCreativeResponseData | null>(null);
   const [resultSlideshowId, setResultSlideshowId] = useState<string | null>(null);
+  const [resultSlideId, setResultSlideId] = useState<string | null>(null);
+  // The exact request generateCreative was called with - Regenerate (Phase
+  // 12.6) re-invokes the same call rather than guessing settings back out
+  // of the response.
+  const [resultRequest, setResultRequest] = useState<GenerateCreativeRequest | null>(null);
   // Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) - opens the
   // existing, unmodified SlideshowBlueprintModal (Advanced) for anyone
   // who wants the full technical picture behind this result - every
@@ -181,15 +193,18 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
               role_in_scene: roles[productId] ?? productId,
             }))
           : undefined;
-      const generated = await api.generateCreative(slideshow.id, primarySlideId, {
+      const request: GenerateCreativeRequest = {
         quality_mode: 'fast',
         creativity_level: 'conservative',
         text_strategy: textStrategy,
         ...(bundleMembers ? { bundle_members: bundleMembers } : {}),
-      });
+      };
+      const generated = await api.generateCreative(slideshow.id, primarySlideId, request);
 
       setResult(generated);
       setResultSlideshowId(slideshow.id);
+      setResultSlideId(primarySlideId);
+      setResultRequest(request);
       setPhase('done');
       onCreated();
     } catch (err) {
@@ -203,48 +218,31 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
     setError(null);
     setResult(null);
     setResultSlideshowId(null);
+    setResultSlideId(null);
+    setResultRequest(null);
+    setShowAdvancedModal(false);
   };
 
-  if (phase === 'done' && result) {
-    const resultImageUrl = resultSlideshowId
-      ? result.final_output
-        ? api.finalOutputFileUrl(resultSlideshowId, result.final_output.id)
-        : result.winner
-          ? api.generatedImageFileUrl(resultSlideshowId, result.winner.id)
-          : null
-      : null;
+  if (phase === 'done' && result && resultSlideshowId && resultSlideId && resultRequest) {
     return (
-      <div className="create-flow-result">
-        <h2>Your creative</h2>
-        {resultImageUrl ? (
-          <>
-            <img src={resultImageUrl} alt="Generated creative" className="create-flow-result-image" />
-            <a href={resultImageUrl} download className="rerun-button">
-              Download
-            </a>
-          </>
-        ) : (
-          <p className="empty-state">
-            We ran the generation, but nothing passed our quality checks this time. Try again, or try a
-            different text option.
-          </p>
-        )}
-        <button className="rerun-button secondary" onClick={handleReset}>
-          Create Another
-        </button>
-        {resultSlideshowId && (
-          <button type="button" className="text-button create-flow-advanced-link" onClick={() => setShowAdvancedModal(true)}>
-            View technical details
-          </button>
-        )}
-        {showAdvancedModal && resultSlideshowId && (
+      <>
+        <GenerationResultsModal
+          slideshowId={resultSlideshowId}
+          slideId={resultSlideId}
+          initialResult={result}
+          regenerateRequest={resultRequest}
+          onClose={handleReset}
+          onChanged={onCreated}
+          onOpenAdvanced={() => setShowAdvancedModal(true)}
+        />
+        {showAdvancedModal && (
           <SlideshowBlueprintModal
             slideshowId={resultSlideshowId}
             onClose={() => setShowAdvancedModal(false)}
             onChanged={onCreated}
           />
         )}
-      </div>
+      </>
     );
   }
 

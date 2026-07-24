@@ -1696,29 +1696,6 @@ section h2 {
   cursor: default;
 }
 
-.create-flow-result {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  text-align: center;
-}
-
-.create-flow-result-image {
-  max-width: 100%;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-/* Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) */
-.create-flow-advanced-link {
-  display: block;
-  margin: 0.75rem auto 0;
-  font-size: 0.8rem;
-}
-
 /* Phase 11.9 (Product Experience, see MIGRATION_PLAN.md) - the gallery
    home view + Advanced toggle, replacing the flat section stack as the
    default landing view. */
@@ -1778,4 +1755,246 @@ section h2 {
   margin: 0 auto;
   padding-top: 1rem;
   border-top: 1px solid #eee;
+}
+
+/* Phase 12.5 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+   the primary post-generation surface, full-screen (not the capped-width
+   .blueprint-modal pattern) since Generate -> this modal -> Human Review
+   is now the main workflow, not a secondary detail view. */
+.results-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.75);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  z-index: 200;
+}
+
+.results-modal {
+  position: relative;
+  background: #fafafa;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 1.5rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.results-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #eee;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+}
+
+.results-modal-close:hover {
+  background: #e0e0e0;
+}
+
+.results-modal-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.results-modal-image-frame {
+  background: #1a1a1a;
+  border-radius: 10px;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  max-height: 65vh;
+  cursor: zoom-in;
+}
+
+.results-modal-image-frame img {
+  max-width: 100%;
+  max-height: 65vh;
+  display: block;
+}
+
+.results-modal-image-frame.zoomed {
+  cursor: zoom-out;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.results-modal-image-frame.zoomed img {
+  max-width: none;
+  max-height: none;
+  width: 200%;
+}
+
+.results-modal-before-after {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.results-modal-before-after button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 999px;
+  background: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.results-modal-before-after button.active {
+  background: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
+}
+
+.results-modal-carousel {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.results-modal-carousel-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eee;
+  border: 2px solid transparent;
+}
+
+.results-modal-carousel-thumb.active {
+  border-color: #1a1a1a;
+}
+
+.results-modal-carousel-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.results-modal-review {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.results-modal-review h3 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.results-modal-score-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.results-modal-score-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.results-modal-score-row input[type='range'] {
+  flex: 1;
+}
+
+.results-modal-score-row input[type='number'] {
+  width: 4rem;
+  padding: 0.3rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+}
+
+.results-modal-issue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.results-modal-issue-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.results-modal-comment-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.results-modal-comment-label textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.results-modal-review-saved p {
+  margin: 0.3rem 0;
+}
+
+.results-modal-review-comment {
+  font-style: italic;
+  color: #555;
+}
+
+.results-modal-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e2e2;
+}
+
+.results-modal-primary-download {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.results-modal-close-hint {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: #777;
+  margin: 0.25rem 0 0;
+}
+
+@media (max-width: 800px) {
+  .results-modal {
+    grid-template-columns: 1fr;
+  }
 }

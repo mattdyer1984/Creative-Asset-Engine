@@ -368,6 +368,60 @@ export interface GenerateCreativeResponseData {
   attempts: GenerationAttemptData[];
   winner: GeneratedImageData | null;
   final_output: FinalOutputData | null;
+  // Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+  // the permanent id every archive/review/future-regeneration hangs off.
+  generation_log_id: string;
+}
+
+// --- Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) ----
+
+export interface AppSettingsData {
+  learning_mode_enabled: boolean;
+}
+
+export type MainIssue =
+  | 'none'
+  | 'product_accuracy'
+  | 'composition'
+  | 'realism'
+  | 'lighting'
+  | 'text'
+  | 'background'
+  | 'originality'
+  | 'other';
+
+export interface GenerationReviewData {
+  id: string;
+  generation_log_id: string;
+  overall_score: number;
+  main_issue: MainIssue;
+  comment: string | null;
+  learning_mode_enabled: boolean;
+  created_at: string;
+}
+
+export interface GenerationLogData {
+  id: string;
+  slideshow_id: string;
+  slide_id: string;
+  project_id: string | null;
+  product_id: string | null;
+  bundle_product_ids_json: string[] | null;
+  winning_generated_image_id: string | null;
+  final_output_id: string | null;
+  quality_mode: QualityMode;
+  creativity_level: CreativityLevel;
+  text_strategy: TextStrategy | null;
+  ai_provider: string | null;
+  ai_model: string | null;
+  retry_count: number;
+  generation_duration_seconds: number;
+  archive_path: string;
+  created_at: string;
+}
+
+export interface GenerationLogDetailData extends GenerationLogData {
+  review: GenerationReviewData | null;
 }
 
 // Phase 7.2 (Narrative pass, see MIGRATION_PLAN.md) - structured is
@@ -767,6 +821,58 @@ export const api = {
   // whenever a Product gets linked to one of the Project's Slides.
   listProjectProducts: (projectId: string): Promise<Product[]> =>
     fetch(`/api/projects/${projectId}/products`).then((res) => handle<Product[]>(res)),
+
+  // Phase 12 (Human Feedback & Learning System, see MIGRATION_PLAN.md) -
+  // the Learning Mode toggle, and the searchable Generation Log/review
+  // surface every generate-creative call now feeds.
+  getSettings: (): Promise<AppSettingsData> =>
+    fetch('/api/settings').then((res) => handle<AppSettingsData>(res)),
+
+  updateSettings: (input: AppSettingsData): Promise<AppSettingsData> =>
+    fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }).then((res) => handle<AppSettingsData>(res)),
+
+  getGenerationLog: (generationLogId: string): Promise<GenerationLogDetailData> =>
+    fetch(`/api/generation-logs/${generationLogId}`).then((res) =>
+      handle<GenerationLogDetailData>(res)
+    ),
+
+  listGenerationLogs: (params?: {
+    productId?: string;
+    sort?: 'created_desc' | 'score_desc' | 'score_asc';
+  }): Promise<GenerationLogData[]> => {
+    const query = new URLSearchParams();
+    if (params?.productId) query.set('product_id', params.productId);
+    if (params?.sort) query.set('sort', params.sort);
+    const qs = query.toString();
+    return fetch(`/api/generation-logs${qs ? `?${qs}` : ''}`).then((res) =>
+      handle<GenerationLogData[]>(res)
+    );
+  },
+
+  // The one write path into a generation's permanent human review - see
+  // GenerationResultsModal.tsx, the mandatory-while-Learning-Mode-is-on
+  // review form.
+  submitGenerationReview: (
+    generationLogId: string,
+    payload: { overall_score: number; main_issue: MainIssue; comment?: string | null }
+  ): Promise<GenerationReviewData> =>
+    fetch(`/api/generation-logs/${generationLogId}/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then((res) => handle<GenerationReviewData>(res)),
+
+  generationLogZipUrl: (generationLogId: string): string =>
+    `/api/generation-logs/${generationLogId}/download-zip`,
+
+  openGenerationLogFolder: (generationLogId: string): Promise<void> =>
+    fetch(`/api/generation-logs/${generationLogId}/open-folder`, { method: 'POST' }).then((res) => {
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    }),
 };
 
 export interface SlideProductAppearance {
