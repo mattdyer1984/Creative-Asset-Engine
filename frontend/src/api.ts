@@ -749,6 +749,18 @@ export const api = {
   finalOutputFileUrl: (slideshowId: string, finalOutputId: string): string =>
     `/api/slideshows/${slideshowId}/final-outputs/${finalOutputId}/file`,
 
+  // Phase 11.2 (see MIGRATION_PLAN.md) - every persisted GenerationAttempt
+  // for this slide, most recent first, independent of the one paid
+  // generateCreative call that created each one. Same
+  // GenerationAttemptData shape generateCreative's own response uses.
+  listGenerationAttempts: (
+    slideshowId: string,
+    slideId: string
+  ): Promise<GenerationAttemptData[]> =>
+    fetch(`/api/slideshows/${slideshowId}/slides/${slideId}/generation-attempts`).then((res) =>
+      handle<GenerationAttemptData[]>(res)
+    ),
+
   // Phase 10.5 (AI Creative Engine vNext, see MIGRATION_PLAN.md's ADR
   // §3) - the read side of ProjectProduct, populated automatically
   // whenever a Product gets linked to one of the Project's Slides.

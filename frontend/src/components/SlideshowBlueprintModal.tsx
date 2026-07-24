@@ -5,6 +5,7 @@ import {
   type CreativityLevel,
   type GenerateCreativeResponseData,
   type GeneratedImageData,
+  type GenerationAttemptData,
   type GenerationReferenceSet,
   type ImageValidationResultData,
   type ProductReferenceImage,
@@ -87,6 +88,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   const [textStrategy, setTextStrategy] = useState<TextStrategy | ''>('');
   const [generateCreativeResult, setGenerateCreativeResult] =
     useState<GenerateCreativeResponseData | null>(null);
+  // Phase 11.2 (see MIGRATION_PLAN.md) - every persisted attempt for this
+  // slide, independent of `generateCreativeResult` above (which only ever
+  // holds the single most recent in-memory response, lost on modal close/
+  // page reload). Loaded whenever the primary slide is known, and
+  // refreshed after a new generate-creative call so it never goes stale.
+  const [generationHistory, setGenerationHistory] = useState<GenerationAttemptData[]>([]);
   // Phase 9.5 of Product Lock v2 (see MIGRATION_PLAN.md's ADR §9) - the
   // Canonical Reference Library is compute-on-read (never part of
   // `blueprint`), keyed by product_id since a slide can carry 2+
@@ -199,6 +206,19 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
       .getCurrentGeneratedImage(slideshowId, primarySlideId)
       .then(setGeneratedImage)
       .catch((err) => setError((err as Error).message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideshowId, primarySlideId]);
+
+  const loadGenerationHistory = () => {
+    if (!primarySlideId) return;
+    api
+      .listGenerationAttempts(slideshowId, primarySlideId)
+      .then(setGenerationHistory)
+      .catch((err) => setError((err as Error).message));
+  };
+
+  useEffect(() => {
+    loadGenerationHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideshowId, primarySlideId]);
 
@@ -349,6 +369,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
         ...(textStrategy ? { text_strategy: textStrategy } : {}),
       });
       setGenerateCreativeResult(result);
+      loadGenerationHistory();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -808,6 +829,9 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                   result={generateCreativeResult}
                 />
               )}
+              {generationHistory.length > 0 && (
+                <GenerationHistoryPanel slideshowId={slideshowId} attempts={generationHistory} />
+              )}
             </section>
           </>
         )}
@@ -1038,6 +1062,63 @@ function GenerateCreativeResultsPanel({
                 </div>
               );
             })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Phase 11.2 (see MIGRATION_PLAN.md) - the full, persisted record of
+ * every generate-creative call ever made for this slide, not just the
+ * single most-recent in-memory response GenerateCreativeResultsPanel
+ * above shows. Reopening the blueprint modal (or reloading the page)
+ * used to lose that history entirely - this reads it back from
+ * GET .../generation-attempts instead. Deliberately doesn't try to
+ * recompute a single global "winner" across separate calls (each
+ * generate-creative call has its own independent accept/reject outcome)
+ * - each candidate's own accepted/rejected badge is the honest, correct
+ * unit here, not a reconstructed cross-call concept.
+ */
+function GenerationHistoryPanel({
+  slideshowId,
+  attempts,
+}: {
+  slideshowId: string;
+  attempts: GenerationAttemptData[];
+}) {
+  return (
+    <div className="generation-history">
+      <p className="field-list-label">Generation History ({attempts.length})</p>
+      {attempts.map((attempt) => (
+        <div key={attempt.id} className="generation-attempt-panel">
+          <p className="field-list-label">
+            {attempt.quality_mode}
+            {attempt.retry_of_generation_attempt_id ? ' (retry)' : ''} ·{' '}
+            {new Date(attempt.created_at).toLocaleString()}
+          </p>
+          <div className="generation-candidate-row">
+            {attempt.candidates.map((candidate) => (
+              <div key={candidate.generated_image.id} className="generation-candidate">
+                <img
+                  src={api.generatedImageFileUrl(slideshowId, candidate.generated_image.id)}
+                  alt="Candidate"
+                  className="generation-candidate-thumbnail"
+                />
+                <span
+                  className={`validation-badge ${
+                    candidate.quality_assessment.accepted ? 'validation-pass' : 'validation-fail'
+                  }`}
+                >
+                  {candidate.quality_assessment.accepted ? 'Accepted' : 'Rejected'}
+                </span>
+                <span className="blueprint-meta">
+                  {candidate.generated_image.provider} · Score:{' '}
+                  {candidate.quality_assessment.overall_confidence_score.toFixed(2)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       ))}

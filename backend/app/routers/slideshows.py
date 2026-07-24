@@ -13,12 +13,14 @@ from app.db import get_db
 from app.models.analysis_run import AnalysisRun
 from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
+from app.models.generation_attempt import GenerationAttempt
 from app.models.generation_reference_set import GenerationReferenceSet
 from app.models.generation_reference_set_image import GenerationReferenceSetImage
 from app.models.image_validation_result import ImageValidationResult
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.project import Project
+from app.models.quality_assessment import QualityAssessment
 from app.models.slide import Slide
 from app.models.slideshow import STATUS_ANALYZING, STATUS_QUEUED, Slideshow
 from app.importers.downie import (
@@ -165,6 +167,26 @@ def _with_slide_relationships(stmt):
         selectinload(Slideshow.slides)
         .selectinload(Slide.product_appearances)
         .selectinload(ProductAppearance.product)
+    )
+
+
+def _quality_assessment_read(quality_assessment: QualityAssessment) -> QualityAssessmentRead:
+    """
+    Built explicitly, not via model_validate - the ORM's photorealism_json
+    doesn't match this schema's photorealism name, same "computed/renamed
+    fields need explicit construction" reasoning as ImageValidationResultRead.
+    Shared by generate_creative and list_generation_attempts (Phase 11.2,
+    see MIGRATION_PLAN.md) so the two read paths can't drift apart.
+    """
+    return QualityAssessmentRead(
+        id=quality_assessment.id,
+        generated_image_id=quality_assessment.generated_image_id,
+        image_validation_result_id=quality_assessment.image_validation_result_id,
+        image_validation_result_ids=quality_assessment.image_validation_result_ids_json,
+        photorealism=quality_assessment.photorealism_json,
+        overall_confidence_score=quality_assessment.overall_confidence_score,
+        accepted=quality_assessment.accepted,
+        created_at=quality_assessment.created_at,
     )
 
 
@@ -418,21 +440,7 @@ def generate_creative(
                 candidates=[
                     GenerationCandidateRead(
                         generated_image=GeneratedImageRead.model_validate(candidate.generated_image),
-                        # Built explicitly, not via model_validate - the
-                        # ORM's photorealism_json doesn't match this
-                        # schema's photorealism name, same "computed/
-                        # renamed fields need explicit construction"
-                        # reasoning as ImageValidationResultRead.
-                        quality_assessment=QualityAssessmentRead(
-                            id=candidate.quality_assessment.id,
-                            generated_image_id=candidate.quality_assessment.generated_image_id,
-                            image_validation_result_id=candidate.quality_assessment.image_validation_result_id,
-                            image_validation_result_ids=candidate.quality_assessment.image_validation_result_ids_json,
-                            photorealism=candidate.quality_assessment.photorealism_json,
-                            overall_confidence_score=candidate.quality_assessment.overall_confidence_score,
-                            accepted=candidate.quality_assessment.accepted,
-                            created_at=candidate.quality_assessment.created_at,
-                        ),
+                        quality_assessment=_quality_assessment_read(candidate.quality_assessment),
                     )
                     for candidate in outcome.candidates
                 ],
@@ -452,6 +460,84 @@ def generate_creative(
         if result.final_output is not None
         else None,
     )
+
+
+@router.get(
+    "/{slideshow_id}/slides/{slide_id}/generation-attempts",
+    response_model=list[GenerationAttemptRead],
+)
+def list_generation_attempts(
+    slideshow_id: str, slide_id: str, db: Session = Depends(get_db)
+) -> list[GenerationAttemptRead]:
+    """
+    Phase 11.2 (see MIGRATION_PLAN.md) - a real, additive gap the Phase
+    11 audit found: generate-creative's response was the *only* place
+    GenerationAttempt/candidate data was ever returned - the frontend
+    held it in local component state, discarded the moment the
+    blueprint modal closed or the page reloaded. No schema change - the
+    data has always been persisted (generation_attempts/
+    generated_images/quality_assessments); this just makes it readable
+    independently of the one paid call that created it, most recent
+    first, reusing the exact same GenerationAttemptRead/
+    GenerationCandidateRead shape generate-creative's own response
+    already uses via the shared _quality_assessment_read helper below.
+
+    Real bug found and fixed during this endpoint's own live
+    verification (not assumed correct from the code): one real
+    historical GeneratedImage row in the dev DB has no matching
+    QualityAssessment at all (the Quality Engine call for that specific
+    candidate evidently never completed/persisted, in an earlier
+    session, before this endpoint ever existed to read it back). A
+    naive one-QualityAssessment-per-candidate assumption (`.one()`)
+    500'd on that real row the moment this endpoint was clicked through
+    the actual UI. Fixed to skip a candidate with no assessment rather
+    than crash the whole history - a real, honest gap in that one old
+    row, not something this read endpoint should hide by failing
+    everything else around it.
+    """
+    slideshow = db.get(Slideshow, slideshow_id)
+    if slideshow is None:
+        raise HTTPException(status_code=404, detail="Slideshow not found")
+
+    attempts = (
+        db.query(GenerationAttempt)
+        .filter(GenerationAttempt.slide_id == slide_id)
+        .order_by(GenerationAttempt.created_at.desc())
+        .all()
+    )
+    result = []
+    for attempt in attempts:
+        candidates = []
+        generated_images = (
+            db.query(GeneratedImage)
+            .filter(GeneratedImage.generation_attempt_id == attempt.id)
+            .order_by(GeneratedImage.candidate_index)
+            .all()
+        )
+        for generated_image in generated_images:
+            quality_assessment = (
+                db.query(QualityAssessment)
+                .filter(QualityAssessment.generated_image_id == generated_image.id)
+                .first()
+            )
+            if quality_assessment is None:
+                continue
+            candidates.append(
+                GenerationCandidateRead(
+                    generated_image=GeneratedImageRead.model_validate(generated_image),
+                    quality_assessment=_quality_assessment_read(quality_assessment),
+                )
+            )
+        result.append(
+            GenerationAttemptRead(
+                id=attempt.id,
+                quality_mode=attempt.quality_mode,
+                retry_of_generation_attempt_id=attempt.retry_of_generation_attempt_id,
+                created_at=attempt.created_at,
+                candidates=candidates,
+            )
+        )
+    return result
 
 
 @router.get(
