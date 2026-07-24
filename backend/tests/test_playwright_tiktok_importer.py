@@ -11,10 +11,12 @@ module's own logic - URL normalization, retry-then-fail-cleanly on a
 block, the imagePost/video branch, error mapping - deterministically.
 """
 
+import io
 import json
 from types import SimpleNamespace
 
 import pytest
+from PIL import Image
 
 from app.domain import EvidencePackage
 from app.importers.playwright_tiktok import (
@@ -24,7 +26,14 @@ from app.importers.playwright_tiktok import (
     TikTokImportUnsupportedContentError,
     _creator_from_item,
     _normalize_post_url,
+    detect_tiktok_content,
 )
+
+
+def _real_jpeg_bytes(color=(200, 50, 50)) -> bytes:
+    buf = io.BytesIO()
+    Image.new("RGB", (16, 16), color).save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 class _FakeDownloadResponse:
@@ -144,9 +153,10 @@ def test_creator_from_item_returns_none_with_no_author():
 
 def test_import_source_builds_evidence_package_from_a_real_image_post(monkeypatch):
     item = _image_post_item()
+    img0, img1 = _real_jpeg_bytes((10, 10, 10)), _real_jpeg_bytes((20, 20, 20))
     downloads = {
-        "https://cdn.example/img0.jpeg": b"first-image-bytes",
-        "https://cdn.example/img1.jpeg": b"second-image-bytes",
+        "https://cdn.example/img0.jpeg": img0,
+        "https://cdn.example/img1.jpeg": img1,
     }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
@@ -161,13 +171,19 @@ def test_import_source_builds_evidence_package_from_a_real_image_post(monkeypatc
     assert package.hashtags == ["widgets", "deal"]
     assert package.product_references == []
     assert package.platform_metadata == {"item_id": "7000000000000000001"}
-    assert [m.image_bytes for m in package.media_assets] == [b"first-image-bytes", b"second-image-bytes"]
+    assert [m.image_bytes for m in package.media_assets] == [img0, img1]
     assert [m.source_type for m in package.media_assets] == ["tiktok", "tiktok"]
+    assert package.expected_count == 2
+    assert package.downloaded_count == 2
+    assert package.failed_assets == []
 
 
 def test_import_source_normalizes_photo_url_before_fetching(monkeypatch):
     item = _image_post_item()
-    downloads = {"https://cdn.example/img0.jpeg": b"a", "https://cdn.example/img1.jpeg": b"b"}
+    downloads = {
+        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
+        "https://cdn.example/img1.jpeg": _real_jpeg_bytes(),
+    }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
     _install_fake_playwright(monkeypatch, _FakeBrowser([fetch_page, download_page]))
@@ -201,7 +217,10 @@ def test_import_source_retries_then_raises_when_blocked_every_attempt(monkeypatc
 
 def test_import_source_succeeds_after_one_blocked_attempt(monkeypatch):
     item = _image_post_item()
-    downloads = {"https://cdn.example/img0.jpeg": b"a", "https://cdn.example/img1.jpeg": b"b"}
+    downloads = {
+        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
+        "https://cdn.example/img1.jpeg": _real_jpeg_bytes(),
+    }
     pages = [
         _FakePage(body_text="Drag the slider to fit the puzzle", rehydration_data=None, downloads={}),
         _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={}),
@@ -230,3 +249,81 @@ def test_import_source_raises_not_found_on_download_failure(monkeypatch):
 
     with pytest.raises(TikTokImportNotFoundError):
         PlaywrightTikTokImporter().import_source({"url": "https://www.tiktok.com/@someone/video/1"})
+
+
+# --- Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) -------
+#
+# The real bug: a post with 4 images where some have an empty urlList (or
+# download bytes that aren't a real image) used to be silently dropped -
+# only erroring if EVERY image failed. These tests lock in the fix: a
+# partial failure is recorded, not swallowed, and surfaces via
+# EvidencePackage's expected_count/downloaded_count/failed_assets fields
+# rather than either a silent success or a blanket exception.
+
+
+def test_import_source_records_a_slide_with_no_downloadable_url_as_failed_not_silently_dropped(monkeypatch):
+    item = _image_post_item(
+        imagePost={
+            "images": [
+                {"imageURL": {"urlList": ["https://cdn.example/img0.jpeg"]}},
+                {"imageURL": {"urlList": []}},  # the real-world gap that caused the bug
+                {"imageURL": {"urlList": ["https://cdn.example/img2.jpeg"]}},
+                {"imageURL": {"urlList": ["https://cdn.example/img3.jpeg"]}},
+            ]
+        }
+    )
+    downloads = {
+        "https://cdn.example/img0.jpeg": _real_jpeg_bytes((1, 1, 1)),
+        "https://cdn.example/img2.jpeg": _real_jpeg_bytes((2, 2, 2)),
+        "https://cdn.example/img3.jpeg": _real_jpeg_bytes((3, 3, 3)),
+    }
+    fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
+    download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
+    _install_fake_playwright(monkeypatch, _FakeBrowser([fetch_page, download_page]))
+
+    package = PlaywrightTikTokImporter().import_source({"url": "https://www.tiktok.com/@someone/video/1"})
+
+    assert package.expected_count == 4
+    assert len(package.media_assets) == 3
+    assert package.failed_assets == [{"index": 1, "reason": "no downloadable URL for this slide"}]
+    assert [m.raw_metadata["index"] for m in package.media_assets] == [0, 2, 3]
+
+
+def test_import_source_rejects_downloaded_bytes_that_are_not_a_real_image(monkeypatch):
+    item = _image_post_item()
+    downloads = {
+        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
+        "https://cdn.example/img1.jpeg": b"not actually a jpeg, just garbage bytes",
+    }
+    fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
+    download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
+    _install_fake_playwright(monkeypatch, _FakeBrowser([fetch_page, download_page]))
+
+    package = PlaywrightTikTokImporter().import_source({"url": "https://www.tiktok.com/@someone/video/1"})
+
+    assert len(package.media_assets) == 1
+    assert package.downloaded_count == 2  # both HTTP fetches succeeded - only one validated as a real image
+    assert package.failed_assets == [{"index": 1, "reason": "downloaded bytes are not a valid image"}]
+
+
+def test_detect_tiktok_content_reports_slideshow_and_expected_count(monkeypatch):
+    item = _image_post_item()
+    fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
+    _install_fake_playwright(monkeypatch, _FakeBrowser([fetch_page]))
+
+    info = detect_tiktok_content("https://www.tiktok.com/@someone/video/1")
+
+    assert info.content_type == "slideshow"
+    assert info.expected_slide_count == 2
+    assert info.item["id"] == "7000000000000000001"
+
+
+def test_detect_tiktok_content_reports_video_with_zero_expected_slides(monkeypatch):
+    item = {"id": "1", "desc": "", "author": {}, "challenges": [], "video": {"playAddr": "https://cdn/x.mp4"}}
+    fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
+    _install_fake_playwright(monkeypatch, _FakeBrowser([fetch_page]))
+
+    info = detect_tiktok_content("https://www.tiktok.com/@someone/video/1")
+
+    assert info.content_type == "video"
+    assert info.expected_slide_count == 0

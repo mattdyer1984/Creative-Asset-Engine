@@ -37,7 +37,7 @@ types per the ADR's own vocabulary (§4b).
 
 from sqlalchemy.orm import Session
 
-from app.domain import MarketingCreative
+from app.domain import EvidencePackage, MarketingCreative
 from app.importers import get_importer
 from app.models.evidence_source import (
     EVIDENCE_TYPE_SLIDESHOW_UPLOAD,
@@ -68,13 +68,33 @@ def import_slideshows(
 ) -> list[Slideshow]:
     """
     Resolve the requested Import Provider, run it, and persist what it
-    returns either as N independent Slideshows (default) or, if
-    `group_as_one` is set, as a single Slideshow with N ordered Slides.
-    Every Slideshow produced points at the same EvidenceSource, recording
-    this one Import Provider call's package-level facts.
+    returns. Thin wrapper around `persist_evidence_package` - the
+    Critical TikTok Slideshow Import Fix's orchestrator
+    (app.services.tiktok_import_chain) already has an EvidencePackage in
+    hand by the time it's ready to persist (having picked a winning
+    provider out of several attempts) and calls that shared function
+    directly, rather than this one re-running `import_source` a second
+    time.
     """
     importer = get_importer(source_type)
     package = importer.import_source(source_config)
+    return persist_evidence_package(db, package, source_type, project_id, group_as_one)
+
+
+def persist_evidence_package(
+    db: Session,
+    package: EvidencePackage,
+    source_type: str,
+    project_id: str | None,
+    group_as_one: bool = False,
+) -> list[Slideshow]:
+    """
+    Persist an already-obtained EvidencePackage either as N independent
+    Slideshows (default) or, if `group_as_one` is set, as a single
+    Slideshow with N ordered Slides. Every Slideshow produced points at
+    the same EvidenceSource, recording this one Import Provider call's
+    package-level facts.
+    """
     marketing_creatives = package.media_assets
 
     if not marketing_creatives:

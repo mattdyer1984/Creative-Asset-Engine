@@ -8,6 +8,7 @@ required to use the app, though one can still be run separately during
 frontend development.
 """
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -26,6 +27,15 @@ from app.routers import (
     settings as settings_router,
     slideshows,
 )
+
+# This codebase had zero `logging` usage anywhere before the Critical
+# TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) - a genuinely new
+# pattern. Without this, app.services.import_integrity's
+# logger.info(...) calls would be silently swallowed: Python's root
+# logger has no handler by default, and only WARNING+ reaches the
+# last-resort handler. Confirmed live (not assumed) that this actually
+# prints through uvicorn's own console during that phase's verification.
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 settings.ensure_directories()
 

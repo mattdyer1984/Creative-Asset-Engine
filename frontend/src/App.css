@@ -1679,6 +1679,16 @@ section h2 {
   font-weight: 400;
 }
 
+/* Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) - the
+   required pre-generation confirmation, shown once a multi-slide import
+   has passed the integrity gate. */
+.create-flow-import-confirmation {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #444;
+  text-align: center;
+}
+
 .create-flow-generate-button {
   width: 100%;
   padding: 0.85rem;

@@ -63,6 +63,7 @@ from app.services.project_product import ensure_project_product_membership
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.services.slideshow_import import import_slideshows
+from app.services.tiktok_import_chain import ImportIncompleteError, import_tiktok_url
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
 from app.slideshow_stages.image_validation_stage import SlideImageValidationStage
@@ -104,12 +105,15 @@ async def import_local_files(
 @router.post("/import-url", response_model=list[SlideshowRead], status_code=201)
 def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(get_db)) -> list[Slideshow]:
     """
-    Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - the
-    URL counterpart to import_local_files, backed by
-    PlaywrightTikTokImporter by default, or DownieImporter (Phase 10.6b's
-    documented fallback) via an explicit `payload.provider="downie"` opt-in
-    - never inferred, since Downie is a deployment-environment decision
-    (a licensed local copy must be installed). Deliberately a plain `def`,
+    Phase 10.6 of AI Creative Engine vNext, extended by the Critical
+    TikTok Slideshow Import Fix (see MIGRATION_PLAN.md for both). The
+    URL counterpart to import_local_files. `payload.provider="auto"`
+    (the default) runs the full import integrity gate via
+    app.services.tiktok_import_chain.import_tiktok_url - Downie first,
+    Playwright fallback, a clear ImportIncompleteError if neither
+    produces a complete result. Explicit `"tiktok"`/`"downie"` still run
+    the same gate but pin one provider with no fallback (useful for
+    testing/debugging each in isolation). Deliberately a plain `def`,
     not `async def`: FastAPI runs a sync path operation in a threadpool,
     which is what both providers need (a real browser launch, or shelling
     out to `open` and polling disk) to not block the event loop - the same
@@ -124,19 +128,16 @@ def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(ge
     """
     if payload.project_id is not None and db.get(Project, payload.project_id) is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    if payload.provider not in ("tiktok", "downie"):
+    if payload.provider not in ("auto", "tiktok", "downie"):
         raise HTTPException(
-            status_code=400, detail=f"Unknown provider '{payload.provider}' - expected 'tiktok' or 'downie'"
+            status_code=400,
+            detail=f"Unknown provider '{payload.provider}' - expected 'auto', 'tiktok', or 'downie'",
         )
 
     try:
-        return import_slideshows(
-            db,
-            source_type=payload.provider,
-            source_config={"url": payload.url},
-            project_id=payload.project_id,
-            group_as_one=True,
-        )
+        return import_tiktok_url(db, payload.url, payload.project_id, provider=payload.provider)
+    except ImportIncompleteError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except TikTokImportBlockedError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except TikTokImportUnsupportedContentError as exc:

@@ -110,18 +110,19 @@ class ProductSourceImportRequest(BaseModel):
 
 class SlideshowUrlImportRequest(BaseModel):
     """
-    Phase 10.6 of AI Creative Engine vNext, see MIGRATION_PLAN.md - POST
-    /api/slideshows/import-url's input. `provider` (Phase 10.6b) selects
-    which ImportProvider actually runs - "tiktok" (PlaywrightTikTokImporter,
-    the recommended native path) by default, or "downie" (DownieImporter,
-    the documented fallback) as an explicit opt-in - never inferred, since
-    picking Downie is a deployment-environment decision (a licensed local
-    copy must be installed), not something the caller's URL implies.
+    Phase 10.6 of AI Creative Engine vNext, extended by the Critical
+    TikTok Slideshow Import Fix (see MIGRATION_PLAN.md for both) - POST
+    /api/slideshows/import-url's input. `provider` selects the import
+    strategy: "auto" (the default) runs the full Downie-then-Playwright
+    fallback chain with the import integrity gate
+    (app.services.tiktok_import_chain); "tiktok"/"downie" pin one
+    provider explicitly, still gated, with no fallback - useful for
+    testing/debugging each in isolation.
     """
 
     url: str
     project_id: str | None = None
-    provider: str = "tiktok"
+    provider: str = "auto"
 
 
 class ProductSourceImportRead(BaseModel):

@@ -200,3 +200,138 @@ def test_import_source_treats_downiepart_as_in_progress_not_done(monkeypatch):
 
 def test_downie_registered_in_importer_registry():
     assert isinstance(get_importer("downie"), DownieImporter)
+
+
+# --- Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) -------
+#
+# The real bug: _wait_for_stable_download used to trust a stable
+# snapshot the instant it saw one, with no idea how many files a
+# slideshow *should* eventually produce - if file 1 landed before files
+# 2-4 even existed as .downiepart placeholders, it would see a stable
+# 1-file snapshot and return early. The existing _writes_files fake
+# above can't express this (it writes every file synchronously inside
+# one subprocess.run call, before polling even starts) - these tests
+# instead monkeypatch time.sleep to drop the remaining files into the
+# real scratch dir partway through polling, then call through to the
+# real (fast, _fast_polling-fixture) sleep.
+
+
+def _staggered_write(scratch_dir_holder: dict, first: dict[str, bytes], rest: dict[str, bytes], after_calls: int):
+    """
+    Fake subprocess.run writes `first` immediately (as Downie's very
+    first file would land); a monkeypatched time.sleep writes `rest`
+    only after being called `after_calls` times - simulating files 2-4
+    appearing only after a couple of poll cycles have already run.
+    """
+    calls = {"n": 0}
+
+    def _fake_run(cmd, check):
+        destination, title = _destination_from_downie_url(cmd[-1])
+        scratch_dir_holder["path"] = destination
+        scratch_dir_holder["title"] = title
+        for suffix, content in first.items():
+            (destination / f"{title}{suffix}").write_bytes(content)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    real_sleep = downie_module.time.sleep
+
+    def _fake_sleep(seconds):
+        calls["n"] += 1
+        if calls["n"] == after_calls and "path" in scratch_dir_holder:
+            destination = scratch_dir_holder["path"]
+            title = scratch_dir_holder["title"]
+            for suffix, content in rest.items():
+                (destination / f"{title}{suffix}").write_bytes(content)
+        real_sleep(seconds)
+
+    return _fake_run, _fake_sleep
+
+
+def test_expected_count_none_returns_early_on_a_stable_but_incomplete_snapshot(monkeypatch):
+    """
+    Documents the real, original bug as a still-correct legacy case:
+    with no expected_count (the only mode this importer had before this
+    fix), a stable 1-file snapshot is trusted immediately even though 3
+    more files are about to appear - exactly the race that produced a
+    real 4-image TikTok slideshow silently importing as 1 image.
+    """
+    holder = {}
+    fake_run, fake_sleep = _staggered_write(
+        holder,
+        first={" [1 - 4].jpg": _real_jpeg_bytes((1, 1, 1))},
+        rest={
+            " [2 - 4].jpg": _real_jpeg_bytes((2, 2, 2)),
+            " [3 - 4].jpg": _real_jpeg_bytes((3, 3, 3)),
+            " [4 - 4].jpg": _real_jpeg_bytes((4, 4, 4)),
+        },
+        after_calls=3,
+    )
+    monkeypatch.setattr(downie_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(downie_module.time, "sleep", fake_sleep)
+
+    package = DownieImporter().import_source({"url": "https://example.com/staggered"})
+
+    assert len(package.media_assets) == 1
+
+
+def test_expected_count_waits_for_every_file_before_returning(monkeypatch):
+    """The fix: with expected_count given, the same staggered write now correctly waits for all 4 files."""
+    holder = {}
+    fake_run, fake_sleep = _staggered_write(
+        holder,
+        first={" [1 - 4].jpg": _real_jpeg_bytes((1, 1, 1))},
+        rest={
+            " [2 - 4].jpg": _real_jpeg_bytes((2, 2, 2)),
+            " [3 - 4].jpg": _real_jpeg_bytes((3, 3, 3)),
+            " [4 - 4].jpg": _real_jpeg_bytes((4, 4, 4)),
+        },
+        after_calls=3,
+    )
+    monkeypatch.setattr(downie_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(downie_module.time, "sleep", fake_sleep)
+
+    package = DownieImporter().import_source({"url": "https://example.com/staggered", "expected_count": 4})
+
+    assert len(package.media_assets) == 4
+    assert package.downloaded_count == 4
+    assert package.expected_count == 4
+
+
+def test_marketing_creative_index_is_sorted_position_not_raw_bracket_number(monkeypatch):
+    """
+    Regression lock for a real off-by-one risk: Downie's own bracket
+    numbering is 1-based ([1 - 3], [2 - 3], [3 - 3]); raw_metadata["index"]
+    must be the 0-based *position* in the sorted list, not the raw
+    capture, or the ordering-verification check downstream would fail on
+    every real Downie import.
+    """
+    monkeypatch.setattr(
+        downie_module.subprocess,
+        "run",
+        _writes_files(
+            {
+                " [2 - 3].jpg": _real_jpeg_bytes((10, 10, 10)),
+                " [1 - 3].jpg": _real_jpeg_bytes((20, 20, 20)),
+                " [3 - 3].jpg": _real_jpeg_bytes((30, 30, 30)),
+            }
+        ),
+    )
+
+    package = DownieImporter().import_source({"url": "https://example.com/post/8"})
+
+    assert [m.raw_metadata["index"] for m in package.media_assets] == [0, 1, 2]
+
+
+def test_failed_assets_and_downloaded_count_are_reported_not_silently_dropped(monkeypatch):
+    monkeypatch.setattr(
+        downie_module.subprocess,
+        "run",
+        _writes_files({".jpg": _real_jpeg_bytes(), ".mp4": b"not a real video, just garbage bytes"}),
+    )
+
+    package = DownieImporter().import_source({"url": "https://example.com/post/9"})
+
+    assert package.downloaded_count == 2
+    assert len(package.media_assets) == 1
+    assert len(package.failed_assets) == 1
+    assert "did not open as a real image" in package.failed_assets[0]["reason"]

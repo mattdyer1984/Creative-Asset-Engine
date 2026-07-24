@@ -18,6 +18,20 @@ fetch, keep the raw payload" precedent
 `app.product_sources.base.ProductSourceExtraction` already established
 for URL-based product evidence, applied to the other half of evidence
 intake.
+
+`expected_count`/`downloaded_count`/`failed_assets` (the Critical
+TikTok Slideshow Import Fix, see MIGRATION_PLAN.md) exist for exactly
+one reason: `import_source`'s return value is the *only* channel an
+`ImportProvider`'s internal per-asset accounting can cross a module
+boundary through, and the import integrity gate
+(app.services.import_integrity) needs that accounting to catch a
+partial, silently-incomplete import instead of trusting
+`len(media_assets)` as ground truth. All three default to their
+"nothing to report" value (`None`/`0`/`[]`) so `LocalFileImporter`'s
+existing construction call needs zero changes - a manual upload has no
+independent "expected count" to compare against (every file the user
+selected trivially is the expected set), the correct, expected value
+for that source, not a gap to work around.
 """
 
 from dataclasses import dataclass, field
@@ -63,3 +77,14 @@ class EvidencePackage:
     platform_metadata: dict = field(default_factory=dict)
     imported_at: datetime | None = None
     raw: dict = field(default_factory=dict)
+    # Ground truth from source metadata (e.g. TikTok's own reported image
+    # count), independent of how many actually made it into media_assets -
+    # None for a source with no such independent count (LocalFileImporter).
+    expected_count: int | None = None
+    # Raw count of files/bytes actually fetched, before validation - can
+    # legitimately differ from len(media_assets) (e.g. a file that
+    # downloaded but failed to open as a real image).
+    downloaded_count: int = 0
+    # Every asset that didn't make it into media_assets, with why -
+    # {"index": int | None, "reason": str}. Never silently dropped.
+    failed_assets: list[dict] = field(default_factory=list)

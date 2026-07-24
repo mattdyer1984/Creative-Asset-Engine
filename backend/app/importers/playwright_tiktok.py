@@ -70,8 +70,11 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from io import BytesIO
 
+from PIL import Image, UnidentifiedImageError
 from playwright.sync_api import Browser, sync_playwright
 
 from app.domain import CreatorInfo, EvidencePackage, MarketingCreative
@@ -129,6 +132,156 @@ def _creator_from_item(item: dict) -> CreatorInfo | None:
     )
 
 
+@dataclass
+class TikTokContentInfo:
+    """
+    The independent, provider-agnostic ground truth for "what is this
+    post and how many slides should it have" - the Critical TikTok
+    Slideshow Import Fix (see MIGRATION_PLAN.md). Known *before* either
+    Import Provider downloads a single pixel, since DownieImporter's own
+    automation surface has no way to learn an expected count on its own
+    (see its module docstring).
+    """
+
+    content_type: str  # "slideshow" | "video"
+    expected_slide_count: int  # 0 for a video post
+    item: dict  # the raw item struct - reused by callers to avoid a second scrape
+
+
+def detect_tiktok_content(url: str) -> TikTokContentInfo:
+    """
+    Fetches+parses the item struct only - no image downloads - to learn
+    the content type and expected slide count ahead of picking an Import
+    Provider. Reuses the exact same `_fetch_item_struct` mechanism
+    `import_source` itself uses, so this is real, live-verified TikTok
+    scraping, not a lighter-weight approximation of it.
+    """
+    normalized_url = _normalize_post_url(url)
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True, args=STEALTH_ARGS)
+        try:
+            item = _fetch_item_struct(browser, normalized_url)
+        finally:
+            browser.close()
+
+    image_post = item.get("imagePost")
+    if not image_post:
+        return TikTokContentInfo(content_type="video", expected_slide_count=0, item=item)
+    images = image_post.get("images", [])
+    return TikTokContentInfo(content_type="slideshow", expected_slide_count=len(images), item=item)
+
+
+def _fetch_item_struct(browser: Browser, url: str) -> dict:
+    for _attempt in range(MAX_ATTEMPTS):
+        page = browser.new_page(user_agent=USER_AGENT)
+        page.add_init_script(_WEBDRIVER_OVERRIDE_SCRIPT)
+        try:
+            page.goto(url, wait_until="networkidle", timeout=NAV_TIMEOUT_MS)
+            if _is_blocked(page.inner_text("body")):
+                continue
+
+            raw = page.eval_on_selector(
+                "script#__UNIVERSAL_DATA_FOR_REHYDRATION__",
+                "el => el ? el.textContent : null",
+            )
+            if raw is None:
+                raise TikTokImportNotFoundError(f"No TikTok data found for {url}")
+
+            data = json.loads(raw)
+            video_detail = data.get("__DEFAULT_SCOPE__", {}).get("webapp.video-detail")
+            if video_detail is None:
+                raise TikTokImportNotFoundError(
+                    f"TikTok returned a page for {url} with no post data - "
+                    "removed, private, or region-restricted"
+                )
+            item = video_detail.get("itemInfo", {}).get("itemStruct")
+            if not item:
+                raise TikTokImportNotFoundError(f"No item data found for {url}")
+            return item
+        finally:
+            page.close()
+
+    raise TikTokImportBlockedError(
+        f"TikTok's anti-bot challenge blocked every attempt ({MAX_ATTEMPTS}) for {url}"
+    )
+
+
+def _download_images(
+    browser: Browser, item: dict, now: datetime
+) -> tuple[list[MarketingCreative], int, list[dict]]:
+    """
+    Returns (media_assets, downloaded_count, failed_assets) - never
+    raises on an individual image's failure (the Critical TikTok
+    Slideshow Import Fix, see MIGRATION_PLAN.md: silently `continue`-ing
+    past a bad image is exactly how a 4-image post used to become a
+    clean 1-image success). Every dropped index is recorded with why, so
+    the caller's integrity gate can tell "this import is genuinely
+    incomplete" from "everything downloaded fine." Only a total,
+    zero-survivors failure still raises directly - a real, distinct
+    condition (see below), not the same thing as a partial miss.
+    """
+    image_post = item.get("imagePost")
+    if not image_post:
+        raise TikTokImportUnsupportedContentError(
+            f"TikTok post {item.get('id')} is a video, not a photo-mode slideshow - "
+            "see PlaywrightTikTokImporter's module docstring for why this is rejected, "
+            "not silently imported"
+        )
+
+    images = image_post.get("images", [])
+    if not images:
+        raise TikTokImportNotFoundError(f"TikTok photo post {item.get('id')} had no images")
+
+    page = browser.new_page(user_agent=USER_AGENT)
+    try:
+        request = page.context.request
+        media_assets: list[MarketingCreative] = []
+        failed_assets: list[dict] = []
+        downloaded_count = 0
+        for index, image in enumerate(images):
+            url_list = image.get("imageURL", {}).get("urlList", [])
+            if not url_list:
+                failed_assets.append({"index": index, "reason": "no downloadable URL for this slide"})
+                continue
+            image_url = url_list[0]
+            response = request.get(image_url, headers={"Referer": REFERER})
+            if not response.ok:
+                failed_assets.append({"index": index, "reason": f"HTTP {response.status}"})
+                continue
+            downloaded_count += 1
+            body = response.body()
+            # This importer used to trust any HTTP-200 body as a valid
+            # image with zero verification - unlike DownieImporter, which
+            # already PIL-validates. A "downloaded but not a real image"
+            # slide is a genuinely different failure from "never
+            # downloaded at all", and the integrity gate's
+            # slides_downloaded/slides_validated distinction only means
+            # anything if this importer can actually produce a case where
+            # they differ.
+            try:
+                Image.open(BytesIO(body)).load()
+            except UnidentifiedImageError:
+                failed_assets.append({"index": index, "reason": "downloaded bytes are not a valid image"})
+                continue
+            media_assets.append(
+                MarketingCreative(
+                    image_bytes=body,
+                    original_filename=f"tiktok_{item.get('id')}_{index}.jpeg",
+                    source_type="tiktok",
+                    source_locator=image_url,
+                    imported_at=now,
+                    raw_metadata={"index": index},
+                )
+            )
+        if not media_assets:
+            raise TikTokImportNotFoundError(
+                f"TikTok photo post {item.get('id')} had no downloadable images"
+            )
+        return media_assets, downloaded_count, failed_assets
+    finally:
+        page.close()
+
+
 class PlaywrightTikTokImporter:
     """source_config shape: {"url": "<a TikTok post URL>"}."""
 
@@ -139,10 +292,13 @@ class PlaywrightTikTokImporter:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, args=STEALTH_ARGS)
             try:
-                item = self._fetch_item_struct(browser, url)
-                media_assets = self._download_images(browser, item, now)
+                item = _fetch_item_struct(browser, url)
+                media_assets, downloaded_count, failed_assets = _download_images(browser, item, now)
             finally:
                 browser.close()
+
+        image_post = item.get("imagePost") or {}
+        expected_count = len(image_post.get("images", []))
 
         return EvidencePackage(
             source_platform="tiktok",
@@ -155,84 +311,7 @@ class PlaywrightTikTokImporter:
             platform_metadata={"item_id": item.get("id")},
             imported_at=now,
             raw=item,
+            expected_count=expected_count,
+            downloaded_count=downloaded_count,
+            failed_assets=failed_assets,
         )
-
-    def _fetch_item_struct(self, browser: Browser, url: str) -> dict:
-        for _attempt in range(MAX_ATTEMPTS):
-            page = browser.new_page(user_agent=USER_AGENT)
-            page.add_init_script(_WEBDRIVER_OVERRIDE_SCRIPT)
-            try:
-                page.goto(url, wait_until="networkidle", timeout=NAV_TIMEOUT_MS)
-                if _is_blocked(page.inner_text("body")):
-                    continue
-
-                raw = page.eval_on_selector(
-                    "script#__UNIVERSAL_DATA_FOR_REHYDRATION__",
-                    "el => el ? el.textContent : null",
-                )
-                if raw is None:
-                    raise TikTokImportNotFoundError(f"No TikTok data found for {url}")
-
-                data = json.loads(raw)
-                video_detail = data.get("__DEFAULT_SCOPE__", {}).get("webapp.video-detail")
-                if video_detail is None:
-                    raise TikTokImportNotFoundError(
-                        f"TikTok returned a page for {url} with no post data - "
-                        "removed, private, or region-restricted"
-                    )
-                item = video_detail.get("itemInfo", {}).get("itemStruct")
-                if not item:
-                    raise TikTokImportNotFoundError(f"No item data found for {url}")
-                return item
-            finally:
-                page.close()
-
-        raise TikTokImportBlockedError(
-            f"TikTok's anti-bot challenge blocked every attempt ({MAX_ATTEMPTS}) for {url}"
-        )
-
-    def _download_images(self, browser: Browser, item: dict, now: datetime) -> list[MarketingCreative]:
-        image_post = item.get("imagePost")
-        if not image_post:
-            raise TikTokImportUnsupportedContentError(
-                f"TikTok post {item.get('id')} is a video, not a photo-mode slideshow - "
-                "see PlaywrightTikTokImporter's module docstring for why this is rejected, "
-                "not silently imported"
-            )
-
-        images = image_post.get("images", [])
-        if not images:
-            raise TikTokImportNotFoundError(f"TikTok photo post {item.get('id')} had no images")
-
-        page = browser.new_page(user_agent=USER_AGENT)
-        try:
-            request = page.context.request
-            media_assets = []
-            for index, image in enumerate(images):
-                url_list = image.get("imageURL", {}).get("urlList", [])
-                if not url_list:
-                    continue
-                image_url = url_list[0]
-                response = request.get(image_url, headers={"Referer": REFERER})
-                if not response.ok:
-                    raise TikTokImportNotFoundError(
-                        f"Failed to download image {index} for post {item.get('id')} "
-                        f"(status {response.status})"
-                    )
-                media_assets.append(
-                    MarketingCreative(
-                        image_bytes=response.body(),
-                        original_filename=f"tiktok_{item.get('id')}_{index}.jpeg",
-                        source_type="tiktok",
-                        source_locator=image_url,
-                        imported_at=now,
-                        raw_metadata={"index": index},
-                    )
-                )
-            if not media_assets:
-                raise TikTokImportNotFoundError(
-                    f"TikTok photo post {item.get('id')} had no downloadable images"
-                )
-            return media_assets
-        finally:
-            page.close()

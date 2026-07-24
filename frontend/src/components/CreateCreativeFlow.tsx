@@ -74,6 +74,14 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   // 12.6) re-invokes the same call rather than guessing settings back out
   // of the response.
   const [resultRequest, setResultRequest] = useState<GenerateCreativeRequest | null>(null);
+  // Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) - the
+  // required pre-generation confirmation. Set once import succeeds (so
+  // it reflects the real, gate-verified slide count, not a guess) and
+  // shown for the rest of the flow. Generation is still scoped to the
+  // primary slide only (an unchanged, deliberate boundary - see Phase
+  // 8), so this deliberately says so rather than implying every
+  // imported slide gets generated.
+  const [importedSlideCount, setImportedSlideCount] = useState<number | null>(null);
   // Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) - opens the
   // existing, unmodified SlideshowBlueprintModal (Advanced) for anyone
   // who wants the full technical picture behind this result - every
@@ -108,6 +116,7 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       if (!slideshow) throw new Error("Import didn't return a slideshow.");
       const primarySlideId = slideshow.slides[0]?.id;
       if (!primarySlideId) throw new Error('Imported slideshow has no slides.');
+      setImportedSlideCount(slideshow.slides.length);
 
       setPhase('resolving_product');
       if (productMode === 'url') {
@@ -221,6 +230,7 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
     setResultSlideId(null);
     setResultRequest(null);
     setShowAdvancedModal(false);
+    setImportedSlideCount(null);
   };
 
   if (phase === 'done' && result && resultSlideshowId && resultSlideId && resultRequest) {
@@ -348,6 +358,12 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       </div>
 
       {error && <p className="error card-error">{error}</p>}
+
+      {busy && importedSlideCount !== null && importedSlideCount > 1 && (
+        <p className="create-flow-import-confirmation">
+          {importedSlideCount} source slides imported — the primary slide will be generated.
+        </p>
+      )}
 
       <button className="create-flow-generate-button" onClick={handleGenerate} disabled={busy || !canGenerate}>
         {busy ? PROGRESS_LABELS[phase as Exclude<Phase, 'form' | 'done' | 'error'>] : 'Generate'}

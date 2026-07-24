@@ -63,6 +63,23 @@ automation surface, only raw downloaded media. This is a real, concrete
 reason the native importer is the better default (per §5a) - Downie can
 hand back pixels, never the richer EvidencePackage provenance the
 native path already provides.
+
+**Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md)**: the
+"honest limitation" above stopped being just a gap in one spike's
+confirmation - a real 4-image slideshow import that only produced 1
+image was traced directly to `_wait_for_stable_download` racing ahead
+on a stable-but-incomplete snapshot when a slower/staggered write
+wasn't caught by any expected-count awareness. Fixed by accepting an
+optional `expected_count` in `import_source`'s `source_config` (see its
+own docstring) - when the caller knows how many files should appear,
+a stable snapshot alone no longer satisfies the wait. This fix also
+underlies a deliberate, explicit reversal of this module's own stated
+"never the primary path" for the TikTok import orchestrator
+(app.services.tiktok_import_chain) specifically - a direct user
+instruction to evaluate Downie as primary, not an edit to this
+module's own judgment about itself. Any standalone/explicit
+`provider="downie"` call outside that orchestrator (no `expected_count`
+given) behaves exactly as before this fix.
 """
 
 from __future__ import annotations
@@ -120,7 +137,23 @@ def _sort_key(path: Path) -> tuple[int, str]:
     return (int(match.group(1)) if match else 0, path.name)
 
 
-def _wait_for_stable_download(scratch_dir: Path, deadline: float) -> list[Path]:
+def _wait_for_stable_download(
+    scratch_dir: Path, deadline: float, expected_count: int | None = None
+) -> list[Path]:
+    """
+    The Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md): a
+    stable-and-complete-looking snapshot used to be trusted the moment it
+    was seen, with no notion of how many files a slideshow *should*
+    eventually produce - if file 1 landed on disk before files 2-4 even
+    existed as `.downiepart` placeholders, two polls would see a stable
+    1-file snapshot and return early, silently treating an in-progress
+    download as done. `expected_count`, when known (threaded in from the
+    orchestrator via source_config - see DownieImporter.import_source),
+    fixes this: a stable snapshot only satisfies the wait once it also
+    has at least that many files. `None` (the default) preserves the
+    original behavior exactly, for any standalone/non-TikTok Downie use
+    where no independent expected count exists.
+    """
     previous_snapshot: dict[str, int] | None = None
     while True:
         files = [p for p in scratch_dir.iterdir() if p.is_file()]
@@ -128,7 +161,9 @@ def _wait_for_stable_download(scratch_dir: Path, deadline: float) -> list[Path]:
         complete_files = [p for p in files if not p.name.endswith(".downiepart")]
         snapshot = {p.name: p.stat().st_size for p in complete_files}
 
-        if complete_files and not in_progress and snapshot == previous_snapshot:
+        stable = bool(complete_files) and not in_progress and snapshot == previous_snapshot
+        count_satisfied = expected_count is None or len(complete_files) >= expected_count
+        if stable and count_satisfied:
             return sorted(complete_files, key=_sort_key)
 
         if time.monotonic() >= deadline:
@@ -141,13 +176,30 @@ def _wait_for_stable_download(scratch_dir: Path, deadline: float) -> list[Path]:
         time.sleep(POLL_INTERVAL_SECONDS)
 
 
-def _as_marketing_creatives(files: list[Path], url: str, now: datetime) -> list[MarketingCreative]:
-    media_assets = []
-    for path in files:
+def _as_marketing_creatives(
+    files: list[Path], url: str, now: datetime
+) -> tuple[list[MarketingCreative], int, list[dict]]:
+    """
+    Returns (media_assets, downloaded_count, failed_assets) - `files` is
+    already sorted by `_sort_key` before this is called, so `position`
+    (0-based, from enumerate) is the correct ordering index, NOT the raw
+    `[N - M]` bracket number `_sort_key` itself parses (which is 1-based
+    in real Downie output, e.g. `[1 - 3].jpg` -> 1) - using the raw
+    capture directly would break the "contiguous 0..N-1" ordering check
+    every real Downie import needs to pass. A file that fails to open as
+    a real image is recorded in failed_assets, not silently dropped -
+    the same fix as PlaywrightTikTokImporter's own `_download_images`
+    (see MIGRATION_PLAN.md's Critical TikTok Slideshow Import Fix) -
+    only erroring out entirely (in the caller) when nothing survives.
+    """
+    media_assets: list[MarketingCreative] = []
+    failed_assets: list[dict] = []
+    for position, path in enumerate(files):
         data = path.read_bytes()
         try:
             Image.open(BytesIO(data)).load()
         except UnidentifiedImageError:
+            failed_assets.append({"index": position, "reason": f"{path.name} did not open as a real image"})
             continue
         media_assets.append(
             MarketingCreative(
@@ -156,16 +208,27 @@ def _as_marketing_creatives(files: list[Path], url: str, now: datetime) -> list[
                 source_type="downie",
                 source_locator=url,
                 imported_at=now,
-                raw_metadata={"downloaded_filename": path.name},
+                raw_metadata={"index": position, "downloaded_filename": path.name},
             )
         )
-    return media_assets
+    return media_assets, len(files), failed_assets
 
 
 class DownieImporter:
     """source_config shape: {"url": "<any URL Downie can extract from>"}."""
 
     def import_source(self, source_config: dict) -> EvidencePackage:
+        """
+        source_config additionally accepts an optional "expected_count"
+        key (Critical TikTok Slideshow Import Fix, see MIGRATION_PLAN.md)
+        - when the caller already knows how many files this download
+        should produce (the TikTok import orchestrator always does, via
+        detect_tiktok_content), threading it through here is what fixes
+        the "stable-but-still-incomplete snapshot returned early" race
+        in _wait_for_stable_download. Omitted/None for any standalone
+        Downie use with no independent expected count - behavior is then
+        identical to before this fix.
+        """
         if not DOWNIE_APP_PATH.exists():
             raise DownieImportUnavailableError(
                 f"{DOWNIE_APP_NAME} is not installed at {DOWNIE_APP_PATH} - "
@@ -174,6 +237,7 @@ class DownieImporter:
             )
 
         url = source_config["url"]
+        expected_count = source_config.get("expected_count")
         now = datetime.now(timezone.utc)
         request_id = uuid.uuid4().hex
         title = f"downie_import_{request_id}"
@@ -188,9 +252,9 @@ class DownieImporter:
                 raise DownieImportError(f"Failed to open {DOWNIE_APP_NAME} for {url}: {exc}") from exc
 
             deadline = time.monotonic() + MAX_WAIT_SECONDS
-            files = _wait_for_stable_download(scratch_dir, deadline)
+            files = _wait_for_stable_download(scratch_dir, deadline, expected_count=expected_count)
 
-            media_assets = _as_marketing_creatives(files, url, now)
+            media_assets, downloaded_count, failed_assets = _as_marketing_creatives(files, url, now)
             if not media_assets:
                 raise DownieImportUnsupportedContentError(
                     f"Downie downloaded {len(files)} file(s) for {url}, but none of them "
@@ -209,6 +273,9 @@ class DownieImporter:
                 platform_metadata={"title": title, "triggered_via": "downie://XUOpenURL"},
                 imported_at=now,
                 raw={},
+                expected_count=expected_count,
+                downloaded_count=downloaded_count,
+                failed_assets=failed_assets,
             )
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)

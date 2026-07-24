@@ -657,10 +657,17 @@ export const api = {
   // Downie not installed, ...) are real, specific, human-readable
   // messages worth surfacing directly rather than wrapped in
   // `handle`'s generic "Request failed (503): {raw JSON body}" format.
+  // Critical TikTok Slideshow Import Fix (see MIGRATION_PLAN.md) - a real
+  // gap found there: this always used to send an explicit "tiktok" in the
+  // request body regardless of the backend schema's own default, so
+  // CreateCreativeFlow's every call (no provider argument) silently
+  // pinned the single-provider path and could never reach the new
+  // Downie-then-Playwright fallback chain + integrity gate. `'auto'`
+  // (the new backend default) is now this function's own default too.
   importSlideshowFromUrl: async (
     url: string,
     projectId?: string,
-    provider?: 'tiktok' | 'downie'
+    provider?: 'auto' | 'tiktok' | 'downie'
   ): Promise<Slideshow[]> => {
     const res = await fetch('/api/slideshows/import-url', {
       method: 'POST',
@@ -668,7 +675,7 @@ export const api = {
       body: JSON.stringify({
         url,
         project_id: projectId || undefined,
-        provider: provider ?? 'tiktok',
+        provider: provider ?? 'auto',
       }),
     });
     if (!res.ok) {
