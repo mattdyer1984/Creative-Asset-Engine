@@ -120,9 +120,26 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
       setPhase('resolving_product');
       if (productMode === 'url') {
+        // createListingSourceImport is get-or-create by URL (see
+        // app.services.listing_import's own docstring) - pasting a product
+        // URL that was already resolved in an earlier session returns that
+        // SAME already-resolved Listing, not a fresh one. Found live: this
+        // used to fall through to resolveListingToNewProduct unconditionally,
+        // which 400s ("Listing is already resolved") since that transition
+        // is one-shot - a real dead end once a product's URL had been used
+        // once, and the list of existing products was never checked as an
+        // alternative. Reusing an already-resolved listing's product/bundle
+        // directly, before ever attempting a new resolution, fixes this.
         const listing = await api.createListingSourceImport(productUrl.trim());
         const detail = await api.getListing(listing.id);
-        if (detail.pending_bundle_hints.length > 0) {
+        if (detail.resolved_product_id) {
+          await api.addSlideProduct(slideshow.id, primarySlideId, detail.resolved_product_id);
+        } else if (detail.resolved_bundle_id) {
+          const bundleView = await api.getBundleView(detail.resolved_bundle_id);
+          for (const member of bundleView.members) {
+            await api.addSlideProduct(slideshow.id, primarySlideId, member.product_id);
+          }
+        } else if (detail.pending_bundle_hints.length > 0) {
           const members = detail.pending_bundle_hints.map((hint) => ({
             new_product_display_name: hint.label,
           }));

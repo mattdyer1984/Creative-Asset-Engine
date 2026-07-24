@@ -4656,3 +4656,17 @@ Test slideshows created purely for this verification (the curl-driven single-end
 - Commit: (see git log)
 
 ---
+
+## Fix: reusing an already-resolved product URL no longer breaks the Create flow (2026-07-24)
+
+**Bug report** (found live, during the TikTok import fix's own verification): pasting a product URL into `CreateCreativeFlow`'s "Paste a product URL" step died partway through the flow, right after import succeeded, whenever that same product URL had already been resolved to a Product in an earlier session. Real server logs showed `POST /api/listings/{id}/resolve-new-product` returning a real `400 Bad Request`.
+
+**Root cause**: `POST /api/listings/source-import` (`import_listing`, `app/services/listing_import.py`) is a get-or-create by `source_url` - pasting a URL submitted before returns the *same* `Listing` row, already resolved, not a fresh one (the module's own docstring says this explicitly). `resolve_listing_to_new_product` is a one-shot transition guarded by `_require_unresolved_listing`, which raises `ValueError("Listing '...' is already resolved")` the moment `resolved_product_id`/`resolved_bundle_id` is already set - correctly translated to a `400` by the router. Not a Product-uniqueness conflict (`Product.display_name` has no uniqueness constraint at all) - the same `Listing` row was genuinely being resolved twice. `CreateCreativeFlow.tsx`'s `productMode === 'url'` branch never checked `resolved_product_id`/`resolved_bundle_id` on the `ListingDetail` it already had in hand before unconditionally calling `resolveListingToNewProduct` - both fields were already present on the wire response, just never read.
+
+**Fix**: `CreateCreativeFlow.tsx` now checks `detail.resolved_product_id`/`detail.resolved_bundle_id` first, immediately after `getListing`, before any resolution attempt - if either is already set, it adds the existing product(s) directly (`addSlideProduct`, or expanding an existing bundle's members via `getBundleView`), matching exactly what the already-resolved-bundle path already did after a *fresh* resolution. Only falls through to `resolveListingToNewBundle`/`resolveListingToNewProduct` when the listing is genuinely unresolved. No backend changes needed - `resolveListingToExistingProduct` and the `resolved_product_id`/`resolved_bundle_id` fields already existed; the frontend simply never consulted them.
+
+**Live verification, real data**: reproduced the exact failure first - confirmed via `sqlite3` that a real `Listing` row (`163a839b-...`) already had `resolved_product_id` set from an earlier session, and that re-POSTing the same URL to `/api/listings/source-import` returns that same row with the field already populated on the wire response. Ran the real UI end-to-end with the exact previously-broken product URL: import succeeded (confirmation banner shown), the flow moved cleanly from "Understanding your product…" straight into "Analyzing your creative…" - no 400, no crash. Confirmed via server logs that no `resolve-new-product` call was even attempted this time. (The pipeline then correctly reported a real, honest, unrelated "No product detected in the image" outcome for that particular slide/product pairing - a separate, pre-existing analysis-accuracy matter, not a regression of this fix.) `tsc --noEmit`/`oxlint` clean; full backend suite unaffected (467 passed, frontend-only change). Test data cleaned up afterward.
+
+- Commit: (see git log)
+
+---
