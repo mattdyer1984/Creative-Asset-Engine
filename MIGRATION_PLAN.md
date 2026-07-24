@@ -4400,3 +4400,17 @@ Sub-phases run in roughly this order (Critical → High → Medium → Low), eac
 - Commit: (see git log)
 
 ---
+
+### Phase 11.6: Generation options prominence pass (2026-07-24)
+
+**Closes a real gap the Phase 11 audit found**: found via direct inspection of the running app (not a hypothesis) - the "Generated Image" section's own description literally read *"Proof-of-loop, Phase 8 (see MIGRATION_PLAN.md) - always the primary slide..."* and "Generate Creative"'s read *"Phase 10.2-10.9 (see MIGRATION_PLAN.md's vNext ADR §11-§15) - the full Decision → Generation → Quality retry loop..."* - raw internal migration-phase jargon shown directly to a real user, exactly the "developer interface sitting on top of a powerful backend" failure mode the Phase 11 brief named. Worse, the two sections sit side by side with no explanation of why there are two separate "generate an image" affordances or which one to use - "Generated Image" (Phase 8's original single-shot proof-of-loop path) appears *before* "Generate Creative" (the complete, recommended, retry+validation loop) in reading order, so a user could easily spend real money on the simpler path without ever discovering the fuller one below it.
+
+**What was built** (relabeling/copy only, no new capability - matches this phase's own scope): "Generated Image" renamed to "Quick Generate" (in both the section header and the sticky jump-nav) to stop implying it's *the* generation feature. Its description rewritten in plain language explaining what it actually is (one shot, no retries) and now contains a real inline link (reusing the existing `scrollToSection` helper from Phase 11.0) pointing straight at "Generate Creative" for anyone who wants retries/validation/multiple candidates. "Generate Creative"'s own description rewritten the same way - what the retry loop actually does, in plain English, no phase numbers or doc references.
+
+**Live verification**: confirmed via DOM query that both section headers/descriptions and the nav label render the new plain-language copy correctly. Confirmed via a monkeypatched `Element.prototype.scrollIntoView` that clicking the new inline link fires `scrollIntoView` with the correct `section-generate-creative` target (the same proof standard Phase 11.0 established for this exact interaction). Real-time `scrollTop` tracking showed the backdrop actually moving (0 → 65px) before stalling - the stall coincided with the browser automation pane losing focus mid-animation (confirmed via a `javascript_tool` "pane is currently hidden" error), the same documented tool quirk from Phase 11.0's own verification at this scroll depth, not an app defect.
+
+**Verification**: `tsc --noEmit` clean, `oxlint` clean. No backend changes.
+
+- Commit: (see git log)
+
+---

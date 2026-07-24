@@ -524,7 +524,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 ['section-narrative-structure', 'Narrative'],
                 ['section-ocr', 'OCR'],
                 ['section-creative-specification', 'Spec'],
-                ['section-generated-image', 'Generated Image'],
+                ['section-generated-image', 'Quick Generate'],
               ].map(([id, label]) => (
                 <button key={id} type="button" onClick={() => scrollToSection(id)}>
                   {label}
@@ -803,7 +803,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
 
             <section className="blueprint-section" id="section-generated-image">
               <div className="blueprint-section-header">
-                <h3>Generated Image</h3>
+                <h3>Quick Generate</h3>
                 <div className="blueprint-section-actions">
                   <button
                     className="rerun-button"
@@ -828,8 +828,12 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 </div>
               </div>
               <p className="blueprint-meta">
-                Proof-of-loop, Phase 8 (see MIGRATION_PLAN.md) - always the primary slide, regardless
-                of which slide is shown above.
+                A single image, one shot, no retries - the fastest way to see a result. For
+                automatic retries with quality validation and a choice of candidates, use{' '}
+                <button type="button" className="text-button" onClick={() => scrollToSection('section-generate-creative')}>
+                  Generate Creative
+                </button>{' '}
+                below instead. Always the primary slide, regardless of which slide is shown above.
               </p>
               {!generatedImage ? (
                 <p className="empty-state">Not generated yet.</p>
@@ -877,10 +881,10 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                 <h3>Generate Creative</h3>
               </div>
               <p className="blueprint-meta">
-                Phase 10.2-10.9 (see MIGRATION_PLAN.md's vNext ADR §11-§15) - the full
-                Decision → Generation → Quality retry loop: N candidates, real Product
-                Fidelity + Photorealism validation, an automatically-picked winner. Every
-                candidate is a real, paid provider call - always the primary slide.
+                The full loop: generates several candidates, automatically validates each one
+                for product fidelity and photorealism, and picks the best result - retrying if
+                nothing passes. Every candidate is a real, paid provider call. Always the
+                primary slide, regardless of which slide is shown above.
               </p>
               <div className="generate-creative-controls">
                 <label className="generate-creative-field">
