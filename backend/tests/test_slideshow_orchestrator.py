@@ -11,7 +11,12 @@ from app.models.slideshow import STATUS_FAILED, STATUS_READY
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.ocr_stage import SlideOCRStage
 from app.slideshow_stages.orchestrator import SlideshowOrchestrator
-from tests.fakes import FakeAIProviderRegistry, FakeOCRProvider, FakeTextGenerationProvider
+from tests.fakes import (
+    FakeAIProviderRegistry,
+    FakeOCRProvider,
+    FakeTextGenerationProvider,
+    FakeVisionAnalysisProvider,
+)
 
 
 def test_full_pipeline_succeeds(db_session, slideshow_with_slide, monkeypatch):
@@ -163,6 +168,17 @@ def test_default_pipeline_runs_all_seven_stages(db_session, slideshow_with_produ
         "app.slideshow_stages.creative_specification_stage",
     ):
         monkeypatch.setattr(f"{module}.default_registry", FakeAIProviderRegistry())
+    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
+    # vision call between Creative Fingerprint and Marketing Analysis in
+    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
+    # building Phase 12: this test never patched it, so it was silently
+    # making a real, paid vision call. Needs its own fake registry (not
+    # the shared-shape one above) since its schema requires a "regions"
+    # key the generic FakeVisionAnalysisProvider default doesn't return.
+    monkeypatch.setattr(
+        "app.slideshow_stages.scene_intelligence_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
+    )
     # Narrative Structure (Phase 7.2) shares TextGenerationProvider with
     # Marketing Analysis but expects a different response shape - its own
     # fake registry, not the shared-shape one above.

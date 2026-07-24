@@ -12,7 +12,12 @@ from fastapi.testclient import TestClient
 from app.db import get_db
 from app.main import app
 from app.models.generated_image import GeneratedImage
-from tests.fakes import FakeAIProviderRegistry, FakeImageGenerationProvider, FakeVisionAnalysisProvider
+from tests.fakes import (
+    FakeAIProviderRegistry,
+    FakeImageGenerationProvider,
+    FakeTextGenerationProvider,
+    FakeVisionAnalysisProvider,
+)
 from tests.test_generated_image_api import _import_slideshow_with_product, _run_full_pipeline_through_creative_specification
 
 _IDENTITY_PASSES = {"field_checks": [{"field_name": "silhouette", "preserved": True, "reason": "Matches."}]}
@@ -65,6 +70,19 @@ def _stub_a_winning_generate_creative_call(monkeypatch):
     monkeypatch.setattr(
         "app.services.quality_engine.default_registry",
         FakeAIProviderRegistry(vision_provider=fake_vision),
+    )
+    # Phase 10.4 (Creative Intelligence, see MIGRATION_PLAN.md) - a real,
+    # pre-existing gap found while building Phase 12: creative_intelligence.py
+    # imports its own default_registry independently of
+    # generation_engine's, so patching that one alone doesn't stop this
+    # real, paid text-generation call whenever a SceneAnalysis exists.
+    monkeypatch.setattr(
+        "app.services.creative_intelligence.default_registry",
+        FakeAIProviderRegistry(
+            text_generation_provider=FakeTextGenerationProvider(
+                result={"optimized_scene_description": "A staged product scene.", "reasoning": "Fake."}
+            )
+        ),
     )
 
 

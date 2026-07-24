@@ -384,6 +384,15 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
         "app.slideshow_stages.creative_fingerprint_stage.default_registry",
         FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
     )
+    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
+    # vision call between Creative Fingerprint and Marketing Analysis in
+    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
+    # building Phase 12: this test never patched it, so it was silently
+    # making a real, paid vision call.
+    monkeypatch.setattr(
+        "app.slideshow_stages.scene_intelligence_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
+    )
     monkeypatch.setattr(
         "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
     )
@@ -451,6 +460,15 @@ def test_blueprint_reflects_staleness_after_an_upstream_rerun(client, monkeypatc
     monkeypatch.setattr(
         "app.slideshow_stages.creative_fingerprint_stage.default_registry",
         FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
+    )
+    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
+    # vision call between Creative Fingerprint and Marketing Analysis in
+    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
+    # building Phase 12: this test never patched it, so it was silently
+    # making a real, paid vision call.
+    monkeypatch.setattr(
+        "app.slideshow_stages.scene_intelligence_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
     )
     monkeypatch.setattr(
         "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()

@@ -64,6 +64,17 @@ def _run_full_pipeline_through_creative_specification(client, slideshow_id, monk
         "app.slideshow_stages.creative_fingerprint_stage.default_registry",
         FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
     )
+    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
+    # vision call between Creative Fingerprint and Marketing Analysis in
+    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
+    # building Phase 12: this helper's own docstring/module docstring
+    # both claimed "no real OpenAI call, FakeAIProviderRegistry
+    # throughout," but every caller of this helper was silently making a
+    # real, paid vision call for this one stage until now.
+    monkeypatch.setattr(
+        "app.slideshow_stages.scene_intelligence_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
+    )
     monkeypatch.setattr(
         "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
     )
