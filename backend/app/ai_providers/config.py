@@ -22,7 +22,14 @@ class ProvidersConfig(BaseModel):
     # image_generation, added in Phase 8.2 of the Generation -> Validation
     # proof of loop (see MIGRATION_PLAN.md) - the one capability that
     # produces an image rather than analyzing one.
-    ocr: str = "openai"
+    # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+    # gemini is the default for ocr (moves wholesale, one call site,
+    # one schema); vision_analysis stays "openai" by default on purpose
+    # - only Product Lock Profile Stage and Creative Fingerprint Stage
+    # explicitly override to "gemini" per-call
+    # (registry.image_generation's provider_name pattern, extended to
+    # vision()), everything else stays on the configured default.
+    ocr: str = "gemini"
     product_isolation: str = "openai"
     vision_analysis: str = "openai"
     text_generation: str = "openai"
@@ -67,6 +74,22 @@ class ModelsConfig(BaseModel):
         # of near-universal branding_text validation failures (see
         # providers.yaml's own comment and MIGRATION_PLAN.md).
         "image_generation": "gemini-3.1-flash-image-preview",
+    }
+    # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) - a
+    # distinct provider entry from nano_banana above even though both
+    # are Google Gemini models under the same account: these are the
+    # general-purpose multimodal analysis family, not the
+    # gemini-3.1-*-image image-generation family nano_banana configures.
+    # Flash for OCR (simple extraction, one schema, one call site); Pro
+    # for vision_analysis (Product Lock Profile + Creative Fingerprint -
+    # the detailed structured descriptions generation quality depends
+    # on), per the user's own "simple extraction -> Flash, deep analysis
+    # -> Pro" instruction. gemini-flash-latest/gemini-pro-latest, not
+    # gemini-2.5-flash/-pro - see providers.yaml's own comment for the
+    # real, live-discovered 404 that forced this substitution.
+    gemini: dict[str, str] = {
+        "ocr": "gemini-flash-latest",
+        "vision_analysis": "gemini-pro-latest",
     }
 
 

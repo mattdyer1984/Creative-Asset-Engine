@@ -55,6 +55,18 @@ def test_prompt_and_schema_warn_against_photo_overlay_text():
     assert "watermark" in labels_description
 
 
+def test_requests_the_gemini_vision_provider(db_session, slideshow_with_product, monkeypatch):
+    """Real-world-driven cost/quality change (see MIGRATION_PLAN.md)."""
+    fake_registry = FakeAIProviderRegistry()
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry", fake_registry
+    )
+
+    SlideProductLockProfileStage().run(db_session, slideshow_with_product)
+
+    assert fake_registry.vision_calls == ["gemini"]
+
+
 def test_fails_gracefully_without_a_product_assigned(db_session, slideshow_with_slide, monkeypatch):
     monkeypatch.setattr(
         "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()

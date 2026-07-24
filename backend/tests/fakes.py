@@ -363,6 +363,11 @@ class FakeAIProviderRegistry:
         self._image_generation_provider = (
             image_generation_provider or FakeImageGenerationProvider()
         )
+        # Spy list, not behavior - real-world-driven cost/quality change
+        # (see MIGRATION_PLAN.md): lets a test assert a Stage actually
+        # requested vision(provider_name="gemini") rather than just
+        # trusting that the (ignored) argument was accepted.
+        self.vision_calls: list[str | None] = []
 
     def ocr(self) -> FakeOCRProvider:
         return self._ocr_provider
@@ -370,7 +375,17 @@ class FakeAIProviderRegistry:
     def isolation(self) -> FakeProductIsolationProvider:
         return self._isolation_provider
 
-    def vision(self) -> FakeVisionAnalysisProvider:
+    def vision(self, provider_name: str | None = None) -> FakeVisionAnalysisProvider:
+        """
+        provider_name (real-world-driven cost/quality change, mirroring
+        AIProviderRegistry.vision's real override signature - see
+        MIGRATION_PLAN.md) - accepted and ignored, same reasoning as
+        image_generation's fake below: every test that cares about a
+        specific provider name should construct FakeVisionAnalysisProvider
+        with that name directly rather than this fake actually branching
+        on it, since this double only ever holds one configured instance.
+        """
+        self.vision_calls.append(provider_name)
         return self._vision_provider
 
     def text_generation(self) -> FakeTextGenerationProvider:

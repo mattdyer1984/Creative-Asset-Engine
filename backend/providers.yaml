@@ -11,7 +11,20 @@
 # environment variable fallback for local development).
 
 providers:
-  ocr: openai
+  # Real-world-driven cost/quality change (see MIGRATION_PLAN.md): OCR,
+  # Product Lock Profile, and Creative Fingerprint moved to Gemini -
+  # dramatically cheaper than GPT-5.5 for these multimodal analysis
+  # tasks, per the user's own direct request. OCR moves wholesale
+  # (default flipped to gemini here - one call site, one schema).
+  # vision_analysis deliberately stays "openai" as the DEFAULT - Product
+  # Lock Profile Stage and Creative Fingerprint Stage explicitly request
+  # provider_name="gemini" per-call (registry.py's vision() override);
+  # every other vision_analysis task (Scene Intelligence, Identity/Image
+  # Validation, Photorealism, Reference Scoring) is unaffected and keeps
+  # using this default. A narrower scope the user chose explicitly, to
+  # avoid re-calibrating the whole quality bar those tasks judge against
+  # at the same time as the pipeline stages feeding it change.
+  ocr: gemini
   product_isolation: openai
   vision_analysis: openai
   text_generation: openai
@@ -54,3 +67,27 @@ models:
     # before being trusted, same discipline as every other provider
     # change in this codebase.
     image_generation: gemini-3.1-flash-image-preview
+  gemini:
+    # Distinct entry from nano_banana above even though both are Google
+    # Gemini models under the same account - these are the general-
+    # purpose multimodal analysis family, not the gemini-3.1-*-image
+    # image-generation family nano_banana configures. Flash for OCR
+    # (simple extraction); Pro for vision_analysis (Product Lock Profile
+    # + Creative Fingerprint - the detailed structured descriptions
+    # generation quality depends on), per the user's own "simple
+    # extraction -> Flash, deep analysis -> Pro" instruction.
+    #
+    # gemini-flash-latest/gemini-pro-latest, NOT gemini-2.5-flash/-pro -
+    # a real, live-discovered correction: gemini-2.5-flash and
+    # gemini-2.5-pro both returned a real 404 ("This model ... is no
+    # longer available to new users") on this account during live
+    # verification (2026-07-24) - a new-account restriction on this
+    # specific dated snapshot, not a transient outage. The next dated
+    # snapshot tried (gemini-3-pro-preview) was ALSO already retired
+    # (404 "no longer available"). Google's own auto-updating -latest
+    # aliases (confirmed live via a real generateContent call) always
+    # point at the current recommended model per tier, avoiding this
+    # exact deprecation problem recurring - a deliberate substitution
+    # for the user's literal "2.5" naming, not a guess.
+    ocr: gemini-flash-latest
+    vision_analysis: gemini-pro-latest

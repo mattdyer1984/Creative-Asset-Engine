@@ -120,7 +120,12 @@ class SlideCreativeFingerprintStage:
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide
-        vision_provider = default_registry.vision()
+        # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+        # explicit provider_name="gemini" override: this is one of only
+        # two vision_analysis tasks moved to Gemini (Product Lock
+        # Profile is the other), a narrower scope the user chose over
+        # moving every vision_analysis task at once.
+        vision_provider = default_registry.vision(provider_name="gemini")
 
         analysis_run = start_analysis_run(
             db,

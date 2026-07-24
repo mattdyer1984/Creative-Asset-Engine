@@ -23,6 +23,7 @@ from app.ai_providers.base import (
     VisionAnalysisProvider,
 )
 from app.ai_providers.config import ModelsConfig, ProvidersConfig, load_config
+from app.ai_providers.gemini_adapter import GeminiOCRAdapter, GeminiVisionAnalysisAdapter
 from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
 from app.ai_providers.openai_adapter import (
     OpenAIImageGenerationAdapter,
@@ -35,6 +36,11 @@ from app.ai_providers.openai_adapter import (
 
 OCR_ADAPTERS: dict[str, type[OCRProvider]] = {
     "openai": OpenAIOCRAdapter,
+    # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) - the
+    # default provider for this capability (see providers.yaml), not
+    # merely an available alternative like nano_banana is for
+    # image_generation.
+    "gemini": GeminiOCRAdapter,
 }
 
 PRODUCT_ISOLATION_ADAPTERS: dict[str, type[ProductIsolationProvider]] = {
@@ -43,6 +49,15 @@ PRODUCT_ISOLATION_ADAPTERS: dict[str, type[ProductIsolationProvider]] = {
 
 VISION_ANALYSIS_ADAPTERS: dict[str, type[VisionAnalysisProvider]] = {
     "openai": OpenAIVisionAnalysisAdapter,
+    # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+    # deliberately NOT the default provider for this capability (unlike
+    # gemini for ocr above): most vision_analysis schema_names (Scene
+    # Intelligence, Identity Validation, Image Validation, Photorealism,
+    # Reference Scoring) stay on OpenAI. Only Product Lock Profile Stage
+    # and Creative Fingerprint Stage explicitly request this via
+    # vision(provider_name="gemini") - a narrower scope the user chose
+    # explicitly over moving every vision_analysis task at once.
+    "gemini": GeminiVisionAnalysisAdapter,
 }
 
 TEXT_GENERATION_ADAPTERS: dict[str, type[TextGenerationProvider]] = {
@@ -120,8 +135,23 @@ class AIProviderRegistry:
     def isolation(self) -> ProductIsolationProvider:
         return self._isolation
 
-    def vision(self) -> VisionAnalysisProvider:
-        return self._vision
+    def vision(self, provider_name: str | None = None) -> VisionAnalysisProvider:
+        """
+        Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+        `vision_analysis` is the second capability (after
+        `image_generation`) to need a per-call override rather than only
+        ever returning the configured default: Product Lock Profile
+        Stage and Creative Fingerprint Stage explicitly request
+        `provider_name="gemini"`, while every other vision_analysis
+        caller (Scene Intelligence, Identity/Image Validation,
+        Photorealism, Reference Scoring) calls `vision()` with no
+        argument and keeps getting the configured default (OpenAI).
+        `provider_name=None` (the default) preserves every pre-existing
+        call site's exact behavior - additive, not breaking.
+        """
+        if provider_name is None or provider_name == self._vision.provider:
+            return self._vision
+        return self._build(VISION_ANALYSIS_ADAPTERS, provider_name, self._models_config, "vision_analysis")
 
     def text_generation(self) -> TextGenerationProvider:
         return self._text_generation

@@ -184,7 +184,12 @@ class SlideProductLockProfileStage:
             return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
         product_id = current_appearances[0].product_id
 
-        vision_provider = default_registry.vision()
+        # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+        # explicit provider_name="gemini" override: this is one of only
+        # two vision_analysis tasks moved to Gemini (Creative Fingerprint
+        # is the other), a narrower scope the user chose over moving
+        # every vision_analysis task at once.
+        vision_provider = default_registry.vision(provider_name="gemini")
 
         analysis_run = start_analysis_run(
             db,

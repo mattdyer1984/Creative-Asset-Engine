@@ -1,13 +1,21 @@
 """
-Unit tests for AIProviderRegistry's image_generation() multi-provider
-selection (Phase 10.1 of the AI Creative Engine vNext, see
-MIGRATION_PLAN.md's ADR §10) - the first capability accessor in this
-registry with more than one real adapter.
+Unit tests for AIProviderRegistry's image_generation() and vision()
+multi-provider selection. image_generation (Phase 10.1 of the AI
+Creative Engine vNext, see MIGRATION_PLAN.md's ADR §10) was the first
+capability accessor in this registry with more than one real adapter;
+vision() gained the same provider_name override pattern later, as part
+of a real-world-driven cost/quality change moving Product Lock Profile
+and Creative Fingerprint to Gemini while every other vision_analysis
+task stays on the configured default (see MIGRATION_PLAN.md).
 """
 
 from app.ai_providers.config import ModelsConfig, ProvidersConfig
+from app.ai_providers.gemini_adapter import GeminiOCRAdapter, GeminiVisionAnalysisAdapter
 from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
-from app.ai_providers.openai_adapter import OpenAIImageGenerationAdapter
+from app.ai_providers.openai_adapter import (
+    OpenAIImageGenerationAdapter,
+    OpenAIVisionAnalysisAdapter,
+)
 from app.ai_providers.registry import AIProviderRegistry
 
 
@@ -45,3 +53,50 @@ def test_explicit_override_matching_the_default_returns_the_cached_instance():
     registry = _make_registry()
 
     assert registry.image_generation("nano_banana") is registry.image_generation()
+
+
+def test_default_ocr_provider_is_gemini_flash():
+    registry = _make_registry()
+
+    provider = registry.ocr()
+
+    assert isinstance(provider, GeminiOCRAdapter)
+    assert provider.provider == "gemini"
+    assert provider.model == "gemini-flash-latest"
+
+
+def test_default_vision_provider_stays_openai():
+    """
+    A narrower scope the user chose explicitly (see MIGRATION_PLAN.md) -
+    unlike ocr, vision_analysis's DEFAULT provider stays OpenAI; only
+    Product Lock Profile Stage and Creative Fingerprint Stage opt into
+    Gemini via the explicit override below.
+    """
+    registry = _make_registry()
+
+    provider = registry.vision()
+
+    assert isinstance(provider, OpenAIVisionAnalysisAdapter)
+    assert provider.provider == "openai"
+
+
+def test_vision_no_argument_returns_the_same_cached_instance_every_call():
+    registry = _make_registry()
+
+    assert registry.vision() is registry.vision()
+
+
+def test_vision_explicit_override_selects_gemini_pro():
+    registry = _make_registry()
+
+    provider = registry.vision("gemini")
+
+    assert isinstance(provider, GeminiVisionAnalysisAdapter)
+    assert provider.provider == "gemini"
+    assert provider.model == "gemini-pro-latest"
+
+
+def test_vision_explicit_override_matching_the_default_returns_the_cached_instance():
+    registry = _make_registry()
+
+    assert registry.vision("openai") is registry.vision()

@@ -37,15 +37,19 @@ FINGERPRINT_RESULT = {
 
 
 def test_succeeds_and_updates_slide(db_session, slideshow_with_slide, monkeypatch):
+    fake_registry = FakeAIProviderRegistry(
+        vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
+    )
     monkeypatch.setattr(
-        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
+        "app.slideshow_stages.creative_fingerprint_stage.default_registry", fake_registry
     )
 
     stage = SlideCreativeFingerprintStage()
     result = stage.run(db_session, slideshow_with_slide)
 
     assert result.succeeded is True
+    # Real-world-driven cost/quality change (see MIGRATION_PLAN.md).
+    assert fake_registry.vision_calls == ["gemini"]
 
     slide = slideshow_with_slide.primary_slide
     db_session.refresh(slide)
