@@ -147,12 +147,29 @@ export function GenerationResultsModal({
         )}
 
         <div className="results-modal-viewer">
+          {/* Found live (real bug, not hypothetical): currentImageUrl falls
+              back to the original slide whenever there's no winner, so it's
+              never falsy - the old "nothing passed quality checks" message
+              below could never actually render, leaving the original shown
+              with zero indication it wasn't a real result. This banner is
+              keyed on afterImageUrl (the real signal for "did anything win")
+              instead, so it always fires when it should, independent of
+              whatever currentImageUrl happens to resolve to. */}
+          {!afterImageUrl && (
+            <p className="results-modal-no-winner-banner">
+              No generated candidate passed our quality checks this time - the image below is the
+              original slide, not a result. Try Regenerate, or a different text option.
+            </p>
+          )}
           {currentImageUrl ? (
             <div
               className={`results-modal-image-frame${zoomed ? ' zoomed' : ''}`}
               onClick={() => setZoomed((z) => !z)}
             >
-              <img src={currentImageUrl} alt={showBefore ? 'Original slide' : 'Generated creative'} />
+              <img
+                src={currentImageUrl}
+                alt={showBefore || !afterImageUrl ? 'Original slide' : 'Generated creative'}
+              />
             </div>
           ) : (
             <p className="empty-state">

@@ -1820,6 +1820,19 @@ section h2 {
   gap: 0.75rem;
 }
 
+/* Real bug fix, found live: this banner is the only thing that reliably
+   tells the user "you're looking at the original, not a result" - the
+   image area always has SOME image to show (falls back to the original),
+   so it can never be empty/blank on its own. */
+.results-modal-no-winner-banner {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  background: #fbdada;
+  color: #7a1414;
+  font-size: 0.85rem;
+}
+
 .results-modal-image-frame {
   background: #1a1a1a;
   border-radius: 10px;
