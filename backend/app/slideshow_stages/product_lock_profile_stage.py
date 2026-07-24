@@ -86,6 +86,16 @@ PRODUCT_LOCK_PROFILE_SCHEMA = {
         },
         "labels_and_text": {
             "type": "array",
+            "description": (
+                "Only text that is physically printed, embossed, or molded onto the "
+                "product's own packaging, container, or body - the same text would "
+                "still be there if the product were photographed on its own, with no "
+                "caption, sticker, or watermark added. Do NOT include text that was "
+                "overlaid onto this photo by whoever took or posted it (social-media "
+                "captions, meme-style commentary, price stickers/shelf tags added by a "
+                "retailer, watermarks) - that text is about this photo, not about the "
+                "product, and does not belong here even if it's clearly visible."
+            ),
             "items": {
                 "type": "object",
                 "properties": {
@@ -145,9 +155,15 @@ PRODUCT_LOCK_PROFILE_PROMPT = (
     "and proportions, packaging, materials, surface finish, colors, "
     "branding, any visible labels or printed text, distinguishing visual "
     "features, viewing angle, perspective, lighting characteristics, and "
-    "its approximate scale within the frame. In immutable_characteristics, "
-    "list the visual traits that must NEVER change if this exact product "
-    "is recreated in a new marketing image."
+    "its approximate scale within the frame. For labels_and_text, only "
+    "include text that is actually printed, embossed, or molded onto the "
+    "product's own packaging or body - never text overlaid onto this "
+    "photo afterward, such as a social-media caption, meme-style "
+    "commentary, a retailer's price sticker or shelf tag, or a watermark. "
+    "If you're unsure whether a piece of text is part of the product "
+    "itself or was overlaid onto the photo, leave it out. In "
+    "immutable_characteristics, list the visual traits that must NEVER "
+    "change if this exact product is recreated in a new marketing image."
 )
 
 

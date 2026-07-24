@@ -12,6 +12,8 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.slideshow_stages.product_isolation_stage import SlideProductIsolationStage
 from app.slideshow_stages.product_lock_profile_stage import (
     _MULTI_PRODUCT_ERROR,
+    PRODUCT_LOCK_PROFILE_PROMPT,
+    PRODUCT_LOCK_PROFILE_SCHEMA,
     SlideProductLockProfileStage,
 )
 from tests.fakes import FakeAIProviderRegistry, FakeProductIsolationProvider
@@ -34,6 +36,23 @@ def _add_second_current_appearance(db_session, slideshow_with_product):
         )
     )
     db_session.commit()
+
+
+def test_prompt_and_schema_warn_against_photo_overlay_text():
+    """
+    Real bug (see MIGRATION_PLAN.md): labels_and_text previously picked
+    up text overlaid onto the source photo by whoever posted it (a
+    TikTok caption), not just text physically printed on the product's
+    own packaging - both the prompt and the schema's field description
+    must tell the model to exclude the former.
+    """
+    assert "overlaid" in PRODUCT_LOCK_PROFILE_PROMPT
+    assert "caption" in PRODUCT_LOCK_PROFILE_PROMPT
+
+    labels_description = PRODUCT_LOCK_PROFILE_SCHEMA["properties"]["labels_and_text"]["description"]
+    assert "overlaid" in labels_description
+    assert "caption" in labels_description
+    assert "watermark" in labels_description
 
 
 def test_fails_gracefully_without_a_product_assigned(db_session, slideshow_with_slide, monkeypatch):
