@@ -188,6 +188,21 @@ def compile_generation_request(
     composites it separately" instruction, since asking the model to
     render text AND the app to composite text over the same area would
     produce visibly broken, doubled-up output.
+
+    **Real-world-diagnosed strengthening** (see MIGRATION_PLAN.md): this
+    suppression only ever addressed `creative_specification.
+    text_overlays` - a real generation showed the model still baking a
+    caption into the image anyway, because `background_environment`
+    (compiled above, in `_CREATIVE_SPEC_INTENT_FIELDS`) is free text
+    written by an earlier AI stage, and that stage had independently
+    described the on-screen caption as part of "the scene" (e.g. "keep
+    the on-screen caption... reading '...'"). That framing never
+    matches the words "headline"/"CTA"/"price" the old suppression
+    instruction listed, so the model saw two instructions that didn't
+    look like they conflicted and rendered the caption anyway. The
+    instruction below is now an explicit, absolute override of
+    anything stated earlier in this same compiled prompt, not just a
+    parallel instruction alongside it.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -220,10 +235,16 @@ def compile_generation_request(
 
     if suppress_overlay_text:
         intent_parts.append(
-            "Do not render any marketing headline, subheadline, CTA, or price "
-            "text into the image - leave those areas visually clean and "
-            "uncluttered. That text is composited separately by the app "
-            "afterward, not by you."
+            "Do not render ANY text of any kind into the image - no marketing "
+            "headline, subheadline, CTA, price, caption, callout, or watermark. "
+            "This overrides anything stated earlier in this description that "
+            "mentions or quotes on-screen text or a caption as part of the "
+            "scene - ignore that and leave every such area visually clean and "
+            "uncluttered instead. All of that text is composited separately by "
+            "the app afterward, not by you. (This does not apply to text "
+            "physically printed on the product's own packaging or label - "
+            "reproduce that exactly, as instructed elsewhere in this "
+            "description.)"
         )
     else:
         text_overlays = creative_specification.get("text_overlays") or []

@@ -155,7 +155,7 @@ def test_default_behavior_still_renders_text_overlays_unchanged():
     """suppress_overlay_text defaults to False - a real, deliberate backward-compatibility choice."""
     request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
     assert "Text overlays: headline: Start Fresh" in request.creative_intent
-    assert "Do not render any marketing" not in request.creative_intent
+    assert "Do not render ANY text" not in request.creative_intent
 
 
 def test_suppress_overlay_text_removes_the_render_instruction_and_adds_the_clean_area_instruction():
@@ -163,7 +163,23 @@ def test_suppress_overlay_text_removes_the_render_instruction_and_adds_the_clean
         _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
     )
     assert "Text overlays:" not in request.creative_intent
-    assert "Do not render any marketing" in request.creative_intent
+    assert "Do not render ANY text" in request.creative_intent
+
+
+def test_suppress_overlay_text_explicitly_overrides_earlier_scene_description():
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): a real generation
+    still baked a caption into the image because background_environment
+    (compiled earlier, free text from an upstream AI stage) had
+    independently described it as part of the scene - the old
+    suppression instruction never said it overrode that. The new
+    instruction must explicitly say so, and must exempt packaging text.
+    """
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
+    )
+    assert "overrides anything stated earlier in this description" in request.creative_intent
+    assert "does not apply to text physically printed on the product" in request.creative_intent
 
 
 # --- branding_text (real-world-diagnosed prompting fix, see MIGRATION_PLAN.md) ---
