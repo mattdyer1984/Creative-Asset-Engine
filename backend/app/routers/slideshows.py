@@ -64,7 +64,11 @@ from app.schemas import (
     SlideshowUrlImportRequest,
 )
 from app.services.background_execution import run_pipeline_in_background, run_stage_in_background
-from app.services.generate_with_retry import RetryLoopResult, generate_with_retry
+from app.services.generate_with_retry import (
+    RetryLoopResult,
+    describe_rejection,
+    generate_with_retry,
+)
 from app.services.generation_log_archive import create_archive
 from app.services.project_product import ensure_project_product_membership
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
@@ -642,6 +646,7 @@ def generate_creative(
                     GenerationCandidateRead(
                         generated_image=GeneratedImageRead.model_validate(candidate.generated_image),
                         quality_assessment=_quality_assessment_read(candidate.quality_assessment),
+                        rejection_reasons=describe_rejection(db, candidate.quality_assessment),
                     )
                     for candidate in outcome.candidates
                 ],
@@ -728,6 +733,7 @@ def list_generation_attempts(
                 GenerationCandidateRead(
                     generated_image=GeneratedImageRead.model_validate(generated_image),
                     quality_assessment=_quality_assessment_read(quality_assessment),
+                    rejection_reasons=describe_rejection(db, quality_assessment),
                 )
             )
         result.append(

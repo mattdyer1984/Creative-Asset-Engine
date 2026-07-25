@@ -349,6 +349,10 @@ export interface QualityAssessmentData {
 export interface GenerationCandidateData {
   generated_image: GeneratedImageData;
   quality_assessment: QualityAssessmentData;
+  // Plain-language rejection reasons, computed server-side - the
+  // per-field checks live on ImageValidationResult, which the client
+  // only receives an id for. Empty for an accepted candidate.
+  rejection_reasons: string[];
 }
 
 export interface GenerationAttemptData {

@@ -154,8 +154,46 @@ export function GenerationResultsModal({
     : activeResult?.winner
       ? api.generatedImageFileUrl(slideshowId, activeResult.winner.id)
       : null;
+
+  // When nothing was accepted, this used to show the ORIGINAL SLIDE in the
+  // result slot with one sentence of explanation - so a failed run looked
+  // like a result that had barely changed, and the candidates we actually
+  // generated (and paid for) were invisible. Every candidate the backend
+  // returns is now kept and shown, clearly labelled.
+  const bestFailedCandidate = (() => {
+    if (afterImageUrl || !activeResult) return null;
+    const candidates = (activeResult.attempts ?? []).flatMap((attempt) => attempt.candidates ?? []);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, candidate) =>
+      (candidate.quality_assessment?.overall_confidence_score ?? 0) >
+      (best.quality_assessment?.overall_confidence_score ?? 0)
+        ? candidate
+        : best
+    );
+  })();
+
+  const failedCandidateUrl = bestFailedCandidate
+    ? api.generatedImageFileUrl(slideshowId, bestFailedCandidate.generated_image.id)
+    : null;
+
   const beforeImageUrl = api.slideFileUrl(slideshowId, activeSlide.slideId);
-  const currentImageUrl = showBefore || !afterImageUrl ? beforeImageUrl : afterImageUrl;
+  // The original is shown only when explicitly toggled, or when there is
+  // genuinely nothing generated. It must never silently occupy the result
+  // slot as though it were output.
+  const resultImageUrl = afterImageUrl ?? failedCandidateUrl;
+  const currentImageUrl = showBefore || !resultImageUrl ? beforeImageUrl : resultImageUrl;
+
+  const imageLabel =
+    showBefore || !resultImageUrl
+      ? 'Original slide'
+      : afterImageUrl
+        ? 'Generated candidate - passed automated checks'
+        : 'Generated candidate - failed automated checks';
+
+  // Why the best candidate was rejected. Computed server-side: the
+  // per-field checks live on ImageValidationResult, which the client only
+  // ever receives an id for, so the UI cannot derive these itself.
+  const failureReasons: string[] = bestFailedCandidate?.rejection_reasons ?? [];
 
   // Learning Mode's mandatory-review gate now spans every slide that has
   // a real generation_log_id (an attempt that actually ran, whether or
@@ -237,19 +275,40 @@ export function GenerationResultsModal({
             </p>
           )}
           {!activeSlide.error && !afterImageUrl && (
-            <p className="results-modal-no-winner-banner">
-              No generated candidate passed our quality checks this time - the image below is the
-              original slide, not a result. Try Regenerate, or a different text option.
-            </p>
+            <div className="results-modal-no-winner-banner">
+              <p>
+                {failedCandidateUrl
+                  ? 'These candidates did not pass our automated quality checks. The best one is shown below so you can judge it yourself - you can still accept it, regenerate, or add clearer product references.'
+                  : 'Nothing was generated for this slide, so the original is shown for reference.'}
+              </p>
+              {failureReasons.length > 0 && (
+                <ul className="results-modal-failure-reasons">
+                  {failureReasons.slice(0, 6).map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
           {currentImageUrl ? (
             <div
               className={`results-modal-image-frame${zoomed ? ' zoomed' : ''}`}
               onClick={() => setZoomed((z) => !z)}
             >
+              <span
+                className={
+                  imageLabel.startsWith('Original')
+                    ? 'results-modal-image-label is-original'
+                    : imageLabel.endsWith('passed automated checks')
+                      ? 'results-modal-image-label is-passed'
+                      : 'results-modal-image-label is-failed'
+                }
+              >
+                {imageLabel}
+              </span>
               <img
                 src={currentImageUrl}
-                alt={showBefore || !afterImageUrl ? 'Original slide' : 'Generated creative'}
+                alt={imageLabel}
               />
             </div>
           ) : (

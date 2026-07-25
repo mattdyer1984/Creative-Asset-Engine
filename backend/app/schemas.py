@@ -464,6 +464,14 @@ class QualityAssessmentRead(BaseModel):
 class GenerationCandidateRead(BaseModel):
     generated_image: GeneratedImageRead
     quality_assessment: QualityAssessmentRead
+    # Why this candidate was rejected, in plain language, computed
+    # server-side from the same ImageValidationResult/QualityAssessment
+    # data the retry loop reads. The UI cannot derive these itself - the
+    # per-field checks live on ImageValidationResult, which the client
+    # only ever receives an id for, so without this the results modal
+    # could only ever say "did not pass" with no reason attached.
+    # Empty for an accepted candidate.
+    rejection_reasons: list[str] = []
 
 
 class GenerationAttemptRead(BaseModel):

@@ -10,3 +10,32 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Every image in the results modal states what it is. The original slide
+   must never sit in the result slot looking like output - that is exactly
+   how a failed run read as "a result that barely changed". */
+.results-modal-image-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.82);
+  pointer-events: none;
+}
+.results-modal-image-label.is-passed { background: rgba(21, 128, 61, 0.9); }
+.results-modal-image-label.is-failed { background: rgba(180, 83, 9, 0.92); }
+.results-modal-image-label.is-original { background: rgba(51, 65, 85, 0.88); }
+
+.results-modal-failure-reasons {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.9;
+}

@@ -519,3 +519,71 @@ def test_retry_prompt_falls_back_to_photorealism_reasons_when_no_product_validat
     assert result.winner is not None
     assert "warped hand geometry" in fake_image_provider.last_request.creative_intent
     assert "didn't look sufficiently realistic" in fake_image_provider.last_request.creative_intent
+
+
+def test_describe_rejection_lists_every_reason_for_display(db_session):
+    """
+    The results modal could only ever say "did not pass" with no reason:
+    the per-field checks live on ImageValidationResult and the client only
+    receives an id for it, so the UI cannot derive them. Computed
+    server-side instead.
+    """
+    from app.models.analysis_run import AnalysisRun
+    from app.models.image_validation_result import ImageValidationResult
+    from app.models.quality_assessment import QualityAssessment
+    from app.services.generate_with_retry import describe_rejection
+
+    run = AnalysisRun(
+        analysis_type="image_validation", provider="gemini",
+        model_name="test", status="succeeded",
+    )
+    db_session.add(run)
+    db_session.flush()
+
+    validation = ImageValidationResult(
+        generated_image_id="g1",
+        product_id="p1",
+        analysis_run_id=run.id,
+        passed=False,
+        identity_passed=True,
+        identity_checks_json=[
+            {"field_name": "silhouette", "preserved": True, "reason": "matches"},
+        ],
+        field_checks_json=[
+            {"field_name": "color", "preserved": False, "reason": "criss-cross is white not black"},
+            {"field_name": "brand", "preserved": True, "reason": "logo present"},
+        ],
+        overall_explanation="one field failed",
+    )
+    db_session.add(validation)
+    db_session.flush()
+
+    assessment = QualityAssessment(
+        generated_image_id="g1",
+        image_validation_result_id=validation.id,
+        photorealism_json={"reasons": ["slight banding in the background"]},
+        overall_confidence_score=0.0,
+        accepted=False,
+    )
+    db_session.add(assessment)
+    db_session.flush()
+
+    reasons = describe_rejection(db_session, assessment)
+
+    assert any("color" in r and "criss-cross" in r for r in reasons)
+    assert any("banding" in r for r in reasons)
+    assert not any("silhouette" in r for r in reasons), "passing checks are not failures"
+    assert not any("brand" in r for r in reasons)
+
+
+def test_an_accepted_candidate_has_no_rejection_reasons(db_session):
+    from app.models.quality_assessment import QualityAssessment
+    from app.services.generate_with_retry import describe_rejection
+
+    assessment = QualityAssessment(
+        generated_image_id="g2", overall_confidence_score=0.9, accepted=True,
+        photorealism_json={"reasons": ["looks great"]},
+    )
+    db_session.add(assessment)
+    db_session.flush()
+    assert describe_rejection(db_session, assessment) == []

@@ -410,3 +410,40 @@ def _style_quality_opening(db: Session, generated_image: GeneratedImage) -> str:
         RenderingFamily.RENDER: fragments["style_render"],
         RenderingFamily.MIXED: fragments["style_mixed"],
     }.get(classification.family, fragments["photorealism"])
+
+
+def describe_rejection(db: Session, assessment: QualityAssessment) -> list[str]:
+    """
+    Every reason a candidate was rejected, for display.
+
+    `_summarize_rejection_reason` above picks the single most useful
+    reason to feed the next attempt's prompt; this returns the full list
+    for a human deciding whether to accept the candidate anyway. Same
+    source data, different audience - which is why they are separate
+    rather than one function trying to serve both.
+    """
+    if assessment.accepted:
+        return []
+
+    reasons: list[str] = []
+    validation_ids: list[str] = []
+    if assessment.image_validation_result_id:
+        validation_ids = [assessment.image_validation_result_id]
+    elif assessment.image_validation_result_ids_json:
+        validation_ids = list(assessment.image_validation_result_ids_json)
+
+    for result_id in validation_ids:
+        result = db.get(ImageValidationResult, result_id)
+        if result is None:
+            continue
+        for check in result.identity_checks_json or []:
+            if not check.get("preserved"):
+                reasons.append(f"Product identity - {check['field_name']}: {check['reason']}")
+        for check in result.field_checks_json or []:
+            if not check.get("preserved"):
+                reasons.append(f"Product detail - {check['field_name']}: {check['reason']}")
+
+    for reason in (assessment.photorealism_json or {}).get("reasons") or []:
+        reasons.append(f"Image quality - {reason}")
+
+    return reasons
