@@ -14,6 +14,16 @@ PROVIDERS_YAML_PATH = Path(__file__).resolve().parent.parent.parent / "providers
 
 KEYRING_SERVICE_NAME = "creative-asset-engine"
 
+# Optimisation & Stability Pass, Tier 1 (see MIGRATION_PLAN.md) - none of
+# the provider SDK clients set an explicit timeout, so a hang (not an
+# exception) on a provider call could still block a synchronous request
+# or a background-task stage indefinitely, even after the Tier 1
+# exception-safety fixes. 180s is deliberately generous - well above any
+# real call latency observed so far (single image-generation calls
+# around 14s) - a belt-and-suspenders bound, not a tight one that risks
+# failing a legitimately slow-but-successful call.
+AI_PROVIDER_TIMEOUT_SECONDS = 180
+
 
 class ProvidersConfig(BaseModel):
     # One field per capability - all 5 of the plan's AI capabilities now

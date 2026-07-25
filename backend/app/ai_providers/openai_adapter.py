@@ -25,7 +25,7 @@ from app.ai_providers.base import (
     OCRExtraction,
     ProviderCapabilities,
 )
-from app.ai_providers.config import get_api_key
+from app.ai_providers.config import AI_PROVIDER_TIMEOUT_SECONDS, get_api_key
 
 OCR_RESPONSE_SCHEMA = {
     "type": "object",
@@ -145,7 +145,7 @@ class OpenAIOCRAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key("openai"))
+        return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def extract_text(self, image_bytes: bytes) -> OCRExtraction:
         # Real-world-diagnosed fix (see MIGRATION_PLAN.md): capture into
@@ -242,7 +242,7 @@ class OpenAIProductIsolationAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key("openai"))
+        return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def isolate_product(self, image_bytes: bytes) -> list[dict]:
         client = self.client
@@ -293,7 +293,7 @@ class OpenAIVisionAnalysisAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key("openai"))
+        return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def analyze_creative(
         self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
@@ -348,7 +348,7 @@ class OpenAITextGenerationAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key("openai"))
+        return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def generate(self, prompt_spec: dict, response_schema: dict) -> dict:
         prompt_text = prompt_spec["prompt"]
@@ -399,7 +399,7 @@ class OpenAIPromptGenerationAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key("openai"))
+        return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
@@ -516,7 +516,7 @@ class OpenAIImageGenerationAdapter:
         # calls started running concurrently. Construction itself does no
         # network I/O, so this stays just as lazy as the memoized version
         # ever was - only actually calling a method needs a real API key.
-        return OpenAI(api_key=get_api_key(self.provider))
+        return OpenAI(api_key=get_api_key(self.provider), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     @property
     def capabilities(self) -> ProviderCapabilities:

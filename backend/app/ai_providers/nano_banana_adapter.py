@@ -72,7 +72,7 @@ from google.genai import types
 from PIL import Image
 
 from app.ai_providers.base import GeneratedImageResult, GenerationRequest, ProviderCapabilities
-from app.ai_providers.config import get_api_key
+from app.ai_providers.config import AI_PROVIDER_TIMEOUT_SECONDS, get_api_key
 
 # Verified 2026-07-23 via direct introspection of google-genai==2.14.0's
 # types.ImageConfig.model_fields["aspect_ratio"] docstring: "Supported
@@ -123,7 +123,10 @@ class NanoBananaImageGenerationAdapter:
         # reasoning (a memoized, registry-shared client broke under real
         # concurrent use once per-slide stage calls started running
         # concurrently).
-        return genai.Client(api_key=get_api_key(self.provider))
+        return genai.Client(
+            api_key=get_api_key(self.provider),
+            http_options=types.HttpOptions(timeout=AI_PROVIDER_TIMEOUT_SECONDS * 1000),
+        )
 
     @property
     def capabilities(self) -> ProviderCapabilities:

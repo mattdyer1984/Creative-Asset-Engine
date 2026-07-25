@@ -70,7 +70,7 @@ from google.genai import types
 from PIL import Image
 
 from app.ai_providers.base import OCRExtraction
-from app.ai_providers.config import get_api_key
+from app.ai_providers.config import AI_PROVIDER_TIMEOUT_SECONDS, get_api_key
 from app.ai_providers.openai_adapter import OCR_PROMPT, OCR_RESPONSE_SCHEMA
 
 
@@ -92,7 +92,10 @@ class GeminiOCRAdapter:
         # reasoning (a memoized, registry-shared client broke under real
         # concurrent use once per-slide stage calls started running
         # concurrently).
-        return genai.Client(api_key=get_api_key("nano_banana"))
+        return genai.Client(
+            api_key=get_api_key("nano_banana"),
+            http_options=types.HttpOptions(timeout=AI_PROVIDER_TIMEOUT_SECONDS * 1000),
+        )
 
     def extract_text(self, image_bytes: bytes) -> OCRExtraction:
         # Real-world-diagnosed fix (see MIGRATION_PLAN.md and
@@ -140,7 +143,10 @@ class GeminiVisionAnalysisAdapter:
         # reasoning (a memoized, registry-shared client broke under real
         # concurrent use once per-slide stage calls started running
         # concurrently).
-        return genai.Client(api_key=get_api_key("nano_banana"))
+        return genai.Client(
+            api_key=get_api_key("nano_banana"),
+            http_options=types.HttpOptions(timeout=AI_PROVIDER_TIMEOUT_SECONDS * 1000),
+        )
 
     def analyze_creative(
         self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
