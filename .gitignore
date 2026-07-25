@@ -3,9 +3,15 @@ backend/.venv/
 __pycache__/
 *.pyc
 
-# Secrets
+# Secrets — real key files are never committed. The `!` negations keep the
+# committed templates visible even if the patterns above are later widened
+# to something like `.env*` (Phase 0 remediation).
 .env
+.env.local
 backend/.env
+backend/.env.local
+!.env.example
+!backend/.env.example
 
 # Local data (DB + imported/generated files) — never committed
 backend/data/
@@ -13,6 +19,9 @@ backend/data/
 # Node
 frontend/node_modules/
 frontend/dist/
+
+# Local tool state (machine-specific, not shared)
+.claude/settings.local.json
 
 # OS
 .DS_Store

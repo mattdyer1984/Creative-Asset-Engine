@@ -54,12 +54,23 @@ The app looks up API keys via the macOS Keychain first, then falls back
 to an environment variable — see `app/ai_providers/config.py`.
 
 ```bash
-# Option A: macOS Keychain (the intended mechanism)
+# Option A: macOS Keychain (the intended mechanism for local dev)
 python3 -c "import keyring; keyring.set_password('creative-asset-engine', 'openai_api_key', 'sk-...')"
 
-# Option B: environment variable (simpler for local dev/testing)
+# Option B: environment variable (for CI / controlled deployments)
 export OPENAI_API_KEY=sk-...
 ```
+
+**There is no `.env` support.** Nothing in this codebase calls
+`load_dotenv()`, so a `.env` file is inert — its variables only take
+effect if your shell exports them anyway. `backend/.env.example`
+documents the variable names; do not create a real `.env` beside it.
+
+**Google's two model families share one credential.** Gemini (analysis)
+and Nano Banana (image generation) both resolve through
+`get_api_key("nano_banana")` — `gemini_adapter.py` calls it explicitly.
+There is no separate `gemini` key, and rotating the Nano Banana
+credential rotates Gemini at the same time.
 
 ### Running the tests
 
