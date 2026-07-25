@@ -73,13 +73,13 @@ def test_import_source_downloads_a_single_stable_image(monkeypatch):
         downie_module.subprocess, "run", _writes_files({".jpg": _real_jpeg_bytes()})
     )
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/1"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/1"})
 
     assert isinstance(package, EvidencePackage)
     assert package.source_platform == "downie"
     assert len(package.media_assets) == 1
     assert package.media_assets[0].source_type == "downie"
-    assert package.media_assets[0].source_locator == "https://example.com/post/1"
+    assert package.media_assets[0].source_locator == "https://www.tiktok.com/@u/video/post/1"
 
 
 def test_import_source_sorts_multi_image_downloads_by_bracket_index(monkeypatch):
@@ -95,7 +95,7 @@ def test_import_source_sorts_multi_image_downloads_by_bracket_index(monkeypatch)
         ),
     )
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/2"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/2"})
 
     assert [m.original_filename for m in package.media_assets] == sorted(
         m.original_filename for m in package.media_assets
@@ -112,7 +112,7 @@ def test_import_source_skips_non_image_files_among_real_ones(monkeypatch):
         _writes_files({".jpg": _real_jpeg_bytes(), ".mp4": b"not a real video, just garbage bytes"}),
     )
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/3"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/3"})
 
     assert len(package.media_assets) == 1
     assert package.media_assets[0].original_filename.endswith(".jpg")
@@ -124,14 +124,14 @@ def test_import_source_raises_unsupported_when_nothing_downloaded_is_an_image(mo
     )
 
     with pytest.raises(DownieImportUnsupportedContentError):
-        DownieImporter().import_source({"url": "https://example.com/video-only"})
+        DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/video-only"})
 
 
 def test_import_source_raises_timeout_when_nothing_appears(monkeypatch):
     monkeypatch.setattr(downie_module.subprocess, "run", lambda cmd, check: subprocess.CompletedProcess(cmd, 0))
 
     with pytest.raises(DownieImportTimeoutError):
-        DownieImporter().import_source({"url": "https://example.com/nothing"})
+        DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/nothing"})
 
 
 def test_import_source_raises_unavailable_when_downie_not_installed(monkeypatch):
@@ -143,7 +143,7 @@ def test_import_source_raises_unavailable_when_downie_not_installed(monkeypatch)
     monkeypatch.setattr(downie_module.subprocess, "run", _fail_if_called)
 
     with pytest.raises(DownieImportUnavailableError):
-        DownieImporter().import_source({"url": "https://example.com/post/4"})
+        DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/4"})
 
 
 def test_import_source_cleans_up_scratch_dir_on_success(monkeypatch):
@@ -157,7 +157,7 @@ def test_import_source_cleans_up_scratch_dir_on_success(monkeypatch):
 
     monkeypatch.setattr(downie_module.subprocess, "run", _run_and_record)
 
-    DownieImporter().import_source({"url": "https://example.com/post/5"})
+    DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/5"})
 
     assert not scratch_dirs[0].exists()
 
@@ -173,7 +173,7 @@ def test_import_source_cleans_up_scratch_dir_on_failure(monkeypatch):
     monkeypatch.setattr(downie_module.subprocess, "run", _run_and_record)
 
     with pytest.raises(DownieImportTimeoutError):
-        DownieImporter().import_source({"url": "https://example.com/post/6"})
+        DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/6"})
 
     assert not scratch_dirs[0].exists()
 
@@ -181,7 +181,7 @@ def test_import_source_cleans_up_scratch_dir_on_failure(monkeypatch):
 def test_import_source_evidence_package_has_no_platform_metadata_downie_cannot_provide(monkeypatch):
     monkeypatch.setattr(downie_module.subprocess, "run", _writes_files({".jpg": _real_jpeg_bytes()}))
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/7"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/7"})
 
     assert package.creator is None
     assert package.caption is None
@@ -195,7 +195,7 @@ def test_import_source_treats_downiepart_as_in_progress_not_done(monkeypatch):
     )
 
     with pytest.raises(DownieImportTimeoutError):
-        DownieImporter().import_source({"url": "https://example.com/still-downloading"})
+        DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/still-downloading"})
 
 
 def test_downie_registered_in_importer_registry():
@@ -269,7 +269,7 @@ def test_expected_count_none_returns_early_on_a_stable_but_incomplete_snapshot(m
     monkeypatch.setattr(downie_module.subprocess, "run", fake_run)
     monkeypatch.setattr(downie_module.time, "sleep", fake_sleep)
 
-    package = DownieImporter().import_source({"url": "https://example.com/staggered"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/staggered"})
 
     assert len(package.media_assets) == 1
 
@@ -290,7 +290,7 @@ def test_expected_count_waits_for_every_file_before_returning(monkeypatch):
     monkeypatch.setattr(downie_module.subprocess, "run", fake_run)
     monkeypatch.setattr(downie_module.time, "sleep", fake_sleep)
 
-    package = DownieImporter().import_source({"url": "https://example.com/staggered", "expected_count": 4})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/staggered", "expected_count": 4})
 
     assert len(package.media_assets) == 4
     assert package.downloaded_count == 4
@@ -317,7 +317,7 @@ def test_marketing_creative_index_is_sorted_position_not_raw_bracket_number(monk
         ),
     )
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/8"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/8"})
 
     assert [m.raw_metadata["index"] for m in package.media_assets] == [0, 1, 2]
 
@@ -329,7 +329,7 @@ def test_failed_assets_and_downloaded_count_are_reported_not_silently_dropped(mo
         _writes_files({".jpg": _real_jpeg_bytes(), ".mp4": b"not a real video, just garbage bytes"}),
     )
 
-    package = DownieImporter().import_source({"url": "https://example.com/post/9"})
+    package = DownieImporter().import_source({"url": "https://www.tiktok.com/@u/video/post/9"})
 
     assert package.downloaded_count == 2
     assert len(package.media_assets) == 1

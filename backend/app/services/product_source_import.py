@@ -42,6 +42,7 @@ from app.models.product_source_import import (
 from app.product_sources.base import NormalizedProductEvidence
 from app.product_sources.registry import get_product_source_adapter
 from app.storage import save_product_reference_image
+from app.services.safe_fetch import fetch_public, looks_like_image
 
 IMAGE_FETCH_TIMEOUT_SECONDS = 10.0
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -167,14 +168,29 @@ def _try_download_and_save_reference_image(
 
 
 def _download_bounded(url: str, *, transport: httpx.BaseTransport | None) -> bytes:
-    with httpx.Client(transport=transport, timeout=IMAGE_FETCH_TIMEOUT_SECONDS, follow_redirects=True) as client:
-        with client.stream("GET", url) as response:
-            response.raise_for_status()
-            chunks: list[bytes] = []
-            total = 0
-            for chunk in response.iter_bytes():
-                total += len(chunk)
-                if total > MAX_IMAGE_BYTES:
-                    raise ValueError(f"Image at {url} exceeded {MAX_IMAGE_BYTES} bytes")
-                chunks.append(chunk)
-            return b"".join(chunks)
+    """
+    SSRF-protected image download (Phase 0 remediation, WP-0C).
+
+    This is the SECOND-ORDER case and the more subtle of the two: these
+    URLs are not typed by the user, they are extracted from the fetched
+    page's own JSON-LD/OpenGraph - i.e. from content an attacker
+    controls if they control the page. A hostile product page could
+    therefore point <meta property="og:image"> at
+    http://169.254.169.254/... and have the server fetch it. Same shared
+    validator as the page fetch itself; see safe_fetch's docstring.
+
+    Also verifies the bytes really are an image before they are saved -
+    a Content-Type header is attacker-controlled and proves nothing.
+    """
+    result = fetch_public(
+        url,
+        max_bytes=MAX_IMAGE_BYTES,
+        timeout=IMAGE_FETCH_TIMEOUT_SECONDS,
+        transport=transport,
+    )
+    if not looks_like_image(result.content, result.content_type):
+        raise ValueError(
+            f"Content at {url} is not a recognised image format "
+            f"(content-type claimed {result.content_type!r})."
+        )
+    return result.content

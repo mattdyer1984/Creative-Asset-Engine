@@ -112,8 +112,8 @@ def _image_post_item(**overrides) -> dict:
         "challenges": [{"title": "widgets"}, {"title": "deal"}],
         "imagePost": {
             "images": [
-                {"imageURL": {"urlList": ["https://cdn.example/img0.jpeg"]}},
-                {"imageURL": {"urlList": ["https://cdn.example/img1.jpeg"]}},
+                {"imageURL": {"urlList": ["https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg"]}},
+                {"imageURL": {"urlList": ["https://p16-common-sign.tiktokcdn-eu.com/img1.jpeg"]}},
             ]
         },
     }
@@ -155,8 +155,8 @@ def test_import_source_builds_evidence_package_from_a_real_image_post(monkeypatc
     item = _image_post_item()
     img0, img1 = _real_jpeg_bytes((10, 10, 10)), _real_jpeg_bytes((20, 20, 20))
     downloads = {
-        "https://cdn.example/img0.jpeg": img0,
-        "https://cdn.example/img1.jpeg": img1,
+        "https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg": img0,
+        "https://p16-common-sign.tiktokcdn-eu.com/img1.jpeg": img1,
     }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
@@ -181,8 +181,8 @@ def test_import_source_builds_evidence_package_from_a_real_image_post(monkeypatc
 def test_import_source_normalizes_photo_url_before_fetching(monkeypatch):
     item = _image_post_item()
     downloads = {
-        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
-        "https://cdn.example/img1.jpeg": _real_jpeg_bytes(),
+        "https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg": _real_jpeg_bytes(),
+        "https://p16-common-sign.tiktokcdn-eu.com/img1.jpeg": _real_jpeg_bytes(),
     }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
@@ -218,8 +218,8 @@ def test_import_source_retries_then_raises_when_blocked_every_attempt(monkeypatc
 def test_import_source_succeeds_after_one_blocked_attempt(monkeypatch):
     item = _image_post_item()
     downloads = {
-        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
-        "https://cdn.example/img1.jpeg": _real_jpeg_bytes(),
+        "https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg": _real_jpeg_bytes(),
+        "https://p16-common-sign.tiktokcdn-eu.com/img1.jpeg": _real_jpeg_bytes(),
     }
     pages = [
         _FakePage(body_text="Drag the slider to fit the puzzle", rehydration_data=None, downloads={}),
@@ -265,17 +265,17 @@ def test_import_source_records_a_slide_with_no_downloadable_url_as_failed_not_si
     item = _image_post_item(
         imagePost={
             "images": [
-                {"imageURL": {"urlList": ["https://cdn.example/img0.jpeg"]}},
+                {"imageURL": {"urlList": ["https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg"]}},
                 {"imageURL": {"urlList": []}},  # the real-world gap that caused the bug
-                {"imageURL": {"urlList": ["https://cdn.example/img2.jpeg"]}},
-                {"imageURL": {"urlList": ["https://cdn.example/img3.jpeg"]}},
+                {"imageURL": {"urlList": ["https://p16-common-sign.tiktokcdn-eu.com/img2.jpeg"]}},
+                {"imageURL": {"urlList": ["https://p16-common-sign.tiktokcdn-eu.com/img3.jpeg"]}},
             ]
         }
     )
     downloads = {
-        "https://cdn.example/img0.jpeg": _real_jpeg_bytes((1, 1, 1)),
-        "https://cdn.example/img2.jpeg": _real_jpeg_bytes((2, 2, 2)),
-        "https://cdn.example/img3.jpeg": _real_jpeg_bytes((3, 3, 3)),
+        "https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg": _real_jpeg_bytes((1, 1, 1)),
+        "https://p16-common-sign.tiktokcdn-eu.com/img2.jpeg": _real_jpeg_bytes((2, 2, 2)),
+        "https://p16-common-sign.tiktokcdn-eu.com/img3.jpeg": _real_jpeg_bytes((3, 3, 3)),
     }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)
@@ -292,8 +292,8 @@ def test_import_source_records_a_slide_with_no_downloadable_url_as_failed_not_si
 def test_import_source_rejects_downloaded_bytes_that_are_not_a_real_image(monkeypatch):
     item = _image_post_item()
     downloads = {
-        "https://cdn.example/img0.jpeg": _real_jpeg_bytes(),
-        "https://cdn.example/img1.jpeg": b"not actually a jpeg, just garbage bytes",
+        "https://p16-common-sign.tiktokcdn-eu.com/img0.jpeg": _real_jpeg_bytes(),
+        "https://p16-common-sign.tiktokcdn-eu.com/img1.jpeg": b"not actually a jpeg, just garbage bytes",
     }
     fetch_page = _FakePage(body_text="ok", rehydration_data=_rehydration(item), downloads={})
     download_page = _FakePage(body_text="ok", rehydration_data=None, downloads=downloads)

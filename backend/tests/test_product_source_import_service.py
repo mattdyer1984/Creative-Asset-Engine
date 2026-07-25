@@ -190,3 +190,36 @@ def test_unknown_product_id_still_records_a_failed_import_via_registry_error(db_
     _register_fake(monkeypatch, _FakeFailingAdapter())
     result = import_product_source(db_session, "does-not-exist", "https://shop.example/x")
     assert result.fetch_status == FETCH_STATUS_FAILED
+
+
+def test_a_non_image_payload_is_rejected_not_saved(db_session, monkeypatch):
+    """
+    SSRF hardening (Phase 0, WP-0C): image URLs come from the fetched
+    page's own markup, so a hostile page can point them anywhere. Even
+    when the fetch itself succeeds, content that is not actually an image
+    must not be written to disk - a Content-Type header proves nothing.
+    """
+    product = _make_product(db_session)
+    evidence = NormalizedProductEvidence(
+        source_type="generic_url",
+        source_url="https://shop.example/p",
+        images=[NormalizedProductImage(url="https://cdn.example.com/not-really.jpg", role="primary")],
+    )
+    _register_fake(monkeypatch, _FakeSucceedingAdapter(evidence))
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        # 200 OK, claims to be an image, actually HTML.
+        return httpx.Response(
+            200, content=b"<!DOCTYPE html><html>gotcha", headers={"content-type": "image/jpeg"}
+        )
+
+    result = import_product_source(
+        db_session, product.id, "https://shop.example/p", image_download_transport=httpx.MockTransport(handler)
+    )
+
+    images = list(
+        db_session.query(ProductReferenceImage).filter(
+            ProductReferenceImage.source_product_source_import_id == result.id
+        )
+    )
+    assert images == [], "non-image content must not be persisted as a reference image"

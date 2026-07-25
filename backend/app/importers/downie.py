@@ -97,6 +97,7 @@ from urllib.parse import quote
 from PIL import Image, UnidentifiedImageError
 
 from app.config import settings
+from app.services.safe_fetch import validate_tiktok_url
 from app.domain import EvidencePackage, MarketingCreative
 
 DOWNIE_APP_NAME = "Downie 4"
@@ -124,6 +125,13 @@ class DownieImportUnsupportedContentError(DownieImportError):
 
 
 def _build_downie_url(source_url: str, destination: Path, title: str) -> str:
+    # SSRF hardening (Phase 0, WP-0C): this URL is handed to the macOS
+    # "open" handler, so the actual fetch happens out-of-process inside
+    # Downie - beyond anything this codebase can validate afterwards.
+    # Validating here is therefore the only available point of control,
+    # and is why this importer uses the strict TikTok allowlist rather
+    # than the "any public https" policy.
+    validate_tiktok_url(source_url)
     return (
         "downie://XUOpenURL"
         f"?url={quote(source_url, safe='')}"

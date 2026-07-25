@@ -34,6 +34,7 @@ from urllib.parse import urljoin
 import httpx
 from bs4 import BeautifulSoup
 
+from app.services.safe_fetch import fetch_public
 from app.product_sources.base import (
     BundleMemberHint,
     ColorValue,
@@ -94,19 +95,29 @@ class GenericUrlAdapter:
         return ProductSourceExtraction(raw=raw, normalized=normalized)
 
     def _fetch_bounded(self, url: str) -> str:
-        with httpx.Client(
-            transport=self._transport, timeout=FETCH_TIMEOUT_SECONDS, follow_redirects=True
-        ) as client:
-            with client.stream("GET", url, headers={"User-Agent": USER_AGENT}) as response:
-                response.raise_for_status()
-                chunks: list[bytes] = []
-                total = 0
-                for chunk in response.iter_bytes():
-                    total += len(chunk)
-                    if total > MAX_RESPONSE_BYTES:
-                        raise ValueError(f"Response from {url} exceeded {MAX_RESPONSE_BYTES} bytes")
-                    chunks.append(chunk)
-                return b"".join(chunks).decode(response.encoding or "utf-8", errors="replace")
+        """
+        SSRF-protected fetch (Phase 0 remediation, WP-0C). This used to
+        build its own httpx client with `follow_redirects=True` and no
+        scheme or address validation, so a user-supplied URL could reach
+        loopback/RFC1918 hosts, or 302 to the cloud metadata endpoint.
+        `app.services.safe_fetch` is now the single shared implementation
+        for every user-supplied fetch - see its docstring for the
+        redirect and DNS-rebinding reasoning.
+
+        `matches()` returns True for ANY url (this is the catch-all
+        adapter), which is exactly why the validation belongs here.
+        """
+        result = fetch_public(
+            url,
+            max_bytes=MAX_RESPONSE_BYTES,
+            timeout=FETCH_TIMEOUT_SECONDS,
+            headers={"User-Agent": USER_AGENT},
+            transport=self._transport,
+        )
+        # httpx's own encoding detection is not available once the body
+        # is already read, so decode defensively - same errors="replace"
+        # behaviour as before this change.
+        return result.content.decode("utf-8", errors="replace")
 
 
 def _find_all_product_jsonld(soup: BeautifulSoup) -> list[dict]:

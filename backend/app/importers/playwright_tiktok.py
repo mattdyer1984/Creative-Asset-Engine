@@ -78,6 +78,7 @@ from PIL import Image, UnidentifiedImageError
 from playwright.sync_api import Browser, sync_playwright
 
 from app.domain import CreatorInfo, EvidencePackage, MarketingCreative
+from app.services.safe_fetch import UnsafeURLError, validate_tiktok_url
 
 STEALTH_ARGS = ["--disable-blink-features=AutomationControlled"]
 USER_AGENT = (
@@ -109,11 +110,22 @@ class TikTokImportUnsupportedContentError(TikTokImportError):
 
 
 def _normalize_post_url(url: str) -> str:
+    """
+    SSRF hardening (Phase 0, WP-0C): the rebuild below was already the
+    codebase's only effective allowlist - whatever came in, what goes out
+    is always a literal https://www.tiktok.com/... URL. But `_POST_URL_RE`
+    is unanchored, so `https://evil.test/?x=tiktok.com/@a/video/1` also
+    matched; harmless for the rebuilt URL itself, but it meant a hostile
+    string could reach this path at all. The explicit validation makes
+    the guarantee checkable rather than incidental.
+    """
     match = _POST_URL_RE.search(url)
     if match is None:
         raise TikTokImportNotFoundError(f"Not a recognizable TikTok post URL: {url}")
     handle, post_id = match.groups()
-    return f"https://www.tiktok.com/@{handle}/video/{post_id}"
+    normalized = f"https://www.tiktok.com/@{handle}/video/{post_id}"
+    validate_tiktok_url(normalized)
+    return normalized
 
 
 def _is_blocked(body_text: str) -> bool:
@@ -244,6 +256,18 @@ def _download_images(
                 failed_assets.append({"index": index, "reason": "no downloadable URL for this slide"})
                 continue
             image_url = url_list[0]
+            # SSRF hardening (Phase 0, WP-0C): these URLs come from
+            # TikTok's own JSON response, not from us - second-order
+            # input. Validated against the evidenced CDN allowlist.
+            # Deliberately fails this ONE slide rather than the whole
+            # import, and names the rejected host so a genuinely new
+            # TikTok CDN domain can be evidenced and added rather than
+            # guessed at in advance (see safe_fetch's allowlist comment).
+            try:
+                validate_tiktok_url(image_url)
+            except UnsafeURLError as exc:
+                failed_assets.append({"index": index, "reason": f"blocked by URL policy: {exc}"})
+                continue
             response = request.get(image_url, headers={"Referer": REFERER})
             if not response.ok:
                 failed_assets.append({"index": index, "reason": f"HTTP {response.status}"})
