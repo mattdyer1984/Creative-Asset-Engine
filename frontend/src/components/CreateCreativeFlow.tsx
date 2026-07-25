@@ -141,9 +141,12 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   // required pre-generation confirmation. Set once import succeeds (so
   // it reflects the real, gate-verified slide count, not a guess) and
   // shown for the rest of the flow. Generate All (see MIGRATION_PLAN.md)
-  // now attempts every imported slide, not just the primary one - a
-  // slide with no resolvable product simply fails per-slide, shown
-  // honestly in the results carousel rather than silently skipped here.
+  // attempts every imported slide, not just the primary one. Story Slide
+  // feature (see MIGRATION_PLAN.md): a slide with no resolvable product
+  // is no longer a per-slide failure - the backend recreates it as an
+  // original story/narrative shot instead. A per-slide failure can still
+  // happen for other reasons (e.g. a genuine analysis-stage error), and
+  // is still shown honestly in the results carousel rather than hidden.
   const [importedSlideCount, setImportedSlideCount] = useState<number | null>(null);
   // Phase 11.10 (Product Experience, see MIGRATION_PLAN.md) - opens the
   // existing, unmodified SlideshowBlueprintModal (Advanced) for anyone
@@ -488,8 +491,8 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
       {busy && importedSlideCount !== null && importedSlideCount > 1 && (
         <p className="create-flow-import-confirmation">
-          {importedSlideCount} source slides imported — every slide with a resolvable product will be
-          generated.
+          {importedSlideCount} source slides imported and will each be generated — slides showing your
+          product are recreated with it; other slides are recreated as original story/narrative shots.
         </p>
       )}
 

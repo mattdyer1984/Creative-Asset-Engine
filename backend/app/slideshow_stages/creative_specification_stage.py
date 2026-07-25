@@ -56,11 +56,17 @@ Widened to loop over every slide, mirroring `SlideCreativeFingerprintStage`
 signature is unchanged (looping is internal to the stage, not the
 orchestrator), owns `Slide.current_creative_specification_id` instead of
 `Slideshow.current_creative_specification_id` (removed), and `is_current`
-is now scoped to `slide_id`. A slide with no current product appearance
-is skipped, not failed - mirrors `SlideProductIsolationStage`'s own
-documented skip-not-fail precedent. A slide *with* a product but missing
-its Product Lock Profile or Creative Fingerprint is still a hard
-failure - a real ordering violation, not a normal/expected state.
+is now scoped to `slide_id`.
+
+Story Slide feature (see MIGRATION_PLAN.md): a slide with no current
+product appearance is no longer skipped - it still gets a
+CreativeSpecification, built from its Creative Fingerprint alone
+(`lock_profile=None` passed to `generate_creative_specification`,
+`product_lock_reference` written as `None` in `structured_json` rather
+than the usual assembled dict). A slide *with* a product but missing its
+Product Lock Profile, or *any* slide missing its Creative Fingerprint,
+is still a hard failure - a real ordering violation, not a normal/
+expected state, regardless of whether the slide has a product.
 """
 
 import time
@@ -157,25 +163,30 @@ class SlideCreativeSpecificationStage:
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         prompt_provider = default_registry.prompt_generation()
 
-        eligible: list[tuple[Slide, ProductLockProfile, CreativeFingerprint]] = []
+        eligible: list[tuple[Slide, ProductLockProfile | None, CreativeFingerprint]] = []
         for slide in slideshow.slides:
             current_appearance = resolve_primary_appearance(slide.current_product_appearances)
-            if current_appearance is None:
-                continue
 
-            lock_profile = (
-                db.query(ProductLockProfile)
-                .filter(
-                    ProductLockProfile.product_id == current_appearance.product_id,
-                    ProductLockProfile.is_current.is_(True),
+            # Story Slide feature (see MIGRATION_PLAN.md): a slide with no
+            # product is no longer skipped - lock_profile just stays None,
+            # and every check below still applies identically regardless
+            # of product presence (Creative Fingerprint is a prerequisite
+            # for every slide, product or not).
+            lock_profile: ProductLockProfile | None = None
+            if current_appearance is not None:
+                lock_profile = (
+                    db.query(ProductLockProfile)
+                    .filter(
+                        ProductLockProfile.product_id == current_appearance.product_id,
+                        ProductLockProfile.is_current.is_(True),
+                    )
+                    .first()
                 )
-                .first()
-            )
-            if lock_profile is None:
-                return StageResult(
-                    succeeded=False,
-                    error="No Product Lock Profile available yet - run that stage first.",
-                )
+                if lock_profile is None:
+                    return StageResult(
+                        succeeded=False,
+                        error="No Product Lock Profile available yet - run that stage first.",
+                    )
 
             if slide.current_creative_fingerprint_id is None:
                 return StageResult(
@@ -192,17 +203,14 @@ class SlideCreativeSpecificationStage:
             eligible.append((slide, lock_profile, fingerprint))
 
         if not eligible:
-            return StageResult(
-                succeeded=False,
-                error="No slide has a product assigned yet - assign one before generating a Creative Specification.",
-            )
+            return StageResult(succeeded=False, error="This slideshow has no slides.")
 
-        def _generate(entry: tuple[Slide, ProductLockProfile, CreativeFingerprint]):
+        def _generate(entry: tuple[Slide, ProductLockProfile | None, CreativeFingerprint]):
             _slide, lock_profile, fingerprint = entry
             usage: dict = {}
             start = time.perf_counter()
             generated = prompt_provider.generate_creative_specification(
-                lock_profile=lock_profile.structured_json,
+                lock_profile=lock_profile.structured_json if lock_profile is not None else None,
                 fingerprint=fingerprint.structured_json,
                 response_schema=CREATIVE_SPECIFICATION_AI_SCHEMA,
                 usage_sink=usage,
@@ -229,17 +237,23 @@ class SlideCreativeSpecificationStage:
                     raise outcome
                 generated, provider_call_ms, usage = outcome
 
-                lock_profile_data = lock_profile.structured_json
-
                 # Assembled directly from known facts, never asked of the AI.
+                # None for a Story Slide (see MIGRATION_PLAN.md) - nothing
+                # downstream (prompt_compiler.py) reads this key for
+                # anything but audit purposes, so a null value here is
+                # honest, not a regression.
                 final_structured = dict(generated)
-                final_structured["product_lock_reference"] = {
-                    "product_lock_profile_id": lock_profile.id,
-                    "reference_image_ids": lock_profile.reference_image_ids_json,
-                    "immutable_characteristics": lock_profile_data.get(
-                        "immutable_characteristics", []
-                    ),
-                }
+                if lock_profile is not None:
+                    lock_profile_data = lock_profile.structured_json
+                    final_structured["product_lock_reference"] = {
+                        "product_lock_profile_id": lock_profile.id,
+                        "reference_image_ids": lock_profile.reference_image_ids_json,
+                        "immutable_characteristics": lock_profile_data.get(
+                            "immutable_characteristics", []
+                        ),
+                    }
+                else:
+                    final_structured["product_lock_reference"] = None
 
                 db.query(CreativeSpecification).filter(
                     CreativeSpecification.slide_id == slide.id,
@@ -250,7 +264,7 @@ class SlideCreativeSpecificationStage:
                     analysis_run_id=analysis_run.id,
                     slideshow_id=slideshow.id,
                     slide_id=slide.id,
-                    product_lock_profile_id=lock_profile.id,
+                    product_lock_profile_id=lock_profile.id if lock_profile is not None else None,
                     creative_fingerprint_id=fingerprint.id,
                     structured_json=final_structured,
                 )

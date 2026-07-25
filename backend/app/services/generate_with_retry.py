@@ -29,6 +29,16 @@ instead of the single-product pair - the retry loop's own shape (chain
 attempts, pick the best accepted candidate) is identical either way,
 only which Generation/Quality Engine entry point runs differs.
 
+Story Slide feature (see MIGRATION_PLAN.md): a slide with no current
+product appearance (checked once via `resolve_primary_appearance`, the
+same helper `run_generation_attempt` already uses) routes every attempt
+through `run_story_generation_attempt`/`assess_story_candidate` instead
+- again, only which Generation/Quality Engine entry point runs differs;
+the retry loop's own shape is unchanged. This is genuinely automatic,
+not a caller-supplied flag - the same way "has a product" is decided
+everywhere else in this codebase (Creative Specification, Product
+Isolation).
+
 `text_strategy` (Phase 10.8, §9/§15), when given, runs Text
 Intelligence + the Rendering Engine on the accepted winner - once, not
 per-candidate, since only the winner is ever going anywhere - and
@@ -56,9 +66,13 @@ from app.models.quality_assessment import QualityAssessment
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.services.decision_engine import decide_generation_plan
-from app.services.generation_engine import run_bundle_generation_attempt, run_generation_attempt
+from app.services.generation_engine import (
+    run_bundle_generation_attempt,
+    run_generation_attempt,
+    run_story_generation_attempt,
+)
 from app.services.product_profile import extract_branding_text
-from app.services.quality_engine import assess_bundle_candidate, assess_candidate
+from app.services.quality_engine import assess_bundle_candidate, assess_candidate, assess_story_candidate
 from app.services.rendering_engine import render_final_output
 from app.services.text_intelligence import build_text_assets
 from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
@@ -221,6 +235,8 @@ def generate_with_retry(
             error="Creative Specification referenced by the Slide no longer exists.",
         )
 
+    is_story_slide = resolve_primary_appearance(slide.current_product_appearances) is None
+
     attempts: list[GenerationAttemptOutcome] = []
     retry_of_id: str | None = None
     retry_reason: str | None = None
@@ -235,7 +251,9 @@ def generate_with_retry(
             text_strategy=text_strategy,
             user_feedback=user_feedback,
         )
-        if plan.bundle_members:
+        if is_story_slide:
+            attempt_result = run_story_generation_attempt(db, slide, creative_specification, plan)
+        elif plan.bundle_members:
             attempt_result = run_bundle_generation_attempt(db, slide, creative_specification, plan)
         else:
             attempt_result = run_generation_attempt(db, slide, creative_specification, plan)
@@ -248,9 +266,12 @@ def generate_with_retry(
 
         candidate_assessments: list[CandidateAssessment] = []
         for candidate in attempt_result.candidates:
-            assessment_result = (
-                assess_bundle_candidate(db, candidate) if plan.bundle_members else assess_candidate(db, candidate)
-            )
+            if is_story_slide:
+                assessment_result = assess_story_candidate(db, candidate)
+            elif plan.bundle_members:
+                assessment_result = assess_bundle_candidate(db, candidate)
+            else:
+                assessment_result = assess_candidate(db, candidate)
             if isinstance(assessment_result, StageResult):
                 # This one candidate's validation couldn't run (e.g. no
                 # immutable Product Profile fields yet) - treated as a

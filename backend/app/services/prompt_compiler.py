@@ -138,6 +138,7 @@ def compile_generation_request(
     suppress_overlay_text: bool = False,
     branding_text: list[str] | None = None,
     user_feedback: str | None = None,
+    story_mode: bool = False,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -213,6 +214,15 @@ def compile_generation_request(
     validation-failure signal, never seen by the model) - this is the
     user's own words, given directly to the model as the first,
     highest-priority instruction so it can actually act on it.
+
+    story_mode (Story Slide feature, see MIGRATION_PLAN.md): False by
+    default, unaffected for every pre-existing caller. Just threaded
+    through onto the returned GenerationRequest here - this function's
+    own compiled creative_intent text doesn't change either way (it
+    never described the product anyway, only the scene); each adapter's
+    `_compile_*_prompt` is what reads this flag to swap its own
+    "preserve the exact product" instruction for a "recreate this scene
+    with subtle originality" one when there's no product to preserve.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -287,4 +297,5 @@ def compile_generation_request(
         reference_image_paths=reference_image_paths,
         things_to_avoid=things_to_avoid,
         aspect_ratio="3:4",
+        story_mode=story_mode,
     )

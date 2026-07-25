@@ -18,10 +18,35 @@ from app.models.creative_specification import CreativeSpecification
 from app.models.generation_attempt import GenerationAttempt
 from app.models.scene_analysis import SceneAnalysis
 from app.services.decision_engine import decide_generation_plan
-from app.services.generation_engine import GenerationAttemptResult, run_generation_attempt
+from app.services.generation_engine import (
+    GenerationAttemptResult,
+    run_generation_attempt,
+    run_story_generation_attempt,
+)
 from app.slideshow_stages.base import StageResult
-from tests.fakes import FakeAIProviderRegistry, FakeImageGenerationProvider
+from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
+from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
+from tests.fakes import FakeAIProviderRegistry, FakeImageGenerationProvider, FakeVisionAnalysisProvider
+from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 from tests.test_slide_image_generation_stage import _build_full_prerequisites
+
+
+def _build_story_slide_prerequisites(db_session, slideshow, monkeypatch):
+    """
+    Story Slide feature (see MIGRATION_PLAN.md) - a product-free
+    counterpart to _build_full_prerequisites: runs Creative Fingerprint
+    then Creative Specification (widened to build a spec even with no
+    ProductLockProfile) on a slideshow with no product assigned at all.
+    """
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
+    )
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
+    )
+    SlideCreativeFingerprintStage().run(db_session, slideshow)
+    SlideCreativeSpecificationStage().run(db_session, slideshow)
 
 
 def _get_creative_specification(db_session, slideshow):
@@ -284,3 +309,54 @@ def test_compiled_prompt_includes_the_products_own_branding_text(
 
     assert '"Sunrise"' in fake_image_provider.last_request.creative_intent
     assert "reproduce it verbatim" in fake_image_provider.last_request.creative_intent
+
+
+def test_run_story_generation_attempt_uses_the_slides_own_image_as_the_reference(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """
+    Story Slide feature (see MIGRATION_PLAN.md): no product resolution,
+    no Reference Selection - the slide's own source photo is the sole
+    reference image, and generation_reference_set_id stays None on the
+    candidate (the same tri-state value that already makes Stage 1
+    Identity Validation skip itself for a candidate with no product).
+    """
+    _build_story_slide_prerequisites(db_session, slideshow_with_slide, monkeypatch)
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    slide = slideshow_with_slide.primary_slide
+    creative_specification = db_session.get(CreativeSpecification, slide.current_creative_specification_id)
+    plan = decide_generation_plan("fast")
+
+    result = run_story_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert isinstance(result, GenerationAttemptResult)
+    assert len(result.candidates) == 1
+    candidate = result.candidates[0]
+    assert candidate.generation_reference_set_id is None
+    assert fake_image_provider.last_request.reference_image_paths == [slide.stored_file_path]
+    assert fake_image_provider.last_request.story_mode is True
+
+
+def test_run_story_generation_attempt_always_starts_even_with_no_product_anywhere(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """Unlike run_generation_attempt, there's no 'no product'/'empty Library' failure mode here."""
+    _build_story_slide_prerequisites(db_session, slideshow_with_slide, monkeypatch)
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=FakeImageGenerationProvider()),
+    )
+
+    slide = slideshow_with_slide.primary_slide
+    creative_specification = db_session.get(CreativeSpecification, slide.current_creative_specification_id)
+    plan = decide_generation_plan("fast")
+
+    result = run_story_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert isinstance(result, GenerationAttemptResult)
+    assert not isinstance(result, StageResult)

@@ -242,7 +242,14 @@ PRODUCT_ISOLATION_PROMPT = (
     "marketing image - the physical product being sold, not background "
     "props, people, or decorative elements. Return coordinates as "
     "fractions of the image width/height (0.0 to 1.0), a confidence "
-    "score, and brief notes on what you identified."
+    "score, and brief notes on what you identified. Some images are "
+    "narrative/story slides with no product actually shown - a person "
+    "talking to camera, a text-only caption card, a reaction shot. If no "
+    "real product is visible anywhere in this image, return an empty "
+    "bounding_boxes array - this is a normal, expected, and CORRECT "
+    "answer for those images, not a failure to find something that must "
+    "be there. Never force a box around a hand, a prop, or the "
+    "background just to return a non-empty result."
 )
 
 
@@ -430,24 +437,55 @@ class OpenAIPromptGenerationAdapter:
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def generate_creative_specification(
-        self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
+        self,
+        lock_profile: dict | None,
+        fingerprint: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
     ) -> dict:
-        prompt_text = (
-            "Given the following Product Lock Profile and Creative "
-            "Fingerprint for a marketing creative, compose a "
-            "provider-neutral creative specification for generating a "
-            "NEW, visually original marketing image that features the "
-            "exact same product (per the Product Lock Profile) but is "
-            "NOT a copy of the original creative - it should feel "
-            "visually distinct while preserving the underlying "
-            "marketing strategy captured in the Creative Fingerprint.\n\n"
-            f"Product Lock Profile (JSON):\n{json.dumps(lock_profile)}\n\n"
-            f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
-            "Focus on composition, style direction, color palette, "
-            "lighting, camera and perspective, background environment, "
-            "mood, suggested text overlays, things to avoid, and aspect "
-            "ratio."
-        )
+        # Story Slide feature (see MIGRATION_PLAN.md): lock_profile is
+        # None for a slide with no detected product - the prompt must
+        # not reference a Product Lock Profile at all in that case (an
+        # empty dict there would read as "there IS a product, it's just
+        # blank," inviting the model to invent one), and must explicitly
+        # instruct against inventing a product.
+        if lock_profile is not None:
+            prompt_text = (
+                "Given the following Product Lock Profile and Creative "
+                "Fingerprint for a marketing creative, compose a "
+                "provider-neutral creative specification for generating a "
+                "NEW, visually original marketing image that features the "
+                "exact same product (per the Product Lock Profile) but is "
+                "NOT a copy of the original creative - it should feel "
+                "visually distinct while preserving the underlying "
+                "marketing strategy captured in the Creative Fingerprint.\n\n"
+                f"Product Lock Profile (JSON):\n{json.dumps(lock_profile)}\n\n"
+                f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
+                "Focus on composition, style direction, color palette, "
+                "lighting, camera and perspective, background environment, "
+                "mood, suggested text overlays, things to avoid, and aspect "
+                "ratio."
+            )
+        else:
+            prompt_text = (
+                "Given the following Creative Fingerprint for a marketing "
+                "creative, compose a provider-neutral creative "
+                "specification for generating a NEW, visually original "
+                "recreation of this creative's scene and narrative - it "
+                "should feel visually distinct while preserving the "
+                "underlying marketing strategy captured in the Creative "
+                "Fingerprint. This slide does NOT feature a product - it "
+                "is a narrative/story slide (e.g. a hook, a reaction shot, "
+                "a text-only caption card). Do not invent, describe, or "
+                "reference any product; focus purely on recreating the "
+                "scene, composition, and mood.\n\n"
+                f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
+                "Focus on composition, style direction, color palette, "
+                "lighting, camera and perspective, background environment, "
+                "mood, suggested text overlays, things to avoid, and aspect "
+                "ratio."
+            )
 
         client = self.client
         response = client.chat.completions.create(
@@ -614,14 +652,34 @@ class OpenAIImageGenerationAdapter:
         only, with one added, unconditional instruction telling the
         model to preserve what the reference images show rather than
         reinterpret it.
+
+        story_mode (Story Slide feature, see MIGRATION_PLAN.md): the
+        single reference image is the slide's own source photo, not a
+        product to preserve identity of - "preserve the exact product"
+        is meaningless (and risks the model inventing one to preserve)
+        for a narrative slide with none. Swapped for an instruction to
+        recreate the reference photo's scene as a new, original image
+        with subtle variation, explicitly not a verbatim copy and
+        explicitly not to add a product.
         """
-        parts = [
-            request.creative_intent,
-            "Preserve the exact product shown in the reference images - its shape, "
-            "proportions, colors, materials, packaging, and any visible branding or "
-            "text. Only the scene, composition, lighting, and background described "
-            "above should differ from the references.",
-        ]
+        if request.story_mode:
+            parts = [
+                request.creative_intent,
+                "The reference image is the original photo for this slide - recreate "
+                "its scene, composition, and mood as a NEW, original image, varying "
+                "details enough that it is not an identical copy, while staying "
+                "faithful to what the reference image actually shows. Do not add, "
+                "invent, or feature any product - this is a narrative/story slide "
+                "with none.",
+            ]
+        else:
+            parts = [
+                request.creative_intent,
+                "Preserve the exact product shown in the reference images - its shape, "
+                "proportions, colors, materials, packaging, and any visible branding or "
+                "text. Only the scene, composition, lighting, and background described "
+                "above should differ from the references.",
+            ]
         if request.things_to_avoid:
             parts.append("Avoid: " + "; ".join(request.things_to_avoid))
         return "\n\n".join(parts)

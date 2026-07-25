@@ -46,6 +46,15 @@ many products are in it), spent only once every member's identity
 check clears - the same floor-before-spend discipline as the single-
 product path, generalized from "the one product passed" to "every
 member passed."
+
+**Story Slide feature (see MIGRATION_PLAN.md)**: `assess_story_candidate`
+is a third parallel entry point, for a candidate produced by
+`run_story_generation_attempt` (no product at all). There is no Stage 1
+Identity or Stage 2 per-field fidelity to check - no product, no
+Product Profile, no reference set - so acceptance is decided by
+Photorealism alone, the same dimension already layered on top of Stage
+2 in the product path. No floor-before-spend short-circuit is needed
+here since there is no earlier, cheaper stage to short-circuit past.
 """
 
 from pathlib import Path
@@ -192,6 +201,39 @@ def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAss
     # already committed its own row before this point). Without this,
     # get_db()'s session.close() rolls the assessment back - a real bug
     # found via live verification in Phase 10.2, not a style preference.
+    db.commit()
+    return assessment
+
+
+def assess_story_candidate(db: Session, generated_image: GeneratedImage) -> QualityAssessment:
+    """
+    Story Slide counterpart to assess_candidate (see MIGRATION_PLAN.md) -
+    see this module's own docstring for why acceptance is Photorealism
+    alone here. Unlike assess_candidate/assess_bundle_candidate, this
+    never returns a StageResult - there is no validation prerequisite
+    (no Product Profile, no reference set) that could legitimately be
+    missing, so there's nothing to short-circuit.
+    """
+    vision_provider = default_registry.vision()
+    generated_image_bytes = Path(generated_image.file_path).read_bytes()
+    photorealism_json = vision_provider.analyze_creative(
+        image_bytes=generated_image_bytes,
+        prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
+        response_schema=PHOTOREALISM_SCHEMA,
+    )
+    photorealism_score = _score_photorealism(photorealism_json)
+    accepted = photorealism_score >= PHOTOREALISM_FLOOR
+
+    assessment = QualityAssessment(
+        generated_image_id=generated_image.id,
+        image_validation_result_id=None,
+        photorealism_json=photorealism_json,
+        overall_confidence_score=photorealism_score,
+        accepted=accepted,
+    )
+    db.add(assessment)
+    # Same real-commit reasoning as assess_candidate/assess_bundle_candidate -
+    # nothing after this point to piggyback a commit on.
     db.commit()
     return assessment
 

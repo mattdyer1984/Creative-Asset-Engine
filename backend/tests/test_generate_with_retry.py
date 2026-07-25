@@ -15,6 +15,7 @@ from app.models.generation_attempt import GenerationAttempt
 from app.services.generate_with_retry import RetryLoopResult, generate_with_retry
 from app.slideshow_stages.base import StageResult
 from tests.fakes import FakeAIProviderRegistry, FakeImageGenerationProvider, FakeVisionAnalysisProvider
+from tests.test_generation_engine import _build_story_slide_prerequisites
 from tests.test_slide_image_generation_stage import _build_full_prerequisites
 
 _IDENTITY_PASSES = {"field_checks": [{"field_name": "silhouette", "preserved": True, "reason": "Matches."}]}
@@ -160,6 +161,42 @@ def test_fails_cleanly_without_a_creative_specification(db_session, slideshow_wi
     assert isinstance(result, StageResult)
     assert result.succeeded is False
     assert "No Creative Specification" in result.error
+
+
+def test_dispatches_to_the_story_path_for_a_slide_with_no_product(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """
+    Story Slide feature (see MIGRATION_PLAN.md): a slide with no current
+    product appearance is routed through run_story_generation_attempt/
+    assess_story_candidate automatically - accepted on Photorealism
+    alone, with no Stage 1/2 product validation call made at all (no
+    monkeypatch of image_validation_stage's registry is set up here, so
+    if that code path were hit it would error with no fake provider
+    configured for it - not hitting it is itself part of what this test
+    proves).
+    """
+    _build_story_slide_prerequisites(db_session, slideshow_with_slide, monkeypatch)
+    _patch_generation(monkeypatch)
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=_PHOTOREALISM_PASSES)),
+    )
+
+    result = generate_with_retry(db_session, slideshow_with_slide, "fast")
+
+    assert isinstance(result, RetryLoopResult)
+    assert result.winner is not None
+    assert result.winner.quality_assessment.accepted is True
+    assert result.winner.quality_assessment.image_validation_result_id is None
+    assert result.winner.generated_image.generation_reference_set_id is None
+
+    slide = slideshow_with_slide.primary_slide
+    current = db_session.scalars(
+        select(GeneratedImage).where(GeneratedImage.slide_id == slide.id, GeneratedImage.is_current.is_(True))
+    ).first()
+    assert current is not None
+    assert current.id == result.winner.generated_image.id
 
 
 def test_fails_cleanly_and_stops_immediately_without_a_library(

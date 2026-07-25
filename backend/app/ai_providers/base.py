@@ -82,8 +82,20 @@ class ProductIsolationProvider(Protocol):
 
 class PromptGenerationProvider(Protocol):
     def generate_creative_specification(
-        self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
-    ) -> dict: ...
+        self,
+        lock_profile: dict | None,
+        fingerprint: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
+    ) -> dict:
+        """
+        lock_profile is None for a Story Slide (see MIGRATION_PLAN.md) -
+        a slide with no detected product still gets a creative
+        specification, composed from its Creative Fingerprint alone. The
+        implementation must not invent a product when this is None.
+        """
+        ...
 
 
 class TextGenerationProvider(Protocol):
@@ -119,12 +131,22 @@ class GenerationRequest:
     prerequisite, not optional - the Prompt Compiler refuses to compile
     a request without at least one, per that ADR's own explicit design
     decision (no silent text-only fallback).
+
+    story_mode (Story Slide feature, see MIGRATION_PLAN.md) - False for
+    every pre-existing call site (a real behavior-preserving default).
+    True only for `run_story_generation_attempt`'s product-free path,
+    where reference_image_paths is the slide's own source photo, not a
+    product reference library selection - each adapter's own
+    `_compile_*_prompt` reads this to swap "preserve the exact product"
+    (meaningless with no product) for an "original, subtly-varied
+    recreation of this scene" instruction instead.
     """
 
     creative_intent: str
     reference_image_paths: list[str]
     things_to_avoid: list[str]
     aspect_ratio: str
+    story_mode: bool = False
 
 
 @dataclass

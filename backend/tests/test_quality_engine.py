@@ -5,12 +5,18 @@ Photorealism dimension added Phase 10.3). No real vision call -
 FakeVisionAnalysisProvider throughout.
 """
 
+from app.models.creative_specification import CreativeSpecification
 from app.models.quality_assessment import QualityAssessment
 from app.services.decision_engine import decide_generation_plan
-from app.services.generation_engine import run_generation_attempt
-from app.services.quality_engine import PHOTOREALISM_FLOOR, _score_photorealism, assess_candidate
+from app.services.generation_engine import run_generation_attempt, run_story_generation_attempt
+from app.services.quality_engine import (
+    PHOTOREALISM_FLOOR,
+    _score_photorealism,
+    assess_candidate,
+    assess_story_candidate,
+)
 from tests.fakes import FakeAIProviderRegistry, FakeImageGenerationProvider, FakeVisionAnalysisProvider
-from tests.test_generation_engine import _get_creative_specification
+from tests.test_generation_engine import _build_story_slide_prerequisites, _get_creative_specification
 from tests.test_slide_image_generation_stage import _build_full_prerequisites
 
 _IDENTITY_PASSES = {"field_checks": [{"field_name": "silhouette", "preserved": True, "reason": "Matches."}]}
@@ -60,6 +66,19 @@ def _generate_one_candidate(db_session, slideshow_with_product, monkeypatch):
     creative_specification = _get_creative_specification(db_session, slideshow_with_product)
     plan = decide_generation_plan("fast")
     result = run_generation_attempt(db_session, slide, creative_specification, plan)
+    return result.candidates[0]
+
+
+def _generate_one_story_candidate(db_session, slideshow_with_slide, monkeypatch):
+    _build_story_slide_prerequisites(db_session, slideshow_with_slide, monkeypatch)
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=FakeImageGenerationProvider()),
+    )
+    slide = slideshow_with_slide.primary_slide
+    creative_specification = db_session.get(CreativeSpecification, slide.current_creative_specification_id)
+    plan = decide_generation_plan("fast")
+    result = run_story_generation_attempt(db_session, slide, creative_specification, plan)
     return result.candidates[0]
 
 
@@ -227,3 +246,49 @@ def test_score_photorealism_floor_is_a_real_threshold_not_a_token_gate():
     }
     score = _score_photorealism(mediocre_result)
     assert score < PHOTOREALISM_FLOOR
+
+
+def test_assess_story_candidate_accepts_on_good_photorealism_alone(db_session, slideshow_with_slide, monkeypatch):
+    """
+    Story Slide feature (see MIGRATION_PLAN.md): no product, no Product
+    Profile, no reference set - acceptance is Photorealism alone, with
+    no Stage 1/Stage 2 floor to clear first.
+    """
+    candidate = _generate_one_story_candidate(db_session, slideshow_with_slide, monkeypatch)
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=_PHOTOREALISM_PASSES)),
+    )
+
+    assessment = assess_story_candidate(db_session, candidate)
+
+    assert isinstance(assessment, QualityAssessment)
+    assert assessment.accepted is True
+    assert assessment.image_validation_result_id is None
+    assert assessment.overall_confidence_score == _score_photorealism(_PHOTOREALISM_PASSES)
+
+
+def test_assess_story_candidate_rejects_on_poor_photorealism(db_session, slideshow_with_slide, monkeypatch):
+    candidate = _generate_one_story_candidate(db_session, slideshow_with_slide, monkeypatch)
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=_PHOTOREALISM_FAILS)),
+    )
+
+    assessment = assess_story_candidate(db_session, candidate)
+
+    assert assessment.accepted is False
+
+
+def test_assess_story_candidate_is_persisted(db_session, slideshow_with_slide, monkeypatch):
+    candidate = _generate_one_story_candidate(db_session, slideshow_with_slide, monkeypatch)
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=_PHOTOREALISM_PASSES)),
+    )
+
+    assessment = assess_story_candidate(db_session, candidate)
+
+    stored = db_session.get(QualityAssessment, assessment.id)
+    assert stored is not None
+    assert stored.generated_image_id == candidate.id

@@ -386,10 +386,12 @@ def test_multi_slide_success_gives_each_slide_its_own_specification(db_session, 
     assert len(spec_ids) == 2  # each slide got its own distinct row, not a shared one
 
 
-def test_skips_a_slide_with_no_product_assigned(db_session, tmp_path, monkeypatch):
+def test_builds_a_product_free_spec_for_a_slide_with_no_product_assigned(db_session, tmp_path, monkeypatch):
     """
-    A slide with no product is skipped, not failed - mirrors
-    SlideProductIsolationStage's own documented skip-not-fail precedent.
+    Story Slide feature (see MIGRATION_PLAN.md): a slide with no product
+    still gets a CreativeSpecification, built from its Creative
+    Fingerprint alone - product_lock_profile_id/product_lock_reference
+    are both None, never fabricated.
     """
     slideshow = _make_two_slide_slideshow_with_products(db_session, tmp_path)
     slide_with_product, slide_without_product = slideshow.slides
@@ -400,8 +402,10 @@ def test_skips_a_slide_with_no_product_assigned(db_session, tmp_path, monkeypatc
     for slide in slideshow.slides:
         _create_fingerprint(db_session, slide.id, FINGERPRINT_RESULT)
 
+    fake_provider = FakePromptGenerationProvider()
     monkeypatch.setattr(
-        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
+        "app.slideshow_stages.creative_specification_stage.default_registry",
+        FakeAIProviderRegistry(prompt_generation_provider=fake_provider),
     )
     result = SlideCreativeSpecificationStage().run(db_session, slideshow)
 
@@ -409,7 +413,15 @@ def test_skips_a_slide_with_no_product_assigned(db_session, tmp_path, monkeypatc
     db_session.refresh(slide_with_product)
     db_session.refresh(slide_without_product)
     assert slide_with_product.current_creative_specification_id is not None
-    assert slide_without_product.current_creative_specification_id is None
+    assert slide_without_product.current_creative_specification_id is not None
+
+    story_spec = db_session.get(CreativeSpecification, slide_without_product.current_creative_specification_id)
+    assert story_spec.product_lock_profile_id is None
+    assert story_spec.structured_json["product_lock_reference"] is None
+
+    product_spec = db_session.get(CreativeSpecification, slide_with_product.current_creative_specification_id)
+    assert product_spec.product_lock_profile_id is not None
+    assert product_spec.structured_json["product_lock_reference"] is not None
 
 
 def test_is_current_is_scoped_per_slide_not_per_slideshow(db_session, tmp_path, monkeypatch):

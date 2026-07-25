@@ -51,8 +51,14 @@ class CreativeSpecification(Base, AnalysisArtifactMixin):
 
     slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
     slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
-    product_lock_profile_id: Mapped[str] = mapped_column(
-        ForeignKey("product_lock_profiles.id"), nullable=False
+    # Nullable since the Story Slide feature (see MIGRATION_PLAN.md) - a
+    # slide with no detected product still gets a CreativeSpecification
+    # (built from its Creative Fingerprint alone), just with no Product
+    # Lock Profile to point at. Every pre-existing row genuinely has one
+    # (product-required was the only path that existed before), so this
+    # is additive/widening, not a behavior change for those rows.
+    product_lock_profile_id: Mapped[str | None] = mapped_column(
+        ForeignKey("product_lock_profiles.id"), nullable=True
     )
     creative_fingerprint_id: Mapped[str] = mapped_column(
         ForeignKey("creative_fingerprints.id"), nullable=False

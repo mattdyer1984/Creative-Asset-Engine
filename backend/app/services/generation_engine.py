@@ -53,6 +53,22 @@ opt-in case a marketing objective calls for several distinct products
 composed into one scene. Shares the candidate-generation mechanics
 with the single-product path via `_generate_candidates` but not its
 single-Reference-Set assumption - see that function's own docstring.
+
+**Story Slide feature (see MIGRATION_PLAN.md)**: `run_story_generation_attempt`
+is a third, parallel entry point (same "new function, not a mode flag"
+precedent as Bundle Composition) for a slide with no current product
+appearance - a narrative/story slide (e.g. a text-only hook). No
+Reference Selection/Canonical Reference Library involved at all: the
+slide's own source photo is the sole reference image, conditioning an
+original recreation of its scene rather than preserving a product's
+identity. `generation_reference_set_id` stays `None` on every
+candidate - the same tri-state value that already makes
+`image_validation_stage.py`'s Stage 1 Identity check skip itself for
+free, correct here since there is no product identity to validate.
+Like Bundle Composition, deliberately skips Creative Intelligence's
+Scene Analysis enrichment (`_enriched_creative_specification` reasons
+about one product's shot; a product-free slide has no product to
+reason about) - a flagged scope cut, not an oversight.
 """
 
 import time
@@ -327,6 +343,53 @@ def run_generation_attempt(
     candidates = _generate_candidates(
         db, slide, creative_specification, attempt, image_provider, request,
         plan.candidate_count, generation_reference_set.id,
+    )
+    return GenerationAttemptResult(attempt=attempt, candidates=candidates)
+
+
+def run_story_generation_attempt(
+    db: Session, slide: Slide, creative_specification: CreativeSpecification, plan: GenerationPlan
+) -> GenerationAttemptResult | StageResult:
+    """
+    Story Slide feature (see MIGRATION_PLAN.md) - the product-free
+    counterpart to run_generation_attempt, used when
+    resolve_primary_appearance(slide.current_product_appearances) is
+    None (a narrative/story slide - a hook, a reaction shot, a
+    text-only caption card). No product resolution, no Reference
+    Selection, no Canonical Reference Library involved at all - the
+    slide's own source photo (slide.stored_file_path) is the sole
+    reference image, and compile_generation_request's story_mode=True
+    tells each adapter to recreate that photo's scene with subtle,
+    original variation rather than preserve a product's identity.
+
+    Always succeeds in starting (no "no product"/"empty Library" failure
+    mode exists here the way it does for run_generation_attempt) -
+    there's nothing to be missing.
+    """
+    image_provider = default_registry.image_generation(plan.provider)
+
+    request = compile_generation_request(
+        creative_specification.structured_json,
+        [slide.stored_file_path],
+        suppress_overlay_text=plan.text_strategy is not None,
+        user_feedback=plan.user_feedback,
+        story_mode=True,
+    )
+
+    attempt = GenerationAttempt(
+        slide_id=slide.id,
+        creative_specification_id=creative_specification.id,
+        generation_reference_set_id=None,
+        quality_mode=plan.quality_mode,
+        decision_json=plan.to_dict(),
+        retry_of_generation_attempt_id=plan.retry_of_generation_attempt_id,
+    )
+    db.add(attempt)
+    db.flush()
+
+    candidates = _generate_candidates(
+        db, slide, creative_specification, attempt, image_provider, request,
+        plan.candidate_count, None,
     )
     return GenerationAttemptResult(attempt=attempt, candidates=candidates)
 
