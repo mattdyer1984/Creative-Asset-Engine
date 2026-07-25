@@ -21,6 +21,7 @@ Stage must get right every time, not something to leave to the model's
 own judgment call.
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -114,13 +115,18 @@ class SceneIntelligenceStage:
         result: StageResult = StageResult(succeeded=True)
         vision_provider = default_registry.vision()
 
-        def _analyze(slide: Slide) -> dict:
+        def _analyze(slide: Slide):
             image_bytes = Path(slide.stored_file_path).read_bytes()
-            return vision_provider.analyze_creative(
+            usage: dict = {}
+            start = time.perf_counter()
+            analysis_result = vision_provider.analyze_creative(
                 image_bytes=image_bytes,
                 prompt_spec={"prompt": SCENE_INTELLIGENCE_PROMPT, "schema_name": "scene_intelligence"},
                 response_schema=SCENE_REGION_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - start) * 1000
+            return analysis_result, provider_call_ms, usage
 
         analysis_results = run_concurrently(slideshow.slides, _analyze)
 
@@ -138,7 +144,8 @@ class SceneIntelligenceStage:
                 outcome = analysis_results[index]
                 if isinstance(outcome, Exception):
                     raise outcome
-                regions = _enforce_product_region_is_essential(outcome["regions"])
+                analysis_result, provider_call_ms, usage = outcome
+                regions = _enforce_product_region_is_essential(analysis_result["regions"])
 
                 db.query(SceneAnalysis).filter(
                     SceneAnalysis.slide_id == slide.id,
@@ -157,6 +164,6 @@ class SceneIntelligenceStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_scene_analysis_id = scene_analysis.id
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result

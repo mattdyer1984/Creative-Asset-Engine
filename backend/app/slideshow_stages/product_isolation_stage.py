@@ -39,6 +39,7 @@ package in parallel) - see Phase 2.7, where the old stage is deleted and
 this becomes the only copy.
 """
 
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -127,13 +128,16 @@ class SlideProductIsolationStage:
                 return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
             eligible.append((slide, current_appearances[0].product_id))
 
-        def _isolate(entry: tuple[Slide, str]) -> tuple[bytes, list[dict]]:
+        def _isolate(entry: tuple[Slide, str]):
             slide, _product_id = entry
             image_bytes = Path(slide.stored_file_path).read_bytes()
-            bounding_boxes = isolation_provider.isolate_product(image_bytes)
+            usage: dict = {}
+            start = time.perf_counter()
+            bounding_boxes = isolation_provider.isolate_product(image_bytes, usage_sink=usage)
+            provider_call_ms = (time.perf_counter() - start) * 1000
             if not bounding_boxes:
                 raise ValueError("No product detected in the image")
-            return image_bytes, bounding_boxes
+            return image_bytes, bounding_boxes, provider_call_ms, usage
 
         isolation_results = run_concurrently(eligible, _isolate)
 
@@ -155,7 +159,7 @@ class SlideProductIsolationStage:
                 outcome = isolation_results[index]
                 if isinstance(outcome, Exception):
                     raise outcome
-                image_bytes, bounding_boxes = outcome
+                image_bytes, bounding_boxes, provider_call_ms, usage = outcome
                 crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
 
                 new_reference_images = []
@@ -186,7 +190,7 @@ class SlideProductIsolationStage:
             except Exception as exc:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result
 

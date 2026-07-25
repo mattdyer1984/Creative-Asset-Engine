@@ -1,0 +1,37 @@
+# API cost rates used to estimate spend (Optimisation & Stability Pass,
+# Tier 2.2 - see MIGRATION_PLAN.md). This is a placeholder structure
+# only - nothing below is a real, current published price. Fill in your
+# own rates from your provider account/billing page and keep them
+# current; provider pricing changes over time and this codebase has no
+# way to know when it does.
+#
+# A provider/model combination with NO entry here simply produces a
+# null estimated_cost_usd on that row, not a guess - that's deliberate:
+# an unconfigured rate should read as "not measured yet," never as
+# "this call was free."
+#
+# All rates in USD (the currency provider pricing pages publish in).
+# Convert to another currency yourself when reading the totals, if you
+# want them in a different one - this file doesn't do FX conversion.
+#
+# Example (uncomment and fill in your real rate):
+#   per_1k_prompt_tokens:
+#     openai:
+#       gpt-5.5: 0.0025
+
+per_1k_prompt_tokens:
+  openai: {}
+  gemini: {}
+
+per_1k_completion_tokens:
+  openai: {}
+  gemini: {}
+
+# Image generation is billed per-image, not by token - one flat rate per
+# provider/model, applied per generated image (not per candidate
+# attempt - a "maximum" mode attempt that generates 5 candidates costs
+# 5x this rate, tracked per GeneratedImage row, not summed anywhere
+# hidden).
+per_image:
+  openai: {}
+  nano_banana: {}

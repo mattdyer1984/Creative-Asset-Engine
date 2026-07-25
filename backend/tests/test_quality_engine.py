@@ -109,7 +109,7 @@ def test_failing_fidelity_is_rejected_without_spending_a_photorealism_call(
         model = "fake-vision-model"
         provider = "openai"
 
-        def analyze_creative(self, image_bytes, prompt_spec, response_schema):
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
             schema_name = prompt_spec.get("schema_name")
             if schema_name == "identity_validation":
                 return _IDENTITY_PASSES

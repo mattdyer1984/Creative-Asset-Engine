@@ -33,9 +33,13 @@ crash-durability of the "an attempt was made" record, not a refactor):
     back on failure.
 """
 
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
+from app.models._shared import utcnow
 from app.models.analysis_run import STATUS_FAILED, STATUS_SUCCEEDED, AnalysisRun
+from app.services.cost_estimation import estimate_token_cost_usd
 from app.stages.base import StageResult
 
 
@@ -65,18 +69,82 @@ def start_analysis_run(
     return analysis_run
 
 
+def _as_naive_utc(dt: datetime) -> datetime:
+    """
+    analysis_run.created_at is written as a tz-aware datetime (utcnow())
+    but the column has no timezone=True - SQLite drops the tz on
+    storage, so a value re-read after a commit/refresh (durable=True's
+    start_analysis_run does both) comes back naive while a value that
+    never left memory (durable=False, flush-only) stays tz-aware -
+    "can't subtract offset-naive and offset-aware datetimes" otherwise.
+    Both are UTC regardless of which label they carry, so stripping
+    tzinfo on both sides before subtracting is correct, not a hack.
+    """
+    return dt.replace(tzinfo=None) if dt.tzinfo is not None else dt
+
+
+def _stamp_timing_and_cost(
+    analysis_run: AnalysisRun,
+    *,
+    provider_call_ms: float | None,
+    usage: dict | None,
+) -> None:
+    """
+    Optimisation & Stability Pass, Tier 2 (see MIGRATION_PLAN.md) - the
+    one place duration/cost get computed, so every Stage gets this "for
+    free" just by continuing to call mark_succeeded/mark_failed as it
+    already did; no Stage needs its own bookkeeping.
+
+    finished_at/duration_ms are wall-clock (analysis_run.created_at was
+    stamped by start_analysis_run) - an approximation appropriate to the
+    "where practical" ask, not a precise trace. provider_call_ms is
+    optional (only stages that were updated to time their own provider
+    call pass it); usage is the caller's usage_sink dict (or None), read
+    here rather than duplicating the pricing lookup in every Stage.
+    """
+    finished_at = utcnow()
+    analysis_run.finished_at = finished_at
+    analysis_run.duration_ms = (
+        _as_naive_utc(finished_at) - _as_naive_utc(analysis_run.created_at)
+    ).total_seconds() * 1000
+    analysis_run.provider_call_ms = provider_call_ms
+
+    if usage:
+        prompt_tokens = usage.get("prompt_tokens")
+        completion_tokens = usage.get("completion_tokens")
+        analysis_run.prompt_tokens = prompt_tokens
+        analysis_run.completion_tokens = completion_tokens
+        analysis_run.estimated_cost_usd = estimate_token_cost_usd(
+            analysis_run.provider, analysis_run.model_name, prompt_tokens, completion_tokens
+        )
+
+
 def mark_failed(
-    db: Session, analysis_run: AnalysisRun, exc: Exception, *, rollback: bool
+    db: Session,
+    analysis_run: AnalysisRun,
+    exc: Exception,
+    *,
+    rollback: bool,
+    provider_call_ms: float | None = None,
+    usage: dict | None = None,
 ) -> StageResult:
     if rollback:
         db.rollback()
     analysis_run.status = STATUS_FAILED
     analysis_run.error = str(exc)
+    _stamp_timing_and_cost(analysis_run, provider_call_ms=provider_call_ms, usage=usage)
     db.commit()
     return StageResult(succeeded=False, error=str(exc))
 
 
-def mark_succeeded(db: Session, analysis_run: AnalysisRun) -> StageResult:
+def mark_succeeded(
+    db: Session,
+    analysis_run: AnalysisRun,
+    *,
+    provider_call_ms: float | None = None,
+    usage: dict | None = None,
+) -> StageResult:
     analysis_run.status = STATUS_SUCCEEDED
+    _stamp_timing_and_cost(analysis_run, provider_call_ms=provider_call_ms, usage=usage)
     db.commit()
     return StageResult(succeeded=True)

@@ -64,7 +64,7 @@ class _SequencedVisionProvider:
         self._results = list(results)
         self.schema_names_called: list[str] = []
 
-    def analyze_creative(self, image_bytes, prompt_spec: dict, response_schema: dict) -> dict:
+    def analyze_creative(self, image_bytes, prompt_spec: dict, response_schema: dict, *, usage_sink: dict | None = None) -> dict:
         self.schema_names_called.append(prompt_spec.get("schema_name"))
         return self._results.pop(0)
 

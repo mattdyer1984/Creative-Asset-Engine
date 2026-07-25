@@ -295,7 +295,7 @@ def test_assess_bundle_candidate_rejects_when_any_member_fails_identity(
         def __init__(self):
             self.calls = 0
 
-        def analyze_creative(self, image_bytes, prompt_spec, response_schema):
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
             self.calls += 1
             return _IDENTITY_PASSES if self.calls == 1 else _IDENTITY_FAILS
 

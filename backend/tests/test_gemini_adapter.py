@@ -24,8 +24,8 @@ def _make_image_bytes() -> bytes:
     return buf.getvalue()
 
 
-def _fake_response(payload: dict):
-    return SimpleNamespace(text=json.dumps(payload))
+def _fake_response(payload: dict, usage_metadata=None):
+    return SimpleNamespace(text=json.dumps(payload), usage_metadata=usage_metadata)
 
 
 def test_ocr_adapter_reuses_the_nano_banana_api_key():
@@ -127,6 +127,48 @@ def test_vision_analysis_adapter_multi_image():
     contents = kwargs["contents"]
     assert len(contents) == 3  # prompt + two images
     assert all(isinstance(c, Image.Image) for c in contents[1:])
+
+
+def test_ocr_adapter_populates_usage_sink_from_usage_metadata():
+    """
+    Optimisation & Stability Pass, Tier 2.2 (see MIGRATION_PLAN.md) -
+    confirms the real google-genai response attribute names
+    (usage_metadata.prompt_token_count/candidates_token_count), not just
+    that the plumbing compiles.
+    """
+    adapter = GeminiOCRAdapter()
+    with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
+        client = adapter.client
+
+    usage_metadata = SimpleNamespace(prompt_token_count=120, candidates_token_count=45)
+    response = _fake_response(
+        {"raw_text": "x", "structured_blocks": []}, usage_metadata=usage_metadata
+    )
+    usage_sink: dict = {}
+
+    with (
+        patch.object(GeminiOCRAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=response),
+    ):
+        adapter.extract_text(_make_image_bytes(), usage_sink=usage_sink)
+
+    assert usage_sink == {"prompt_tokens": 120, "completion_tokens": 45}
+
+
+def test_ocr_adapter_usage_sink_untouched_when_response_has_no_usage_metadata():
+    """A None usage_sink (the default, every pre-existing call site) must stay a no-op."""
+    adapter = GeminiOCRAdapter()
+    with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
+        client = adapter.client
+
+    with (
+        patch.object(GeminiOCRAdapter, "client", client),
+        patch.object(
+            client.models, "generate_content", return_value=_fake_response({"raw_text": "x", "structured_blocks": []})
+        ),
+    ):
+        # No usage_sink passed at all - must not raise.
+        adapter.extract_text(_make_image_bytes())
 
 
 def test_vision_analysis_adapter_reuses_caller_supplied_schema_verbatim():

@@ -38,7 +38,7 @@ def test_optimize_scene_description_calls_text_provider_with_correct_prompt_spli
         model = "fake-text-model"
         provider = "openai"
 
-        def generate(self, prompt_spec, response_schema):
+        def generate(self, prompt_spec, response_schema, *, usage_sink=None):
             captured["prompt"] = prompt_spec["prompt"]
             captured["schema_name"] = prompt_spec["schema_name"]
             return {

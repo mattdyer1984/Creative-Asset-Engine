@@ -35,12 +35,17 @@ class OCRExtraction:
 
 
 class OCRProvider(Protocol):
-    def extract_text(self, image_bytes: bytes) -> OCRExtraction: ...
+    def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction: ...
 
 
 class VisionAnalysisProvider(Protocol):
     def analyze_creative(
-        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+        self,
+        image_bytes: bytes | list[bytes],
+        prompt_spec: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
     ) -> dict:
         """
         image_bytes accepts a list as of Phase 9.4 of Product Lock v2
@@ -53,19 +58,31 @@ class VisionAnalysisProvider(Protocol):
         Validation) still passes a single `bytes` value and is
         unaffected - this is a backward-compatible extension of what
         was already a single-image parameter, not a new method.
+
+        usage_sink (Optimisation & Stability Pass, Tier 2.2, see
+        MIGRATION_PLAN.md) - an optional caller-supplied dict the
+        adapter populates in place with `prompt_tokens`/
+        `completion_tokens` after a real call, if the caller wants
+        cost instrumentation. Deliberately an out-parameter rather than
+        changing the return type: this method returns the schema-shaped
+        dict itself (callers read `result["field"]` directly), so there
+        is no room to also carry metadata on the return value without
+        breaking every existing caller. `None` (the default) means "the
+        caller doesn't want usage data" - every pre-existing call site
+        is unaffected.
         """
         ...
 
 
 class ProductIsolationProvider(Protocol):
-    def isolate_product(self, image_bytes: bytes) -> list[dict]:
+    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
         """Returns bounding-box + notes dicts; the Stage handles cropping/saving."""
         ...
 
 
 class PromptGenerationProvider(Protocol):
     def generate_creative_specification(
-        self, lock_profile: dict, fingerprint: dict, response_schema: dict
+        self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
     ) -> dict: ...
 
 
@@ -76,7 +93,7 @@ class TextGenerationProvider(Protocol):
     Fingerprint's JSON, not vision - plan §6.3, §9).
     """
 
-    def generate(self, prompt_spec: dict, response_schema: dict) -> dict: ...
+    def generate(self, prompt_spec: dict, response_schema: dict, *, usage_sink: dict | None = None) -> dict: ...
 
 
 @dataclass

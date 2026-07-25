@@ -35,6 +35,7 @@ product_ids - real product-targeted profiling is future work, logged in
 MIGRATION_PLAN.md, not guessed at here.
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -244,17 +245,22 @@ class SlideProductLockProfileStage:
             )
             eligible.append((slide, product_id, current_reference_images))
 
-        def _analyze(entry: tuple[Slide, str, list[ProductReferenceImage]]) -> dict:
+        def _analyze(entry: tuple[Slide, str, list[ProductReferenceImage]]):
             slide, _product_id, _refs = entry
             image_bytes = Path(slide.stored_file_path).read_bytes()
-            return vision_provider.analyze_creative(
+            usage: dict = {}
+            start = time.perf_counter()
+            analysis_result = vision_provider.analyze_creative(
                 image_bytes=image_bytes,
                 prompt_spec={
                     "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
                     "schema_name": "product_lock_profile",
                 },
                 response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - start) * 1000
+            return analysis_result, provider_call_ms, usage
 
         analysis_results = run_concurrently(eligible, _analyze)
 
@@ -276,7 +282,7 @@ class SlideProductLockProfileStage:
                 # committing the already-flushed "pending" AnalysisRun as
                 # failed is both correct and preserves its audit row.
                 return mark_failed(db, analysis_run, outcome, rollback=False)
-            analysis_result = outcome
+            analysis_result, provider_call_ms, usage = outcome
 
             try:
                 db.query(ProductLockProfile).filter(
@@ -306,6 +312,6 @@ class SlideProductLockProfileStage:
                 # unaffected either way.
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result

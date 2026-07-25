@@ -17,7 +17,7 @@ transitional dual-FK) was dropped in Phase 2.8, see MIGRATION_PLAN.md.
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -66,3 +66,29 @@ class AnalysisRun(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
+
+    # Optimisation & Stability Pass, Tier 2 (see MIGRATION_PLAN.md) - no
+    # timing or cost instrumentation existed anywhere in the pipeline
+    # before this; stamped by mark_succeeded/mark_failed
+    # (app.stages.execution), the two functions every Stage already
+    # calls, so no Stage needs its own bookkeeping to get this "for
+    # free." All nullable: every pre-existing row genuinely has none of
+    # this data, and a null value on an old row is simply "not measured
+    # yet," not a bug to design around - the same "every pre-this-phase
+    # row genuinely has none" pattern this codebase already uses
+    # elsewhere (see e.g. GeneratedImage.generation_reference_set_id's
+    # own docstring).
+    finished_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    duration_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # The AI-provider network call specifically, timed by the calling
+    # Stage around its own provider.method(...) call (time.perf_counter())
+    # - `duration_ms - provider_call_ms` is DB/overhead time "where
+    # practical," an approximation, not a full APM trace.
+    provider_call_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # USD, computed from backend/pricing.yaml (app.services.cost_estimation)
+    # at the same point finished_at/duration_ms are stamped - null
+    # whenever pricing.yaml has no entry for this run's provider/model,
+    # not a guessed value.
+    estimated_cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)

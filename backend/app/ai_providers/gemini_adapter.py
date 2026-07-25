@@ -79,6 +79,24 @@ def _images_from_bytes(image_bytes: bytes | list[bytes]) -> list[Image.Image]:
     return [Image.open(io.BytesIO(raw)) for raw in raw_images]
 
 
+def _populate_usage_sink(response, usage_sink: dict | None) -> None:
+    """
+    Optimisation & Stability Pass, Tier 2.2 (see MIGRATION_PLAN.md) -
+    mirrors openai_adapter.py's helper of the same name/purpose. Gemini
+    reports usage as response.usage_metadata.prompt_token_count/
+    candidates_token_count (confirmed via direct google-genai==2.14.0
+    introspection), not response.usage - a real, different field name/
+    shape from OpenAI's, not a copy-paste of that helper.
+    """
+    if usage_sink is None:
+        return
+    usage = getattr(response, "usage_metadata", None)
+    if usage is None:
+        return
+    usage_sink["prompt_tokens"] = usage.prompt_token_count
+    usage_sink["completion_tokens"] = usage.candidates_token_count
+
+
 class GeminiOCRAdapter:
     def __init__(self, model: str = "gemini-flash-latest", provider: str = "gemini"):
         self.model = model
@@ -97,7 +115,7 @@ class GeminiOCRAdapter:
             http_options=types.HttpOptions(timeout=AI_PROVIDER_TIMEOUT_SECONDS * 1000),
         )
 
-    def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+    def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
         # Real-world-diagnosed fix (see MIGRATION_PLAN.md and
         # openai_adapter.py's identical fix for the full reasoning) -
         # captured into a local variable, not chained directly off
@@ -116,6 +134,7 @@ class GeminiOCRAdapter:
                 response_json_schema=OCR_RESPONSE_SCHEMA,
             ),
         )
+        _populate_usage_sink(response, usage_sink)
         payload = json.loads(response.text)
         return OCRExtraction(
             raw_text=payload["raw_text"],
@@ -149,7 +168,12 @@ class GeminiVisionAnalysisAdapter:
         )
 
     def analyze_creative(
-        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+        self,
+        image_bytes: bytes | list[bytes],
+        prompt_spec: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
     ) -> dict:
         prompt_text = prompt_spec["prompt"]
         images = _images_from_bytes(image_bytes)
@@ -163,4 +187,5 @@ class GeminiVisionAnalysisAdapter:
                 response_json_schema=response_schema,
             ),
         )
+        _populate_usage_sink(response, usage_sink)
         return json.loads(response.text)

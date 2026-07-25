@@ -97,7 +97,7 @@ def test_ai_rewrite_replaces_wording_but_keeps_position_and_hierarchy():
     ocr = _ocr_result([_HEADLINE_BLOCK, _CTA_BLOCK])
 
     class _FakeTextProvider:
-        def generate(self, prompt_spec, response_schema):
+        def generate(self, prompt_spec, response_schema, *, usage_sink=None):
             assert "SMELL LIKE YOU MEAN IT" in prompt_spec["prompt"]
             assert "SHOP NOW" in prompt_spec["prompt"]
             return {"rewritten": ["WEAR CONFIDENCE", "BUY TODAY"]}
@@ -113,7 +113,7 @@ def test_ai_rewrite_raises_on_count_mismatch():
     ocr = _ocr_result([_HEADLINE_BLOCK, _CTA_BLOCK])
 
     class _BadFakeTextProvider:
-        def generate(self, prompt_spec, response_schema):
+        def generate(self, prompt_spec, response_schema, *, usage_sink=None):
             return {"rewritten": ["only one"]}
 
     with pytest.raises(ValueError, match="must be exactly one per block"):

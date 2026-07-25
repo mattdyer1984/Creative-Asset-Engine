@@ -22,6 +22,7 @@ check needs.
 """
 
 import json
+import time
 
 from sqlalchemy.orm import Session
 
@@ -96,10 +97,14 @@ class SlideshowMarketingAnalysisStage:
             prompt = MARKETING_ANALYSIS_PROMPT_TEMPLATE.format(
                 fingerprint_json=json.dumps(fingerprint.structured_json)
             )
+            usage: dict = {}
+            call_start = time.perf_counter()
             result = text_provider.generate(
                 prompt_spec={"prompt": prompt, "schema_name": "marketing_analysis"},
                 response_schema=MARKETING_ANALYSIS_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - call_start) * 1000
 
             db.query(MarketingAnalysis).filter(
                 MarketingAnalysis.slideshow_id == slideshow.id,
@@ -119,4 +124,4 @@ class SlideshowMarketingAnalysisStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         slideshow.current_marketing_analysis_id = marketing_analysis.id
-        return mark_succeeded(db, analysis_run)
+        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)

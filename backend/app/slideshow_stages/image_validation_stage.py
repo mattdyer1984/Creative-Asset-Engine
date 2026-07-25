@@ -43,6 +43,7 @@ alone when it wasn't (never a null-swallows-True bug from a naive
 boolean AND with None).
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -204,11 +205,21 @@ class SlideImageValidationStage:
 
         analysis_run = start_analysis_run(
             db,
+            # generated_image.slide_id (Optimisation & Stability Pass, Tier
+            # 2 - see MIGRATION_PLAN.md): this AnalysisRun previously
+            # carried neither slide_id nor slideshow_id at all, so
+            # timing_report.build_timing_breakdown's per-slide query
+            # couldn't include Validation - a real, available fact
+            # (validation targets exactly one GeneratedImage, which
+            # belongs to exactly one slide), not a guess.
+            slide_id=generated_image.slide_id,
             analysis_type=ANALYSIS_TYPE_IMAGE_VALIDATION,
             provider=vision_provider.provider,
             model_name=vision_provider.model,
             durable=True,
         )
+        provider_call_ms = 0.0
+        usage: dict = {}
 
         try:
             generated_image_bytes = Path(generated_image.file_path).read_bytes()
@@ -222,11 +233,16 @@ class SlideImageValidationStage:
                 )
                 if reference_paths:
                     reference_bytes = [Path(path).read_bytes() for path in reference_paths]
+                    identity_usage: dict = {}
+                    call_start = time.perf_counter()
                     identity_result = vision_provider.analyze_creative(
                         image_bytes=[generated_image_bytes, *reference_bytes],
                         prompt_spec={"prompt": _build_identity_prompt(), "schema_name": "identity_validation"},
                         response_schema=IDENTITY_VALIDATION_SCHEMA,
+                        usage_sink=identity_usage,
                     )
+                    provider_call_ms += (time.perf_counter() - call_start) * 1000
+                    _accumulate_usage(usage, identity_usage)
                     identity_checks = identity_result["field_checks"]
                     identity_passed = bool(identity_checks) and all(
                         check["preserved"] for check in identity_checks
@@ -261,11 +277,16 @@ class SlideImageValidationStage:
                 prompt = _build_prompt(
                     [(name, format_attribute_value(value)) for name, value in immutable_fields]
                 )
+                creative_usage: dict = {}
+                call_start = time.perf_counter()
                 result = vision_provider.analyze_creative(
                     image_bytes=generated_image_bytes,
                     prompt_spec={"prompt": prompt, "schema_name": "image_validation"},
                     response_schema=IMAGE_VALIDATION_SCHEMA,
+                    usage_sink=creative_usage,
                 )
+                provider_call_ms += (time.perf_counter() - call_start) * 1000
+                _accumulate_usage(usage, creative_usage)
 
                 field_checks = result["field_checks"]
                 creative_passed = bool(field_checks) and all(
@@ -297,7 +318,15 @@ class SlideImageValidationStage:
         except Exception as exc:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
-        return mark_succeeded(db, analysis_run)
+        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+
+
+def _accumulate_usage(total: dict, call_usage: dict) -> None:
+    """Sums token counts across this Stage's up-to-two analyze_creative calls into one AnalysisRun."""
+    for key in ("prompt_tokens", "completion_tokens"):
+        value = call_usage.get(key)
+        if value is not None:
+            total[key] = total.get(key, 0) + value
 
 
 def run_bundle_member_identity_validation(
@@ -347,6 +376,7 @@ def run_bundle_member_identity_validation(
     vision_provider = default_registry.vision()
     analysis_run = start_analysis_run(
         db,
+        slide_id=generated_image.slide_id,
         analysis_type=ANALYSIS_TYPE_IMAGE_VALIDATION,
         provider=vision_provider.provider,
         model_name=vision_provider.model,
@@ -356,11 +386,15 @@ def run_bundle_member_identity_validation(
     try:
         generated_image_bytes = Path(generated_image.file_path).read_bytes()
         reference_bytes = [Path(path).read_bytes() for path in reference_paths]
+        usage: dict = {}
+        call_start = time.perf_counter()
         identity_result = vision_provider.analyze_creative(
             image_bytes=[generated_image_bytes, *reference_bytes],
             prompt_spec={"prompt": _build_identity_prompt(), "schema_name": "identity_validation"},
             response_schema=IDENTITY_VALIDATION_SCHEMA,
+            usage_sink=usage,
         )
+        provider_call_ms = (time.perf_counter() - call_start) * 1000
         identity_checks = identity_result["field_checks"]
         identity_passed = bool(identity_checks) and all(check["preserved"] for check in identity_checks)
 
@@ -391,4 +425,4 @@ def run_bundle_member_identity_validation(
     except Exception as exc:
         return mark_failed(db, analysis_run, exc, rollback=True)
 
-    return mark_succeeded(db, analysis_run)
+    return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)

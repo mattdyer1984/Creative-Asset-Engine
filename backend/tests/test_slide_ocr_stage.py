@@ -179,7 +179,7 @@ class _ByContentFakeOCRProvider:
     def __init__(self, extractions_by_content: dict[bytes, OCRExtraction]):
         self._extractions_by_content = extractions_by_content
 
-    def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+    def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
         return self._extractions_by_content[image_bytes]
 
 
@@ -231,7 +231,7 @@ def test_ocr_stage_fails_the_whole_stage_if_any_slide_fails(db_session, tmp_path
         model = "fake-ocr-model"
         provider = "openai"
 
-        def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+        def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
             if image_bytes == b"fake-jpeg-bytes-1":
                 raise RuntimeError("provider timed out on slide 2")
             return OCRExtraction(raw_text="ok", structured_blocks=[])

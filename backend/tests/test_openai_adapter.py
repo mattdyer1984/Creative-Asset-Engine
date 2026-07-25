@@ -20,10 +20,11 @@ from app.ai_providers.base import GenerationRequest
 from app.ai_providers.openai_adapter import OpenAIImageGenerationAdapter, OpenAIOCRAdapter
 
 
-def _fake_chat_completion(content_dict: dict):
+def _fake_chat_completion(content_dict: dict, usage=None):
     """Mimics the small slice of a real ChatCompletion this adapter reads."""
     return SimpleNamespace(
-        choices=[SimpleNamespace(message=SimpleNamespace(content=json.dumps(content_dict)))]
+        choices=[SimpleNamespace(message=SimpleNamespace(content=json.dumps(content_dict)))],
+        usage=usage,
     )
 
 
@@ -75,6 +76,47 @@ def test_openai_ocr_adapter_parses_structured_response():
     assert kwargs["response_format"]["type"] == "json_schema"
     assert kwargs["response_format"]["json_schema"]["strict"] is True
     assert kwargs["messages"][0]["content"][1]["type"] == "image_url"
+
+
+def test_openai_ocr_adapter_populates_usage_sink_from_response_usage():
+    """
+    Optimisation & Stability Pass, Tier 2.2 (see MIGRATION_PLAN.md) -
+    confirms the real OpenAI ChatCompletion.usage attribute names
+    (prompt_tokens/completion_tokens), not just that the plumbing compiles.
+    """
+    usage = SimpleNamespace(prompt_tokens=80, completion_tokens=30, total_tokens=110)
+    canned_response = _fake_chat_completion(
+        {"raw_text": "x", "structured_blocks": []}, usage=usage
+    )
+    adapter = OpenAIOCRAdapter(model="gpt-5.5")
+
+    with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
+        client = adapter.client
+
+    usage_sink: dict = {}
+    with (
+        patch.object(OpenAIOCRAdapter, "client", client),
+        patch.object(client.chat.completions, "create", return_value=canned_response),
+    ):
+        adapter.extract_text(b"fake-image-bytes", usage_sink=usage_sink)
+
+    assert usage_sink == {"prompt_tokens": 80, "completion_tokens": 30}
+
+
+def test_openai_ocr_adapter_usage_sink_untouched_when_response_has_no_usage():
+    """A None usage_sink (the default, every pre-existing call site) must stay a no-op."""
+    canned_response = _fake_chat_completion({"raw_text": "x", "structured_blocks": []})
+    adapter = OpenAIOCRAdapter(model="gpt-5.5")
+
+    with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
+        client = adapter.client
+
+    with (
+        patch.object(OpenAIOCRAdapter, "client", client),
+        patch.object(client.chat.completions, "create", return_value=canned_response),
+    ):
+        # No usage_sink passed at all - must not raise.
+        adapter.extract_text(b"fake-image-bytes")
 
 
 def _fake_image_response(b64_json: str):

@@ -73,6 +73,7 @@ from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
+from app.services.cost_estimation import estimate_image_cost_usd
 from app.services.creative_intelligence import optimize_scene_description
 from app.services.decision_engine import GenerationPlan
 from app.services.product_profile import extract_branding_text
@@ -187,6 +188,13 @@ def _generate_candidates(
                 seed=result.seed,
                 generation_time_seconds=result.generation_time_seconds,
                 file_path="",
+                # Optimisation & Stability Pass, Tier 2.2 (see
+                # MIGRATION_PLAN.md) - image generation is billed per-image,
+                # not by token, so this reads a flat per-image rate from
+                # pricing.yaml rather than the usage_sink pattern the
+                # token-billed capabilities use. None whenever pricing.yaml
+                # has no rate for this provider/model, not a guess.
+                estimated_cost_usd=estimate_image_cost_usd(result.provider, result.model),
             )
             db.add(generated_image)
             db.flush()
@@ -201,7 +209,11 @@ def _generate_candidates(
             mark_failed(db, analysis_run, exc, rollback=True)
             continue
 
-        mark_succeeded(db, analysis_run)
+        # generation_time_seconds is already captured by the provider
+        # adapter (openai_adapter.py/nano_banana_adapter.py) around the
+        # exact same call - reused here as provider_call_ms rather than
+        # timing it a second time.
+        mark_succeeded(db, analysis_run, provider_call_ms=result.generation_time_seconds * 1000)
         candidates.append(generated_image)
 
     return candidates

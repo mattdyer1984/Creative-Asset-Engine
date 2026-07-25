@@ -60,9 +60,12 @@ class FakeOCRProvider:
             _assert_matches_ocr_response_shape(self._extraction)
         self._raise_error = raise_error
 
-    def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+    def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
         if self._raise_error is not None:
             raise self._raise_error
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = 100
+            usage_sink["completion_tokens"] = 50
         return self._extraction
 
 
@@ -100,9 +103,12 @@ class FakeProductIsolationProvider:
             _assert_matches_product_isolation_shape(self._bounding_boxes)
         self._raise_error = raise_error
 
-    def isolate_product(self, image_bytes: bytes) -> list[dict]:
+    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
         if self._raise_error is not None:
             raise self._raise_error
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = 100
+            usage_sink["completion_tokens"] = 50
         return self._bounding_boxes
 
 
@@ -193,11 +199,19 @@ class FakeVisionAnalysisProvider:
         self.last_prompt_spec: dict | None = None
 
     def analyze_creative(
-        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+        self,
+        image_bytes: bytes | list[bytes],
+        prompt_spec: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
     ) -> dict:
         self.last_prompt_spec = prompt_spec
         if self._raise_error is not None:
             raise self._raise_error
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = 100
+            usage_sink["completion_tokens"] = 50
         if self._results_by_schema_name is not None:
             schema_name = prompt_spec.get("schema_name")
             if schema_name in self._results_by_schema_name:
@@ -245,10 +259,13 @@ class FakeTextGenerationProvider:
         # on what context (e.g. the Fingerprint's JSON) was actually sent.
         self.last_prompt_spec: dict | None = None
 
-    def generate(self, prompt_spec: dict, response_schema: dict) -> dict:
+    def generate(self, prompt_spec: dict, response_schema: dict, *, usage_sink: dict | None = None) -> dict:
         self.last_prompt_spec = prompt_spec
         if self._raise_error is not None:
             raise self._raise_error
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = 100
+            usage_sink["completion_tokens"] = 50
         return self._result
 
 
@@ -300,11 +317,14 @@ class FakePromptGenerationProvider:
         self.last_call: dict | None = None
 
     def generate_creative_specification(
-        self, lock_profile: dict, fingerprint: dict, response_schema: dict
+        self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
     ) -> dict:
         self.last_call = {"lock_profile": lock_profile, "fingerprint": fingerprint}
         if self._raise_error is not None:
             raise self._raise_error
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = 100
+            usage_sink["completion_tokens"] = 50
         return self._result
 
 

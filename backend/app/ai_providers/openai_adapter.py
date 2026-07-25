@@ -129,6 +129,25 @@ def _image_content_block(image_bytes: bytes) -> dict:
     return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded}"}}
 
 
+def _populate_usage_sink(response, usage_sink: dict | None) -> None:
+    """
+    Optimisation & Stability Pass, Tier 2.2 (see MIGRATION_PLAN.md) -
+    every chat.completions.create response already carries token usage
+    for free (response.usage.prompt_tokens/completion_tokens); this
+    reads it into the caller-supplied dict rather than changing any
+    method's return type (see VisionAnalysisProvider.analyze_creative's
+    own docstring for why). A no-op if the caller didn't ask (usage_sink
+    is None) or a fake/stub response has no `usage` attribute.
+    """
+    if usage_sink is None:
+        return
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return
+    usage_sink["prompt_tokens"] = usage.prompt_tokens
+    usage_sink["completion_tokens"] = usage.completion_tokens
+
+
 class OpenAIOCRAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
@@ -147,7 +166,7 @@ class OpenAIOCRAdapter:
         # ever was - only actually calling a method needs a real API key.
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
-    def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+    def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
         # Real-world-diagnosed fix (see MIGRATION_PLAN.md): capture into
         # a local variable rather than chaining `self.client.chat...`
         # directly - since `client` (above) now constructs a fresh
@@ -179,6 +198,7 @@ class OpenAIOCRAdapter:
             },
         )
 
+        _populate_usage_sink(response, usage_sink)
         payload = json.loads(response.choices[0].message.content)
         return OCRExtraction(
             raw_text=payload["raw_text"],
@@ -244,7 +264,7 @@ class OpenAIProductIsolationAdapter:
         # ever was - only actually calling a method needs a real API key.
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
-    def isolate_product(self, image_bytes: bytes) -> list[dict]:
+    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
         client = self.client
         response = client.chat.completions.create(
             model=self.model,
@@ -266,6 +286,7 @@ class OpenAIProductIsolationAdapter:
                 },
             },
         )
+        _populate_usage_sink(response, usage_sink)
         payload = json.loads(response.choices[0].message.content)
         return payload["bounding_boxes"]
 
@@ -296,7 +317,12 @@ class OpenAIVisionAnalysisAdapter:
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def analyze_creative(
-        self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
+        self,
+        image_bytes: bytes | list[bytes],
+        prompt_spec: dict,
+        response_schema: dict,
+        *,
+        usage_sink: dict | None = None,
     ) -> dict:
         prompt_text = prompt_spec["prompt"]
         schema_name = prompt_spec.get("schema_name", "analysis")
@@ -323,6 +349,7 @@ class OpenAIVisionAnalysisAdapter:
                 },
             },
         )
+        _populate_usage_sink(response, usage_sink)
         return json.loads(response.choices[0].message.content)
 
 
@@ -350,7 +377,7 @@ class OpenAITextGenerationAdapter:
         # ever was - only actually calling a method needs a real API key.
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
-    def generate(self, prompt_spec: dict, response_schema: dict) -> dict:
+    def generate(self, prompt_spec: dict, response_schema: dict, *, usage_sink: dict | None = None) -> dict:
         prompt_text = prompt_spec["prompt"]
         schema_name = prompt_spec.get("schema_name", "generation")
 
@@ -367,6 +394,7 @@ class OpenAITextGenerationAdapter:
                 },
             },
         )
+        _populate_usage_sink(response, usage_sink)
         return json.loads(response.choices[0].message.content)
 
 
@@ -402,7 +430,7 @@ class OpenAIPromptGenerationAdapter:
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
     def generate_creative_specification(
-        self, lock_profile: dict, fingerprint: dict, response_schema: dict
+        self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
     ) -> dict:
         prompt_text = (
             "Given the following Product Lock Profile and Creative "
@@ -434,6 +462,7 @@ class OpenAIPromptGenerationAdapter:
                 },
             },
         )
+        _populate_usage_sink(response, usage_sink)
         return json.loads(response.choices[0].message.content)
 
 

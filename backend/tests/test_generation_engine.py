@@ -214,7 +214,7 @@ def test_with_a_scene_analysis_the_optimized_description_replaces_the_background
         model = "fake-text-model"
         provider = "openai"
 
-        def generate(self, prompt_spec, response_schema):
+        def generate(self, prompt_spec, response_schema, *, usage_sink=None):
             return {
                 "optimized_scene_description": "a premium sunlit loft with warm natural light",
                 "reasoning": "elevates the brand positioning",

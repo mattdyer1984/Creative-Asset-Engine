@@ -11,6 +11,8 @@ division of responsibility to the old orchestrator, just operating on
 Slideshow directly instead of Creative + CreativeBlueprint.
 """
 
+import logging
+
 from sqlalchemy.orm import Session
 
 from app.models.slideshow import (
@@ -20,8 +22,11 @@ from app.models.slideshow import (
     STATUS_READY,
     Slideshow,
 )
+from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
 from app.slideshow_stages.base import SlideshowAnalysisStage, StageResult
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
+
+logger = logging.getLogger(__name__)
 
 
 class SlideshowOrchestrator:
@@ -37,6 +42,7 @@ class SlideshowOrchestrator:
         slideshow.status = STATUS_ANALYZING
         db.commit()
 
+        outcome: tuple[str | None, StageResult]
         for stage in self.stages:
             try:
                 result = stage.run(db, slideshow)
@@ -53,20 +59,42 @@ class SlideshowOrchestrator:
                 slideshow.last_failed_stage = stage.name
                 slideshow.last_failed_stage_error = str(exc)
                 db.commit()
-                return stage.name, StageResult(succeeded=False, error=str(exc))
+                outcome = stage.name, StageResult(succeeded=False, error=str(exc))
+                break
 
             if not result.succeeded:
                 slideshow.status = STATUS_FAILED
                 slideshow.last_failed_stage = stage.name
                 slideshow.last_failed_stage_error = result.error
                 db.commit()
-                return stage.name, result
+                outcome = stage.name, result
+                break
+        else:
+            slideshow.status = STATUS_READY
+            slideshow.last_failed_stage = None
+            slideshow.last_failed_stage_error = None
+            db.commit()
+            outcome = None, StageResult(succeeded=True)
 
-        slideshow.status = STATUS_READY
-        slideshow.last_failed_stage = None
-        slideshow.last_failed_stage_error = None
-        db.commit()
-        return None, StageResult(succeeded=True)
+        self._log_timing_breakdown(db, slideshow)
+        return outcome
+
+    def _log_timing_breakdown(self, db: Session, slideshow: Slideshow) -> None:
+        """
+        Optimisation & Stability Pass, Tier 1/2 (see MIGRATION_PLAN.md) -
+        the timing/cost breakdown requested for the analysis pipeline.
+        Logged unconditionally (success or failure) - whatever stages
+        actually ran before a failure stopped the pipeline is still
+        useful to see. Best-effort: a reporting failure must never mask
+        the real pipeline outcome already computed above.
+        """
+        try:
+            breakdown = build_timing_breakdown(db, slideshow_id=slideshow.id)
+            logger.info(
+                "Slideshow %s analysis timing:\n%s", slideshow.id, format_timing_breakdown(breakdown)
+            )
+        except Exception:
+            logger.exception("Failed to build timing breakdown for slideshow %s", slideshow.id)
 
     def run_single_stage(
         self, db: Session, slideshow: Slideshow, stage_name: str

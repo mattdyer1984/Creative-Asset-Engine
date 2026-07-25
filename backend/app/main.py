@@ -20,6 +20,7 @@ from app.ai_providers import registry as ai_provider_registry
 from app.config import settings
 from app.routers import (
     bundles,
+    costs,
     generation_logs,
     listings,
     products,
@@ -63,6 +64,7 @@ app.include_router(listings.router)
 app.include_router(bundles.router)
 app.include_router(settings_router.router)
 app.include_router(generation_logs.router)
+app.include_router(costs.router)
 
 
 @app.get("/api/health")

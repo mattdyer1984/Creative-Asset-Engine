@@ -30,6 +30,7 @@ unclassifiable while others aren't.
 """
 
 import json
+import time
 
 from sqlalchemy.orm import Session
 
@@ -123,10 +124,14 @@ class SlideshowNarrativeStructureStage:
                 for slide in textful_slides
             ]
             prompt = NARRATIVE_STRUCTURE_PROMPT_TEMPLATE.format(slides_json=json.dumps(slides_payload))
+            usage: dict = {}
+            call_start = time.perf_counter()
             result = text_provider.generate(
                 prompt_spec={"prompt": prompt, "schema_name": "narrative_structure"},
                 response_schema=NARRATIVE_STRUCTURE_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - call_start) * 1000
 
             beats_by_index = {item["slide_index"]: item["beat"] for item in result["slides"]}
             final_slides = [
@@ -160,4 +165,4 @@ class SlideshowNarrativeStructureStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         slideshow.current_narrative_structure_id = narrative_structure.id
-        return mark_succeeded(db, analysis_run)
+        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)

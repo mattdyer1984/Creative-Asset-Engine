@@ -45,6 +45,7 @@ result still stops this stage from persisting anything for that slide
 or any slide after it in the original order, exactly as before.
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -68,7 +69,11 @@ class SlideOCRStage:
 
         def _extract(slide: Slide):
             image_bytes = Path(slide.stored_file_path).read_bytes()
-            return ocr_provider.extract_text(image_bytes)
+            usage: dict = {}
+            start = time.perf_counter()
+            extraction = ocr_provider.extract_text(image_bytes, usage_sink=usage)
+            provider_call_ms = (time.perf_counter() - start) * 1000
+            return extraction, provider_call_ms, usage
 
         extraction_results = run_concurrently(slideshow.slides, _extract)
 
@@ -91,7 +96,7 @@ class SlideOCRStage:
                 # the already-flushed "pending" AnalysisRun as failed is
                 # both correct and preserves its audit row.
                 return mark_failed(db, analysis_run, outcome, rollback=False)
-            extraction = outcome
+            extraction, provider_call_ms, usage = outcome
 
             try:
                 if slide.current_ocr_result_id is not None:
@@ -125,6 +130,6 @@ class SlideOCRStage:
                 # acts on - is unaffected either way.
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result

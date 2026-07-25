@@ -63,6 +63,8 @@ its Product Lock Profile or Creative Fingerprint is still a hard
 failure - a real ordering violation, not a normal/expected state.
 """
 
+import time
+
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
@@ -195,13 +197,18 @@ class SlideCreativeSpecificationStage:
                 error="No slide has a product assigned yet - assign one before generating a Creative Specification.",
             )
 
-        def _generate(entry: tuple[Slide, ProductLockProfile, CreativeFingerprint]) -> dict:
+        def _generate(entry: tuple[Slide, ProductLockProfile, CreativeFingerprint]):
             _slide, lock_profile, fingerprint = entry
-            return prompt_provider.generate_creative_specification(
+            usage: dict = {}
+            start = time.perf_counter()
+            generated = prompt_provider.generate_creative_specification(
                 lock_profile=lock_profile.structured_json,
                 fingerprint=fingerprint.structured_json,
                 response_schema=CREATIVE_SPECIFICATION_AI_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - start) * 1000
+            return generated, provider_call_ms, usage
 
         generation_results = run_concurrently(eligible, _generate)
 
@@ -220,11 +227,12 @@ class SlideCreativeSpecificationStage:
                 outcome = generation_results[index]
                 if isinstance(outcome, Exception):
                     raise outcome
+                generated, provider_call_ms, usage = outcome
 
                 lock_profile_data = lock_profile.structured_json
 
                 # Assembled directly from known facts, never asked of the AI.
-                final_structured = dict(outcome)
+                final_structured = dict(generated)
                 final_structured["product_lock_reference"] = {
                     "product_lock_profile_id": lock_profile.id,
                     "reference_image_ids": lock_profile.reference_image_ids_json,
@@ -253,6 +261,6 @@ class SlideCreativeSpecificationStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_creative_specification_id = creative_specification.id
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result

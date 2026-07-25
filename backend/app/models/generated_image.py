@@ -74,3 +74,11 @@ class GeneratedImage(Base, AnalysisArtifactMixin):
     seed: Mapped[str | None] = mapped_column(String(128), nullable=True)
     generation_time_seconds: Mapped[float] = mapped_column(Float, nullable=False)
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
+    # Optimisation & Stability Pass, Tier 2.2 (see MIGRATION_PLAN.md) -
+    # USD, computed from backend/pricing.yaml's per-image rate for this
+    # row's provider/model (app.services.cost_estimation) - null when
+    # pricing.yaml has no entry for it, not a guessed value. Image
+    # generation is billed per-image, not by token, so this has no
+    # prompt_tokens/completion_tokens counterpart the way AnalysisRun's
+    # does.
+    estimated_cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)

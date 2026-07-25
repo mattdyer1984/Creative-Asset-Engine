@@ -100,7 +100,7 @@ def test_retries_once_then_accepts_when_the_second_attempt_passes(
         model = "fake-vision-model"
         provider = "openai"
 
-        def analyze_creative(self, image_bytes, prompt_spec, response_schema):
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
             schema_name = prompt_spec.get("schema_name")
             if schema_name == "identity_validation":
                 return _IDENTITY_PASSES
@@ -292,7 +292,7 @@ def test_reuse_original_excludes_the_products_own_packaging_text(
         model = "fake-ocr-model"
         provider = "openai"
 
-        def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+        def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
             return OCRExtraction(
                 raw_text="Sunrise Start Fresh",
                 structured_blocks=[
@@ -356,7 +356,7 @@ def _fake_ocr_provider_with_bbox():
         model = "fake-ocr-model"
         provider = "openai"
 
-        def extract_text(self, image_bytes: bytes) -> OCRExtraction:
+        def extract_text(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> OCRExtraction:
             return OCRExtraction(
                 raw_text="SHOP NOW",
                 structured_blocks=[

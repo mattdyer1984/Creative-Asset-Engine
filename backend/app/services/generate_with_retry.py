@@ -37,6 +37,7 @@ this entirely, exactly as it did before this phase, per
 `GenerationPlan.text_strategy`'s own backward-compatibility reasoning.
 """
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -60,12 +61,34 @@ from app.services.product_profile import extract_branding_text
 from app.services.quality_engine import assess_bundle_candidate, assess_candidate
 from app.services.rendering_engine import render_final_output
 from app.services.text_intelligence import build_text_assets
+from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
+
+logger = logging.getLogger(__name__)
 
 # A small, real bound, not "retry forever" - §14 calls for a
 # "configured retry limit," this is Phase 10.2's default value for it.
 DEFAULT_MAX_RETRIES = 1
+
+
+def _log_timing_breakdown(db: Session, slide: Slide) -> None:
+    """
+    Optimisation & Stability Pass, Tier 1/2 (see MIGRATION_PLAN.md) -
+    scoped by slide_id, not slideshow_id: every slide-scoped analysis
+    stage (OCR, Product Isolation, Product Lock Profile, Creative
+    Fingerprint, Scene Intelligence, Creative Specification) already
+    records slide_id on its AnalysisRun rows, so this single query
+    naturally covers this slide's whole journey - analysis through
+    generation and validation - not just this call's own generation
+    work. Best-effort: a reporting failure must never mask a real
+    generation outcome already computed above.
+    """
+    try:
+        breakdown = build_timing_breakdown(db, slide_id=slide.id)
+        logger.info("Slide %s generation timing:\n%s", slide.id, format_timing_breakdown(breakdown))
+    except Exception:
+        logger.exception("Failed to build timing breakdown for slide %s", slide.id)
 
 
 @dataclass
@@ -262,9 +285,11 @@ def generate_with_retry(
             if plan.text_strategy is not None:
                 final_output = _render_final_output_for_winner(db, slide, winner, plan.text_strategy)
 
+            _log_timing_breakdown(db, slide)
             return RetryLoopResult(attempts=attempts, winner=winner, final_output=final_output)
 
         retry_of_id = attempt_result.attempt.id
         retry_reason = "No candidate in the previous attempt passed Product Fidelity validation."
 
+    _log_timing_breakdown(db, slide)
     return RetryLoopResult(attempts=attempts, winner=None)

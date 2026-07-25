@@ -138,7 +138,7 @@ def test_one_products_failure_does_not_block_another_products_success(db_session
         model = "fake-vision-model"
         provider = "openai"
 
-        def analyze_creative(self, image_bytes, prompt_spec, response_schema):
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
             calls["count"] += 1
             if calls["count"] == 1:
                 raise RuntimeError("vision provider down")

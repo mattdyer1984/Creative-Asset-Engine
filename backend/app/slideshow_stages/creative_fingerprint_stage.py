@@ -20,6 +20,7 @@ staleness service, same category as MarketingAnalysis.
 creative_fingerprint_id (7.3).
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -157,14 +158,19 @@ class SlideCreativeFingerprintStage:
                     used_ocr_result_id = ocr_result.id
             entries.append((slide, prompt, used_ocr_result_id))
 
-        def _analyze(entry: tuple[Slide, str, str | None]) -> dict:
+        def _analyze(entry: tuple[Slide, str, str | None]):
             slide, prompt, _used_ocr_result_id = entry
             image_bytes = Path(slide.stored_file_path).read_bytes()
-            return vision_provider.analyze_creative(
+            usage: dict = {}
+            start = time.perf_counter()
+            analysis_result = vision_provider.analyze_creative(
                 image_bytes=image_bytes,
                 prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
                 response_schema=CREATIVE_FINGERPRINT_SCHEMA,
+                usage_sink=usage,
             )
+            provider_call_ms = (time.perf_counter() - start) * 1000
+            return analysis_result, provider_call_ms, usage
 
         analysis_results = run_concurrently(entries, _analyze)
 
@@ -182,7 +188,7 @@ class SlideCreativeFingerprintStage:
                 outcome = analysis_results[index]
                 if isinstance(outcome, Exception):
                     raise outcome
-                analysis_result = outcome
+                analysis_result, provider_call_ms, usage = outcome
 
                 db.query(CreativeFingerprint).filter(
                     CreativeFingerprint.slide_id == slide.id,
@@ -202,6 +208,6 @@ class SlideCreativeFingerprintStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_creative_fingerprint_id = fingerprint.id
-            result = mark_succeeded(db, analysis_run)
+            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
 
         return result

@@ -774,3 +774,20 @@ class GenerationLogDetailRead(GenerationLogRead):
     """GET /api/generation-logs/{id} - GenerationLogRead plus its review, if one has been submitted."""
 
     review: GenerationReviewRead | None = None
+
+
+class DailyCostRead(BaseModel):
+    """
+    GET /api/costs/daily (Optimisation & Stability Pass, Tier 2.2, see
+    MIGRATION_PLAN.md) - the "why did yesterday cost $X" ask, answered
+    without a provider dashboard. Only ever reflects calls with a real
+    rate configured in pricing.yaml - a day with zero configured rates
+    still appears (call_count > 0), just with every cost field at 0.0,
+    not hidden.
+    """
+
+    date: str  # YYYY-MM-DD
+    analysis_cost_usd: float
+    image_generation_cost_usd: float
+    total_estimated_cost_usd: float
+    call_count: int
