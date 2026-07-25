@@ -293,3 +293,98 @@ def test_a_stage_with_no_usage_emits_nothing(db_session):
         db_session.scalars(select(ProviderCall).where(ProviderCall.analysis_run_id == run.id))
     )
     assert rows == []
+
+
+# --- Follow-up to Checkpoint B, item 2: alias vs resolved model -------
+
+ALIAS_PRICED = {
+    "pricing": {
+        "gemini": {
+            "gemini-flash-latest": {
+                "reported_model": "gemini-3.6-flash",
+                "per_1k_prompt_tokens": 0.0015,
+                "per_1k_completion_tokens": 0.0075,
+            }
+        }
+    }
+}
+
+
+def test_records_both_requested_alias_and_resolved_model(db_session, monkeypatch):
+    monkeypatch.setattr("app.services.cost_estimation.load_pricing", lambda *a, **k: ALIAS_PRICED)
+
+    call = record_provider_call(
+        db_session,
+        provider="gemini",
+        model="gemini-flash-latest",
+        capability="ocr",
+        usage={
+            "prompt_tokens": 1000,
+            "completion_tokens": 1000,
+            "reported_model": "gemini-3.6-flash",
+        },
+    )
+
+    assert call.model == "gemini-flash-latest", "the requested alias must be preserved"
+    assert call.reported_model == "gemini-3.6-flash", "the resolved model must be recorded"
+    assert call.cost_status == str(CostStatus.ESTIMATED)
+    assert call.estimated_cost_usd == pytest.approx(0.0015 + 0.0075)
+
+
+def test_alias_repointed_to_an_unpriced_model_becomes_unknown_not_stale(db_session, monkeypatch):
+    """
+    The whole point of item 2: if Google repoints gemini-flash-latest at
+    a model we have never priced, cost must become explicitly unknown -
+    NOT keep billing at the old alias rate, which would be confidently
+    wrong and invisible.
+    """
+    monkeypatch.setattr("app.services.cost_estimation.load_pricing", lambda *a, **k: ALIAS_PRICED)
+
+    call = record_provider_call(
+        db_session,
+        provider="gemini",
+        model="gemini-flash-latest",
+        capability="ocr",
+        usage={
+            "prompt_tokens": 1000,
+            "completion_tokens": 1000,
+            "reported_model": "gemini-4.0-flash",  # a repoint we never priced
+        },
+    )
+
+    assert call.cost_status == str(CostStatus.UNKNOWN)
+    assert call.estimated_cost_usd is None, "must not reuse the alias's stale rate"
+    assert "gemini-4.0-flash" in call.cost_status_reason
+    assert "stale" in call.cost_status_reason
+    assert call.reported_model == "gemini-4.0-flash"
+
+
+def test_resolved_model_priced_directly_is_preferred(db_session, monkeypatch):
+    """When the resolved snapshot itself has a rate, use it."""
+    pricing = {
+        "pricing": {
+            "openai": {
+                "gpt-5.5": {"per_1k_prompt_tokens": 99.0, "per_1k_completion_tokens": 99.0},
+                "gpt-5.5-2026-04-23": {
+                    "per_1k_prompt_tokens": 0.005,
+                    "per_1k_completion_tokens": 0.030,
+                },
+            }
+        }
+    }
+    monkeypatch.setattr("app.services.cost_estimation.load_pricing", lambda *a, **k: pricing)
+
+    call = record_provider_call(
+        db_session,
+        provider="openai",
+        model="gpt-5.5",
+        capability="ocr",
+        usage={
+            "prompt_tokens": 1000,
+            "completion_tokens": 1000,
+            "reported_model": "gpt-5.5-2026-04-23",
+        },
+    )
+
+    # The snapshot's own rate, not the alias entry's.
+    assert call.estimated_cost_usd == pytest.approx(0.035)

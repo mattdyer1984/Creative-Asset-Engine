@@ -17,7 +17,9 @@ from fastapi.testclient import TestClient
 from app.db import get_db
 from app.main import app
 from app.services.spend_limit import (
+    PlannedCall,
     SpendLimitExceeded,
+    UnpricedWorkRefused,
     check_spend_allowed,
     spend_snapshot,
 )
@@ -138,10 +140,104 @@ def test_paid_endpoint_returns_429_when_over_cap(client, db_session, slideshow_w
     assert detail["resets_at"]
 
 
-def test_paid_endpoint_proceeds_when_under_cap(client, db_session, slideshow_with_slide, monkeypatch):
+def test_paid_endpoint_proceeds_when_under_cap_and_everything_is_priceable(
+    client, db_session, slideshow_with_slide, monkeypatch
+):
     monkeypatch.setattr("app.services.spend_limit.load_daily_cap_usd", lambda *a, **k: 100.0)
+    # Every planned model priceable - the ordinary case.
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: True)
     _spend(db_session, 1.0)
 
     response = client.post(f"/api/slideshows/{slideshow_with_slide.id}/analyze")
 
     assert response.status_code != 429
+
+
+def test_enabling_the_cap_today_refuses_analysis_because_a_model_is_unpriced(
+    client, db_session, slideshow_with_slide, monkeypatch
+):
+    """
+    Follow-up item 1, end to end, against the REAL pricing config.
+
+    This is the honest current state: gemini-pro-latest and the primary
+    image model have no confirmed rate, so with a cap enabled the
+    pipeline fails closed rather than letting unpriceable spend through.
+    That is exactly why the cap ships disabled by default.
+    """
+    monkeypatch.setattr("app.services.spend_limit.load_daily_cap_usd", lambda *a, **k: 100.0)
+    monkeypatch.setattr("app.services.spend_limit.load_unknown_cost_ceilings", lambda *a, **k: {})
+
+    response = client.post(f"/api/slideshows/{slideshow_with_slide.id}/analyze")
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["error"] == "unpriced_work_refused"
+    assert detail["unpriceable_calls"], "must name which models could not be priced"
+    assert "how_to_resolve" in detail
+
+
+# --- Follow-up item 1: the four policy branches, explicitly ----------
+
+_UNPRICED = PlannedCall("nano_banana", "gemini-3.1-flash-image-preview", "image_generation", "image")
+_PRICED = PlannedCall("openai", "gpt-5.5", "ocr", "token")
+
+
+def test_cap_disabled_allows_unpriceable_work(db_session, monkeypatch):
+    """Nothing is being enforced, so refusing would be pure friction."""
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: False)
+
+    snapshot = check_spend_allowed(db_session, planned=[_UNPRICED], cap_usd=None)
+
+    assert snapshot.cap_usd is None
+
+
+def test_cap_enabled_refuses_unpriceable_work_with_no_ceiling(db_session, monkeypatch):
+    """The headline case: unknown must not behave like zero."""
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: False)
+
+    with pytest.raises(UnpricedWorkRefused) as exc:
+        check_spend_allowed(db_session, planned=[_UNPRICED], cap_usd=10.0, ceilings={})
+
+    detail = exc.value.to_detail()
+    assert detail["error"] == "unpriced_work_refused"
+    assert detail["unpriceable_calls"][0]["provider"] == "nano_banana"
+    assert "could not be counted against the cap" in detail["reason"]
+
+
+def test_cap_enabled_allows_unpriceable_work_when_a_ceiling_is_configured(db_session, monkeypatch):
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: False)
+
+    snapshot = check_spend_allowed(
+        db_session,
+        planned=[_UNPRICED],
+        cap_usd=10.0,
+        ceilings={"nano_banana": {"image_generation": 0.10}},
+    )
+
+    assert snapshot.cap_usd == 10.0
+
+
+def test_a_configured_ceiling_still_consumes_budget(db_session, monkeypatch):
+    """
+    An unpriceable-but-ceilinged call must not be free in all but name -
+    the reservation has to count against the cap.
+    """
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: False)
+    _spend(db_session, 9.95)
+
+    with pytest.raises(SpendLimitExceeded):
+        check_spend_allowed(
+            db_session,
+            planned=[_UNPRICED],
+            cap_usd=10.0,
+            ceilings={"nano_banana": {"image_generation": 0.10}},
+        )
+
+
+def test_priceable_work_is_unaffected_by_the_policy(db_session, monkeypatch):
+    monkeypatch.setattr("app.services.spend_limit.has_usable_rate", lambda *a, **k: True)
+    _spend(db_session, 1.0)
+
+    snapshot = check_spend_allowed(db_session, planned=[_PRICED], cap_usd=10.0, ceilings={})
+
+    assert snapshot.remaining_usd == pytest.approx(9.0)

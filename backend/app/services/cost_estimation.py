@@ -72,6 +72,55 @@ def _model_entry(pricing: dict, provider: str, model: str) -> dict | None:
     return (pricing.get("pricing") or {}).get(provider, {}).get(model)
 
 
+def resolve_billing_model(
+    provider: str, requested_model: str, resolved_model: str | None, *, pricing: dict | None = None
+) -> tuple[str, str | None]:
+    """
+    Decides which model identifier cost should be computed against, and
+    why (follow-up to Checkpoint B, item 2).
+
+    Aliases are the problem this exists for. `gemini-flash-latest` is
+    auto-updating: it resolved to `gemini-3.6-flash` when pricing was
+    verified, and pricing.yaml is written against that. If Google
+    repoints the alias tomorrow, continuing to bill at the old rate
+    would be silently wrong - and wrong-but-confident is the failure
+    mode this whole pass exists to remove.
+
+    So: when the provider tells us what it actually served, that is what
+    we price against. If the RESOLVED model has no configured rate, the
+    result is explicitly unknown - we never fall back to the alias's
+    stale rate. Falling back is exactly how a repoint would go unnoticed.
+
+    Returns (model_to_price, mismatch_reason). `mismatch_reason` is set
+    only when the resolved model is known but unpriced, so callers can
+    explain the unknown rather than just asserting it.
+    """
+    if not resolved_model or resolved_model == requested_model:
+        return requested_model, None
+
+    rates = pricing if pricing is not None else load_pricing()
+
+    if _model_entry(rates, provider, resolved_model) is not None:
+        # The provider's own answer is priced - always prefer it.
+        return resolved_model, None
+
+    requested_entry = _model_entry(rates, provider, requested_model)
+    expected = (requested_entry or {}).get("reported_model")
+    if requested_entry is not None and expected == resolved_model:
+        # pricing.yaml was written against exactly this resolution and
+        # recorded it - the configured rate genuinely applies.
+        return requested_model, None
+
+    # Either the alias moved, or it resolved somewhere we have never
+    # priced. Refuse to reuse the old rate.
+    return resolved_model, (
+        f"{provider}/{requested_model} resolved to {resolved_model!r}, which has no "
+        "configured rate"
+        + (f" (pricing.yaml expects {expected!r})" if expected else "")
+        + " - refusing to apply the alias's rate, which may now be stale"
+    )
+
+
 def reported_model_for(provider: str, model: str, *, pricing: dict | None = None) -> str | None:
     """
     What the provider actually serves for this identifier, where known -
@@ -82,6 +131,26 @@ def reported_model_for(provider: str, model: str, *, pricing: dict | None = None
     rates = pricing if pricing is not None else load_pricing()
     entry = _model_entry(rates, provider, model) or {}
     return entry.get("reported_model")
+
+
+def has_usable_rate(provider: str, model: str, *, billing: str, pricing: dict | None = None) -> bool:
+    """
+    Can a call to this provider/model be priced AT ALL?
+
+    Used by the spend cap (follow-up to Checkpoint B, item 1) to decide
+    BEFORE spending anything whether the resulting cost would be
+    knowable. `billing` is "token" or "image".
+    """
+    rates = pricing if pricing is not None else load_pricing()
+    entry = _model_entry(rates, provider, model)
+    if entry is None or entry.get("status") == "unknown":
+        return False
+    if billing == "image":
+        return entry.get("per_image") is not None
+    return (
+        entry.get("per_1k_prompt_tokens") is not None
+        or entry.get("per_1k_completion_tokens") is not None
+    )
 
 
 def estimate_token_cost(

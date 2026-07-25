@@ -18,7 +18,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.services.spend_limit import SpendLimitExceeded, check_spend_allowed
+from app.ai_providers.registry import default_registry
+from app.services.spend_limit import (
+    PlannedCall,
+    SpendLimitExceeded,
+    UnpricedWorkRefused,
+    check_spend_allowed,
+)
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
@@ -144,8 +150,13 @@ def score_references(
     # interrupted - see services/spend_limit.py for why that trade is
     # deliberate.
     try:
-        check_spend_allowed(db)
-    except SpendLimitExceeded as _exc:
+        # Reference scoring is vision work, one call per candidate image.
+        _vision = default_registry.vision()
+        check_spend_allowed(
+            db,
+            planned=[PlannedCall(_vision.provider, _vision.model, "vision_analysis")],
+        )
+    except (SpendLimitExceeded, UnpricedWorkRefused) as _exc:
         raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
 
     if db.get(Product, product_id) is None:

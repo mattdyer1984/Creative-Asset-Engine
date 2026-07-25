@@ -10,7 +10,13 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
-from app.services.spend_limit import SpendLimitExceeded, check_spend_allowed
+from app.ai_providers.registry import default_registry
+from app.services.spend_limit import (
+    PlannedCall,
+    SpendLimitExceeded,
+    UnpricedWorkRefused,
+    check_spend_allowed,
+)
 from app.models.analysis_run import AnalysisRun
 from app.models.creative_specification import CreativeSpecification
 from app.models.final_output import FinalOutput
@@ -71,6 +77,57 @@ from app.slideshow_stages.image_validation_stage import SlideImageValidationStag
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
 
 router = APIRouter(prefix="/api/slideshows", tags=["slideshows"])
+
+
+def _planned_image_generation() -> list[PlannedCall]:
+    """
+    The provider calls an image-generation request will make - both the
+    primary and the configured fallback, since a primary 503 silently
+    routes spend to the fallback (that is exactly what happened during
+    the Google outage). Both must be priceable, or the cap cannot
+    account for whichever one actually runs.
+    """
+    registry = default_registry
+    planned = []
+    primary = registry.image_generation()
+    planned.append(
+        PlannedCall(primary.provider, primary.model, "image_generation", billing="image")
+    )
+    fallback = registry.image_generation_fallback()
+    if fallback is not None:
+        planned.append(
+            PlannedCall(fallback.provider, fallback.model, "image_generation", billing="image")
+        )
+    return planned
+
+
+def _planned_analysis() -> list[PlannedCall]:
+    """Every provider call the analysis pipeline will make, by capability."""
+    registry = default_registry
+    planned = [
+        PlannedCall(registry.ocr().provider, registry.ocr().model, "ocr"),
+        PlannedCall(
+            registry.isolation().provider, registry.isolation().model, "product_isolation"
+        ),
+        PlannedCall(registry.vision().provider, registry.vision().model, "vision_analysis"),
+        PlannedCall(
+            registry.text_generation().provider,
+            registry.text_generation().model,
+            "text_generation",
+        ),
+        PlannedCall(
+            registry.prompt_generation().provider,
+            registry.prompt_generation().model,
+            "prompt_generation",
+        ),
+    ]
+    # Product Lock Profile / Creative Fingerprint explicitly request the
+    # gemini vision override, so it is a distinct billable model.
+    gemini_vision = registry.vision(provider_name="gemini")
+    planned.append(
+        PlannedCall(gemini_vision.provider, gemini_vision.model, "vision_analysis")
+    )
+    return planned
 
 
 @router.post("/import", response_model=list[SlideshowRead], status_code=201)
@@ -254,8 +311,8 @@ def analyze_slideshow(
     # interrupted - see services/spend_limit.py for why that trade is
     # deliberate.
     try:
-        check_spend_allowed(db)
-    except SpendLimitExceeded as _exc:
+        check_spend_allowed(db, planned=_planned_analysis())
+    except (SpendLimitExceeded, UnpricedWorkRefused) as _exc:
         raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
 
     result = db.execute(
@@ -307,8 +364,8 @@ def rerun_stage(
     # interrupted - see services/spend_limit.py for why that trade is
     # deliberate.
     try:
-        check_spend_allowed(db)
-    except SpendLimitExceeded as _exc:
+        check_spend_allowed(db, planned=_planned_analysis())
+    except (SpendLimitExceeded, UnpricedWorkRefused) as _exc:
         raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
 
     if stage_name not in _STAGE_NAMES:
@@ -380,8 +437,8 @@ def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_d
     # interrupted - see services/spend_limit.py for why that trade is
     # deliberate.
     try:
-        check_spend_allowed(db)
-    except SpendLimitExceeded as _exc:
+        check_spend_allowed(db, planned=_planned_image_generation())
+    except (SpendLimitExceeded, UnpricedWorkRefused) as _exc:
         raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
 
     slideshow = db.get(Slideshow, slideshow_id)
@@ -512,8 +569,8 @@ def generate_creative(
     # interrupted - see services/spend_limit.py for why that trade is
     # deliberate.
     try:
-        check_spend_allowed(db)
-    except SpendLimitExceeded as _exc:
+        check_spend_allowed(db, planned=_planned_image_generation())
+    except (SpendLimitExceeded, UnpricedWorkRefused) as _exc:
         raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
 
     slideshow = db.get(Slideshow, slideshow_id)

@@ -90,6 +90,15 @@ def _populate_usage_sink(response, usage_sink: dict | None) -> None:
     """
     if usage_sink is None:
         return
+    # Follow-up to Checkpoint B (item 2): gemini-flash-latest is an
+    # AUTO-UPDATING alias - it resolved to "gemini-3.6-flash" when
+    # pricing was verified, but Google can repoint it at any time.
+    # response.model_version is what it actually served, and cost is
+    # computed against that so a repoint surfaces as unknown rather than
+    # silently billing at a stale rate.
+    reported_model = getattr(response, "model_version", None)
+    if reported_model:
+        usage_sink["reported_model"] = reported_model
     usage = getattr(response, "usage_metadata", None)
     if usage is None:
         return

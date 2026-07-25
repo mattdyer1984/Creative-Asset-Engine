@@ -141,6 +141,14 @@ def _populate_usage_sink(response, usage_sink: dict | None) -> None:
     """
     if usage_sink is None:
         return
+    # Follow-up to Checkpoint B (item 2): record the model the provider
+    # says it ACTUALLY served. We request "gpt-5.5"; the response carries
+    # "gpt-5.5-2026-04-23". Cost must be computed against the resolved
+    # model, not against whatever an alias mapped to when pricing.yaml
+    # was last written.
+    reported_model = getattr(response, "model", None)
+    if reported_model:
+        usage_sink["reported_model"] = reported_model
     usage = getattr(response, "usage", None)
     if usage is None:
         return

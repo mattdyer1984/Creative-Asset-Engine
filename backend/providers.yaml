@@ -146,4 +146,28 @@ concurrency_limits:
 # spend cannot be counted - so the figure this cap compares against is a
 # floor, not a certainty. Worth revisiting once those rates are resolved.
 spend_limits:
+  # Stays null (disabled) until the primary image provider has a
+  # confirmed rate - see the unknown-cost policy below for why enabling
+  # it right now would refuse most work rather than silently under-count.
   daily_usd: null
+
+  # UNKNOWN-COST POLICY (follow-up to Checkpoint B, item 1).
+  #
+  # Unknown cost must never behave like zero. With the cap ENABLED, a
+  # paid operation whose provider/model has no configured rate FAILS
+  # CLOSED (429 unpriced_work_refused) rather than slipping past the cap
+  # uncounted - otherwise the cap would not protect image generation,
+  # the most expensive part of the workflow, which is exactly the part
+  # currently unpriced.
+  #
+  # A conservative per-provider/per-capability ceiling is the escape
+  # hatch: set one and that work is allowed, but RESERVES this amount
+  # against today's budget so it still consumes it.
+  #
+  # These are YOUR conservative upper bounds - nothing here is inferred
+  # from unofficial sources, and leaving them unset is the safe default.
+  # Example (commented out; uncomment and set a real figure to use):
+  #
+  # unknown_cost_ceilings_usd:
+  #   nano_banana:
+  #     image_generation: 0.10

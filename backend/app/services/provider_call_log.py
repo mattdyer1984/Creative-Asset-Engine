@@ -22,10 +22,12 @@ from sqlalchemy.orm import Session
 
 from app.models.provider_call import RECORD_SOURCE_PER_CALL, ProviderCall
 from app.services.cost_estimation import (
+    CostEstimate,
     CostStatus,
     estimate_image_cost,
     estimate_token_cost,
     reported_model_for,
+    resolve_billing_model,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,15 +63,33 @@ def record_provider_call(
         prompt_tokens = (usage or {}).get("prompt_tokens")
         completion_tokens = (usage or {}).get("completion_tokens")
 
+        # Follow-up to Checkpoint B (item 2): price against what the
+        # provider says it actually served, not the alias we asked for.
+        # `reported_model` comes from the response itself (the adapters
+        # put it in usage_sink); the pricing.yaml value is only a
+        # fallback for providers that do not report one.
+        resolved_model = (usage or {}).get("reported_model") or reported_model_for(provider, model)
+        billing_model, mismatch_reason = resolve_billing_model(
+            provider, model, resolved_model
+        )
+
         if image_count is not None:
-            estimate = estimate_image_cost(provider, model, image_count=image_count)
+            estimate = estimate_image_cost(provider, billing_model, image_count=image_count)
         else:
-            estimate = estimate_token_cost(provider, model, prompt_tokens, completion_tokens)
+            estimate = estimate_token_cost(
+                provider, billing_model, prompt_tokens, completion_tokens
+            )
+
+        # An alias that moved must read as unknown, never as a stale
+        # rate - silently reusing the old price is exactly how a repoint
+        # would go unnoticed.
+        if mismatch_reason:
+            estimate = CostEstimate(None, CostStatus.UNKNOWN, mismatch_reason)
 
         call = ProviderCall(
             provider=provider,
             model=model,
-            reported_model=reported_model_for(provider, model),
+            reported_model=resolved_model,
             capability=capability,
             prompt_id=prompt_id,
             prompt_version=prompt_version,
