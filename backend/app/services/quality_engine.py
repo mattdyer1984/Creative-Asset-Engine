@@ -163,6 +163,7 @@ def _run_photorealism(db: Session, generated_image: GeneratedImage) -> dict:
         provider=vision_provider.provider,
         model=vision_provider.model,
         capability="vision_analysis",
+        prompt=_validation_prompts.PHOTOREALISM,
         usage=usage,
         provider_latency_ms=provider_latency_ms,
         generated_image_id=generated_image.id,

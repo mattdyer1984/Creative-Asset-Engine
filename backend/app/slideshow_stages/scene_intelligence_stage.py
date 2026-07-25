@@ -153,6 +153,12 @@ class SceneIntelligenceStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_scene_analysis_id = scene_analysis.id
-            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+            result = mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.SCENE_INTELLIGENCE,
+            )
 
         return result

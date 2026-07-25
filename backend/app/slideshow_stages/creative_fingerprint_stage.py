@@ -225,6 +225,12 @@ class SlideCreativeFingerprintStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_creative_fingerprint_id = fingerprint.id
-            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+            result = mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.CREATIVE_FINGERPRINT,
+            )
 
         return result

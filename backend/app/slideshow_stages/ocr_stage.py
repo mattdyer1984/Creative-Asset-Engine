@@ -56,6 +56,7 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,12 @@ class SlideOCRStage:
                 # acts on - is unaffected either way.
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
-            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+            result = mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.EXTRACT_TEXT,
+            )
 
         return result

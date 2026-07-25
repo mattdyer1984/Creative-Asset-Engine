@@ -472,3 +472,62 @@ def test_fully_priced_days_read_as_complete(db_session):
     _row(db_session)
     db_session.commit()
     assert get_daily_costs(db=db_session)[0].cost_completeness == "complete"
+
+
+def test_pipeline_stages_record_which_prompt_produced_the_result(db_session, monkeypatch):
+    """
+    WP-3: the prompt_id/version/content_hash columns existed but nothing
+    ever wrote them. Without identity on the row, a change in output
+    quality cannot be traced back to a change in instructions - which is
+    the whole reason the columns were added.
+    """
+    from app.models.analysis_run import AnalysisRun
+    from app.prompts import analysis as analysis_prompts
+    from app.stages.execution import mark_succeeded
+
+    monkeypatch.setattr("app.services.cost_estimation.load_pricing", lambda *a, **k: PRICED)
+
+    run = AnalysisRun(
+        analysis_type="ocr", provider="openai", model_name="gpt-5.5", status="running"
+    )
+    db_session.add(run)
+    db_session.flush()
+
+    mark_succeeded(
+        db_session,
+        run,
+        provider_call_ms=100.0,
+        usage={"prompt_tokens": 1000, "completion_tokens": 1000},
+        prompt=analysis_prompts.EXTRACT_TEXT,
+    )
+
+    call = db_session.scalars(
+        select(ProviderCall).where(ProviderCall.analysis_run_id == run.id)
+    ).one()
+    assert call.prompt_id == "ocr.extract_text"
+    assert call.prompt_version == "1.0"
+    assert call.prompt_content_hash == analysis_prompts.EXTRACT_TEXT.content_hash
+
+
+def test_prompt_identity_stays_internally_consistent(db_session, monkeypatch):
+    """
+    Passing the Prompt object rather than three loose strings is what
+    stops an id, a version and a hash from describing different things.
+    """
+    from app.prompts import validation as validation_prompts
+
+    monkeypatch.setattr("app.services.cost_estimation.load_pricing", lambda *a, **k: PRICED)
+
+    call = record_provider_call(
+        db_session,
+        provider="openai",
+        model="gpt-5.5",
+        capability="vision_analysis",
+        prompt=validation_prompts.PHOTOREALISM,
+        usage={"prompt_tokens": 10, "completion_tokens": 10},
+    )
+    assert (call.prompt_id, call.prompt_version, call.prompt_content_hash) == (
+        validation_prompts.PHOTOREALISM.id,
+        validation_prompts.PHOTOREALISM.version,
+        validation_prompts.PHOTOREALISM.content_hash,
+    )

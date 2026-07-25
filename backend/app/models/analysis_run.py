@@ -67,7 +67,13 @@ class AnalysisRun(Base):
 
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
     model_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    prompt_template_version: Mapped[str] = mapped_column(String(16), default="1.0")
+    # Deprecated (WP-3). Never written by any code path - every existing
+    # row holds the "1.0" default, which looked like provenance and was
+    # not. Prompt identity now lives on ProviderCall, at the correct
+    # grain: a prompt belongs to a call, and one run can make several.
+    # Kept nullable rather than dropped so the removal is its own
+    # separate, reversible migration.
+    prompt_template_version: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     status: Mapped[str] = mapped_column(String(16), default=STATUS_PENDING)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)

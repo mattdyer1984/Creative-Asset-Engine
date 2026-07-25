@@ -172,6 +172,7 @@ def mark_succeeded(
     usage: dict | None = None,
     emit_provider_call: bool = True,
     capability: str | None = None,
+    prompt=None,
 ) -> StageResult:
     """
     Phase 1 remediation (WP-2): also emits the ProviderCall row that
@@ -193,6 +194,12 @@ def mark_succeeded(
     Only emits when there is real usage to attribute: a stage that
     passes no usage_sink has nothing billable to record here (image
     generation's own cost is recorded at its call site, per-image).
+
+    `prompt` is the registered Prompt the stage sent (WP-3). Passing it
+    records which exact wording produced the result, so a change in
+    output quality can be traced to a change in instructions. A stage
+    that omits it records null identity rather than a guess - honest,
+    and visibly incomplete.
     """
     analysis_run.status = STATUS_SUCCEEDED
     _stamp_timing_and_cost(analysis_run, provider_call_ms=provider_call_ms, usage=usage)
@@ -215,6 +222,7 @@ def mark_succeeded(
             analysis_run_id=analysis_run.id,
             slide_id=analysis_run.slide_id,
             slideshow_id=analysis_run.slideshow_id,
+            prompt=prompt,
         )
 
     db.commit()

@@ -21,6 +21,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.models.provider_call import RECORD_SOURCE_PER_CALL, ProviderCall
+from app.prompts.core import Prompt
 from app.services.cost_estimation import (
     CostEstimate,
     CostStatus,
@@ -46,6 +47,7 @@ def record_provider_call(
     generated_image_id: str | None = None,
     slide_id: str | None = None,
     slideshow_id: str | None = None,
+    prompt: "Prompt | None" = None,
     prompt_id: str | None = None,
     prompt_version: str | None = None,
     prompt_content_hash: str | None = None,
@@ -58,8 +60,20 @@ def record_provider_call(
     `usage_sink` parameter. `image_count` marks an image-billed call;
     the two are mutually exclusive in practice, and which one is given
     decides how cost is computed.
+
+    `prompt` is a registered Prompt (WP-3) and is the preferred way to
+    supply identity: passing the object keeps the id, version and hash
+    consistent with each other, which three loose strings do not. The
+    individual fields remain for the few sites with no registered
+    prompt yet; those rows simply carry null identity rather than a
+    guess.
     """
     try:
+        if prompt is not None:
+            identity = prompt.identity()
+            prompt_id = prompt_id or identity["prompt_id"]
+            prompt_version = prompt_version or identity["prompt_version"]
+            prompt_content_hash = prompt_content_hash or identity["prompt_content_hash"]
         prompt_tokens = (usage or {}).get("prompt_tokens")
         completion_tokens = (usage or {}).get("completion_tokens")
 

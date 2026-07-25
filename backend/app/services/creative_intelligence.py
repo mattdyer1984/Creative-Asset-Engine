@@ -139,6 +139,7 @@ def optimize_scene_description(
             provider=text_provider.provider,
             model=text_provider.model,
             capability="text_generation",
+            prompt=_generation_prompts.CREATIVE_INTELLIGENCE,
             usage=usage,
             provider_latency_ms=(time.perf_counter() - start) * 1000,
         )

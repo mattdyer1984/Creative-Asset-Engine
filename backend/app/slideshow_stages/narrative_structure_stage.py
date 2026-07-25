@@ -160,4 +160,10 @@ class SlideshowNarrativeStructureStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         slideshow.current_narrative_structure_id = narrative_structure.id
-        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+        return mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.NARRATIVE_STRUCTURE,
+            )

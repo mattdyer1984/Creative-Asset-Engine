@@ -346,6 +346,12 @@ class SlideProductLockProfileStage:
                 # unaffected either way.
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
-            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+            result = mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.PRODUCT_LOCK_PROFILE,
+            )
 
         return result

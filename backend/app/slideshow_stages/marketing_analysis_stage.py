@@ -120,4 +120,10 @@ class SlideshowMarketingAnalysisStage:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
         slideshow.current_marketing_analysis_id = marketing_analysis.id
-        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+        return mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_analysis_prompts.MARKETING_ANALYSIS,
+            )
