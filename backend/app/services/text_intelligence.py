@@ -69,18 +69,28 @@ TEXT_STRATEGY_AI_REWRITE = "ai_rewrite"
 TEXT_STRATEGY_NO_TEXT = "no_text"
 TEXT_STRATEGIES = {TEXT_STRATEGY_REUSE_ORIGINAL, TEXT_STRATEGY_AI_REWRITE, TEXT_STRATEGY_NO_TEXT}
 
-# Which OCR roles are marketing-overlay text at all, and the hierarchy
-# tier each maps to. logo_text is product packaging (Product Lock's
-# job, never this module's); disclaimer/other are real, lower-priority
-# fine print explicitly out of this phase's scope, not silently lost -
-# they remain visible in OCRResult.raw_text/structured_blocks_json,
-# just never promoted to a rendered overlay.
+# role -> hierarchy tier, for the four roles OCR classifies clearly
+# enough to size distinctly. Real-world-diagnosed correction (Generate
+# All follow-up, see MIGRATION_PLAN.md): this used to also gate
+# *inclusion* (see the old version of `_eligible_blocks`, which
+# required `role in _ROLE_TO_HIERARCHY`) - a real caption's third line
+# ("what have they done😭😭😭") came back from OCR correctly marked
+# `surface: "overlay"` but classified `role: "other"` (an emoji-heavy
+# exclamation doesn't cleanly read as "headline" to the model), and was
+# silently dropped entirely - a genuine part of the creator's own
+# caption, not disclaimer fine print, the role-gate's original intent.
+# `surface` is now the sole inclusion signal (see `_eligible_blocks`);
+# this map is only ever consulted for styling, with
+# `_DEFAULT_HIERARCHY_FOR_UNMAPPED_ROLE` covering everything else
+# (`other`, `disclaimer`, and any future role OCR might return) rather
+# than excluding it.
 _ROLE_TO_HIERARCHY = {
     "headline": "headline",
     "subheadline": "subhead",
     "price": "subhead",
     "cta": "cta",
 }
+_DEFAULT_HIERARCHY_FOR_UNMAPPED_ROLE = "subhead"
 
 # hierarchy -> deterministic size only (see module docstring - every
 # other styling concern, real bold typeface/stroke/centering/no
@@ -132,11 +142,14 @@ def _eligible_blocks(ocr_result: OCRResult | None, packaging_text: list[str]) ->
     verbatim, rewritten, or dropped.
 
     `block["surface"] == "overlay"` is OCR's own explicit classification
-    of that distinction - the primary filter. A pre-migration OCRResult
-    has no `surface` key at all; `.get("surface")` then returns `None`,
-    which correctly excludes it (nothing to reuse yet), the same
-    tri-state precedent this module already holds for OCRResults with
-    no `bounding_box`.
+    of that distinction - the primary filter, and (real-world-diagnosed
+    correction, see MIGRATION_PLAN.md) now the *only* role-related
+    filter - `role` itself no longer gates inclusion, only styling (see
+    `_ROLE_TO_HIERARCHY`'s own docstring for the real bug this fixes).
+    A pre-migration OCRResult has no `surface` key at all;
+    `.get("surface")` then returns `None`, which correctly excludes it
+    (nothing to reuse yet), the same tri-state precedent this module
+    already holds for OCRResults with no `bounding_box`.
 
     packaging_text (the product's own branding_text) is kept as a
     second, narrower line of defense specifically for packaging text -
@@ -150,8 +163,7 @@ def _eligible_blocks(ocr_result: OCRResult | None, packaging_text: list[str]) ->
     return [
         block
         for block in ocr_result.structured_blocks_json
-        if block.get("role") in _ROLE_TO_HIERARCHY
-        and block.get("bounding_box")
+        if block.get("bounding_box")
         and block.get("surface") == "overlay"
         and not _is_packaging_text(block.get("text", ""), packaging_text)
     ]
@@ -206,7 +218,7 @@ def _merge_adjacent_overlay_blocks(blocks: list[dict]) -> list[dict]:
 
 
 def _text_asset_from_block(block: dict, wording: str) -> dict:
-    hierarchy = _ROLE_TO_HIERARCHY[block["role"]]
+    hierarchy = _ROLE_TO_HIERARCHY.get(block["role"], _DEFAULT_HIERARCHY_FOR_UNMAPPED_ROLE)
     style = _HIERARCHY_STYLE[hierarchy]
     bbox = block["bounding_box"]
     return {

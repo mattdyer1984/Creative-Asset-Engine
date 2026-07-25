@@ -215,6 +215,32 @@ def test_reuse_original_keeps_genuine_overlay_text():
     assert [a["wording"] for a in assets] == ["SMELL LIKE YOU MEAN IT", "SHOP NOW"]
 
 
+def test_reuse_original_includes_an_overlay_block_with_an_unrecognized_role():
+    """
+    Real bug, reported live: a real caption's third line ("what have
+    they done😭😭😭") came back from OCR correctly marked
+    surface="overlay" but classified role="other" (an emoji-heavy
+    exclamation doesn't cleanly read as "headline" to the model) - it
+    was silently dropped entirely, since inclusion used to require
+    role to be one of headline/subheadline/price/cta. `surface` alone
+    must now be sufficient for inclusion; an unrecognized role should
+    only affect styling (a sensible default hierarchy), never whether
+    the block appears at all.
+    """
+    other_role_overlay = {
+        "text": "what have they done😭😭😭",
+        "role": "other",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.228, "y_min": 0.601, "x_max": 0.767, "y_max": 0.627},
+    }
+    ocr = _ocr_result([_HEADLINE_BLOCK, other_role_overlay])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert [a["wording"] for a in assets] == ["SMELL LIKE YOU MEAN IT", "what have they done😭😭😭"]
+    assert assets[1]["styling"]["size_class"] == "medium"  # the default fallback hierarchy ("subhead")
+
+
 # --- _merge_adjacent_overlay_blocks (real-world-diagnosed fix, see MIGRATION_PLAN.md) ---
 
 

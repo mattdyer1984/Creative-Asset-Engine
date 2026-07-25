@@ -5030,3 +5030,35 @@ Re-ran a real 2-slide, 2-product `/analyze` (the same Colgate + Bellavita pairin
 Confirmed directly from real `analysis_runs.created_at` timestamps: every stage's two slide rows now land within single-digit milliseconds of each other (e.g. two real OCR calls at `05:08:44.985738` and `05:08:44.994697`) - definitive proof both slides' calls are genuinely concurrent, not sequential. Total wall-clock for the full real pipeline (OCR through Creative Specification, 2 slides, 2 products): **~62-92s**, down from this exact same slideshow's own pre-parallelization baseline of **~166s** earlier in this session - a real, live-verified ~2.5-3x speedup, with identical stage ordering, identical per-slide skip/fail semantics, and zero change to what any stage actually asks its provider to do.
 
 - Commit: (see git log)
+
+---
+
+## Two real bugs from a real Generate All test, both root-caused and fixed (2026-07-25)
+
+### Context
+
+The user tried Generate All for real, immediately after the speed work above landed: "It didn't make the first image at all, and the second image only had one of three text overlays applied." Investigated the exact real slideshow (a P.Louise "OBSESSED FOR LESS" 2-slide import) directly - real server logs, real `analysis_runs`/`generation_logs` rows, the real source images - rather than guessing from the description alone.
+
+### Bug 1: a real SQLite "database is locked" - the speed work's own disclosed risk, now real
+
+Server logs showed the failing slide's `generate-creative` request 500'd with `sqlite3.OperationalError: database is locked`, thrown from `reference_selection.py`'s own `db.flush()` mid-`INSERT INTO generation_reference_sets`. Root cause: this session's own earlier speed work made Generate All fire several `generate-creative` requests concurrently from the frontend - each a genuinely separate, write-heavy request-scoped session - and `app/db.py`'s SQLite engine had no unusual write-concurrency tuning: the Python `sqlite3` driver's default 5-second busy timeout, and SQLite's older rollback-journal mode (where a writer blocks readers and other writers alike). This was flagged as a real, accepted risk in that same work's own report ("the backend is plain SQLite with no unusual write-concurrency tuning... a small, fixed concurrency cap gets most of the wall-clock win without hammering either") but not actually mitigated - and it manifested for real on the very next live test, losing an entire slide's generation outright (no `GenerationLog`, no partial artifact of any kind).
+
+**Fix**: `app/db.py`'s engine now sets a 30-second driver-level `timeout` (`connect_args`) and, via a `sqlalchemy.event.listens_for(engine, "connect")` hook (SQLite `PRAGMA`s are connection-scoped, so this must run per new DBAPI connection, not once globally), enables WAL (Write-Ahead Logging) journal mode and a matching 30-second `busy_timeout` PRAGMA. WAL lets readers and writers stop blocking each other; both timeouts mean a genuinely legitimate concurrent write now waits it out instead of failing outright. Test suite unaffected - `tests/conftest.py`'s `db_session` fixture uses its own, separate per-test engine, never `app.db.engine`.
+
+**Live-verified**: re-ran `generate-creative` on the exact real slide that 500'd (`slideshow_id=f88fbbc0-...`, `slide_id=65036f8e-...`) - real `201`, real winner, real `FinalOutput`.
+
+### Bug 2: a real caption's third line, silently dropped by an OCR role it didn't cleanly fit
+
+Investigating the successful slide's own output first (`b81819d7-...`, "P.LOUISE WHAT HAVE YOU DONE?!?!?!") showed nothing wrong - that source image only ever had the one overlay caption, correctly detected as two adjacent OCR blocks, correctly merged (the fix from the previous report), correctly rendered as one. The real "1 of 3" bug was on the *other* slide, reproduced by re-running its own real `generate-creative` call: its source photo has three distinct overlay captions ("27 + 27 + 27 = 24?!?!", "add 3 to the basket and see for yourself...", "what have they done😭😭😭"), but only the first two ever reached the rendered output.
+
+Root cause, found in the real `OCRResult.structured_blocks_json`: the third line came back correctly marked `surface: "overlay"` (Gemini's own explicit "this was added on top of the photo" classification, exactly what this pipeline is supposed to trust) but classified `role: "other"` - an emoji-heavy exclamation doesn't cleanly read as "headline" to the model. `text_intelligence.py`'s `_eligible_blocks` still required `role in _ROLE_TO_HIERARCHY` (`headline`/`subheadline`/`price`/`cta` only) as part of its inclusion filter - a leftover from before `surface` existed, when role was the only signal available, and never revisited once `surface` became the real, trustworthy distinction (see the "text overlay vs. baked into original image" fix earlier this session). A genuine, creator-added part of the caption was silently and permanently dropped for every slide whose text didn't cleanly fit one of four roles - not a rare edge case, since real captions routinely include stylistic asides, meme text, and reactions that models classify inconsistently.
+
+**Fix**: `_eligible_blocks`'s inclusion filter no longer checks `role` at all - `surface == "overlay"` (plus the existing bounding-box and packaging-text checks) is now the sole signal for "does this belong in the rendered overlay." `_ROLE_TO_HIERARCHY` is now consulted only for styling (which size class to use), with a new `_DEFAULT_HIERARCHY_FOR_UNMAPPED_ROLE = "subhead"` fallback for any role outside the four explicit ones - including `other` and `disclaimer`, whose old exclusion this correction deliberately reverses (the module's own prior reasoning - "real, lower-priority fine print... explicitly out of this phase's scope" - doesn't hold for genuine caption content a model merely mis-classified; the user's own framing from earlier this session already settled this: `surface` alone should decide whether something is "up to the user," not a narrower role guess).
+
+**Live-verified**: re-ran the exact real slide's `generate-creative` call again - the real `FinalOutput.text_assets_json` now has all three captions (`headline`/`cta`/`subhead`), and the rendered image shows all three, matching the source exactly. (Separately noticed, not fixed here since it's outside what was reported: the emoji glyphs themselves render as tofu boxes in the output - the system font used for text rendering has no emoji glyph coverage, a distinct, minor, cosmetic gap.)
+
+### Test coverage
+
+`tests/test_text_intelligence.py`: an OCR block with `role: "other"`/`surface: "overlay"` is now included, styled with the default fallback hierarchy - the exact real reported case. Full backend suite: 524 passed (up from 523); `ruff check` clean on every touched file (`app/db.py`, `app/services/text_intelligence.py`).
+
+- Commit: (see git log)
