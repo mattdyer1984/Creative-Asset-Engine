@@ -84,6 +84,58 @@ Tests use a fake AI provider (`tests/fakes.py`) and a mocked OpenAI SDK
 client (`tests/test_openai_adapter.py`) — no API key or network access
 is required to run the suite.
 
+## Packaging a shareable archive
+
+```bash
+./scripts/package_release.sh [output-directory]   # defaults to the repo's parent
+```
+
+Builds the file list from `git ls-files` — an **allowlist of tracked
+files**, so anything gitignored (`.env`, `backend/data/`, `.venv`,
+`node_modules`) is excluded by construction rather than by remembering
+to name it in an exclusion list. Staging happens in a temp directory,
+the archive is written outside the repo, and `scripts/verify_archive.py`
+independently re-checks both the staging directory and the finished
+archive.
+
+### What the secret scanner does and does not guarantee
+
+`scripts/verify_archive.py` is **deliberately narrower than
+[gitleaks](https://github.com/gitleaks/gitleaks)**. Do not treat a clean
+run as equivalent to a clean gitleaks run.
+
+**It does detect:**
+
+- Forbidden *paths*, regardless of content — `.env`, `.env.local`,
+  `*.db`/`*.sqlite`, `*.bak`, `backend/data/`, `.venv/`, `node_modules/`,
+  `.git/`, `__pycache__/`, nested `.zip`, `settings.local.json`.
+- Specific credential *shapes* in file contents, in any file, whatever
+  it is named — Google `AIza…` and `AQ.…` keys, OpenAI `sk-…`/`sk-proj-…`,
+  Anthropic `sk-ant-…`, AWS `AKIA…`, PEM private-key blocks, and
+  `api_key`/`secret`/`token`/`password` assigned a value of 24+ chars.
+- It never echoes a matched value — a scanner that prints what it found
+  has leaked it again.
+
+**It does not detect:**
+
+- Credential formats not in the list above (Stripe, Slack, GitHub PATs,
+  JWTs, database connection strings, SSH keys, `.pem`/`.p12` files by
+  extension, and any provider whose key format isn't enumerated).
+- High-entropy strings generically — there is **no entropy analysis**,
+  which is one of gitleaks' main strengths. A random 40-character
+  password not assigned to a recognised variable name passes.
+- Secrets in files over 2 MB, or in any file that is not valid UTF-8
+  (binaries, images, archives) — those are path-checked only.
+- Anything in **git history** — it inspects the working tree/archive
+  only. `git log -S` or gitleaks is still the tool for history.
+- Base64/encoded, split, or otherwise obfuscated secrets.
+
+**Why not just use gitleaks:** Homebrew is not installed on the current
+machine and silently downloading and executing a release binary is not
+an acceptable default. If you install gitleaks, `package_release.sh`
+detects it automatically and runs it as an **additional** layer — this
+scanner is a dependency-free floor, not a replacement.
+
 ## Running it
 
 ### Backend

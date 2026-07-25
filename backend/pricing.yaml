@@ -1,37 +1,116 @@
-# API cost rates used to estimate spend (Optimisation & Stability Pass,
-# Tier 2.2 - see MIGRATION_PLAN.md). This is a placeholder structure
-# only - nothing below is a real, current published price. Fill in your
-# own rates from your provider account/billing page and keep them
-# current; provider pricing changes over time and this codebase has no
-# way to know when it does.
+# AI provider pricing (Phase 1 remediation, WP-1).
 #
-# A provider/model combination with NO entry here simply produces a
-# null estimated_cost_usd on that row, not a guess - that's deliberate:
-# an unconfigured rate should read as "not measured yet," never as
-# "this call was free."
+# Rules this file follows, deliberately:
+#   * Only models this application actually calls are listed.
+#   * Every rate carries the official source URL it came from and the
+#     date it was checked. No rate is inferred, averaged, or carried over
+#     from a similar-looking model.
+#   * A model whose rate cannot be mapped CONFIDENTLY to an official
+#     published figure is recorded with `status: unknown` plus a reason.
+#     Unknown is a first-class, honest outcome - a wrong number is worse
+#     than no number, because it looks authoritative in a report.
+#   * `reported_model` records what the provider says it actually served,
+#     which can differ from the identifier we request (aliases, dated
+#     snapshots). Where known, it was established empirically.
 #
-# All rates in USD (the currency provider pricing pages publish in).
-# Convert to another currency yourself when reading the totals, if you
-# want them in a different one - this file doesn't do FX conversion.
-#
-# Example (uncomment and fill in your real rate):
-#   per_1k_prompt_tokens:
-#     openai:
-#       gpt-5.5: 0.0025
+# Consumed by app/services/cost_estimation.py, which returns an explicit
+# cost_status (exact | estimated | partial | unknown) and a reason - see
+# that module for why a rate missing on one side of a token-billed call
+# is reported as `partial` rather than silently under-counted.
 
-per_1k_prompt_tokens:
-  openai: {}
-  gemini: {}
+rates_verified_on: "2026-07-25"
+default_currency: USD
 
-per_1k_completion_tokens:
-  openai: {}
-  gemini: {}
+pricing:
+  openai:
+    gpt-5.5:
+      # Used for: product_isolation, vision_analysis, text_generation,
+      # prompt_generation (see providers.yaml).
+      #
+      # Empirically confirmed live on 2026-07-25: a real call requesting
+      # "gpt-5.5" reported serving "gpt-5.5-2026-04-23". This also
+      # refutes a stale providers.yaml comment claiming gpt-5.5 "is not a
+      # real OpenAI model" - it is, and it bills.
+      reported_model: "gpt-5.5-2026-04-23"
+      currency: USD
+      per_1k_prompt_tokens: 0.005       # $5.00 per 1M
+      per_1k_completion_tokens: 0.030   # $30.00 per 1M
+      source: "https://developers.openai.com/api/docs/pricing"
+      verified_on: "2026-07-25"
+      notes: >-
+        The dated snapshot is not separately listed on the pricing page;
+        the published gpt-5.5 rate is the rate for the alias we request,
+        which is what we bill against.
 
-# Image generation is billed per-image, not by token - one flat rate per
-# provider/model, applied per generated image (not per candidate
-# attempt - a "maximum" mode attempt that generates 5 candidates costs
-# 5x this rate, tracked per GeneratedImage row, not summed anywhere
-# hidden).
-per_image:
-  openai: {}
-  nano_banana: {}
+    gpt-image-1:
+      # Used for: image_generation_fallback (providers.yaml).
+      #
+      # This app requests size 1024x1536 (the 3:4 mapping in
+      # openai_adapter._size_for_aspect_ratio) at quality="high", so the
+      # 1024x1536 high-quality cell is the correct one - NOT the cheaper
+      # 1024x1024 figure.
+      currency: USD
+      per_image: 0.25
+      per_image_basis: "1024x1536 @ quality=high - the exact size/quality this app requests"
+      source: "https://developers.openai.com/api/docs/models/gpt-image-1"
+      verified_on: "2026-07-25"
+      notes: >-
+        OpenAI marks gpt-image-1 as DEPRECATED (superseded by
+        gpt-image-1.5 / gpt-image-2). Worth revisiting which model the
+        fallback targets; the rate above stays correct for as long as
+        this model is the one actually being called.
+
+  gemini:
+    gemini-flash-latest:
+      # Used for: ocr (providers.yaml).
+      #
+      # Alias resolution established empirically on 2026-07-25 - a real
+      # call to "gemini-flash-latest" reported modelVersion
+      # "gemini-3.6-flash". The alias itself is not on the pricing page;
+      # the resolved model is, so this is a confident mapping, not a guess.
+      reported_model: "gemini-3.6-flash"
+      currency: USD
+      per_1k_prompt_tokens: 0.0015      # $1.50 per 1M (Gemini 3.6 Flash)
+      per_1k_completion_tokens: 0.0075  # $7.50 per 1M
+      source: "https://ai.google.dev/gemini-api/docs/pricing"
+      verified_on: "2026-07-25"
+      notes: >-
+        This is an AUTO-UPDATING alias. If Google repoints it at a newer
+        model the rate above silently becomes wrong, so `reported_model`
+        should be re-checked whenever pricing is reviewed.
+
+    gemini-pro-latest:
+      # Used for: vision_analysis when Product Lock Profile / Creative
+      # Fingerprint explicitly request provider_name="gemini".
+      status: unknown
+      currency: USD
+      source: "https://ai.google.dev/gemini-api/docs/pricing"
+      verified_on: "2026-07-25"
+      reason: >-
+        Cannot be mapped confidently. The alias is not listed on the
+        pricing page and, unlike gemini-flash-latest, could not be
+        resolved empirically - every attempt on 2026-07-25 returned 503
+        UNAVAILABLE during the Google outage. The page lists a "Gemini
+        3.1 Pro Preview" with tiered pricing ($2/$12 per 1M below 200k
+        prompt tokens, $4/$18 above), but assuming the alias points there
+        would be a guess, and that tiering would need handling this
+        codebase does not currently have. Re-resolve via modelVersion
+        once the provider recovers.
+
+  nano_banana:
+    gemini-3.1-flash-image-preview:
+      # Used for: image_generation - the PRIMARY provider (providers.yaml).
+      status: unknown
+      currency: USD
+      source: "https://ai.google.dev/gemini-api/docs/pricing"
+      verified_on: "2026-07-25"
+      reason: >-
+        Cannot be mapped confidently, for two independent reasons.
+        (1) The pricing page lists "Gemini 3.1 Flash Image"; this app
+        calls the "-preview" variant, and preview variants are not always
+        priced identically. (2) The published figure is quoted per-image
+        against a stated pixel basis (~$0.045 per 0.5K/~512px image),
+        whereas this app generates 3:4 images via image_config
+        aspect_ratio, so the correct basis for our output size is not
+        established. Resolve by checking a real billing line item for a
+        generation this app actually made, rather than inferring.
