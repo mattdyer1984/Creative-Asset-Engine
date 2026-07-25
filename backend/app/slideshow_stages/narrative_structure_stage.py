@@ -41,6 +41,7 @@ from app.models.ocr_result import OCRResult
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 BEAT_UNCLASSIFIABLE = "unclassifiable"
 VALID_BEATS = {"hook", "story", "reveal", "proof", "cta", "other", BEAT_UNCLASSIFIABLE}
@@ -72,16 +73,10 @@ NARRATIVE_STRUCTURE_SCHEMA = {
     "additionalProperties": False,
 }
 
-NARRATIVE_STRUCTURE_PROMPT_TEMPLATE = (
-    "The following is the on-screen text extracted from each slide of a "
-    "marketing slideshow, in display order. Classify each slide's role in "
-    "the overall persuasion narrative using exactly one of: hook (grabs "
-    "attention), story (builds context/relatability), reveal (introduces "
-    "the product/solution), proof (evidence/credibility - reviews, "
-    "results, comparisons), cta (call to action), or other (doesn't fit "
-    "the above). Then write a short 1-2 sentence summary of the overall "
-    "arc.\n\nSlides:\n{slides_json}"
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+NARRATIVE_STRUCTURE_PROMPT_TEMPLATE = _analysis_prompts.NARRATIVE_STRUCTURE.template
 
 
 class SlideshowNarrativeStructureStage:

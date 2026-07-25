@@ -70,6 +70,7 @@ from app.models.image_validation_result import ImageValidationResult
 from app.models.quality_assessment import QualityAssessment
 from app.services.provider_call_log import record_provider_call
 from app.slideshow_stages.base import StageResult
+from app.prompts import validation as _validation_prompts
 from app.slideshow_stages.image_validation_stage import (
     SlideImageValidationStage,
     run_bundle_member_identity_validation,
@@ -114,20 +115,7 @@ PHOTOREALISM_FLOOR = 0.6
 
 
 def _build_photorealism_prompt() -> str:
-    return (
-        "This is an AI-generated marketing creative. Judge its photorealism "
-        "- does it look like a real photograph, not an AI generation? "
-        "Assess: is the lighting realistic, are shadows believable, do "
-        "materials look physically accurate, are reflections correct, "
-        "how would you rate texture quality and overall image sharpness, "
-        "is the perspective/geometry correct, are objects structurally "
-        "intact (no warping/melting/impossible geometry), are there any "
-        "visible AI-generation artefacts (extra limbs, garbled text, "
-        "impossible reflections, etc.), and if any human is depicted, is "
-        "their anatomy correct (use \"not_applicable\" if no human "
-        "appears in the image at all). Give short reasons for your "
-        "overall judgment."
-    )
+    return _validation_prompts.PHOTOREALISM.render()
 
 
 def _score_photorealism(result: dict) -> float:

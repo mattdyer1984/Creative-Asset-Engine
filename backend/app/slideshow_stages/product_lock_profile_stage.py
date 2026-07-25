@@ -50,6 +50,7 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 logger = logging.getLogger(__name__)
 
@@ -155,22 +156,10 @@ _MULTI_PRODUCT_ERROR = (
     "where it's the only one assigned."
 )
 
-PRODUCT_LOCK_PROFILE_PROMPT = (
-    "Analyze the featured product in this marketing image and produce a "
-    "detailed, structured description covering its category, type, shape "
-    "and proportions, packaging, materials, surface finish, colors, "
-    "branding, any visible labels or printed text, distinguishing visual "
-    "features, viewing angle, perspective, lighting characteristics, and "
-    "its approximate scale within the frame. For labels_and_text, only "
-    "include text that is actually printed, embossed, or molded onto the "
-    "product's own packaging or body - never text overlaid onto this "
-    "photo afterward, such as a social-media caption, meme-style "
-    "commentary, a retailer's price sticker or shelf tag, or a watermark. "
-    "If you're unsure whether a piece of text is part of the product "
-    "itself or was overlaid onto the photo, leave it out. In "
-    "immutable_characteristics, list the visual traits that must NEVER "
-    "change if this exact product is recreated in a new marketing image."
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+PRODUCT_LOCK_PROFILE_PROMPT = _analysis_prompts.PRODUCT_LOCK_PROFILE.render()
 
 
 class SlideProductLockProfileStage:

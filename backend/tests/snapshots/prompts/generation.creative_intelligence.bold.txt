@@ -1,0 +1,15 @@
+You are choosing the best possible scene/background/context for a regenerated marketing creative - not a literal recreation of the original, but the single best-optimized version of the same category for this specific product, audience, and marketing strategy.
+
+Elements that MUST remain exactly as described (do not change these, they are only given for context):
+- keep the logo
+
+Elements that are free to be transformed/optimized (choose the single best version of each, not just any valid instance):
+- swap the background
+
+Creative style: clean studio
+Marketing strategy: everyday indulgence
+Product category: beverage
+
+Optimise boldly: feel free to choose a meaningfully different scene within the same category, as long as the category itself stays correct and every preserved element below is still respected.
+
+Produce one optimized_scene_description describing the ideal scene/background/environment/props to generate around the preserved elements, plus a short reasoning for your choices.

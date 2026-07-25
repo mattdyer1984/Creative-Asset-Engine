@@ -36,6 +36,7 @@ sub-phase existed. Never a hard failure.
 """
 
 from app.ai_providers.registry import default_registry
+from app.prompts import generation as _generation_prompts
 from app.services.provider_call_log import record_provider_call
 import time
 
@@ -55,19 +56,12 @@ CREATIVE_INTELLIGENCE_SCHEMA = {
 
 _PRESERVE_TIERS = {"essential", "important"}
 
-_CREATIVITY_LEVEL_GUIDANCE = {
-    "conservative": (
-        "Optimise conservatively: choose the best version of a *similar* "
-        "staging/mood to what's described below, not a dramatically "
-        "different one."
-    ),
-    "bold": (
-        "Optimise boldly: feel free to choose a meaningfully different "
-        "scene within the same category, as long as the category itself "
-        "stays correct and every preserved element below is still "
-        "respected."
-    ),
-}
+# The two guidance branches are fragments of the creative-intelligence
+# prompt (WP-3), not separate prompts: they are alternative wordings of
+# one instruction. Editing either moves that prompt's content hash even
+# though only one fires per call - see app/prompts/core.py on why an
+# unused branch still counts toward identity.
+_CREATIVITY_LEVEL_GUIDANCE = dict(_generation_prompts.CREATIVE_INTELLIGENCE.fragments)
 
 
 def region_decision(importance_tier: str) -> str:
@@ -93,24 +87,13 @@ def _build_creative_intelligence_prompt(
     transformable_text = "\n".join(f"- {note}" for note in transformable_notes) or "- (none)"
     guidance = _CREATIVITY_LEVEL_GUIDANCE.get(creativity_level, _CREATIVITY_LEVEL_GUIDANCE["conservative"])
 
-    return (
-        "You are choosing the best possible scene/background/context for "
-        "a regenerated marketing creative - not a literal recreation of "
-        "the original, but the single best-optimized version of the same "
-        "category for this specific product, audience, and marketing "
-        "strategy.\n\n"
-        f"Elements that MUST remain exactly as described (do not change "
-        f"these, they are only given for context):\n{preserved_text}\n\n"
-        f"Elements that are free to be transformed/optimized (choose the "
-        f"single best version of each, not just any valid instance):\n"
-        f"{transformable_text}\n\n"
-        f"Creative style: {visual_style}\n"
-        f"Marketing strategy: {marketing_narrative}\n"
-        f"Product category: {product_category}\n\n"
-        f"{guidance}\n\n"
-        "Produce one optimized_scene_description describing the ideal "
-        "scene/background/environment/props to generate around the "
-        "preserved elements, plus a short reasoning for your choices."
+    return _generation_prompts.CREATIVE_INTELLIGENCE.render(
+        preserved_text=preserved_text,
+        transformable_text=transformable_text,
+        visual_style=visual_style,
+        marketing_narrative=marketing_narrative,
+        product_category=product_category,
+        guidance=guidance,
     )
 
 

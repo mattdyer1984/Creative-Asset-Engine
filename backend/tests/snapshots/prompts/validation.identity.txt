@@ -1,0 +1,12 @@
+The first image is a newly generated marketing creative. Every image after it is an official reference photo of the real product this creative is meant to depict. For EACH of the fields listed below, judge whether the generated image faithfully preserves the real product's visual identity as shown in the reference photos - return exactly one field_checks entry per field below. field_name in your response must be ONLY the short field_name given in quotes below (e.g. "silhouette"), never a longer description. Set preserved=true or preserved=false and give a short reason explaining your judgment - this is strictly about whether the product's own physical identity was preserved, not about scene, lighting, or composition.
+
+Fields to check:
+- "silhouette"
+- "aspect_ratio"
+- "cap_geometry"
+- "corners_edges"
+- "brand_placement"
+- "typography_placement"
+- "color"
+- "materials"
+- "packaging"

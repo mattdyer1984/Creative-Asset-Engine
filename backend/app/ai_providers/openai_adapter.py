@@ -26,6 +26,7 @@ from app.ai_providers.base import (
     ProviderCapabilities,
 )
 from app.ai_providers.config import AI_PROVIDER_TIMEOUT_SECONDS, get_api_key
+from app.prompts import analysis as _analysis_prompts
 
 OCR_RESPONSE_SCHEMA = {
     "type": "object",
@@ -107,21 +108,10 @@ OCR_RESPONSE_SCHEMA = {
     "additionalProperties": False,
 }
 
-OCR_PROMPT = (
-    "Extract all visible text from this marketing image. Return the "
-    "complete raw text, plus a structured breakdown of each distinct "
-    "text element, its marketing role, its normalized bounding box "
-    "(x_min/y_min/x_max/y_max, each 0.0-1.0, measured against the full "
-    "image width/height) - as precise as you can read it from the "
-    "actual rendered position of that text - and its surface: "
-    "'physical' if it's printed, molded, or displayed on a real object "
-    "the camera photographed (product packaging, a shelf price tag, a "
-    "sign, a screen), or 'overlay' if it was added digitally on top of "
-    "the photo or video afterward by whoever created or edited it (a "
-    "social-media caption, meme-style commentary, a watermark, a "
-    "burned-in subtitle) and was never part of the physical scene "
-    "itself. If you're unsure, prefer 'physical'."
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+OCR_PROMPT = _analysis_prompts.EXTRACT_TEXT.render()
 
 
 def _image_content_block(image_bytes: bytes) -> dict:
@@ -245,20 +235,10 @@ PRODUCT_ISOLATION_RESPONSE_SCHEMA = {
     "additionalProperties": False,
 }
 
-PRODUCT_ISOLATION_PROMPT = (
-    "Identify the bounding box(es) of the featured product in this "
-    "marketing image - the physical product being sold, not background "
-    "props, people, or decorative elements. Return coordinates as "
-    "fractions of the image width/height (0.0 to 1.0), a confidence "
-    "score, and brief notes on what you identified. Some images are "
-    "narrative/story slides with no product actually shown - a person "
-    "talking to camera, a text-only caption card, a reaction shot. If no "
-    "real product is visible anywhere in this image, return an empty "
-    "bounding_boxes array - this is a normal, expected, and CORRECT "
-    "answer for those images, not a failure to find something that must "
-    "be there. Never force a box around a hand, a prop, or the "
-    "background just to return a non-empty result."
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+PRODUCT_ISOLATION_PROMPT = _analysis_prompts.PRODUCT_ISOLATION.render()
 
 
 class OpenAIProductIsolationAdapter:

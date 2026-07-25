@@ -30,6 +30,7 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 logger = logging.getLogger(__name__)
 
@@ -100,20 +101,10 @@ CREATIVE_FINGERPRINT_SCHEMA = {
     "additionalProperties": False,
 }
 
-CREATIVE_FINGERPRINT_PROMPT = (
-    "Analyze this marketing creative and produce a structured description "
-    "of its overall visual style, marketing objective, emotional appeal, "
-    "target audience, color palette, typography style, layout and "
-    "composition, background environment, lighting style, graphic style, "
-    "product prominence, marketing angle, visual hierarchy, trust elements "
-    "(e.g. certifications, guarantees, testimonials), promotional "
-    "devices (e.g. discounts, urgency, social proof), object placement "
-    "(how the product and key objects are physically arranged/positioned "
-    "in the frame), and the specific emotional trigger this creative "
-    "pulls (more granular than a general emotional-appeal tag - name the "
-    "precise psychological lever, e.g. 'fear of missing a limited window' "
-    "rather than just 'urgency')."
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+CREATIVE_FINGERPRINT_PROMPT = _analysis_prompts.CREATIVE_FINGERPRINT.render()
 
 
 class SlideCreativeFingerprintStage:

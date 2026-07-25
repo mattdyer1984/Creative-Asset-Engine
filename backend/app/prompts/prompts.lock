@@ -1,0 +1,46 @@
+{
+  "analysis.creative_fingerprint": {
+    "content_hash": "84ff5f3fc9da7d49",
+    "version": "1.0"
+  },
+  "analysis.marketing_analysis": {
+    "content_hash": "ff7516b34a267426",
+    "version": "1.0"
+  },
+  "analysis.narrative_structure": {
+    "content_hash": "2ba429a1263ecfed",
+    "version": "1.0"
+  },
+  "analysis.product_isolation": {
+    "content_hash": "061ad8963e8f9519",
+    "version": "1.0"
+  },
+  "analysis.product_lock_profile": {
+    "content_hash": "890cc572c25cd40e",
+    "version": "1.0"
+  },
+  "analysis.scene_intelligence": {
+    "content_hash": "51ae78938b88dd19",
+    "version": "1.0"
+  },
+  "generation.creative_intelligence": {
+    "content_hash": "fcffde2b386a53b3",
+    "version": "1.0"
+  },
+  "ocr.extract_text": {
+    "content_hash": "fb12d77677664a42",
+    "version": "1.0"
+  },
+  "validation.creative_fidelity": {
+    "content_hash": "f092b727fd11fb43",
+    "version": "1.0"
+  },
+  "validation.identity": {
+    "content_hash": "401c5942248d2056",
+    "version": "1.0"
+  },
+  "validation.photorealism": {
+    "content_hash": "8160d420d239d831",
+    "version": "1.0"
+  }
+}

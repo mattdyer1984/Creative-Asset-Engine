@@ -34,6 +34,7 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 REGION_TYPES = [
     "primary_subject", "secondary_subject", "product", "human_subject",
@@ -69,22 +70,10 @@ SCENE_REGION_SCHEMA = {
     "additionalProperties": False,
 }
 
-SCENE_INTELLIGENCE_PROMPT = (
-    "Segment this marketing creative into its distinct visual regions and "
-    "classify each one. For every region, give a normalized bounding box "
-    "(x_min/y_min/x_max/y_max, 0.0-1.0), a region_type (primary_subject, "
-    "secondary_subject, product, human_subject, environment, background, "
-    "prop, decorative_element, or negative_space), and an importance_tier "
-    "rating how safe that region is to change if this creative were "
-    "regenerated: essential (must never change - the product itself, a "
-    "person's hands/pose directly interacting with it, its exact "
-    "positioning), important (should closely match - overall pose, action, "
-    "composition), context (the general setting/room type - can be "
-    "replaced with a different instance of the same category), incidental "
-    "(furniture, decor - free to change), or replaceable (wall art, "
-    "background clutter - safe to remove or swap freely). Give a short "
-    "note explaining each region's classification."
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+SCENE_INTELLIGENCE_PROMPT = _analysis_prompts.SCENE_INTELLIGENCE.render()
 
 
 def _enforce_product_region_is_essential(regions: list[dict]) -> list[dict]:

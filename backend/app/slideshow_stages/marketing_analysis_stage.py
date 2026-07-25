@@ -33,6 +33,7 @@ from app.models.marketing_analysis import MarketingAnalysis
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import analysis as _analysis_prompts
 
 MARKETING_ANALYSIS_SCHEMA = {
     "type": "object",
@@ -49,15 +50,10 @@ MARKETING_ANALYSIS_SCHEMA = {
     "additionalProperties": False,
 }
 
-MARKETING_ANALYSIS_PROMPT_TEMPLATE = (
-    "Given the following structured analysis of a marketing creative, "
-    "write a clear, readable prose summary (2-4 short paragraphs) "
-    "connecting these facts into a coherent narrative: what the creative "
-    "is trying to achieve, who it's targeting, what emotional appeal it "
-    "uses, and why it works as marketing. Write for a marketer who wants "
-    "to understand the strategy at a glance, not just a list of facts.\n\n"
-    "Structured analysis (JSON):\n{fingerprint_json}"
-)
+# Prompt text moved to app/prompts/ (WP-3) so it has an id, a version and a
+# content hash. Re-exported under its original name: call sites and tests
+# are deliberately untouched by the move.
+MARKETING_ANALYSIS_PROMPT_TEMPLATE = _analysis_prompts.MARKETING_ANALYSIS.template
 
 
 class SlideshowMarketingAnalysisStage:

@@ -59,6 +59,7 @@ from app.services.product_profile import assemble_product_profile
 from app.services.prompt_compiler import format_attribute_value
 from app.services.reference_selection import get_reference_image_paths
 from app.slideshow_stages.base import StageResult
+from app.prompts import validation as _validation_prompts
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.services.provider_call_log import record_provider_call
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
@@ -111,55 +112,19 @@ IDENTITY_VALIDATION_SCHEMA = {
     "additionalProperties": False,
 }
 
-IDENTITY_FIELDS = [
-    "silhouette",
-    "aspect_ratio",
-    "cap_geometry",
-    "corners_edges",
-    "brand_placement",
-    "typography_placement",
-    "color",
-    "materials",
-    "packaging",
-]
+# The field list is prompt content, so it now lives with the prompt
+# (WP-3) - editing it there moves the prompt's content hash. Re-exported
+# under its original name so nothing that reads it has to change.
+IDENTITY_FIELDS = _validation_prompts.IDENTITY_FIELDS
 
 
 def _build_prompt(immutable_fields: list[tuple[str, str]]) -> str:
     field_lines = "\n".join(f"- field_name \"{name}\": expected value = {value}" for name, value in immutable_fields)
-    return (
-        "This image was generated to recreate a marketing creative for a "
-        "specific product while preserving the product's immutable "
-        "physical characteristics. For EACH of the fields listed below, "
-        "judge whether the generated image preserves that field's exact "
-        "expected value - return exactly one field_checks entry per "
-        "field below. field_name in your response must be ONLY the short "
-        "field_name given in quotes below (e.g. \"brand\"), never the "
-        "expected value or the two combined. Set preserved=true or "
-        "preserved=false and give a short reason explaining your "
-        "judgment. Then give one overall_explanation summarizing the "
-        "assessment across every field.\n\n"
-        f"Fields to check:\n{field_lines}"
-    )
+    return _validation_prompts.CREATIVE_FIDELITY.render(field_lines=field_lines)
 
 
 def _build_identity_prompt() -> str:
-    field_lines = "\n".join(f'- "{name}"' for name in IDENTITY_FIELDS)
-    return (
-        "The first image is a newly generated marketing creative. Every "
-        "image after it is an official reference photo of the real "
-        "product this creative is meant to depict. For EACH of the "
-        "fields listed below, judge whether the generated image "
-        "faithfully preserves the real product's visual identity as "
-        "shown in the reference photos - return exactly one "
-        "field_checks entry per field below. field_name in your "
-        "response must be ONLY the short field_name given in quotes "
-        "below (e.g. \"silhouette\"), never a longer description. Set "
-        "preserved=true or preserved=false and give a short reason "
-        "explaining your judgment - this is strictly about whether the "
-        "product's own physical identity was preserved, not about "
-        "scene, lighting, or composition.\n\n"
-        f"Fields to check:\n{field_lines}"
-    )
+    return _validation_prompts.IDENTITY.render()
 
 
 def _resolve_product(db: Session, generated_image: GeneratedImage) -> Product | None:
