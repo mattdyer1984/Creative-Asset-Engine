@@ -25,6 +25,12 @@ providers:
   # avoid re-calibrating the whole quality bar those tasks judge against
   # at the same time as the pipeline stages feeding it change.
   ocr: gemini
+  # Reliability follow-up (see MIGRATION_PLAN.md) - a real, live Gemini
+  # outage hit OCR (gemini-flash-latest) with 503s alongside image
+  # generation and vision_analysis's gemini override. ocr_stage.py
+  # retries once against this provider whenever the primary OCR call
+  # itself raises. null disables fallback entirely.
+  ocr_fallback: openai
   product_isolation: openai
   vision_analysis: openai
   text_generation: openai

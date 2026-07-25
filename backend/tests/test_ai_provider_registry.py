@@ -14,6 +14,7 @@ from app.ai_providers.gemini_adapter import GeminiOCRAdapter, GeminiVisionAnalys
 from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
 from app.ai_providers.openai_adapter import (
     OpenAIImageGenerationAdapter,
+    OpenAIOCRAdapter,
     OpenAIVisionAnalysisAdapter,
 )
 from app.ai_providers.registry import AIProviderRegistry
@@ -127,3 +128,45 @@ def test_fallback_matching_the_primary_returns_none():
     )
 
     assert registry.image_generation_fallback() is None
+
+
+def test_default_ocr_fallback_is_openai():
+    registry = _make_registry()
+
+    fallback = registry.ocr_fallback()
+
+    assert isinstance(fallback, OpenAIOCRAdapter)
+    assert fallback.provider == "openai"
+
+
+def test_no_ocr_fallback_configured_returns_none():
+    registry = AIProviderRegistry(
+        providers_config=ProvidersConfig(ocr_fallback=None), models_config=ModelsConfig()
+    )
+
+    assert registry.ocr_fallback() is None
+
+
+def test_ocr_fallback_matching_the_primary_returns_none():
+    registry = AIProviderRegistry(
+        providers_config=ProvidersConfig(ocr="openai", ocr_fallback="openai"),
+        models_config=ModelsConfig(),
+    )
+
+    assert registry.ocr_fallback() is None
+
+
+def test_vision_fallback_for_the_gemini_override_is_the_plain_openai_default():
+    registry = _make_registry()
+
+    fallback = registry.vision_fallback("gemini")
+
+    assert isinstance(fallback, OpenAIVisionAnalysisAdapter)
+    assert fallback.provider == "openai"
+
+
+def test_vision_fallback_matching_the_default_returns_none():
+    """openai() is already the default vision provider - nothing distinct to fall back to."""
+    registry = _make_registry()
+
+    assert registry.vision_fallback("openai") is None

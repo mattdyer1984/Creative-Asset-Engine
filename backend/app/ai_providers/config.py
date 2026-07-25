@@ -40,6 +40,13 @@ class ProvidersConfig(BaseModel):
     # (registry.image_generation's provider_name pattern, extended to
     # vision()), everything else stays on the configured default.
     ocr: str = "gemini"
+    # Reliability follow-up (see MIGRATION_PLAN.md) - a real, live Gemini
+    # outage hit OCR (gemini-flash-latest) with 503s alongside image
+    # generation and vision_analysis's gemini override, none of which
+    # had fallback protection yet at the time. Mirrors
+    # image_generation_fallback's exact reasoning and null-disables
+    # semantics.
+    ocr_fallback: str | None = "openai"
     product_isolation: str = "openai"
     vision_analysis: str = "openai"
     text_generation: str = "openai"

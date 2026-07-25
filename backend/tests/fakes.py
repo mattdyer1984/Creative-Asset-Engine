@@ -373,6 +373,8 @@ class FakeAIProviderRegistry:
         prompt_generation_provider: FakePromptGenerationProvider | None = None,
         image_generation_provider: FakeImageGenerationProvider | None = None,
         image_generation_fallback_provider: FakeImageGenerationProvider | None = None,
+        ocr_fallback_provider: FakeOCRProvider | None = None,
+        vision_fallback_provider: FakeVisionAnalysisProvider | None = None,
     ):
         self._ocr_provider = ocr_provider or FakeOCRProvider()
         self._isolation_provider = isolation_provider or FakeProductIsolationProvider()
@@ -389,6 +391,11 @@ class FakeAIProviderRegistry:
         # matching every pre-existing test's behavior exactly. A test
         # that cares about the fallback path passes one explicitly.
         self._image_generation_fallback_provider = image_generation_fallback_provider
+        # None by default (no fallback configured) for both, matching
+        # every pre-existing test's behavior exactly - a test that
+        # cares about the fallback path passes one explicitly.
+        self._ocr_fallback_provider = ocr_fallback_provider
+        self._vision_fallback_provider = vision_fallback_provider
         # Spy list, not behavior - real-world-driven cost/quality change
         # (see MIGRATION_PLAN.md): lets a test assert a Stage actually
         # requested vision(provider_name="gemini") rather than just
@@ -397,6 +404,10 @@ class FakeAIProviderRegistry:
 
     def ocr(self) -> FakeOCRProvider:
         return self._ocr_provider
+
+    def ocr_fallback(self) -> FakeOCRProvider | None:
+        """Mirrors AIProviderRegistry.ocr_fallback's real signature - see MIGRATION_PLAN.md."""
+        return self._ocr_fallback_provider
 
     def isolation(self) -> FakeProductIsolationProvider:
         return self._isolation_provider
@@ -413,6 +424,10 @@ class FakeAIProviderRegistry:
         """
         self.vision_calls.append(provider_name)
         return self._vision_provider
+
+    def vision_fallback(self, provider_name: str) -> FakeVisionAnalysisProvider | None:
+        """Mirrors AIProviderRegistry.vision_fallback's real signature - see MIGRATION_PLAN.md."""
+        return self._vision_fallback_provider
 
     def text_generation(self) -> FakeTextGenerationProvider:
         return self._text_generation_provider

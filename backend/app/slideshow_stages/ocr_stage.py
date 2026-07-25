@@ -42,6 +42,7 @@ result still stops this stage from persisting anything for that slide
 or any slide after it in the original order, exactly as before.
 """
 
+import logging
 import time
 from pathlib import Path
 
@@ -56,44 +57,75 @@ from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
+logger = logging.getLogger(__name__)
+
 
 class SlideOCRStage:
     name = "ocr"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         ocr_provider = default_registry.ocr()
+        ocr_fallback_provider = default_registry.ocr_fallback()
         result: StageResult = StageResult(succeeded=True)
 
         def _extract(slide: Slide):
             image_bytes = Path(slide.stored_file_path).read_bytes()
             usage: dict = {}
             start = time.perf_counter()
-            extraction = ocr_provider.extract_text(image_bytes, usage_sink=usage)
+            provider = ocr_provider
+            try:
+                extraction = provider.extract_text(image_bytes, usage_sink=usage)
+            except Exception:
+                # Reliability follow-up (see MIGRATION_PLAN.md) - a real,
+                # live Gemini outage hit this exact call with 503s.
+                # Retries once against the configured fallback rather
+                # than failing the whole slideshow's analysis.
+                if ocr_fallback_provider is None:
+                    raise
+                logger.warning(
+                    "OCR failed on primary provider %s, retrying with fallback %s",
+                    provider.provider,
+                    ocr_fallback_provider.provider,
+                    exc_info=True,
+                )
+                provider = ocr_fallback_provider
+                extraction = provider.extract_text(image_bytes, usage_sink=usage)
             provider_call_ms = (time.perf_counter() - start) * 1000
-            return extraction, provider_call_ms, usage
+            return extraction, provider_call_ms, usage, provider
 
         extraction_results = run_concurrently(slideshow.slides, _extract)
 
         for index, slide in enumerate(slideshow.slides):
+            outcome = extraction_results[index]
+            if isinstance(outcome, Exception):
+                # Nothing has been written for this slide yet - the
+                # AnalysisRun itself hasn't even been created (unlike
+                # before, its provider/model depend on which provider
+                # actually served this call, only known from `outcome`),
+                # so there's genuinely nothing to roll back or record.
+                analysis_run = start_analysis_run(
+                    db,
+                    slide_id=slide.id,
+                    analysis_type=ANALYSIS_TYPE_OCR,
+                    provider=ocr_provider.provider,
+                    model_name=ocr_provider.model,
+                    durable=False,
+                )
+                return mark_failed(db, analysis_run, outcome, rollback=False)
+            extraction, provider_call_ms, usage, actual_provider = outcome
+
             analysis_run = start_analysis_run(
                 db,
                 slide_id=slide.id,
                 analysis_type=ANALYSIS_TYPE_OCR,
-                provider=ocr_provider.provider,
-                model_name=ocr_provider.model,
+                # The provider/model that actually served this slide's
+                # call - the fallback if the primary failed, per the
+                # Reliability follow-up above - not the outer, primary-
+                # only ocr_provider (see MIGRATION_PLAN.md).
+                provider=actual_provider.provider,
+                model_name=actual_provider.model,
                 durable=False,
             )
-
-            outcome = extraction_results[index]
-            if isinstance(outcome, Exception):
-                # Nothing has been written for this slide yet (durable=False
-                # defers all DB writes until after the provider call
-                # succeeds - see app.stages.execution's docstring), so
-                # there's genuinely nothing to roll back here; committing
-                # the already-flushed "pending" AnalysisRun as failed is
-                # both correct and preserves its audit row.
-                return mark_failed(db, analysis_run, outcome, rollback=False)
-            extraction, provider_call_ms, usage = outcome
 
             try:
                 if slide.current_ocr_result_id is not None:

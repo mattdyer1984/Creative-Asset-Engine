@@ -15,6 +15,7 @@ staleness service, same category as MarketingAnalysis.
 creative_fingerprint_id (7.3).
 """
 
+import logging
 import time
 from pathlib import Path
 
@@ -29,6 +30,8 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+logger = logging.getLogger(__name__)
 
 CREATIVE_FINGERPRINT_SCHEMA = {
     "type": "object",
@@ -141,6 +144,7 @@ class SlideCreativeFingerprintStage:
         # Profile is the other), a narrower scope the user chose over
         # moving every vision_analysis task at once.
         vision_provider = default_registry.vision(provider_name="gemini")
+        vision_fallback_provider = default_registry.vision_fallback("gemini")
 
         entries: list[tuple[Slide, str, str | None]] = []
         for slide in slideshow.slides:
@@ -158,14 +162,34 @@ class SlideCreativeFingerprintStage:
             image_bytes = Path(slide.stored_file_path).read_bytes()
             usage: dict = {}
             start = time.perf_counter()
-            analysis_result = vision_provider.analyze_creative(
-                image_bytes=image_bytes,
-                prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
-                response_schema=CREATIVE_FINGERPRINT_SCHEMA,
-                usage_sink=usage,
-            )
+            provider = vision_provider
+            try:
+                analysis_result = provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
+                    response_schema=CREATIVE_FINGERPRINT_SCHEMA,
+                    usage_sink=usage,
+                )
+            except Exception:
+                # Reliability follow-up (see MIGRATION_PLAN.md) - a real,
+                # live Gemini outage hit this exact call with 503s.
+                if vision_fallback_provider is None:
+                    raise
+                logger.warning(
+                    "Creative Fingerprint analysis failed on primary provider %s, retrying with fallback %s",
+                    provider.provider,
+                    vision_fallback_provider.provider,
+                    exc_info=True,
+                )
+                provider = vision_fallback_provider
+                analysis_result = provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
+                    response_schema=CREATIVE_FINGERPRINT_SCHEMA,
+                    usage_sink=usage,
+                )
             provider_call_ms = (time.perf_counter() - start) * 1000
-            return analysis_result, provider_call_ms, usage
+            return analysis_result, provider_call_ms, usage, provider
 
         analysis_results = run_concurrently(entries, _analyze)
 
@@ -183,7 +207,14 @@ class SlideCreativeFingerprintStage:
                 outcome = analysis_results[index]
                 if isinstance(outcome, Exception):
                     raise outcome
-                analysis_result, provider_call_ms, usage = outcome
+                analysis_result, provider_call_ms, usage, actual_provider = outcome
+                if actual_provider.provider != analysis_run.provider:
+                    # The fallback served this call, not the primary
+                    # this run was pre-committed under (see
+                    # MIGRATION_PLAN.md) - correct the audit row before
+                    # mark_succeeded's final commit below.
+                    analysis_run.provider = actual_provider.provider
+                    analysis_run.model_name = actual_provider.model
 
                 db.query(CreativeFingerprint).filter(
                     CreativeFingerprint.slide_id == slide.id,

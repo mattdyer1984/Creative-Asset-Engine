@@ -155,3 +155,41 @@ def test_rerun_produces_new_version(db_session, slideshow_with_slide, monkeypatc
     assert second_id != first_id
     first = db_session.get(CreativeFingerprint, first_id)
     assert first.is_current is False
+
+
+def test_falls_back_to_the_configured_provider_when_the_primary_raises(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """Reliability follow-up (see MIGRATION_PLAN.md) - mirrors the image-generation fallback test."""
+    primary = FakeVisionAnalysisProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    primary.provider = "gemini"
+    fallback = FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
+    fallback.provider = "openai"
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=primary, vision_fallback_provider=fallback),
+    )
+
+    stage = SlideCreativeFingerprintStage()
+    result = stage.run(db_session, slideshow_with_slide)
+
+    assert result.succeeded is True
+    analysis_run = db_session.scalars(select(AnalysisRun)).first()
+    assert analysis_run.status == STATUS_SUCCEEDED
+    assert analysis_run.provider == "openai"
+
+
+def test_no_fallback_configured_still_fails_on_a_primary_error(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """Preserves the pre-fallback behavior exactly when no fallback is configured (the default in tests)."""
+    primary = FakeVisionAnalysisProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=primary),
+    )
+
+    stage = SlideCreativeFingerprintStage()
+    result = stage.run(db_session, slideshow_with_slide)
+
+    assert result.succeeded is False

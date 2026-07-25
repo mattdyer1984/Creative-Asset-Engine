@@ -252,3 +252,43 @@ def test_ocr_stage_fails_the_whole_stage_if_any_slide_fails(db_session, tmp_path
     assert slides[0].current_ocr_result_id is not None  # succeeded before the failure
     assert slides[1].current_ocr_result_id is None  # the failing slide
     assert slides[2].current_ocr_result_id is None  # never persisted (write loop stopped at slide 1)
+
+
+def test_falls_back_to_the_configured_provider_when_the_primary_raises(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """Reliability follow-up (see MIGRATION_PLAN.md) - mirrors the image-generation fallback test."""
+    primary = FakeOCRProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    primary.provider = "gemini"
+    fallback = FakeOCRProvider()
+    fallback.provider = "openai"
+    monkeypatch.setattr(
+        "app.slideshow_stages.ocr_stage.default_registry",
+        FakeAIProviderRegistry(ocr_provider=primary, ocr_fallback_provider=fallback),
+    )
+
+    stage = SlideOCRStage()
+    result = stage.run(db_session, slideshow_with_slide)
+
+    assert result.succeeded is True
+    db_session.refresh(slideshow_with_slide.primary_slide)
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
+    analysis_run = db_session.scalars(select(AnalysisRun)).first()
+    assert analysis_run.status == STATUS_SUCCEEDED
+    assert analysis_run.provider == "openai"
+
+
+def test_no_fallback_configured_still_fails_on_a_primary_error(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """Preserves the pre-fallback behavior exactly when no fallback is configured (the default in tests)."""
+    primary = FakeOCRProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    monkeypatch.setattr(
+        "app.slideshow_stages.ocr_stage.default_registry",
+        FakeAIProviderRegistry(ocr_provider=primary),
+    )
+
+    stage = SlideOCRStage()
+    result = stage.run(db_session, slideshow_with_slide)
+
+    assert result.succeeded is False

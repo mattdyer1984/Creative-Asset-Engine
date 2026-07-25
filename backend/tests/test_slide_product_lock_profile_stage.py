@@ -16,7 +16,7 @@ from app.slideshow_stages.product_lock_profile_stage import (
     PRODUCT_LOCK_PROFILE_SCHEMA,
     SlideProductLockProfileStage,
 )
-from tests.fakes import FakeAIProviderRegistry, FakeProductIsolationProvider
+from tests.fakes import FakeAIProviderRegistry, FakeProductIsolationProvider, FakeVisionAnalysisProvider
 
 
 def _add_second_current_appearance(db_session, slideshow_with_product):
@@ -244,3 +244,41 @@ def test_fails_clearly_with_multiple_distinct_products_assigned(
     assert result.succeeded is False
     assert result.error == _MULTI_PRODUCT_ERROR
     assert db_session.scalars(select(AnalysisRun)).first() is None
+
+
+def test_falls_back_to_the_configured_provider_when_the_primary_raises(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """Reliability follow-up (see MIGRATION_PLAN.md) - mirrors the image-generation fallback test."""
+    primary = FakeVisionAnalysisProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    primary.provider = "gemini"
+    fallback = FakeVisionAnalysisProvider()
+    fallback.provider = "openai"
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=primary, vision_fallback_provider=fallback),
+    )
+
+    stage = SlideProductLockProfileStage()
+    result = stage.run(db_session, slideshow_with_product)
+
+    assert result.succeeded is True
+    analysis_run = db_session.scalars(select(AnalysisRun)).first()
+    assert analysis_run.status == STATUS_SUCCEEDED
+    assert analysis_run.provider == "openai"
+
+
+def test_no_fallback_configured_still_fails_on_a_primary_error(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """Preserves the pre-fallback behavior exactly when no fallback is configured (the default in tests)."""
+    primary = FakeVisionAnalysisProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=primary),
+    )
+
+    stage = SlideProductLockProfileStage()
+    result = stage.run(db_session, slideshow_with_product)
+
+    assert result.succeeded is False

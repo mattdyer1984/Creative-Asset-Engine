@@ -124,6 +124,7 @@ class AIProviderRegistry:
         )
         self._models_config = models_config
         self._image_generation_fallback_name = providers_config.image_generation_fallback
+        self._ocr_fallback_name = providers_config.ocr_fallback
 
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
@@ -132,6 +133,20 @@ class AIProviderRegistry:
 
     def ocr(self) -> OCRProvider:
         return self._ocr
+
+    def ocr_fallback(self) -> OCRProvider | None:
+        """
+        Reliability follow-up (see MIGRATION_PLAN.md) - mirrors
+        image_generation_fallback exactly: the provider ocr_stage.py
+        retries against when the primary OCR provider's own call fails
+        (a real, live Gemini outage hit gemini-flash-latest with 503s,
+        the same event behind the image-generation fallback). None if
+        unconfigured or the same as the primary.
+        """
+        fallback_name = self._ocr_fallback_name
+        if fallback_name is None or fallback_name == self._ocr.provider:
+            return None
+        return self._build(OCR_ADAPTERS, fallback_name, self._models_config, "ocr")
 
     def isolation(self) -> ProductIsolationProvider:
         return self._isolation
@@ -153,6 +168,21 @@ class AIProviderRegistry:
         if provider_name is None or provider_name == self._vision.provider:
             return self._vision
         return self._build(VISION_ANALYSIS_ADAPTERS, provider_name, self._models_config, "vision_analysis")
+
+    def vision_fallback(self, provider_name: str) -> VisionAnalysisProvider | None:
+        """
+        Reliability follow-up (see MIGRATION_PLAN.md) - the provider
+        Product Lock Profile Stage/Creative Fingerprint Stage retry
+        against when their explicit vision(provider_name="gemini") call
+        itself fails. Simply the plain configured default (`vision()`
+        with no override, OpenAI) - there's no separate config key for
+        this since the default is already a real, different, always-
+        available provider. None if `provider_name` already names the
+        default (nothing distinct to fall back to).
+        """
+        if provider_name == self._vision.provider:
+            return None
+        return self._vision
 
     def text_generation(self) -> TextGenerationProvider:
         return self._text_generation

@@ -35,6 +35,7 @@ product_ids - real product-targeted profiling is future work, logged in
 MIGRATION_PLAN.md, not guessed at here.
 """
 
+import logging
 import time
 from pathlib import Path
 
@@ -49,6 +50,8 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+logger = logging.getLogger(__name__)
 
 PRODUCT_LOCK_PROFILE_SCHEMA = {
     "type": "object",
@@ -223,6 +226,7 @@ class SlideProductLockProfileStage:
         # is the other), a narrower scope the user chose over moving
         # every vision_analysis task at once.
         vision_provider = default_registry.vision(provider_name="gemini")
+        vision_fallback_provider = default_registry.vision_fallback("gemini")
 
         eligible: list[tuple[Slide, str, list[ProductReferenceImage]]] = []
         for slide in slideshow.slides:
@@ -258,30 +262,44 @@ class SlideProductLockProfileStage:
             image_bytes = Path(slide.stored_file_path).read_bytes()
             usage: dict = {}
             start = time.perf_counter()
-            analysis_result = vision_provider.analyze_creative(
-                image_bytes=image_bytes,
-                prompt_spec={
-                    "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
-                    "schema_name": "product_lock_profile",
-                },
-                response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
-                usage_sink=usage,
-            )
+            provider = vision_provider
+            try:
+                analysis_result = provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={
+                        "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
+                        "schema_name": "product_lock_profile",
+                    },
+                    response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+                    usage_sink=usage,
+                )
+            except Exception:
+                # Reliability follow-up (see MIGRATION_PLAN.md) - a real,
+                # live Gemini outage hit this exact call with 503s.
+                if vision_fallback_provider is None:
+                    raise
+                logger.warning(
+                    "Product Lock Profile analysis failed on primary provider %s, retrying with fallback %s",
+                    provider.provider,
+                    vision_fallback_provider.provider,
+                    exc_info=True,
+                )
+                provider = vision_fallback_provider
+                analysis_result = provider.analyze_creative(
+                    image_bytes=image_bytes,
+                    prompt_spec={
+                        "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
+                        "schema_name": "product_lock_profile",
+                    },
+                    response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+                    usage_sink=usage,
+                )
             provider_call_ms = (time.perf_counter() - start) * 1000
-            return analysis_result, provider_call_ms, usage
+            return analysis_result, provider_call_ms, usage, provider
 
         analysis_results = run_concurrently(eligible, _analyze)
 
         for index, (slide, product_id, current_reference_images) in enumerate(eligible):
-            analysis_run = start_analysis_run(
-                db,
-                slide_id=slide.id,
-                analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
-                provider=vision_provider.provider,
-                model_name=vision_provider.model,
-                durable=False,
-            )
-
             outcome = analysis_results[index]
             if isinstance(outcome, Exception):
                 # Nothing has been written for this slide yet (durable=False
@@ -289,8 +307,27 @@ class SlideProductLockProfileStage:
                 # succeeds), so there's genuinely nothing to roll back;
                 # committing the already-flushed "pending" AnalysisRun as
                 # failed is both correct and preserves its audit row.
+                analysis_run = start_analysis_run(
+                    db,
+                    slide_id=slide.id,
+                    analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+                    provider=vision_provider.provider,
+                    model_name=vision_provider.model,
+                    durable=False,
+                )
                 return mark_failed(db, analysis_run, outcome, rollback=False)
-            analysis_result, provider_call_ms, usage = outcome
+            analysis_result, provider_call_ms, usage, actual_provider = outcome
+
+            analysis_run = start_analysis_run(
+                db,
+                slide_id=slide.id,
+                analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+                # The provider that actually served this call - the
+                # fallback if the primary failed (see MIGRATION_PLAN.md).
+                provider=actual_provider.provider,
+                model_name=actual_provider.model,
+                durable=False,
+            )
 
             try:
                 db.query(ProductLockProfile).filter(
