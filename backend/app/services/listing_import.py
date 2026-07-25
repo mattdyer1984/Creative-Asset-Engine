@@ -46,6 +46,8 @@ improvements).
 
 from dataclasses import dataclass
 
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -53,12 +55,15 @@ from app.models.listing import Listing
 from app.models.product import Product
 from app.models.product_bundle import ProductBundle
 from app.models.product_bundle_member import ProductBundleMember
+from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import (
     FETCH_STATUS_FAILED,
     ProductSourceImport,
 )
 from app.product_sources.registry import get_product_source_adapter
 from app.services.product_source_import import fetch_status_for_evidence
+
+logger = logging.getLogger(__name__)
 
 
 def import_listing(db: Session, url: str) -> Listing:
@@ -113,6 +118,72 @@ def import_listing(db: Session, url: str) -> Listing:
     return listing
 
 
+
+def _acquire_reference_images_from_listing(db: Session, listing_id: str, product_id: str) -> int:
+    """
+    Download the listing's own product images into the Canonical
+    Reference Library - Priority 1 of the Product Lock v2 ADR.
+
+    **This step was simply missing.** `import_product_source` (the
+    per-product endpoint) has always downloaded `normalized.images`, but
+    the Create flow resolves a listing instead, and that path only ever
+    stamped `product_id` onto the import rows. The consequence, measured
+    across the whole dev database: 78 of 79 reference images were
+    slideshow crops and NOT ONE came from a product URL, even though 13
+    imports carried a usable image URL. Product identity was therefore
+    established entirely from slideshow crops - which is why one crop
+    obscured by promotional text could block generation outright, while a
+    clean 1400x1400 listing image sat unused in normalized_json.
+
+    Best-effort per image, exactly like the per-product path: one image
+    failing to download must not fail the resolve. Returns how many were
+    acquired so callers can report it honestly.
+    """
+    from app.services.product_source_import import _try_download_and_save_reference_image
+
+    imports = list(
+        db.scalars(
+            select(ProductSourceImport).where(
+                ProductSourceImport.listing_id == listing_id,
+                ProductSourceImport.is_current.is_(True),
+            )
+        )
+    )
+    acquired = 0
+    for import_row in imports:
+        for image in (import_row.normalized_json or {}).get("images") or []:
+            url = image.get("url") if isinstance(image, dict) else None
+            if not url:
+                continue
+            before = db.query(ProductReferenceImage).filter(
+                ProductReferenceImage.product_id == product_id
+            ).count()
+            try:
+                _try_download_and_save_reference_image(
+                    db, product_id, import_row.id, url, transport=None
+                )
+            except Exception:
+                # The callee already swallows download failures, but a
+                # storage or flush error would otherwise propagate and
+                # fail the whole resolve. Acquiring references is an
+                # enrichment; losing one image must never cost the user
+                # the product they just resolved.
+                logger.exception(
+                    "Could not acquire reference image %s for product %s", url, product_id
+                )
+                continue
+            after = db.query(ProductReferenceImage).filter(
+                ProductReferenceImage.product_id == product_id
+            ).count()
+            acquired += after - before
+    if acquired:
+        logger.info(
+            "Acquired %d product-URL reference image(s) for product %s from listing %s",
+            acquired, product_id, listing_id,
+        )
+    return acquired
+
+
 def resolve_listing_to_existing_product(db: Session, listing_id: str, product_id: str) -> Listing:
     """The human has chosen an already-known Product this Listing represents."""
     listing = _require_unresolved_listing(db, listing_id)
@@ -122,6 +193,7 @@ def resolve_listing_to_existing_product(db: Session, listing_id: str, product_id
 
     listing.resolved_product_id = product.id
     _backfill_product_id_onto_imports(db, listing_id, product.id)
+    _acquire_reference_images_from_listing(db, listing_id, product.id)
     db.commit()
     db.refresh(listing)
     return listing
@@ -136,6 +208,7 @@ def resolve_listing_to_new_product(db: Session, listing_id: str, display_name: s
 
     listing.resolved_product_id = product.id
     _backfill_product_id_onto_imports(db, listing_id, product.id)
+    _acquire_reference_images_from_listing(db, listing_id, product.id)
     db.commit()
     db.refresh(listing)
     return listing

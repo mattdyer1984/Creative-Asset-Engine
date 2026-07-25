@@ -326,3 +326,95 @@ def test_member_resolution_rejects_neither_field_set(db_session, monkeypatch):
 
     with pytest.raises(ValueError, match="exactly one"):
         resolve_listing_to_new_bundle(db_session, listing.id, "Set", [BundleMemberResolution()])
+
+
+# --- Product-URL reference acquisition (Priority 1) -------------------
+
+
+def test_resolving_a_listing_acquires_its_product_images(db_session, monkeypatch):
+    """
+    The gap: `import_product_source` has always downloaded the listing's
+    images, but the Create flow resolves a LISTING, and that path only
+    stamped product_id onto the import rows. Measured across the whole dev
+    database, 78 of 79 reference images were slideshow crops and not one
+    came from a product URL - while 13 imports carried a usable image URL
+    and a clean 1400x1400 listing image sat unused in normalized_json.
+    """
+    from app.models.listing import Listing
+    from app.models.product import Product
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.models.product_source_import import ProductSourceImport
+    from app.services import listing_import as module
+
+    saved: list[str] = []
+
+    def _fake_download(db, product_id, import_id, url, *, transport):
+        image = ProductReferenceImage(
+            product_id=product_id,
+            source_product_source_import_id=import_id,
+            isolation_method="product_url",
+            file_path=f"/tmp/{len(saved)}.webp",
+        )
+        db.add(image)
+        db.flush()
+        saved.append(url)
+
+    monkeypatch.setattr(
+        "app.services.product_source_import._try_download_and_save_reference_image",
+        _fake_download,
+    )
+
+    listing = Listing(source_type="generic_url", source_url="https://shop.example/p/1")
+    product = Product(display_name="Probe")
+    db_session.add_all([listing, product])
+    db_session.flush()
+    db_session.add(
+        ProductSourceImport(
+            listing_id=listing.id, product_id=product.id, is_current=True,
+            source_type="generic_url", source_url="https://shop.example/p/1",
+            fetch_status="succeeded",
+            normalized_json={"images": [{"url": "https://cdn.example/clean-front.webp"}]},
+        )
+    )
+    db_session.flush()
+
+    acquired = module._acquire_reference_images_from_listing(db_session, listing.id, product.id)
+
+    assert acquired == 1
+    assert saved == ["https://cdn.example/clean-front.webp"]
+    row = db_session.query(ProductReferenceImage).filter_by(product_id=product.id).one()
+    assert row.isolation_method == "product_url"
+    assert row.source_slide_id is None, "a URL reference is not slideshow-derived"
+
+
+def test_a_failing_image_download_does_not_fail_the_resolve(db_session, monkeypatch):
+    """One bad image URL must not block resolving the product."""
+    from app.models.listing import Listing
+    from app.models.product import Product
+    from app.models.product_source_import import ProductSourceImport
+    from app.services import listing_import as module
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("CDN unreachable")
+
+    monkeypatch.setattr(
+        "app.services.product_source_import._try_download_and_save_reference_image", _boom
+    )
+
+    listing = Listing(source_type="generic_url", source_url="https://shop.example/p/2")
+    product = Product(display_name="Probe 2")
+    db_session.add_all([listing, product])
+    db_session.flush()
+    db_session.add(
+        ProductSourceImport(
+            listing_id=listing.id, product_id=product.id, is_current=True,
+            source_type="generic_url", source_url="https://shop.example/p/2",
+            fetch_status="succeeded",
+            normalized_json={"images": [{"url": "https://cdn.example/dead.webp"}]},
+        )
+    )
+    db_session.flush()
+
+    # Must NOT raise: acquiring references is enrichment, and losing one
+    # image cannot cost the user the product they just resolved.
+    assert module._acquire_reference_images_from_listing(db_session, listing.id, product.id) == 0
