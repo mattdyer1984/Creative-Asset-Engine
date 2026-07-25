@@ -117,9 +117,15 @@ def creative_specification_staleness(
 ) -> StalenessResult:
     stale_because: list[str] = []
 
-    lock_profile = db.get(ProductLockProfile, creative_specification.product_lock_profile_id)
-    if lock_profile is None or not lock_profile.is_current:
-        stale_because.append("product_lock_profile")
+    # Story Slide feature (see MIGRATION_PLAN.md): None is the correct,
+    # current state for a slide with no product - not staleness. db.get()
+    # with a None PK also isn't a real lookup (SQLAlchemy warns on it),
+    # so this must be checked before calling it, not just handled via
+    # the "not found" branch below.
+    if creative_specification.product_lock_profile_id is not None:
+        lock_profile = db.get(ProductLockProfile, creative_specification.product_lock_profile_id)
+        if lock_profile is None or not lock_profile.is_current:
+            stale_because.append("product_lock_profile")
 
     fingerprint = db.get(CreativeFingerprint, creative_specification.creative_fingerprint_id)
     if fingerprint is None or not fingerprint.is_current:

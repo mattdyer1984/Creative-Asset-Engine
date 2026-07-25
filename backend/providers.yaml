@@ -39,6 +39,17 @@ providers:
   # is unchanged and still fully registered/selectable, just not the
   # default anymore.
   image_generation: nano_banana
+  # Reliability follow-up to the Story Slide feature (see
+  # MIGRATION_PLAN.md) - a real live 503 ("high demand") from Nano
+  # Banana surfaced as a clean per-slide failure rather than a hang or
+  # crash (Tier 1.3's exception handling working as intended), but the
+  # user's explicit call: a transient outage on the primary provider
+  # should never be a user-visible failure when a second, fully-
+  # registered provider already exists. generation_engine.py's
+  # _generate_candidates retries once against this provider whenever
+  # the primary image_generation call itself raises. null disables
+  # fallback entirely.
+  image_generation_fallback: openai
 
 models:
   openai:

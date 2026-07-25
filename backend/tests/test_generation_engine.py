@@ -360,3 +360,69 @@ def test_run_story_generation_attempt_always_starts_even_with_no_product_anywher
 
     assert isinstance(result, GenerationAttemptResult)
     assert not isinstance(result, StageResult)
+
+
+def test_falls_back_to_the_configured_provider_when_the_primary_raises(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Reliability follow-up (see MIGRATION_PLAN.md) - a real live 503
+    from the primary image provider must not fail the candidate at all
+    when a fallback is configured; the fallback's own result (a
+    distinct provider/model) must be what's actually persisted.
+    """
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+
+    fallback_result = GeneratedImageResult(
+        image_bytes=b"\x89PNG\r\n\x1a\nfallback-bytes",
+        provider="openai",
+        model="fake-fallback-model",
+        prompt_used="fallback prompt",
+        seed=None,
+        generation_time_seconds=2.0,
+    )
+    fallback_provider = FakeImageGenerationProvider(result=fallback_result)
+    primary_provider = FakeImageGenerationProvider(raise_error=RuntimeError("503 UNAVAILABLE - high demand"))
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(
+            image_generation_provider=primary_provider,
+            image_generation_fallback_provider=fallback_provider,
+        ),
+    )
+
+    slide = slideshow_with_product.primary_slide
+    creative_specification = _get_creative_specification(db_session, slideshow_with_product)
+    plan = decide_generation_plan("fast")
+
+    result = run_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert isinstance(result, GenerationAttemptResult)
+    assert len(result.candidates) == 1
+    assert result.candidates[0].provider == "openai"
+    assert result.candidates[0].model_name == "fake-fallback-model"
+
+
+def test_no_fallback_configured_still_fails_the_candidate_on_a_primary_error(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """Preserves the pre-fallback behavior exactly when no fallback is configured (the default in tests)."""
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(
+            image_generation_provider=FakeImageGenerationProvider(
+                raise_error=RuntimeError("503 UNAVAILABLE - high demand")
+            )
+        ),
+    )
+
+    slide = slideshow_with_product.primary_slide
+    creative_specification = _get_creative_specification(db_session, slideshow_with_product)
+    plan = decide_generation_plan("fast")
+
+    result = run_generation_attempt(db_session, slide, creative_specification, plan)
+
+    assert isinstance(result, GenerationAttemptResult)
+    assert result.candidates == []

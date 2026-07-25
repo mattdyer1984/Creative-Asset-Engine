@@ -100,3 +100,30 @@ def test_vision_explicit_override_matching_the_default_returns_the_cached_instan
     registry = _make_registry()
 
     assert registry.vision("openai") is registry.vision()
+
+
+def test_default_image_generation_fallback_is_openai():
+    registry = _make_registry()
+
+    fallback = registry.image_generation_fallback()
+
+    assert isinstance(fallback, OpenAIImageGenerationAdapter)
+    assert fallback.provider == "openai"
+
+
+def test_no_fallback_configured_returns_none():
+    registry = AIProviderRegistry(
+        providers_config=ProvidersConfig(image_generation_fallback=None), models_config=ModelsConfig()
+    )
+
+    assert registry.image_generation_fallback() is None
+
+
+def test_fallback_matching_the_primary_returns_none():
+    """Nothing real to fall back to if the configured fallback names the same provider as the primary."""
+    registry = AIProviderRegistry(
+        providers_config=ProvidersConfig(image_generation="openai", image_generation_fallback="openai"),
+        models_config=ModelsConfig(),
+    )
+
+    assert registry.image_generation_fallback() is None

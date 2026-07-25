@@ -71,6 +71,7 @@ about one product's shot; a product-free slide has no product to
 reason about) - a flagged scope cut, not an oversight.
 """
 
+import logging
 import time
 from dataclasses import dataclass
 
@@ -101,6 +102,8 @@ from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+
+logger = logging.getLogger(__name__)
 
 
 def _current_lock_profile(db: Session, product_id: str) -> ProductLockProfile | None:
@@ -201,6 +204,23 @@ def _generate_candidates(
     own comment). candidate_index is assigned by original loop position,
     not completion order, so DB writes stay deterministic regardless of
     which candidate's call finishes first.
+
+    Reliability follow-up (see MIGRATION_PLAN.md) - a real live 503
+    ("high demand") from the primary provider surfaced as a clean
+    per-slide failure, which is correct behavior for a genuine failure,
+    but the user's explicit call was that a transient provider outage
+    should never be user-visible at all when a second, fully-registered
+    provider already exists. `_generate` now retries once against
+    `default_registry.image_generation_fallback()` (configured in
+    providers.yaml, `None` if disabled or same as the primary) whenever
+    the primary call itself raises - a different concern from
+    generate_with_retry.py's own retry-on-rejected-candidate loop, which
+    retries for a quality reason, not a provider failure. `result`'s own
+    `provider`/`model` fields (each adapter sets these on the
+    `GeneratedImageResult` it returns) already flow into the persisted
+    `GeneratedImage` row and cost estimation unchanged below, so a
+    fallback-generated candidate is correctly attributed to whichever
+    provider actually produced it - no extra plumbing needed.
     """
     analysis_runs = [
         start_analysis_run(
@@ -214,9 +234,22 @@ def _generate_candidates(
         for _ in range(candidate_count)
     ]
 
+    fallback_provider = default_registry.image_generation_fallback()
+
     def _generate(_candidate_index: int):
         start = time.perf_counter()
-        result = image_provider.generate_image(request)
+        try:
+            result = image_provider.generate_image(request)
+        except Exception:
+            if fallback_provider is None:
+                raise
+            logger.warning(
+                "Image generation failed on primary provider %s, retrying with fallback %s",
+                image_provider.provider,
+                fallback_provider.provider,
+                exc_info=True,
+            )
+            result = fallback_provider.generate_image(request)
         provider_call_ms = (time.perf_counter() - start) * 1000
         return result, provider_call_ms
 

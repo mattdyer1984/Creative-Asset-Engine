@@ -372,6 +372,7 @@ class FakeAIProviderRegistry:
         text_generation_provider: FakeTextGenerationProvider | None = None,
         prompt_generation_provider: FakePromptGenerationProvider | None = None,
         image_generation_provider: FakeImageGenerationProvider | None = None,
+        image_generation_fallback_provider: FakeImageGenerationProvider | None = None,
     ):
         self._ocr_provider = ocr_provider or FakeOCRProvider()
         self._isolation_provider = isolation_provider or FakeProductIsolationProvider()
@@ -383,6 +384,11 @@ class FakeAIProviderRegistry:
         self._image_generation_provider = (
             image_generation_provider or FakeImageGenerationProvider()
         )
+        # Reliability follow-up to the Story Slide feature (see
+        # MIGRATION_PLAN.md) - None by default (no fallback configured),
+        # matching every pre-existing test's behavior exactly. A test
+        # that cares about the fallback path passes one explicitly.
+        self._image_generation_fallback_provider = image_generation_fallback_provider
         # Spy list, not behavior - real-world-driven cost/quality change
         # (see MIGRATION_PLAN.md): lets a test assert a Stage actually
         # requested vision(provider_name="gemini") rather than just
@@ -424,3 +430,7 @@ class FakeAIProviderRegistry:
         this double only ever holds one configured instance.
         """
         return self._image_generation_provider
+
+    def image_generation_fallback(self) -> FakeImageGenerationProvider | None:
+        """Mirrors AIProviderRegistry.image_generation_fallback's real signature - see MIGRATION_PLAN.md."""
+        return self._image_generation_fallback_provider

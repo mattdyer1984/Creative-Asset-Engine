@@ -51,6 +51,15 @@ class ProvidersConfig(BaseModel):
     # selectable (registry.image_generation("openai")) without any code
     # change to switch back.
     image_generation: str = "nano_banana"
+    # Reliability follow-up to the Story Slide feature (see
+    # MIGRATION_PLAN.md) - a real live 503 ("high demand") from the
+    # primary image_generation provider surfaced as a clean per-slide
+    # failure (Tier 1.3's exception handling working as intended), but
+    # the user's explicit call: a transient provider outage should never
+    # be a user-visible failure when a second, fully-registered provider
+    # already exists. None disables fallback entirely (e.g. if the two
+    # configured providers are deliberately the same).
+    image_generation_fallback: str | None = "openai"
 
 
 class ModelsConfig(BaseModel):

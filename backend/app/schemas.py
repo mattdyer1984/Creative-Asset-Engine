@@ -312,7 +312,10 @@ class CreativeSpecificationRead(BaseModel):
     id: str
     schema_version: str
     is_current: bool
-    product_lock_profile_id: str
+    # Nullable since the Story Slide feature (see MIGRATION_PLAN.md) - a
+    # slide with no detected product has a CreativeSpecification with no
+    # Product Lock Profile to point at.
+    product_lock_profile_id: str | None
     creative_fingerprint_id: str
     structured: dict
     created_at: datetime

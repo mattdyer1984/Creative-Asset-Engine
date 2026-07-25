@@ -304,3 +304,27 @@ def test_creative_specification_stale_on_both_dependencies_at_once(db_session):
     result = creative_specification_staleness(db_session, creative_specification)
     assert result.is_stale is True
     assert set(result.stale_because) == {"product_lock_profile", "creative_fingerprint"}
+
+
+def test_creative_specification_with_no_product_is_not_stale_on_that_dimension(db_session):
+    """
+    Story Slide feature (see MIGRATION_PLAN.md) - product_lock_profile_id
+    is None for a slide with no detected product, a correct/current
+    state, not staleness. Real bug found live: db.get() was previously
+    called unconditionally with this None value.
+    """
+    _lock_profile, fingerprint = _make_current_lock_profile_and_fingerprint(db_session, _make_product(db_session))
+
+    rp_run = _run(db_session, ANALYSIS_TYPE_CREATIVE_SPECIFICATION)
+    creative_specification = CreativeSpecification(
+        analysis_run_id=rp_run.id,
+        product_lock_profile_id=None,
+        creative_fingerprint_id=fingerprint.id,
+        structured_json={},
+    )
+    db_session.add(creative_specification)
+    db_session.commit()
+
+    result = creative_specification_staleness(db_session, creative_specification)
+    assert result.is_stale is False
+    assert result.stale_because == []

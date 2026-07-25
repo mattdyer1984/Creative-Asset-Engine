@@ -226,7 +226,9 @@ export interface CreativeSpecificationData {
   id: string;
   schema_version: string;
   is_current: boolean;
-  product_lock_profile_id: string;
+  // null for a Story Slide (see MIGRATION_PLAN.md) - a slide with no
+  // detected product has no Product Lock Profile to point at.
+  product_lock_profile_id: string | null;
   creative_fingerprint_id: string;
   structured: Record<string, unknown>;
   created_at: string;

@@ -123,6 +123,7 @@ class AIProviderRegistry:
             "image_generation",
         )
         self._models_config = models_config
+        self._image_generation_fallback_name = providers_config.image_generation_fallback
 
     @staticmethod
     def _build(adapters: dict, provider_name: str, models_config: ModelsConfig, capability: str):
@@ -177,6 +178,24 @@ class AIProviderRegistry:
         return self._build(
             IMAGE_GENERATION_ADAPTERS, provider_name, self._models_config, "image_generation"
         )
+
+    def image_generation_fallback(self) -> ImageGenerationProvider | None:
+        """
+        Reliability follow-up to the Story Slide feature (see
+        MIGRATION_PLAN.md) - the second provider
+        `generation_engine._generate_candidates` retries against when
+        the primary `image_generation` provider's own call fails (a
+        transient error like a provider 5xx/overload - a different
+        concern from generate_with_retry.py's existing retry-on-rejected-
+        candidate loop, which retries for a quality reason, not a
+        provider failure). `None` if no fallback is configured, or if
+        the configured fallback names the same provider as the primary
+        (nothing real to fall back to).
+        """
+        fallback_name = self._image_generation_fallback_name
+        if fallback_name is None or fallback_name == self._image_generation.provider:
+            return None
+        return self.image_generation(fallback_name)
 
 
 # Module-level default instance - Stages import this rather than each
