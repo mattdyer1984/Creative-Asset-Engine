@@ -1,12 +1,9 @@
 """
-OCR Stage (new pipeline) — Phase 2.4a of the Slideshow/Slide migration.
-
-Parallel equivalent of app.stages.ocr_stage.OCRStage: identical
-behavior, operating on Slideshow/Slide instead of Creative/
-CreativeBlueprint. Owns Slide.current_ocr_result_id (the slide-scoped
-equivalent of the old stage owning CreativeBlueprint.current_ocr_result_id).
-
-Not wired into any route yet - see the migration roadmap.
+OCR Stage — Phase 2.4a of the Slideshow/Slide migration. Originally a
+parallel equivalent of app.stages.ocr_stage.OCRStage, deleted in the
+Phase 2 engineering review; this is now the only OCR stage, wired into
+SLIDESHOW_STAGE_PIPELINE and run by every /analyze call. Owns
+Slide.current_ocr_result_id.
 
 Phase 7.1 (Narrative pass, see MIGRATION_PLAN.md) widened this from
 `slideshow.primary_slide` only to every slide in `slideshow.slides` - a

@@ -1,16 +1,11 @@
 """
-Creative Fingerprint Stage (new pipeline) — Phase 2.4c of the
-Slideshow/Slide migration.
-
-Parallel equivalent of app.stages.creative_fingerprint_stage.
-CreativeFingerprintStage: reads the slide's current OCR result as
-enrichment context if one exists, but does not hard-fail without it -
-same reasoning as the old stage. Owns Slide.current_creative_fingerprint_id.
-
-CREATIVE_FINGERPRINT_SCHEMA/PROMPT are duplicated from the old stage
-rather than imported from it, same reasoning as the other new stages:
-keeps this package fully self-contained so Phase 2.7 can delete the old
-stage files cleanly.
+Creative Fingerprint Stage — Phase 2.4c of the Slideshow/Slide
+migration. Originally a parallel equivalent of
+app.stages.creative_fingerprint_stage.CreativeFingerprintStage, deleted
+in the Phase 2 engineering review; this is now the only Creative
+Fingerprint stage. Reads the slide's current OCR result as enrichment
+context if one exists, but does not hard-fail without it. Owns
+Slide.current_creative_fingerprint_id.
 
 Phase 7.4 (Narrative pass, see MIGRATION_PLAN.md) added
 CreativeFingerprint.ocr_result_id, recording which OCR result was

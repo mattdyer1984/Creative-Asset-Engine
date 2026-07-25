@@ -12,7 +12,10 @@ one ProductAppearance per Creative.product_id with prominence="primary",
 confidence=1.0, and a null bbox, since it records a fact the user
 asserted, not one Product Isolation detected.
 
-Additive as of Phase 2.1 - nothing reads or writes this table yet.
+Added in Phase 2.1; now read and written throughout the pipeline
+(Product Isolation, Product Lock Profile, Creative Specification, the
+slides/products routers) as the source of truth for which product is on
+which slide.
 """
 
 from datetime import datetime

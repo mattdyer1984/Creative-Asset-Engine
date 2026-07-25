@@ -16,21 +16,29 @@ pipeline; app.slideshow_stages.execution had this slide_id/slideshow_id
 version) - merged into this one during that review once the old version
 had zero remaining callers.
 
-Two "pending" durability styles exist across the six stages (preserved,
-not unified - deliberately: unifying them is a real behavior change,
-crash-durability of the "an attempt was made" record, not a refactor):
+Two "pending" durability styles exist across the eight
+SLIDESHOW_STAGE_PIPELINE stages (preserved, not unified - deliberately:
+unifying them is a real behavior change, crash-durability of the "an
+attempt was made" record, not a refactor):
 
-  - durable=True (isolation, fingerprint, marketing_analysis,
-    creative_specification): the pending AnalysisRun is committed BEFORE the
-    stage's own risky work runs, so a process crash mid-call still
-    leaves a durable record that the attempt happened. A failure inside
-    the stage's try block rolls back whatever it wrote before recording
-    the failure.
+  - durable=True (product_isolation, creative_fingerprint,
+    scene_intelligence, marketing_analysis, narrative_structure,
+    creative_specification): the pending AnalysisRun is committed
+    BEFORE the stage's own risky work runs, so a process crash mid-call
+    still leaves a durable record that the attempt happened. A failure
+    inside the stage's try block rolls back whatever it wrote before
+    recording the failure.
   - durable=False (ocr, product_lock_profile): the pending AnalysisRun
     is only flushed (id assigned, not yet committed) before the stage's
     own risky work runs; these two stages defer all their own DB writes
     until after the fallible call succeeds, so there's nothing to roll
     back on failure.
+
+image_generation_stage.py and both of image_validation_stage.py's entry
+points (outside SLIDESHOW_STAGE_PIPELINE - see their own module
+docstrings for why) also use durable=True, same reasoning as the
+pipeline stages above: a paid provider call in flight should always
+leave a durable record, crash or not.
 """
 
 from datetime import datetime

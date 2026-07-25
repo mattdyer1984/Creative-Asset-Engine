@@ -9,9 +9,8 @@ These wrappers exist solely to open their own short-lived Session, re-fetch
 the Slideshow by id inside it, and delegate to the existing
 SlideshowOrchestrator - no analysis logic lives here.
 
-Not wired into any route as of Phase 3.1 - purely additive infrastructure,
-exercised directly by tests until Phase 3.2/3.3 schedule these via
-BackgroundTasks from app.routers.slideshows.
+Wired into app.routers.slideshows since Phase 3.2/3.3 - the
+analyze/rerun-stage endpoints schedule these via BackgroundTasks.
 
 Imports app.db as a module (not `from app.db import SessionLocal`) and
 looks up `app.db.SessionLocal` at call time rather than binding it at

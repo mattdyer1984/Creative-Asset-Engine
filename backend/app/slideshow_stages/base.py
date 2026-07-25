@@ -3,13 +3,14 @@ SlideshowAnalysisStage - the Stage interface every analysis stage
 implements.
 
 Operates on a Slideshow directly, rather than a Creative+CreativeBlueprint
-pair: slide-scoped stages (OCR, Product Isolation, Product Lock Profile,
-Creative Fingerprint) read/write via slideshow.primary_slide - the single
-Slide these Stages analyze, even once a Slideshow can have more than one
-(Phase 4 onward; see MIGRATION_PLAN.md - looping every Stage over every
-Slide is explicitly Phase 5's job, not this accessor's). Slideshow-scoped
-stages (Marketing Analysis, Creative Specification) operate on the
-Slideshow itself.
+pair. Slide-scoped stages (OCR, Product Isolation, Product Lock Profile,
+Creative Fingerprint, Scene Intelligence, Creative Specification) loop
+internally over every Slide in slideshow.slides (Generate All widened
+the last few of these from an earlier slideshow.primary_slide-only
+design - see each stage's own module docstring for when/why) and write
+their own per-slide artifact pointer (Slide.current_*_id). Genuinely
+slideshow-wide stages (Marketing Analysis, Narrative Structure) operate
+on the Slideshow itself and write Slideshow.current_*_id.
 
 Re-exports StageResult from app.stages.base unchanged rather than
 redefining it - it is already entity-agnostic (succeeded/error only), so

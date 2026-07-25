@@ -1,8 +1,10 @@
 """
-The new Slideshow-scoped Stage pipeline (Phase 2.4 of the Slideshow/
-Slide migration, now complete as of 2.4e). Parallel equivalent of
-app.stages.pipeline.STAGE_PIPELINE - the same six stages, in the same
-order, operating on Slideshow/Slide instead of Creative/CreativeBlueprint.
+The Slideshow-scoped Stage pipeline (Phase 2.4 of the Slideshow/Slide
+migration, now complete as of 2.4e). Originally a parallel equivalent of
+app.stages.pipeline.STAGE_PIPELINE, the six-stage old pipeline this
+package replaced - that module no longer exists (deleted in the Phase 2
+engineering review once this package had no remaining callers), so this
+package is now the only pipeline, not a parallel one.
 
 Narrative Structure (Phase 7.2 of the Narrative pass, see
 MIGRATION_PLAN.md) added after Marketing Analysis - no ordering

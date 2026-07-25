@@ -10,8 +10,9 @@ app.models.slide) - in Phase 2 always exactly one, since this migration
 is deliberately cardinality-preserving; true multi-slide import is a
 later phase.
 
-Additive as of Phase 2.1 - nothing reads or writes this table yet.
-Backfilled from existing Creative/CreativeBlueprint rows in Phase 2.2.
+Added in Phase 2.1 and backfilled from existing Creative/
+CreativeBlueprint rows in Phase 2.2; this is now the orchestrator's
+primary entity, read and written on every analysis run.
 """
 
 from datetime import datetime
