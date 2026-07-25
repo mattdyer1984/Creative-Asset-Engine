@@ -4,12 +4,17 @@ mirrors tests/test_product_isolation_stage.py's coverage of the old
 ProductIsolationStage.
 """
 
+from datetime import datetime, timezone
+from pathlib import Path
+
 from sqlalchemy import select
 
 from app.models.analysis_run import STATUS_FAILED, STATUS_SUCCEEDED, AnalysisRun
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.slide import Slide
+from app.models.slideshow import Slideshow
 from app.slideshow_stages.product_isolation_stage import (
     ISOLATION_METHOD,
     _MULTI_PRODUCT_ERROR,
@@ -168,3 +173,134 @@ def test_fails_clearly_with_multiple_distinct_products_assigned(
     assert result.error == _MULTI_PRODUCT_ERROR
     # No AnalysisRun should even be created - this fails before any provider call.
     assert db_session.scalars(select(AnalysisRun)).first() is None
+
+
+def _make_two_slide_slideshow_with_shared_product(db_session, tmp_path):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): mirrors the actual
+    bug - a frontend import flow that blanket-assigns one chosen product
+    to every slide, including a non-primary "story" slide that doesn't
+    actually show it. Two real, distinct (decodable) JPEGs, both slides
+    carrying a current ProductAppearance for the same product.
+    """
+    from PIL import Image
+
+    product = Product(display_name="Sunrise Orange Juice")
+    db_session.add(product)
+    db_session.flush()
+
+    slideshow = Slideshow(imported_at=datetime.now(timezone.utc))
+    db_session.add(slideshow)
+    db_session.flush()
+
+    slides = []
+    for i, color in enumerate([(210, 160, 120), (80, 140, 90)]):
+        image_path = tmp_path / f"slide-{i}.jpg"
+        Image.new("RGB", (400, 400), color=color).save(image_path)
+        slide = Slide(
+            slideshow_id=slideshow.id,
+            slide_index=i,
+            stored_file_path=str(image_path),
+            original_filename=f"slide-{i}.jpg",
+            source_type="local_file",
+            source_locator=f"slide-{i}.jpg",
+        )
+        db_session.add(slide)
+        db_session.flush()
+        db_session.add(
+            ProductAppearance(
+                slide_id=slide.id, product_id=product.id, prominence="primary", confidence=1.0, is_current=True
+            )
+        )
+        slides.append(slide)
+    db_session.commit()
+    for slide in slides:
+        db_session.refresh(slide)
+    return slideshow, product, slides
+
+
+class _ByContentFakeIsolationProvider:
+    """Returns distinct bounding boxes (or none) keyed by the image_bytes it receives."""
+
+    model = "fake-isolation-model"
+    provider = "openai"
+
+    def __init__(self, boxes_by_content: dict[bytes, list[dict]]):
+        self._boxes_by_content = boxes_by_content
+
+    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
+        return self._boxes_by_content[image_bytes]
+
+
+def test_non_primary_slide_with_no_product_detected_is_skipped_not_failed(db_session, tmp_path, monkeypatch):
+    """
+    The actual real-world bug: a non-primary "story" slide has a
+    (mistakenly, or blanket-assigned) ProductAppearance, but the product
+    genuinely isn't in that slide's image. This must no longer hard-fail
+    the whole stage/slideshow - it should retract that slide's
+    ProductAppearance and let the primary slide's own isolation succeed.
+    """
+    slideshow, product, slides = _make_two_slide_slideshow_with_shared_product(db_session, tmp_path)
+    primary_bytes = Path(slides[0].stored_file_path).read_bytes()
+    story_bytes = Path(slides[1].stored_file_path).read_bytes()
+
+    real_box = [{"x_min": 0.1, "y_min": 0.1, "x_max": 0.9, "y_max": 0.9, "confidence": 0.95, "notes": "bottle"}]
+    fake_provider = _ByContentFakeIsolationProvider({primary_bytes: real_box, story_bytes: []})
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_isolation_stage.default_registry",
+        FakeAIProviderRegistry(isolation_provider=fake_provider),
+    )
+
+    stage = SlideProductIsolationStage()
+    result = stage.run(db_session, slideshow)
+
+    assert result.succeeded is True
+
+    db_session.refresh(slides[0])
+    db_session.refresh(slides[1])
+
+    # Primary slide: real reference image persisted.
+    primary_images = list(
+        db_session.scalars(
+            select(ProductReferenceImage).where(ProductReferenceImage.source_slide_id == slides[0].id)
+        )
+    )
+    assert len(primary_images) == 1
+
+    # Story slide: no reference image, and its ProductAppearance was retracted.
+    story_images = list(
+        db_session.scalars(
+            select(ProductReferenceImage).where(ProductReferenceImage.source_slide_id == slides[1].id)
+        )
+    )
+    assert story_images == []
+    story_appearance = db_session.scalars(
+        select(ProductAppearance).where(ProductAppearance.slide_id == slides[1].id)
+    ).first()
+    assert story_appearance.is_current is False
+
+    # Both AnalysisRun rows should reflect success, not failure.
+    runs = list(db_session.scalars(select(AnalysisRun)))
+    assert len(runs) == 2
+    assert all(r.status == STATUS_SUCCEEDED for r in runs)
+
+
+def test_primary_slide_with_no_product_detected_still_fails(db_session, tmp_path, monkeypatch):
+    """The primary slide is still expected to show the product - unchanged behavior."""
+    slideshow, product, slides = _make_two_slide_slideshow_with_shared_product(db_session, tmp_path)
+    primary_bytes = Path(slides[0].stored_file_path).read_bytes()
+    story_bytes = Path(slides[1].stored_file_path).read_bytes()
+
+    # Real box on the non-primary slide, NONE on the primary - the interesting/wrong case.
+    real_box = [{"x_min": 0.1, "y_min": 0.1, "x_max": 0.9, "y_max": 0.9, "confidence": 0.95, "notes": "bottle"}]
+    fake_provider = _ByContentFakeIsolationProvider({primary_bytes: [], story_bytes: real_box})
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_isolation_stage.default_registry",
+        FakeAIProviderRegistry(isolation_provider=fake_provider),
+    )
+
+    stage = SlideProductIsolationStage()
+    result = stage.run(db_session, slideshow)
+
+    assert result.succeeded is False
+    assert "No product detected" in result.error

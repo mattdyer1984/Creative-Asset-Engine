@@ -48,6 +48,7 @@ from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_ISOLATION
+from app.models.product_appearance import ProductAppearance
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
@@ -97,6 +98,23 @@ class SlideProductIsolationStage:
         silently skipping a real, actionable problem would be worse than
         an honest failure, unlike "nothing assigned yet."
 
+        Real-world-diagnosed fix (see MIGRATION_PLAN.md): a slide CAN
+        have a current appearance assigned (e.g. the frontend's import
+        flow used to blanket-assign the chosen product to every slide)
+        and still genuinely not show that product - a narrative/story
+        slide with no product in frame. For a non-primary slide, the
+        provider correctly finding zero bounding boxes is no longer a
+        stage-wide hard failure: it retracts that slide's own
+        ProductAppearance (is_current=False, same soft-delete semantics
+        as the DELETE .../products/{appearance_id} endpoint) so every
+        downstream stage's existing "no current appearance -> skip"
+        logic picks it up for free, and moves on to the next slide - one
+        story slide with no product no longer aborts analysis for the
+        entire slideshow. The *primary* slide still hard-fails on zero
+        boxes, unchanged - the primary slide is expected to show the
+        product, same invariant as the "no appearance assigned" case
+        above.
+
         Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
         actual `isolate_product` provider call for every eligible slide
         now runs concurrently (app.slideshow_stages.concurrency), not
@@ -135,8 +153,13 @@ class SlideProductIsolationStage:
             start = time.perf_counter()
             bounding_boxes = isolation_provider.isolate_product(image_bytes, usage_sink=usage)
             provider_call_ms = (time.perf_counter() - start) * 1000
-            if not bounding_boxes:
-                raise ValueError("No product detected in the image")
+            # Real-world-diagnosed fix (see MIGRATION_PLAN.md): zero boxes
+            # is no longer raised as an exception here - it's a
+            # legitimate outcome (a story/narrative slide genuinely
+            # doesn't show the product), not a provider error. The
+            # persist loop below decides what "zero boxes" means
+            # (primary-slide hard failure vs. non-primary soft skip),
+            # since that's a business rule, not a detection-call concern.
             return image_bytes, bounding_boxes, provider_call_ms, usage
 
         isolation_results = run_concurrently(eligible, _isolate)
@@ -160,6 +183,30 @@ class SlideProductIsolationStage:
                 if isinstance(outcome, Exception):
                     raise outcome
                 image_bytes, bounding_boxes, provider_call_ms, usage = outcome
+
+                if not bounding_boxes:
+                    if slide.id == primary_slide.id:
+                        raise ValueError(
+                            "No product detected in the primary slide's image - assign the "
+                            "correct product, or a different primary slide, before running "
+                            "Product Isolation."
+                        )
+                    # Non-primary slide, genuinely no product in frame (a
+                    # narrative/story slide) - retract the mistaken
+                    # ProductAppearance so every downstream stage's
+                    # existing "no current appearance -> skip" logic
+                    # picks this slide up for free, and move on rather
+                    # than aborting the whole slideshow's analysis.
+                    db.query(ProductAppearance).filter(
+                        ProductAppearance.slide_id == slide.id,
+                        ProductAppearance.product_id == product_id,
+                        ProductAppearance.is_current.is_(True),
+                    ).update({"is_current": False}, synchronize_session=False)
+                    result = mark_succeeded(
+                        db, analysis_run, provider_call_ms=provider_call_ms, usage=usage
+                    )
+                    continue
+
                 crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
 
                 new_reference_images = []
