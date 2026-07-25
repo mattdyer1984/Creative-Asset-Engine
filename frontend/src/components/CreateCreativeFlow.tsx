@@ -48,6 +48,15 @@ export interface SlideGenerationOutcome {
 const REFERENCE_SCORING_POLL_ATTEMPTS = 10;
 const REFERENCE_SCORING_POLL_INTERVAL_MS = 1500;
 
+// The main analysis poll below used to have no cap at all, unlike every
+// other poller in this file - it only had terminal-state detection
+// ('ready'/'failed'), so a Slideshow that (through a backend bug) never
+// reached either would spin this loop forever with no visible error.
+// 200 * 1500ms = 5 minutes, generous relative to any real analysis run
+// observed so far, while still guaranteeing the user sees *something*.
+const ANALYSIS_POLL_ATTEMPTS = 200;
+const ANALYSIS_POLL_INTERVAL_MS = 1500;
+
 // Real-world-diagnosed speed fix (see MIGRATION_PLAN.md) - Generate All
 // used to await api.generateCreative one slide at a time; real timing
 // data showed each call taking ~70-125s, so a 4-slide slideshow took
@@ -238,9 +247,19 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       setPhase('analyzing');
       await api.analyzeSlideshow(slideshow.id);
       let blueprint = await api.getSlideshowBlueprint(slideshow.id);
-      while (blueprint.status === 'queued' || blueprint.status === 'analyzing') {
-        await sleep(1500);
+      let analysisPollAttempts = 0;
+      while (
+        (blueprint.status === 'queued' || blueprint.status === 'analyzing') &&
+        analysisPollAttempts < ANALYSIS_POLL_ATTEMPTS
+      ) {
+        await sleep(ANALYSIS_POLL_INTERVAL_MS);
         blueprint = await api.getSlideshowBlueprint(slideshow.id);
+        analysisPollAttempts += 1;
+      }
+      if (blueprint.status === 'queued' || blueprint.status === 'analyzing') {
+        throw new Error(
+          "Analysis is taking longer than expected. It may still finish in the background - check the slideshow again in a few minutes, or try re-running it."
+        );
       }
       if (blueprint.status === 'failed') {
         throw new Error(blueprint.failed_stage_error ?? 'Something went wrong while analyzing your creative.');

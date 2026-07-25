@@ -79,6 +79,39 @@ def test_fails_gracefully_without_a_product_assigned(db_session, slideshow_with_
     assert "No product assigned" in result.error
 
 
+def test_fails_cleanly_on_write_phase_exception(db_session, slideshow_with_product, monkeypatch):
+    """
+    Tier 1.2 reliability fix: before this fix, only the provider-call
+    outcome was checked for an exception - a failure in the DB-write
+    section itself (the is_current flip, ProductLockProfile
+    construction, db.flush()) was uncaught and would propagate straight
+    out of run(), leaving the caller (the orchestrator) with no
+    StageResult to convert into STATUS_FAILED.
+    """
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
+    )
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated DB-write failure")
+
+    monkeypatch.setattr("app.slideshow_stages.product_lock_profile_stage.ProductLockProfile", _boom)
+
+    stage = SlideProductLockProfileStage()
+    result = stage.run(db_session, slideshow_with_product)
+
+    assert result.succeeded is False
+    assert "simulated DB-write failure" in result.error
+
+    # durable=False means the AnalysisRun itself was only flushed, never
+    # committed, before this failure - the rollback required to recover
+    # from it takes that pending row with it (see the stage's own
+    # comment on why rollback=True is necessary here regardless). The
+    # StageResult above, which the orchestrator actually acts on, is the
+    # real guarantee here.
+    assert db_session.scalars(select(ProductLockProfile)).first() is None
+
+
 def test_succeeds_without_reference_images_yet(db_session, slideshow_with_product, monkeypatch):
     """
     Run standalone, before Product Isolation has ever produced a

@@ -270,22 +270,41 @@ class SlideProductLockProfileStage:
 
             outcome = analysis_results[index]
             if isinstance(outcome, Exception):
+                # Nothing has been written for this slide yet (durable=False
+                # defers all DB writes until after the provider call
+                # succeeds), so there's genuinely nothing to roll back;
+                # committing the already-flushed "pending" AnalysisRun as
+                # failed is both correct and preserves its audit row.
                 return mark_failed(db, analysis_run, outcome, rollback=False)
             analysis_result = outcome
 
-            db.query(ProductLockProfile).filter(
-                ProductLockProfile.product_id == product_id,
-                ProductLockProfile.is_current.is_(True),
-            ).update({"is_current": False})
+            try:
+                db.query(ProductLockProfile).filter(
+                    ProductLockProfile.product_id == product_id,
+                    ProductLockProfile.is_current.is_(True),
+                ).update({"is_current": False})
 
-            profile = ProductLockProfile(
-                analysis_run_id=analysis_run.id,
-                product_id=product_id,
-                structured_json=analysis_result,
-                reference_image_ids_json=[img.id for img in current_reference_images],
-            )
-            db.add(profile)
-            db.flush()
+                profile = ProductLockProfile(
+                    analysis_run_id=analysis_run.id,
+                    product_id=product_id,
+                    structured_json=analysis_result,
+                    reference_image_ids_json=[img.id for img in current_reference_images],
+                )
+                db.add(profile)
+                db.flush()
+            except Exception as exc:
+                # New (Tier 1.2 reliability fix): this section used to
+                # have no try/except at all, so a failure here propagated
+                # straight out of run() and the orchestrator, leaving the
+                # Slideshow stuck rather than landing on STATUS_FAILED.
+                # rollback=True is required (not just consistent with the
+                # majority pattern) - a failed db.flush() leaves the
+                # session's transaction unusable until rolled back; since
+                # analysis_run was itself only flushed (never committed)
+                # under durable=False, the rollback takes its row with it,
+                # but the StageResult the orchestrator actually acts on is
+                # unaffected either way.
+                return mark_failed(db, analysis_run, exc, rollback=True)
 
             result = mark_succeeded(db, analysis_run)
 

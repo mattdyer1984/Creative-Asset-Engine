@@ -504,11 +504,38 @@ def generate_creative(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        # generate_with_retry has no internal try/except of its own (see
+        # its module docstring) - anything beyond the expected ValueError
+        # case above (a genuine bug, an unhandled provider error shape)
+        # used to surface as FastAPI's generic, undifferentiated 500. This
+        # is synchronous, so nothing is left "stuck" either way, but a
+        # structured, explained error is what Phase 2's "errors should be
+        # visible to the user rather than silently hanging" calls for.
+        raise HTTPException(
+            status_code=500,
+            detail=f"Generation failed unexpectedly: {exc}",
+        ) from exc
 
     if isinstance(result, StageResult):
         raise HTTPException(status_code=422, detail=result.error)
 
-    generation_log = _create_generation_log(db, slideshow, slide, payload, result)
+    try:
+        generation_log = _create_generation_log(db, slideshow, slide, payload, result)
+    except Exception as exc:
+        # The winning candidate (and, if requested, its FinalOutput) is
+        # already committed by generate_with_retry at this point - only
+        # the GenerationLog/archive bookkeeping failed. Surfacing this
+        # distinctly from the generation failure above avoids the
+        # misleading impression that generation itself failed when it
+        # actually succeeded.
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Generation succeeded, but recording the GenerationLog failed: "
+                f"{exc}. The generated image itself was saved."
+            ),
+        ) from exc
 
     return GenerateCreativeResponse(
         attempts=[

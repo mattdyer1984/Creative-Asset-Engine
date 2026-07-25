@@ -19,6 +19,42 @@ from app.slideshow_stages.ocr_stage import SlideOCRStage
 from tests.fakes import FakeAIProviderRegistry, FakeOCRProvider
 
 
+def test_slide_ocr_stage_fails_cleanly_on_write_phase_exception(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """
+    Tier 1.2 reliability fix: before this fix, only the provider-call
+    outcome was checked for an exception - a failure in the DB-write
+    section itself (OCRResult construction, db.flush()) was uncaught and
+    would propagate straight out of run(), leaving the caller (the
+    orchestrator) with no StageResult to convert into STATUS_FAILED.
+    """
+    fake_registry = FakeAIProviderRegistry()
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated DB-write failure")
+
+    monkeypatch.setattr("app.slideshow_stages.ocr_stage.OCRResult", _boom)
+
+    stage = SlideOCRStage()
+    result = stage.run(db_session, slideshow_with_slide)
+
+    assert result.succeeded is False
+    assert "simulated DB-write failure" in result.error
+
+    # durable=False (see app.stages.execution's docstring) means the
+    # AnalysisRun itself was only flushed, never committed, before this
+    # failure - the rollback required to recover from it (see
+    # ocr_stage.py's own comment on why rollback=True is necessary here)
+    # takes that pending row with it. The StageResult above, which the
+    # orchestrator actually acts on, is the real guarantee; losing this
+    # one audit row for this rare write-phase-failure case is an accepted
+    # trade-off of the existing durable=False design, not a regression.
+    db_session.refresh(slideshow_with_slide.primary_slide)
+    assert slideshow_with_slide.primary_slide.current_ocr_result_id is None
+
+
 def test_slide_ocr_stage_succeeds_and_updates_slide(db_session, slideshow_with_slide, monkeypatch):
     fake_registry = FakeAIProviderRegistry()
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)

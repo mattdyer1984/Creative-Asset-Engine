@@ -205,6 +205,33 @@ def test_generate_creative_422s_for_an_unknown_quality_mode(client, monkeypatch,
     assert response.status_code == 422
 
 
+def test_generate_creative_returns_structured_500_on_unexpected_exception(client, monkeypatch, db_session):
+    """
+    Tier 1.3 reliability fix: generate_with_retry has no internal
+    try/except of its own (see its module docstring) - before this fix,
+    anything beyond the already-handled ValueError case (a genuine bug,
+    an unhandled provider error shape) surfaced as FastAPI's generic,
+    undifferentiated 500 with no useful detail. This is synchronous, so
+    nothing is left "stuck" either way, but the error should now at
+    least be explained.
+    """
+    slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
+    _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated genuine bug inside the retry loop")
+
+    monkeypatch.setattr("app.routers.slideshows.generate_with_retry", _boom)
+
+    response = client.post(
+        f"/api/slideshows/{slideshow_id}/slides/{slide_id}/generate-creative",
+        json={"quality_mode": "fast"},
+    )
+
+    assert response.status_code == 500
+    assert "simulated genuine bug inside the retry loop" in response.json()["detail"]
+
+
 def test_generate_creative_succeeds_and_returns_the_winner(client, monkeypatch, db_session):
     slideshow_id, slide_id, _ = _import_slideshow_with_product(client)
     _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session)

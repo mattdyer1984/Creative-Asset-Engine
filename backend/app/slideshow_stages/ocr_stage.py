@@ -84,24 +84,47 @@ class SlideOCRStage:
 
             outcome = extraction_results[index]
             if isinstance(outcome, Exception):
+                # Nothing has been written for this slide yet (durable=False
+                # defers all DB writes until after the provider call
+                # succeeds - see app.stages.execution's docstring), so
+                # there's genuinely nothing to roll back here; committing
+                # the already-flushed "pending" AnalysisRun as failed is
+                # both correct and preserves its audit row.
                 return mark_failed(db, analysis_run, outcome, rollback=False)
             extraction = outcome
 
-            if slide.current_ocr_result_id is not None:
-                previous_result = db.get(OCRResult, slide.current_ocr_result_id)
-                if previous_result is not None:
-                    previous_result.is_current = False
+            try:
+                if slide.current_ocr_result_id is not None:
+                    previous_result = db.get(OCRResult, slide.current_ocr_result_id)
+                    if previous_result is not None:
+                        previous_result.is_current = False
 
-            ocr_result = OCRResult(
-                analysis_run_id=analysis_run.id,
-                slide_id=slide.id,
-                raw_text=extraction.raw_text,
-                structured_blocks_json=extraction.structured_blocks,
-            )
-            db.add(ocr_result)
-            db.flush()
+                ocr_result = OCRResult(
+                    analysis_run_id=analysis_run.id,
+                    slide_id=slide.id,
+                    raw_text=extraction.raw_text,
+                    structured_blocks_json=extraction.structured_blocks,
+                )
+                db.add(ocr_result)
+                db.flush()
 
-            slide.current_ocr_result_id = ocr_result.id
+                slide.current_ocr_result_id = ocr_result.id
+            except Exception as exc:
+                # New (Tier 1.2 reliability fix): this section used to
+                # have no try/except at all, so a failure here (e.g. a
+                # constraint violation on flush) propagated straight out
+                # of run() and out of the orchestrator, leaving the
+                # Slideshow stuck rather than landing on STATUS_FAILED.
+                # rollback=True (not False, unlike the branch above) is
+                # required here, not just consistent with the majority
+                # pattern - a failed db.flush() leaves the session's
+                # transaction unusable until rolled back, and since
+                # analysis_run was itself only flushed (never committed)
+                # under durable=False, the rollback takes its row with it;
+                # the StageResult - the thing the orchestrator actually
+                # acts on - is unaffected either way.
+                return mark_failed(db, analysis_run, exc, rollback=True)
+
             result = mark_succeeded(db, analysis_run)
 
         return result

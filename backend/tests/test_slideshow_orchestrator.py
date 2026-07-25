@@ -75,6 +75,25 @@ class _AlwaysFailsStage:
         return StageResult(succeeded=False, error="deliberate test failure")
 
 
+class _RaisesUnexpectedlyStage:
+    """
+    Simulates a genuine bug (not an expected failure mode) inside a
+    Stage - the SlideshowAnalysisStage protocol says this "should never"
+    happen (see base.py's own docstring), but before the Tier 1
+    reliability pass, if it did, the raised exception propagated straight
+    out of the orchestrator with the Slideshow already committed at
+    STATUS_ANALYZING, leaving it stuck there forever with no way to
+    retry (the analyze/rerun endpoints' same-status guard treats
+    "analyzing" as already in progress). This stage exists purely to
+    prove that gap is now closed.
+    """
+
+    name = "raises_unexpectedly"
+
+    def run(self, db, slideshow):
+        raise RuntimeError("simulated genuine bug, not an expected failure mode")
+
+
 def test_failure_isolation_earlier_stage_output_untouched(db_session, slideshow_with_slide, monkeypatch):
     """A stub second stage that always fails, following a real OCR stage that succeeds."""
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
@@ -85,6 +104,36 @@ def test_failure_isolation_earlier_stage_output_untouched(db_session, slideshow_
     db_session.refresh(slideshow_with_slide)
     assert slideshow_with_slide.status == STATUS_FAILED
     assert slideshow_with_slide.primary_slide.current_ocr_result_id is not None
+
+
+def test_full_pipeline_marks_failed_on_unexpected_exception(db_session, slideshow_with_slide):
+    """
+    Tier 1.1 reliability fix: an unexpected exception mid-stage (not a
+    StageResult(succeeded=False)) must still land the Slideshow on
+    STATUS_FAILED, never leave it stuck at STATUS_ANALYZING.
+    """
+    orchestrator = SlideshowOrchestrator(stages=[_RaisesUnexpectedlyStage()])
+    failed_stage, result = orchestrator.run_full_pipeline(db_session, slideshow_with_slide)
+
+    db_session.refresh(slideshow_with_slide)
+    assert slideshow_with_slide.status == STATUS_FAILED
+    assert slideshow_with_slide.last_failed_stage == "raises_unexpectedly"
+    assert "simulated genuine bug" in slideshow_with_slide.last_failed_stage_error
+    assert failed_stage == "raises_unexpectedly"
+    assert result.succeeded is False
+    assert "simulated genuine bug" in result.error
+
+
+def test_run_single_stage_marks_failed_on_unexpected_exception(db_session, slideshow_with_slide):
+    """Same guarantee as above, for the run_single_stage entry point."""
+    orchestrator = SlideshowOrchestrator(stages=[_RaisesUnexpectedlyStage()])
+    result = orchestrator.run_single_stage(db_session, slideshow_with_slide, "raises_unexpectedly")
+
+    db_session.refresh(slideshow_with_slide)
+    assert slideshow_with_slide.status == STATUS_FAILED
+    assert slideshow_with_slide.last_failed_stage == "raises_unexpectedly"
+    assert result.succeeded is False
+    assert "simulated genuine bug" in result.error
 
 
 def test_run_single_stage_reruns_in_isolation(db_session, slideshow_with_slide, monkeypatch):

@@ -38,7 +38,23 @@ class SlideshowOrchestrator:
         db.commit()
 
         for stage in self.stages:
-            result = stage.run(db, slideshow)
+            try:
+                result = stage.run(db, slideshow)
+            except Exception as exc:
+                # A stage is only ever supposed to raise for a genuine bug
+                # (see SlideshowAnalysisStage.run's own docstring) - but if
+                # one does, the Slideshow was already committed at
+                # STATUS_ANALYZING above and must not be left there
+                # forever. Same terminal-state contract as an ordinary
+                # StageResult(succeeded=False) below, just reached via an
+                # unexpected exception instead of an expected one.
+                db.rollback()
+                slideshow.status = STATUS_FAILED
+                slideshow.last_failed_stage = stage.name
+                slideshow.last_failed_stage_error = str(exc)
+                db.commit()
+                return stage.name, StageResult(succeeded=False, error=str(exc))
+
             if not result.succeeded:
                 slideshow.status = STATUS_FAILED
                 slideshow.last_failed_stage = stage.name
@@ -63,7 +79,15 @@ class SlideshowOrchestrator:
         slideshow.status = STATUS_ANALYZING
         db.commit()
 
-        result = stage.run(db, slideshow)
+        try:
+            result = stage.run(db, slideshow)
+        except Exception as exc:
+            # Same reasoning as run_full_pipeline's try/except above - an
+            # unexpected exception must still land the Slideshow on a
+            # terminal status, not leave it stuck at STATUS_ANALYZING.
+            db.rollback()
+            result = StageResult(succeeded=False, error=str(exc))
+
         slideshow.status = STATUS_READY if result.succeeded else STATUS_FAILED
         slideshow.last_failed_stage = None if result.succeeded else stage.name
         slideshow.last_failed_stage_error = None if result.succeeded else result.error
