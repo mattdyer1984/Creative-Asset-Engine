@@ -10,6 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
+from app.services.spend_limit import SpendLimitExceeded, check_spend_allowed
 from app.models.analysis_run import AnalysisRun
 from app.models.creative_specification import CreativeSpecification
 from app.models.final_output import FinalOutput
@@ -248,6 +249,15 @@ def analyze_slideshow(
     transactions, so the second of two concurrent UPDATEs against the
     same row always sees the first one's already-committed result.
     """
+    # Phase 1 remediation (WP-5): soft daily cap, checked ONCE here,
+    # before any paid work begins. Work already in flight is never
+    # interrupted - see services/spend_limit.py for why that trade is
+    # deliberate.
+    try:
+        check_spend_allowed(db)
+    except SpendLimitExceeded as _exc:
+        raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
+
     result = db.execute(
         update(Slideshow)
         .where(Slideshow.id == slideshow_id, Slideshow.status.notin_((STATUS_QUEUED, STATUS_ANALYZING)))
@@ -292,6 +302,15 @@ def rerun_stage(
     isn't safe under concurrent requests), same 202 + SlideshowRead
     response shape, same polling contract via GET .../blueprint.
     """
+    # Phase 1 remediation (WP-5): soft daily cap, checked ONCE here,
+    # before any paid work begins. Work already in flight is never
+    # interrupted - see services/spend_limit.py for why that trade is
+    # deliberate.
+    try:
+        check_spend_allowed(db)
+    except SpendLimitExceeded as _exc:
+        raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
+
     if stage_name not in _STAGE_NAMES:
         raise HTTPException(
             status_code=400,
@@ -356,6 +375,15 @@ def generate_image(slideshow_id: str, slide_id: str, db: Session = Depends(get_d
     checked here rather than silently generating for whichever slide the
     Image Generation Stage happens to read.
     """
+    # Phase 1 remediation (WP-5): soft daily cap, checked ONCE here,
+    # before any paid work begins. Work already in flight is never
+    # interrupted - see services/spend_limit.py for why that trade is
+    # deliberate.
+    try:
+        check_spend_allowed(db)
+    except SpendLimitExceeded as _exc:
+        raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
+
     slideshow = db.get(Slideshow, slideshow_id)
     if slideshow is None:
         raise HTTPException(status_code=404, detail="Slideshow not found")
@@ -479,6 +507,15 @@ def generate_creative(
     for one call still gets it by passing that slide's own id, exactly
     as before - nothing about a single-slide call changes.
     """
+    # Phase 1 remediation (WP-5): soft daily cap, checked ONCE here,
+    # before any paid work begins. Work already in flight is never
+    # interrupted - see services/spend_limit.py for why that trade is
+    # deliberate.
+    try:
+        check_spend_allowed(db)
+    except SpendLimitExceeded as _exc:
+        raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
+
     slideshow = db.get(Slideshow, slideshow_id)
     if slideshow is None:
         raise HTTPException(status_code=404, detail="Slideshow not found")

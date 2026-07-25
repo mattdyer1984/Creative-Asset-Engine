@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.services.spend_limit import SpendLimitExceeded, check_spend_allowed
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
@@ -138,6 +139,15 @@ def score_references(
     a candidate the first run hasn't finished scoring yet, not corrupt
     state, since scoring writes are idempotent per-candidate.
     """
+    # Phase 1 remediation (WP-5): soft daily cap, checked ONCE here,
+    # before any paid work begins. Work already in flight is never
+    # interrupted - see services/spend_limit.py for why that trade is
+    # deliberate.
+    try:
+        check_spend_allowed(db)
+    except SpendLimitExceeded as _exc:
+        raise HTTPException(status_code=429, detail=_exc.to_detail()) from _exc
+
     if db.get(Product, product_id) is None:
         raise HTTPException(status_code=404, detail="Product not found")
 

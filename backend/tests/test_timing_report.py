@@ -3,6 +3,8 @@ Unit tests for app.services.timing_report (Optimisation & Stability
 Pass, Tier 2, see MIGRATION_PLAN.md).
 """
 
+import pytest
+
 from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
@@ -34,16 +36,41 @@ def test_build_timing_breakdown_sums_duration_per_analysis_type(db_session, slid
 
 
 def test_build_timing_breakdown_includes_cost_when_configured(db_session, slideshow_with_slide, monkeypatch):
+    """
+    Phase 1 remediation (WP-4): cost now comes from ProviderCall, not
+    AnalysisRun - one stage can make several calls, so summing the
+    stage-level column would under-report.
+    """
     monkeypatch.setattr(
-        "app.stages.execution.estimate_token_cost_usd",
-        lambda provider, model, prompt_tokens, completion_tokens: 0.01,
+        "app.services.cost_estimation.load_pricing",
+        lambda *a, **k: {
+            "pricing": {
+                "openai": {"gpt-5.5": {"per_1k_prompt_tokens": 0.5, "per_1k_completion_tokens": 1.0}}
+            }
+        },
     )
     _run(db_session, slideshow_with_slide, analysis_type="ocr", usage={"prompt_tokens": 10, "completion_tokens": 5})
 
     breakdown = build_timing_breakdown(db_session, slideshow_id=slideshow_with_slide.id)
 
     by_type = {row["analysis_type"]: row for row in breakdown}
-    assert by_type["ocr"]["estimated_cost_usd"] == 0.01
+    # 10/1000*0.5 + 5/1000*1.0 = 0.005 + 0.005
+    assert by_type["ocr"]["estimated_cost_usd"] == pytest.approx(0.01)
+    assert by_type["ocr"]["call_count"] == 1
+
+
+def test_overhead_is_labelled_as_inferred_not_measured(db_session, slideshow_with_slide):
+    """
+    WP-4 is explicit that DB time must not be presented as exact when it
+    is only wall-clock minus provider time.
+    """
+    _run(db_session, slideshow_with_slide, analysis_type="ocr")
+    breakdown = build_timing_breakdown(db_session, slideshow_id=slideshow_with_slide.id)
+
+    assert "inferred_overhead_seconds" in breakdown[0]
+    output = format_timing_breakdown(breakdown)
+    assert "inferred" in output.lower()
+    assert "not directly measured" in output
 
 
 def test_build_timing_breakdown_orders_known_stages_first(db_session, slideshow_with_slide):

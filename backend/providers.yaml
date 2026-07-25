@@ -64,12 +64,13 @@ models:
     vision_analysis: gpt-5.5
     text_generation: gpt-5.5
     prompt_generation: gpt-5.5
-    # "gpt-5.5" (used by every other capability above) is not a real
-    # OpenAI model - confirmed via a real 400 from OpenAI's Images API
-    # while live-verifying Phase 8.3 (see MIGRATION_PLAN.md). Scoped fix:
-    # image_generation only, since that's the one capability this
-    # session actually exercised against the real API with a real key -
-    # the other 5 values are unchanged, not confirmed working or broken.
+    # CORRECTED 2026-07-25 (Phase 1 remediation, WP-1): the previous
+    # comment here claimed "gpt-5.5 is not a real OpenAI model", based on
+    # a 400 from the IMAGES api. That inference was wrong - gpt-5.5 is a
+    # real chat model and simply is not an image model. A real
+    # chat.completions call confirmed it serves and bills as
+    # "gpt-5.5-2026-04-23". Only image_generation needed a different
+    # model, which is what this line is.
     image_generation: gpt-image-1
   nano_banana:
     # gemini-3.1-flash-image-preview - "Nano Banana 2," the general-
@@ -124,3 +125,25 @@ models:
 # the captured provider-call data (app.services.timing_report).
 concurrency_limits:
   image_generation: 2
+
+# Daily spend limit (Phase 1 remediation, WP-5).
+#
+# SOFT cap, and deliberately so: it is checked once before a unit of
+# paid work begins, and work already in flight always finishes. Total
+# spend can therefore exceed this by at most the cost of one unit (one
+# slideshow analysis, or one generation call). Aborting mid-batch would
+# leave you paying for provider calls that produced nothing usable.
+#
+# Guards new paid work only - analysis, explicit paid reruns, reference
+# scoring and image generation. Read-only endpoints are never blocked.
+# Resets on the LOCAL calendar day.
+#
+# null (or omitting this block entirely) = no cap. That is the default,
+# so shipping this feature cannot start blocking work on its own.
+#
+# NOTE: only calls with a TRUSTED cost count toward the total. Several
+# models are honestly priced `unknown` in pricing.yaml today, and their
+# spend cannot be counted - so the figure this cap compares against is a
+# floor, not a certainty. Worth revisiting once those rates are resolved.
+spend_limits:
+  daily_usd: null
