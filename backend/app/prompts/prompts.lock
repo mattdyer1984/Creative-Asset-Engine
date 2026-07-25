@@ -27,6 +27,10 @@
     "content_hash": "fcffde2b386a53b3",
     "version": "1.0"
   },
+  "generation.image_compilation": {
+    "content_hash": "74865eaa55bb7873",
+    "version": "1.0"
+  },
   "ocr.extract_text": {
     "content_hash": "fb12d77677664a42",
     "version": "1.0"

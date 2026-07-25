@@ -74,6 +74,7 @@ from PIL import Image
 
 from app.ai_providers.base import GeneratedImageResult, GenerationRequest, ProviderCapabilities
 from app.ai_providers.config import AI_PROVIDER_TIMEOUT_SECONDS, get_api_key
+from app.prompts import generation as _generation_prompts
 
 # Verified 2026-07-23 via direct introspection of google-genai==2.14.0's
 # types.ImageConfig.model_fields["aspect_ratio"] docstring: "Supported
@@ -231,24 +232,8 @@ class NanoBananaImageGenerationAdapter:
         GenerationRequest, including the story_mode branch (Story Slide
         feature, see MIGRATION_PLAN.md and that method's own docstring).
         """
-        if request.story_mode:
-            parts = [
-                request.creative_intent,
-                "The reference image is the original photo for this slide - recreate "
-                "its scene, composition, and mood as a NEW, original image, varying "
-                "details enough that it is not an identical copy, while staying "
-                "faithful to what the reference image actually shows. Do not add, "
-                "invent, or feature any product - this is a narrative/story slide "
-                "with none.",
-            ]
-        else:
-            parts = [
-                request.creative_intent,
-                "Preserve the exact product shown in the reference images - its shape, "
-                "proportions, colors, materials, packaging, and any visible branding or "
-                "text. Only the scene, composition, lighting, and background described "
-                "above should differ from the references.",
-            ]
-        if request.things_to_avoid:
-            parts.append("Avoid: " + "; ".join(request.things_to_avoid))
-        return "\n\n".join(parts)
+        return _generation_prompts.compile_image_prompt(
+            request.creative_intent,
+            story_mode=request.story_mode,
+            things_to_avoid=request.things_to_avoid,
+        )

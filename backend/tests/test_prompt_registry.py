@@ -54,8 +54,37 @@ RENDER_INPUTS: dict[str, dict] = {
 PER_FRAGMENT = {"generation.creative_intelligence": "guidance"}
 
 
+def _image_compilation_shapes() -> dict[str, str]:
+    """
+    All four shapes of the assembled image prompt. Snapshotting only one
+    branch would leave the other free to drift unnoticed - and the
+    story-mode branch is exactly the rarely-exercised one where that
+    would hurt most.
+    """
+    from app.prompts.generation import compile_image_prompt
+
+    shapes = {}
+    for story in (False, True):
+        for avoid in ([], ["blurry", "extra limbs"]):
+            name = (
+                f"generation.image_compilation."
+                f"{'story' if story else 'product'}{'_avoid' if avoid else ''}"
+            )
+            shapes[name] = compile_image_prompt(
+                "A clean studio shot.", story_mode=story, things_to_avoid=avoid
+            )
+    return shapes
+
+
+# Prompts assembled by a helper rather than rendered straight from a
+# template: snapshot every shape the helper can emit.
+ASSEMBLED = {"generation.image_compilation": _image_compilation_shapes}
+
+
 def _snapshot_names(prompt) -> list[tuple[str, str]]:
     """(snapshot name, rendered text) pairs for one prompt."""
+    if prompt.id in ASSEMBLED:
+        return sorted(ASSEMBLED[prompt.id]().items())
     inputs = dict(RENDER_INPUTS.get(prompt.id, {}))
     fragment_var = PER_FRAGMENT.get(prompt.id)
     if fragment_var is None:
@@ -64,6 +93,35 @@ def _snapshot_names(prompt) -> list[tuple[str, str]]:
         (f"{prompt.id}.{name}", prompt.render(**{**inputs, fragment_var: text}))
         for name, text in sorted(prompt.fragments.items())
     ]
+
+
+def test_both_image_providers_compile_the_same_prompt():
+    """
+    This text used to exist twice, byte-for-byte identical, in the
+    OpenAI and Nano Banana adapters. Editing one and not the other would
+    have made the two providers quietly disagree about what to generate,
+    surfacing only as "the fallback produces worse images". They share
+    one definition now; this asserts they cannot drift apart again.
+    """
+    from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
+    from app.ai_providers.openai_adapter import OpenAIImageGenerationAdapter
+
+    class _Request:
+        def __init__(self, story_mode, things_to_avoid):
+            self.creative_intent = "A clean studio shot."
+            self.story_mode = story_mode
+            self.things_to_avoid = things_to_avoid
+
+    openai = OpenAIImageGenerationAdapter.__new__(OpenAIImageGenerationAdapter)
+    nano = NanoBananaImageGenerationAdapter.__new__(NanoBananaImageGenerationAdapter)
+
+    for story_mode in (False, True):
+        for things_to_avoid in ([], ["blurry", "extra limbs"]):
+            request = _Request(story_mode, things_to_avoid)
+            assert openai._compile_openai_prompt(request) == nano._compile_prompt(request), (
+                f"the two image providers disagree (story_mode={story_mode}, "
+                f"things_to_avoid={bool(things_to_avoid)})"
+            )
 
 
 @pytest.mark.parametrize("prompt", REGISTRY.all(), ids=lambda p: p.id)
