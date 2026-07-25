@@ -224,6 +224,7 @@ def _render_final_output_for_winner(
         ocr_result,
         text_generation_provider=text_generation_provider,
         packaging_text=_packaging_text_for_winner(db, slide),
+        db=db,
     )
 
     source_bytes = Path(winner.generated_image.file_path).read_bytes()

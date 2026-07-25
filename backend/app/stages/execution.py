@@ -91,6 +91,25 @@ def _as_naive_utc(dt: datetime) -> datetime:
     return dt.replace(tzinfo=None) if dt.tzinfo is not None else dt
 
 
+# AnalysisRun.analysis_type is a PIPELINE-STAGE axis; capability is the
+# BILLING axis (WP-2). They are not the same thing - several stages
+# share one capability. Anything unrecognised becomes "unknown" rather
+# than being forced into a plausible-looking bucket.
+_CAPABILITY_BY_ANALYSIS_TYPE = {
+    "ocr": "ocr",
+    "product_isolation": "product_isolation",
+    "product_lock_profile": "vision_analysis",
+    "creative_fingerprint": "vision_analysis",
+    "scene_intelligence": "vision_analysis",
+    "image_validation": "vision_analysis",
+    "marketing_analysis": "text_generation",
+    "narrative_structure": "text_generation",
+    "creative_specification": "prompt_generation",
+    "recreation_prompt": "prompt_generation",
+    "generated_image": "image_generation",
+}
+
+
 def _stamp_timing_and_cost(
     analysis_run: AnalysisRun,
     *,
@@ -151,8 +170,52 @@ def mark_succeeded(
     *,
     provider_call_ms: float | None = None,
     usage: dict | None = None,
+    emit_provider_call: bool = True,
+    capability: str | None = None,
 ) -> StageResult:
+    """
+    Phase 1 remediation (WP-2): also emits the ProviderCall row that
+    cost reporting now reads from.
+
+    Emitting here rather than in each of the eight pipeline stages is
+    deliberate - they all already funnel through this one function, so
+    a new stage gets billing visibility by default instead of having to
+    remember to add it. Cost reporting reads ProviderCall exclusively,
+    so a stage that silently skipped this would vanish from spend
+    entirely.
+
+    `emit_provider_call=False` is for the call sites that record their
+    own rows at finer granularity than one-per-stage - image validation
+    makes two provider calls under a single AnalysisRun, and generation
+    records one row per candidate. Those must opt out or they would be
+    counted twice.
+
+    Only emits when there is real usage to attribute: a stage that
+    passes no usage_sink has nothing billable to record here (image
+    generation's own cost is recorded at its call site, per-image).
+    """
     analysis_run.status = STATUS_SUCCEEDED
     _stamp_timing_and_cost(analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+
+    if emit_provider_call and usage:
+        # Imported lazily: app.services.provider_call_log imports pricing
+        # helpers, and a module-level import here would create a cycle
+        # with the stage modules that import this one.
+        from app.services.provider_call_log import record_provider_call
+
+        record_provider_call(
+            db,
+            provider=analysis_run.provider,
+            model=analysis_run.model_name,
+            capability=capability or _CAPABILITY_BY_ANALYSIS_TYPE.get(
+                analysis_run.analysis_type, "unknown"
+            ),
+            usage=usage,
+            provider_latency_ms=provider_call_ms,
+            analysis_run_id=analysis_run.id,
+            slide_id=analysis_run.slide_id,
+            slideshow_id=analysis_run.slideshow_id,
+        )
+
     db.commit()
     return StageResult(succeeded=True)

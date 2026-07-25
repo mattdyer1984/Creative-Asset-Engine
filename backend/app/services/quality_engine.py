@@ -57,6 +57,7 @@ Photorealism alone, the same dimension already layered on top of Stage
 here since there is no earlier, cheaper stage to short-circuit past.
 """
 
+import time
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -67,6 +68,7 @@ from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
 from app.models.image_validation_result import ImageValidationResult
 from app.models.quality_assessment import QualityAssessment
+from app.services.provider_call_log import record_provider_call
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_validation_stage import (
     SlideImageValidationStage,
@@ -145,6 +147,43 @@ def _score_photorealism(result: dict) -> float:
     return (boolean_fraction * 0.6) + (texture_component * 0.2) + (sharpness_component * 0.2)
 
 
+def _run_photorealism(db: Session, generated_image: GeneratedImage) -> dict:
+    """
+    One instrumented Photorealism call (Phase 1 remediation, WP-2).
+
+    Extracted because all three assess_* paths made this identical call
+    inline, and none of them recorded it - photorealism scoring was one
+    of four modules whose real paid calls were entirely invisible to
+    cost and timing reporting. Recording it once here means adding a
+    fourth assess_* path cannot silently reintroduce that blind spot.
+    """
+    vision_provider = default_registry.vision()
+    generated_image_bytes = Path(generated_image.file_path).read_bytes()
+    usage: dict = {}
+
+    start = time.perf_counter()
+    photorealism_json = vision_provider.analyze_creative(
+        image_bytes=generated_image_bytes,
+        prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
+        response_schema=PHOTOREALISM_SCHEMA,
+        usage_sink=usage,
+    )
+    provider_latency_ms = (time.perf_counter() - start) * 1000
+
+    record_provider_call(
+        db,
+        provider=vision_provider.provider,
+        model=vision_provider.model,
+        capability="vision_analysis",
+        usage=usage,
+        provider_latency_ms=provider_latency_ms,
+        generated_image_id=generated_image.id,
+        slide_id=generated_image.slide_id,
+        slideshow_id=generated_image.slideshow_id,
+    )
+    return photorealism_json
+
+
 def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAssessment | StageResult:
     """
     Runs Stage 1 Identity Validation + Stage 2 creative validation
@@ -173,13 +212,7 @@ def assess_candidate(db: Session, generated_image: GeneratedImage) -> QualityAss
 
     photorealism_json: dict | None = None
     if image_validation_result.passed:
-        vision_provider = default_registry.vision()
-        generated_image_bytes = Path(generated_image.file_path).read_bytes()
-        photorealism_json = vision_provider.analyze_creative(
-            image_bytes=generated_image_bytes,
-            prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
-            response_schema=PHOTOREALISM_SCHEMA,
-        )
+        photorealism_json = _run_photorealism(db, generated_image)
         photorealism_score = _score_photorealism(photorealism_json)
         accepted = photorealism_score >= PHOTOREALISM_FLOOR
         overall_confidence_score = photorealism_score
@@ -214,13 +247,7 @@ def assess_story_candidate(db: Session, generated_image: GeneratedImage) -> Qual
     (no Product Profile, no reference set) that could legitimately be
     missing, so there's nothing to short-circuit.
     """
-    vision_provider = default_registry.vision()
-    generated_image_bytes = Path(generated_image.file_path).read_bytes()
-    photorealism_json = vision_provider.analyze_creative(
-        image_bytes=generated_image_bytes,
-        prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
-        response_schema=PHOTOREALISM_SCHEMA,
-    )
+    photorealism_json = _run_photorealism(db, generated_image)
     photorealism_score = _score_photorealism(photorealism_json)
     accepted = photorealism_score >= PHOTOREALISM_FLOOR
 
@@ -285,13 +312,7 @@ def assess_bundle_candidate(db: Session, generated_image: GeneratedImage) -> Qua
 
     photorealism_json: dict | None = None
     if all_passed:
-        vision_provider = default_registry.vision()
-        generated_image_bytes = Path(generated_image.file_path).read_bytes()
-        photorealism_json = vision_provider.analyze_creative(
-            image_bytes=generated_image_bytes,
-            prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
-            response_schema=PHOTOREALISM_SCHEMA,
-        )
+        photorealism_json = _run_photorealism(db, generated_image)
         photorealism_score = _score_photorealism(photorealism_json)
         accepted = photorealism_score >= PHOTOREALISM_FLOOR
         overall_confidence_score = photorealism_score

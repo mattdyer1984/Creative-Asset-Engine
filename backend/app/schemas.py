@@ -781,12 +781,15 @@ class GenerationLogDetailRead(GenerationLogRead):
 
 class DailyCostRead(BaseModel):
     """
-    GET /api/costs/daily (Optimisation & Stability Pass, Tier 2.2, see
-    MIGRATION_PLAN.md) - the "why did yesterday cost $X" ask, answered
-    without a provider dashboard. Only ever reflects calls with a real
-    rate configured in pricing.yaml - a day with zero configured rates
-    still appears (call_count > 0), just with every cost field at 0.0,
-    not hidden.
+    GET /api/costs/daily (Phase 1 remediation, WP-2) - the "why did
+    yesterday cost $X" ask, answered without a provider dashboard.
+
+    Derived entirely from ProviderCall, one row per billable call.
+    Costs only ever include rows whose cost_status is estimated/exact.
+    The two counters below exist so a total is never quietly wrong:
+    `calls_with_partial_cost` are known UNDER-COUNTS (some component
+    uncosted) and `calls_with_unknown_cost` have no defensible figure at
+    all. Both are excluded from the money totals and reported instead.
     """
 
     date: str  # YYYY-MM-DD
@@ -794,3 +797,26 @@ class DailyCostRead(BaseModel):
     image_generation_cost_usd: float
     total_estimated_cost_usd: float
     call_count: int
+    calls_with_unknown_cost: int = 0
+    calls_with_partial_cost: int = 0
+
+
+class CostBreakdownRead(BaseModel):
+    """
+    GET /api/costs/breakdown (Phase 1 remediation, WP-2) - the same
+    single ProviderCall path, grouped along any axis WP-2 requires:
+    provider, model, capability, slideshow, slide. `key` is null-free:
+    calls not attributable on the chosen axis are excluded rather
+    than bucketed under a fake "None" group.
+    """
+
+    group: str
+    key: str
+    estimated_cost_usd: float
+    call_count: int
+    calls_with_unknown_cost: int = 0
+    calls_with_partial_cost: int = 0
+    total_provider_latency_ms: float = 0.0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    image_count: int = 0

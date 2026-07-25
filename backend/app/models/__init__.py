@@ -119,6 +119,7 @@ from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
 from app.models.product_source_import import ProductSourceImport
 from app.models.project import Project
+from app.models.provider_call import ProviderCall
 from app.models.project_product import ProjectProduct
 from app.models.quality_assessment import QualityAssessment
 from app.models.scene_analysis import SceneAnalysis
@@ -127,6 +128,7 @@ from app.models.slideshow import Slideshow
 
 __all__ = [
     "Project",
+    "ProviderCall",
     "ProjectProduct",
     "EvidenceSource",
     "AnalysisRun",

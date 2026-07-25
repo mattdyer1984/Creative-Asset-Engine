@@ -16,6 +16,7 @@ from app.models.creative_specification import CreativeSpecification
 from app.models.generated_image import GeneratedImage
 from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
+from app.models.provider_call import RECORD_SOURCE_PER_CALL, ProviderCall
 from app.stages.execution import mark_succeeded, start_analysis_run
 
 
@@ -31,6 +32,12 @@ def client(db_session):
 
 
 def _seed_analysis_run(db_session, slideshow, *, cost: float) -> None:
+    """
+    Phase 1 remediation (WP-2): cost now comes from ProviderCall, the
+    single calculation path - AnalysisRun.estimated_cost_usd is
+    deprecated as a cost source. The AnalysisRun is still created so the
+    stage-level record exists, exactly as in production.
+    """
     analysis_run = start_analysis_run(
         db_session,
         slideshow_id=slideshow.id,
@@ -40,7 +47,18 @@ def _seed_analysis_run(db_session, slideshow, *, cost: float) -> None:
         durable=True,
     )
     mark_succeeded(db_session, analysis_run)
-    analysis_run.estimated_cost_usd = cost
+    db_session.add(
+        ProviderCall(
+            provider="openai",
+            model="gpt-5.5",
+            capability="text_generation",
+            estimated_cost_usd=cost,
+            cost_status="estimated",
+            record_source=RECORD_SOURCE_PER_CALL,
+            analysis_run_id=analysis_run.id,
+            slideshow_id=slideshow.id,
+        )
+    )
     db_session.commit()
 
 
@@ -102,7 +120,22 @@ def test_daily_costs_includes_generated_image_cost(client, db_session, slideshow
             seed=None,
             generation_time_seconds=1.0,
             file_path="/tmp/fake.png",
+        )
+    )
+    # Phase 1 remediation (WP-2): image spend is read from ProviderCall,
+    # the single calculation path - GeneratedImage.estimated_cost_usd is
+    # no longer a cost source.
+    db_session.add(
+        ProviderCall(
+            provider="nano_banana",
+            model="gemini-3.1-flash-image-preview",
+            capability="image_generation",
+            image_count=1,
             estimated_cost_usd=0.05,
+            cost_status="estimated",
+            record_source=RECORD_SOURCE_PER_CALL,
+            slideshow_id=slideshow_with_slide.id,
+            slide_id=slide.id,
         )
     )
     db_session.commit()
@@ -132,7 +165,20 @@ def test_daily_costs_zero_when_no_pricing_configured(client, db_session, slidesh
         model_name="gpt-5.5",
         durable=True,
     )
-    mark_succeeded(db_session, analysis_run)  # no usage passed -> estimated_cost_usd stays None
+    mark_succeeded(db_session, analysis_run)
+    db_session.add(
+        ProviderCall(
+            provider="openai",
+            model="an-unpriced-model",
+            capability="ocr",
+            estimated_cost_usd=None,
+            cost_status="unknown",
+            cost_status_reason="no pricing.yaml entry",
+            record_source=RECORD_SOURCE_PER_CALL,
+            analysis_run_id=analysis_run.id,
+            slideshow_id=slideshow_with_slide.id,
+        )
+    )
     db_session.commit()
 
     response = client.get("/api/costs/daily")
@@ -141,3 +187,6 @@ def test_daily_costs_zero_when_no_pricing_configured(client, db_session, slidesh
     assert len(body) == 1
     assert body[0]["call_count"] == 1
     assert body[0]["analysis_cost_usd"] == 0.0
+    # Phase 1 remediation (WP-2): an unpriced call is now reported as
+    # explicitly unknown, not indistinguishable from a genuinely free one.
+    assert body[0]["calls_with_unknown_cost"] == 1

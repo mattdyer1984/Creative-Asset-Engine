@@ -43,6 +43,8 @@ join.
 from sqlalchemy.orm import Session
 
 from app import storage
+import time
+
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.creative_specification import CreativeSpecification
@@ -53,6 +55,7 @@ from app.services.prompt_compiler import compile_generation_request
 from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
+from app.services.provider_call_log import record_provider_call
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 
@@ -130,7 +133,9 @@ class SlideImageGenerationStage:
             request = compile_generation_request(
                 creative_specification.structured_json, reference_image_paths
             )
+            _start = time.perf_counter()
             result = image_provider.generate_image(request)
+            _provider_call_ms = (time.perf_counter() - _start) * 1000
 
             db.query(GeneratedImage).filter(
                 GeneratedImage.slide_id == slide.id,
@@ -161,7 +166,25 @@ class SlideImageGenerationStage:
             generated_image.file_path = str(saved_path)
             db.flush()
 
+            # Phase 1 remediation (WP-2): this older single-call stage
+            # was making a real paid image call completely untimed and
+            # with no cost attribution at all - the only generation path
+            # invisible to reporting once generation_engine was
+            # instrumented.
+            record_provider_call(
+                db,
+                provider=result.provider,
+                model=result.model,
+                capability="image_generation",
+                image_count=1,
+                provider_latency_ms=_provider_call_ms,
+                analysis_run_id=analysis_run.id,
+                generated_image_id=generated_image.id,
+                slide_id=slide.id,
+                slideshow_id=slideshow.id,
+            )
+
         except Exception as exc:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
-        return mark_succeeded(db, analysis_run)
+        return mark_succeeded(db, analysis_run, provider_call_ms=_provider_call_ms)

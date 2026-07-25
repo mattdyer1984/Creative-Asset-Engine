@@ -51,6 +51,7 @@ would never be marked superseded by this candidate even if visually
 identical, so there is nothing worth asking about.
 """
 
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -61,6 +62,7 @@ from sqlalchemy.orm import Session
 from app.ai_providers.registry import default_registry
 from app.models.product_reference_image import ProductReferenceImage
 from app.services.reference_acquisition import get_unscored_candidates
+from app.services.provider_call_log import record_provider_call
 from app.stages.base import StageResult
 
 # Tier 1 floor - deliberately conservative, filters only the obviously
@@ -179,6 +181,8 @@ def _compare_against_same_role_included(
         if existing.quality_score is None or candidate_score == existing.quality_score:
             continue
         existing_bytes = Path(existing.file_path).read_bytes()
+        compare_usage: dict = {}
+        _compare_start = time.perf_counter()
         result = vision_provider.analyze_creative(
             image_bytes=[candidate_bytes, existing_bytes],
             prompt_spec={
@@ -195,6 +199,15 @@ def _compare_against_same_role_included(
                 "schema_name": "reference_supersede_check",
             },
             response_schema=SUPERSEDE_SCHEMA,
+            usage_sink=compare_usage,
+        )
+        record_provider_call(
+            db,
+            provider=vision_provider.provider,
+            model=vision_provider.model,
+            capability="vision_analysis",
+            usage=compare_usage,
+            provider_latency_ms=(time.perf_counter() - _compare_start) * 1000,
         )
         if result["is_near_duplicate"]:
             action = "supersede" if candidate_score < existing.quality_score else "upgrade_candidate"
@@ -215,6 +228,8 @@ def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> No
         image.library_status = "rejected"
         return
 
+    usage: dict = {}
+    _start = time.perf_counter()
     tier2 = vision_provider.analyze_creative(
         image_bytes=image_bytes,
         prompt_spec={
@@ -232,6 +247,17 @@ def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> No
             "schema_name": "reference_scoring",
         },
         response_schema=TIER2_SCHEMA,
+        usage_sink=usage,
+    )
+    # Phase 1 remediation (WP-2): reference scoring was one of four
+    # modules making real paid calls with no record at all.
+    record_provider_call(
+        db,
+        provider=vision_provider.provider,
+        model=vision_provider.model,
+        capability="vision_analysis",
+        usage=usage,
+        provider_latency_ms=(time.perf_counter() - _start) * 1000,
     )
 
     checks = [

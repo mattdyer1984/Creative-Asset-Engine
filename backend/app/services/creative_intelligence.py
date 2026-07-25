@@ -36,6 +36,11 @@ sub-phase existed. Never a hard failure.
 """
 
 from app.ai_providers.registry import default_registry
+from app.services.provider_call_log import record_provider_call
+import time
+
+from sqlalchemy.orm import Session
+
 from app.models.scene_analysis import SceneAnalysis
 
 CREATIVE_INTELLIGENCE_SCHEMA = {
@@ -116,6 +121,7 @@ def optimize_scene_description(
     marketing_narrative: str,
     product_category: str,
     creativity_level: str = "conservative",
+    db: Session | None = None,
 ) -> dict:
     preserved_notes = [
         region["notes"] for region in scene_analysis.regions_json
@@ -127,7 +133,9 @@ def optimize_scene_description(
     ]
 
     text_provider = default_registry.text_generation()
-    return text_provider.generate(
+    usage: dict = {}
+    start = time.perf_counter()
+    result = text_provider.generate(
         prompt_spec={
             "prompt": _build_creative_intelligence_prompt(
                 preserved_notes, transformable_notes, visual_style,
@@ -136,4 +144,19 @@ def optimize_scene_description(
             "schema_name": "creative_intelligence",
         },
         response_schema=CREATIVE_INTELLIGENCE_SCHEMA,
+        usage_sink=usage,
     )
+    # Phase 1 remediation (WP-2): this was one of four modules making a
+    # real paid call with no record at all. `db` is optional so the pure
+    # function stays independently testable; every production caller
+    # passes it.
+    if db is not None:
+        record_provider_call(
+            db,
+            provider=text_provider.provider,
+            model=text_provider.model,
+            capability="text_generation",
+            usage=usage,
+            provider_latency_ms=(time.perf_counter() - start) * 1000,
+        )
+    return result

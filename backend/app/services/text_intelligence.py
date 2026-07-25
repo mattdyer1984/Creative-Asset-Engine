@@ -62,7 +62,12 @@ nested inside one FinalOutput.text_assets_json (app.models.final_output);
 nothing needs to query a TextAsset independently of its own output.
 """
 
+import time
+
+from sqlalchemy.orm import Session
+
 from app.models.ocr_result import OCRResult
+from app.services.provider_call_log import record_provider_call
 
 TEXT_STRATEGY_REUSE_ORIGINAL = "reuse_original"
 TEXT_STRATEGY_AI_REWRITE = "ai_rewrite"
@@ -242,6 +247,7 @@ def build_text_assets(
     *,
     text_generation_provider=None,
     packaging_text: list[str] | None = None,
+    db: Session | None = None,
 ) -> list[dict]:
     """
     Returns the list of TextAsset dicts the Rendering Engine should
@@ -287,10 +293,23 @@ def build_text_assets(
         "the same order.\n\n"
         + "\n".join(f'{i + 1}. [{b["role"]}] "{b["text"]}"' for i, b in enumerate(blocks))
     )
+    usage: dict = {}
+    start = time.perf_counter()
     result = text_generation_provider.generate(
         prompt_spec={"prompt": prompt, "schema_name": "text_rewrite"},
         response_schema=_REWRITE_SCHEMA,
+        usage_sink=usage,
     )
+    # Phase 1 remediation (WP-2): previously an unrecorded paid call.
+    if db is not None:
+        record_provider_call(
+            db,
+            provider=text_generation_provider.provider,
+            model=text_generation_provider.model,
+            capability="text_generation",
+            usage=usage,
+            provider_latency_ms=(time.perf_counter() - start) * 1000,
+        )
     rewritten = result["rewritten"]
     if len(rewritten) != len(blocks):
         raise ValueError(

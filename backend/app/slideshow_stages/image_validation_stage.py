@@ -60,6 +60,7 @@ from app.services.prompt_compiler import format_attribute_value
 from app.services.reference_selection import get_reference_image_paths
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
+from app.services.provider_call_log import record_provider_call
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 IMAGE_VALIDATION_SCHEMA = {
@@ -243,6 +244,23 @@ class SlideImageValidationStage:
                     )
                     provider_call_ms += (time.perf_counter() - call_start) * 1000
                     _accumulate_usage(usage, identity_usage)
+                    # Phase 1 remediation (WP-2): recorded per CALL. This
+                    # stage makes TWO provider calls under ONE
+                    # AnalysisRun (Stage 1 identity here, Stage 2
+                    # creative below), so folding them into the run would
+                    # either double-count or lose per-call attribution.
+                    record_provider_call(
+                        db,
+                        provider=vision_provider.provider,
+                        model=vision_provider.model,
+                        capability="vision_analysis",
+                        usage=identity_usage,
+                        provider_latency_ms=(time.perf_counter() - call_start) * 1000,
+                        analysis_run_id=analysis_run.id,
+                        generated_image_id=generated_image.id,
+                        slide_id=generated_image.slide_id,
+                        slideshow_id=generated_image.slideshow_id,
+                    )
                     identity_checks = identity_result["field_checks"]
                     identity_passed = bool(identity_checks) and all(
                         check["preserved"] for check in identity_checks
@@ -287,6 +305,20 @@ class SlideImageValidationStage:
                 )
                 provider_call_ms += (time.perf_counter() - call_start) * 1000
                 _accumulate_usage(usage, creative_usage)
+                # The second of this stage's two calls - see the note on
+                # the identity call above.
+                record_provider_call(
+                    db,
+                    provider=vision_provider.provider,
+                    model=vision_provider.model,
+                    capability="vision_analysis",
+                    usage=creative_usage,
+                    provider_latency_ms=(time.perf_counter() - call_start) * 1000,
+                    analysis_run_id=analysis_run.id,
+                    generated_image_id=generated_image.id,
+                    slide_id=generated_image.slide_id,
+                    slideshow_id=generated_image.slideshow_id,
+                )
 
                 field_checks = result["field_checks"]
                 creative_passed = bool(field_checks) and all(
@@ -318,7 +350,15 @@ class SlideImageValidationStage:
         except Exception as exc:
             return mark_failed(db, analysis_run, exc, rollback=True)
 
-        return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+        return mark_succeeded(
+            db,
+            analysis_run,
+            provider_call_ms=provider_call_ms,
+            usage=usage,
+            # This stage records its own per-CALL rows above (two calls
+            # under one run) - opting out prevents double counting.
+            emit_provider_call=False,
+        )
 
 
 def _accumulate_usage(total: dict, call_usage: dict) -> None:
@@ -395,6 +435,20 @@ def run_bundle_member_identity_validation(
             usage_sink=usage,
         )
         provider_call_ms = (time.perf_counter() - call_start) * 1000
+        # Bundle Composition path - one identity call per member product,
+        # each its own billable call and so its own ProviderCall row.
+        record_provider_call(
+            db,
+            provider=vision_provider.provider,
+            model=vision_provider.model,
+            capability="vision_analysis",
+            usage=usage,
+            provider_latency_ms=provider_call_ms,
+            analysis_run_id=analysis_run.id,
+            generated_image_id=generated_image.id,
+            slide_id=generated_image.slide_id,
+            slideshow_id=generated_image.slideshow_id,
+        )
         identity_checks = identity_result["field_checks"]
         identity_passed = bool(identity_checks) and all(check["preserved"] for check in identity_checks)
 
@@ -425,4 +479,12 @@ def run_bundle_member_identity_validation(
     except Exception as exc:
         return mark_failed(db, analysis_run, exc, rollback=True)
 
-    return mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+    return mark_succeeded(
+            db,
+            analysis_run,
+            provider_call_ms=provider_call_ms,
+            usage=usage,
+            # This stage records its own per-CALL rows above (two calls
+            # under one run) - opting out prevents double counting.
+            emit_provider_call=False,
+        )

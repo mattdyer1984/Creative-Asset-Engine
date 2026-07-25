@@ -1,47 +1,88 @@
 """
-Costs API — Optimisation & Stability Pass, Tier 2.2 (see
-MIGRATION_PLAN.md). The one small, honest aggregation the Phase 5 cost
-ask calls for: "why did yesterday cost $X" answerable without opening a
-provider dashboard. Deliberately just a read over AnalysisRun/
-GeneratedImage's own estimated_cost_usd columns, grouped in Python (this
-is a single-user local app on SQLite, not a case that needs a SQL-level
-GROUP BY for scale) - no new write path, no new bookkeeping.
+Costs API — Phase 1 remediation (WP-2).
+
+**One calculation path.** Every figure below is derived from
+`ProviderCall` and nothing else. The previous version summed
+`AnalysisRun.estimated_cost_usd` and `GeneratedImage.estimated_cost_usd`
+separately, which had two problems: several real paid calls (photorealism
+scoring, reference scoring, creative intelligence, text intelligence) had
+no row in either table and were silently missing from spend entirely, and
+a stage making two provider calls contributed one row, so per-call
+attribution was impossible.
+
+**Untrustworthy figures are never silently folded into a total.** Only
+`estimated`/`exact` rows contribute to a cost total. `partial` rows (a
+known under-count - e.g. a completion rate was missing) and `unknown`
+rows are counted and surfaced separately, so a total never quietly
+under-reports while looking authoritative.
+
+**Reconstructed history is separable.** `?include_legacy=false` excludes
+`record_source='legacy_aggregate'` rows - reconstructed from pre-
+ProviderCall history, where one row may stand for several real calls.
 """
 
 from collections import defaultdict
 from datetime import date as date_type
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models.analysis_run import AnalysisRun
-from app.models.generated_image import GeneratedImage
-from app.schemas import DailyCostRead
+from app.models.provider_call import RECORD_SOURCE_LEGACY_AGGREGATE, ProviderCall
+from app.schemas import CostBreakdownRead, DailyCostRead
+from app.services.cost_estimation import CostStatus
 
 router = APIRouter(prefix="/api/costs", tags=["costs"])
 
+_TRUSTED = {str(CostStatus.EXACT), str(CostStatus.ESTIMATED)}
+
+
+def _base_query(include_legacy: bool):
+    stmt = select(ProviderCall)
+    if not include_legacy:
+        stmt = stmt.where(ProviderCall.record_source != RECORD_SOURCE_LEGACY_AGGREGATE)
+    return stmt
+
 
 @router.get("/daily", response_model=list[DailyCostRead])
-def get_daily_costs(db: Session = Depends(get_db)) -> list[DailyCostRead]:
+def get_daily_costs(
+    db: Session = Depends(get_db),
+    include_legacy: bool = Query(
+        True,
+        description=(
+            "Include rows reconstructed from pre-ProviderCall history. These are "
+            "labelled legacy_aggregate and may each stand for more than one real call."
+        ),
+    ),
+) -> list[DailyCostRead]:
     buckets: dict[date_type, dict] = defaultdict(
-        lambda: {"analysis_cost_usd": 0.0, "image_generation_cost_usd": 0.0, "call_count": 0}
+        lambda: {
+            "analysis_cost_usd": 0.0,
+            "image_generation_cost_usd": 0.0,
+            "call_count": 0,
+            "calls_with_unknown_cost": 0,
+            "calls_with_partial_cost": 0,
+        }
     )
 
-    for run in db.scalars(select(AnalysisRun).where(AnalysisRun.finished_at.is_not(None))):
-        day = run.finished_at.date()
-        bucket = buckets[day]
+    for call in db.scalars(_base_query(include_legacy)):
+        bucket = buckets[call.created_at.date()]
         bucket["call_count"] += 1
-        if run.estimated_cost_usd is not None:
-            bucket["analysis_cost_usd"] += run.estimated_cost_usd
 
-    for image in db.scalars(select(GeneratedImage)):
-        day = image.created_at.date()
-        bucket = buckets[day]
-        bucket["call_count"] += 1
-        if image.estimated_cost_usd is not None:
-            bucket["image_generation_cost_usd"] += image.estimated_cost_usd
+        if call.cost_status == str(CostStatus.UNKNOWN):
+            bucket["calls_with_unknown_cost"] += 1
+            continue
+        if call.cost_status == str(CostStatus.PARTIAL):
+            # A real but knowingly incomplete figure - counted, not summed.
+            bucket["calls_with_partial_cost"] += 1
+            continue
+
+        amount = call.estimated_cost_usd or 0.0
+        if call.capability == "image_generation":
+            bucket["image_generation_cost_usd"] += amount
+        else:
+            bucket["analysis_cost_usd"] += amount
 
     return sorted(
         (
@@ -53,9 +94,85 @@ def get_daily_costs(db: Session = Depends(get_db)) -> list[DailyCostRead]:
                     bucket["analysis_cost_usd"] + bucket["image_generation_cost_usd"], 4
                 ),
                 call_count=bucket["call_count"],
+                calls_with_unknown_cost=bucket["calls_with_unknown_cost"],
+                calls_with_partial_cost=bucket["calls_with_partial_cost"],
             )
             for day, bucket in buckets.items()
         ),
         key=lambda row: row.date,
+        reverse=True,
+    )
+
+
+@router.get("/breakdown", response_model=list[CostBreakdownRead])
+def get_cost_breakdown(
+    db: Session = Depends(get_db),
+    group_by: str = Query(
+        "capability",
+        pattern="^(provider|model|capability|slideshow|slide)$",
+        description="Reporting axis. WP-2 requires all of these to be queryable.",
+    ),
+    include_legacy: bool = Query(True),
+) -> list[CostBreakdownRead]:
+    """
+    Cost and latency grouped along any of the axes WP-2 calls for:
+    provider, model, capability, slideshow, slide.
+    """
+    attribute = {
+        "provider": lambda c: c.provider,
+        "model": lambda c: c.reported_model or c.model,
+        "capability": lambda c: c.capability,
+        "slideshow": lambda c: c.slideshow_id,
+        "slide": lambda c: c.slide_id,
+    }[group_by]
+
+    buckets: dict[str, dict] = defaultdict(
+        lambda: {
+            "cost": 0.0,
+            "calls": 0,
+            "unknown": 0,
+            "partial": 0,
+            "latency_ms": 0.0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "images": 0,
+        }
+    )
+
+    for call in db.scalars(_base_query(include_legacy)):
+        key = attribute(call)
+        if key is None:
+            continue  # not attributable on this axis - excluded, not bucketed as "None"
+        bucket = buckets[key]
+        bucket["calls"] += 1
+        bucket["latency_ms"] += call.provider_latency_ms or 0.0
+        bucket["prompt_tokens"] += call.prompt_tokens or 0
+        bucket["completion_tokens"] += call.completion_tokens or 0
+        bucket["images"] += call.image_count or 0
+
+        if call.cost_status == str(CostStatus.UNKNOWN):
+            bucket["unknown"] += 1
+        elif call.cost_status == str(CostStatus.PARTIAL):
+            bucket["partial"] += 1
+        else:
+            bucket["cost"] += call.estimated_cost_usd or 0.0
+
+    return sorted(
+        (
+            CostBreakdownRead(
+                group=group_by,
+                key=key,
+                estimated_cost_usd=round(bucket["cost"], 4),
+                call_count=bucket["calls"],
+                calls_with_unknown_cost=bucket["unknown"],
+                calls_with_partial_cost=bucket["partial"],
+                total_provider_latency_ms=round(bucket["latency_ms"], 1),
+                prompt_tokens=bucket["prompt_tokens"],
+                completion_tokens=bucket["completion_tokens"],
+                image_count=bucket["images"],
+            )
+            for key, bucket in buckets.items()
+        ),
+        key=lambda row: row.estimated_cost_usd,
         reverse=True,
     )

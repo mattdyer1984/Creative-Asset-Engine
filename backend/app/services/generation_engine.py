@@ -97,6 +97,7 @@ from app.services.creative_intelligence import optimize_scene_description
 from app.services.decision_engine import GenerationPlan
 from app.services.product_profile import extract_branding_text
 from app.services.prompt_compiler import compile_generation_request
+from app.services.provider_call_log import record_provider_call
 from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
@@ -150,6 +151,7 @@ def _enriched_creative_specification(
         marketing_narrative=(marketing_analysis.narrative_text if marketing_analysis else ""),
         product_category=(lock_profile.structured_json.get("product_category", "") if lock_profile else ""),
         creativity_level=plan.creativity_level,
+        db=db,
     )
 
     return {**structured, "background_environment": result["optimized_scene_description"]}
@@ -302,6 +304,23 @@ def _generate_candidates(
             mark_failed(db, analysis_run, exc, rollback=True)
             continue
 
+        # Phase 1 remediation (WP-2): one ProviderCall per generated
+        # candidate. Attributed to the provider that ACTUALLY served it
+        # (result.provider/result.model), which is the fallback rather
+        # than the primary whenever the primary 503'd - so spend lands
+        # against the provider that really billed for it.
+        record_provider_call(
+            db,
+            provider=result.provider,
+            model=result.model,
+            capability="image_generation",
+            image_count=1,
+            provider_latency_ms=provider_call_ms,
+            analysis_run_id=analysis_run.id,
+            generated_image_id=generated_image.id,
+            slide_id=slide.id,
+            slideshow_id=slide.slideshow_id,
+        )
         mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms)
         candidates.append(generated_image)
 
