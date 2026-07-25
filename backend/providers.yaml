@@ -91,3 +91,19 @@ models:
     # for the user's literal "2.5" naming, not a guess.
     ocr: gemini-flash-latest
     vision_analysis: gemini-pro-latest
+
+# Optimisation & Stability Pass, Tier 3.2 (see MIGRATION_PLAN.md) - a
+# documented value the next person can read/adjust, not a silent magic
+# number buried in generation_engine.py. image_generation candidates
+# within one attempt now run concurrently (app.slideshow_stages.
+# concurrency.run_concurrently) rather than one-at-a-time; unlike every
+# other stage's provider call (analysis-only, generally more permissive
+# rate limits), no verified per-account RPM/concurrent-request ceiling
+# was available for the image-generation models in use here (OpenAI
+# gpt-image-1, Google gemini-3.1-flash-image-preview) - so this starts
+# deliberately conservative (2, not the generic MAX_CONCURRENT_CALLS=4
+# every other stage uses) and should be raised only after a real
+# "maximum" mode batch is live-tested with no 429s/rate-limit errors in
+# the captured provider-call data (app.services.timing_report).
+concurrency_limits:
+  image_generation: 2

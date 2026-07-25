@@ -40,20 +40,29 @@ R = TypeVar("R")
 MAX_CONCURRENT_CALLS = 4
 
 
-def run_concurrently(items: list[T], call: Callable[[T], R]) -> dict[int, R | Exception]:
+def run_concurrently(
+    items: list[T], call: Callable[[T], R], *, max_workers: int = MAX_CONCURRENT_CALLS
+) -> dict[int, R | Exception]:
     """
     Runs `call(item)` for every item in `items` concurrently (bounded by
-    MAX_CONCURRENT_CALLS), returning a dict keyed by each item's
-    position in the original list. Never raises - a failed call is
-    stored as the Exception instance itself, for the caller's own
-    existing per-item error handling (raise it back inside its normal
-    sequential loop) to handle in the same order and with the same
-    semantics as before this helper existed.
+    `max_workers`, MAX_CONCURRENT_CALLS by default), returning a dict
+    keyed by each item's position in the original list. Never raises - a
+    failed call is stored as the Exception instance itself, for the
+    caller's own existing per-item error handling (raise it back inside
+    its normal sequential loop) to handle in the same order and with the
+    same semantics as before this helper existed.
+
+    max_workers (Optimisation & Stability Pass, Tier 3.2, see
+    MIGRATION_PLAN.md) - an override, not a second cap layered on top of
+    MAX_CONCURRENT_CALLS: some call sites (image generation) have their
+    own, separately-verified, empirically-derived ceiling
+    (providers.yaml's concurrency_limits.image_generation) rather than
+    sharing every other stage's generic default.
     """
     if not items:
         return {}
     results: dict[int, R | Exception] = {}
-    with ThreadPoolExecutor(max_workers=min(len(items), MAX_CONCURRENT_CALLS)) as executor:
+    with ThreadPoolExecutor(max_workers=min(len(items), max_workers)) as executor:
         future_to_index = {executor.submit(call, item): index for index, item in enumerate(items)}
         for future in as_completed(future_to_index):
             index = future_to_index[future]

@@ -119,6 +119,30 @@ def load_config(path: Path = PROVIDERS_YAML_PATH) -> tuple[ProvidersConfig, Mode
     )
 
 
+# Optimisation & Stability Pass, Tier 3.2 (see MIGRATION_PLAN.md) - the
+# fallback if providers.yaml is missing or has no concurrency_limits
+# section at all (e.g. an older checkout) - matches providers.yaml's own
+# documented starting value, not a second, possibly-drifting default.
+DEFAULT_IMAGE_GENERATION_CONCURRENCY = 2
+
+
+def get_image_generation_concurrency(path: Path = PROVIDERS_YAML_PATH) -> int:
+    """
+    Reads concurrency_limits.image_generation from providers.yaml - kept
+    as a small standalone reader (not folded into ProvidersConfig/
+    load_config) since it's config for HOW to call a provider, not WHICH
+    provider/model to call, a real difference from what those two
+    classes already model.
+    """
+    if not path.exists():
+        return DEFAULT_IMAGE_GENERATION_CONCURRENCY
+
+    with open(path) as f:
+        raw = yaml.safe_load(f) or {}
+
+    return raw.get("concurrency_limits", {}).get("image_generation", DEFAULT_IMAGE_GENERATION_CONCURRENCY)
+
+
 def get_api_key(provider: str) -> str:
     """
     Looks up the API key for `provider` from the macOS Keychain first,

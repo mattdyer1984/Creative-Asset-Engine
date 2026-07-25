@@ -164,6 +164,48 @@ def test_raises_a_clear_error_when_the_response_has_no_image_part(tmp_path):
             assert "no image data" in str(exc)
 
 
+def test_reference_images_are_decoded_once_and_copies_reused_across_calls(tmp_path, monkeypatch):
+    """
+    Optimisation & Stability Pass, Tier 3.3 (see MIGRATION_PLAN.md) -
+    same reference_image_paths across two generate_image calls (mirrors
+    generation_engine.py's "every candidate shares the same Reference
+    Set" real usage) must decode from disk only once, not once per call.
+    """
+    from PIL import Image
+
+    canned_response = _fake_generate_content_response(b"bytes")
+    adapter = NanoBananaImageGenerationAdapter()
+
+    with patch("app.ai_providers.nano_banana_adapter.get_api_key", return_value="fake-key"):
+        client = adapter.client
+
+    path = _make_reference_image_file(tmp_path)
+    request = GenerationRequest(
+        creative_intent="Composition: a bottle",
+        reference_image_paths=[path],
+        things_to_avoid=[],
+        aspect_ratio="1:1",
+    )
+
+    open_calls = []
+    real_open = Image.open
+
+    def _counting_open(p, *args, **kwargs):
+        open_calls.append(p)
+        return real_open(p, *args, **kwargs)
+
+    monkeypatch.setattr("app.ai_providers.nano_banana_adapter.Image.open", _counting_open)
+
+    with (
+        patch.object(NanoBananaImageGenerationAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=canned_response),
+    ):
+        adapter.generate_image(request)
+        adapter.generate_image(request)
+
+    assert len(open_calls) == 1  # decoded once, not twice, across both calls
+
+
 def test_capabilities():
     adapter = NanoBananaImageGenerationAdapter()
 

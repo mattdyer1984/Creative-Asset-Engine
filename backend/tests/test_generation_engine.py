@@ -9,6 +9,8 @@ identical - Phase 10.2 extends the same single-call machinery, not a
 parallel one).
 """
 
+import threading
+
 from sqlalchemy import select
 
 from app.ai_providers.base import GeneratedImageResult
@@ -105,7 +107,18 @@ def test_fails_cleanly_without_a_library(db_session, slideshow_with_product, mon
 
 
 def test_one_candidate_failing_does_not_stop_the_others(db_session, slideshow_with_product, monkeypatch):
-    """A provider error on one candidate call shouldn't lose the attempt's other, successful candidates."""
+    """
+    A provider error on one candidate call shouldn't lose the attempt's
+    other, successful candidates.
+
+    Optimisation & Stability Pass, Tier 3.2 (see MIGRATION_PLAN.md):
+    candidates now generate concurrently, so _FlakyProvider must be
+    thread-safe (a lock around the shared counter - a bare `calls += 1`
+    is not atomic across threads) and this test can no longer assume
+    WHICH candidate_index is the one that fails, only that exactly one
+    of the three does and the other two survive - "the 2nd call" is a
+    real but non-deterministic race under concurrency, not a fixed slot.
+    """
     _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
 
     class _FlakyProvider:
@@ -114,10 +127,13 @@ def test_one_candidate_failing_does_not_stop_the_others(db_session, slideshow_wi
 
         def __init__(self):
             self.calls = 0
+            self._lock = threading.Lock()
 
         def generate_image(self, request):
-            self.calls += 1
-            if self.calls == 2:
+            with self._lock:
+                self.calls += 1
+                should_fail = self.calls == 2
+            if should_fail:
                 raise RuntimeError("provider hiccup")
             return GeneratedImageResult(
                 image_bytes=b"\x89PNG\r\n\x1a\nfake-bytes",
@@ -152,8 +168,10 @@ def test_one_candidate_failing_does_not_stop_the_others(db_session, slideshow_wi
     result = run_generation_attempt(db_session, slide, creative_specification, plan)
 
     assert isinstance(result, GenerationAttemptResult)
-    assert len(result.candidates) == 2  # candidate index 1 failed, 0 and 2 succeeded
-    assert [c.candidate_index for c in result.candidates] == [0, 2]
+    assert len(result.candidates) == 2  # exactly one of the three candidates failed
+    indices = {c.candidate_index for c in result.candidates}
+    assert len(indices) == 2
+    assert indices.issubset({0, 1, 2})
 
 
 def test_without_a_scene_analysis_the_original_specification_is_used_unchanged(

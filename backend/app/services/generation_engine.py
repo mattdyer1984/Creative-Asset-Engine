@@ -55,12 +55,14 @@ with the single-product path via `_generate_candidates` but not its
 single-Reference-Set assumption - see that function's own docstring.
 """
 
+import time
 from dataclasses import dataclass
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
+from app.ai_providers.config import get_image_generation_concurrency
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
@@ -80,6 +82,7 @@ from app.services.product_profile import extract_branding_text
 from app.services.prompt_compiler import compile_generation_request
 from app.services.reference_selection import get_reference_image_paths, select_reference_images
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
@@ -159,10 +162,32 @@ def _generate_candidates(
     row: the single Set for a single-product attempt, None for a bundle
     attempt (whose N Sets live on BundleCompositionMember instead - see
     that model's own docstring).
+
+    Optimisation & Stability Pass, Tier 3.2 (see MIGRATION_PLAN.md) - the
+    N candidates are independent samples of the same compiled request
+    (same reasoning Reference Selection/Creative Intelligence above
+    already rely on: "every candidate samples the same [X]"), so the
+    provider call itself now runs concurrently via the same
+    run_concurrently pattern every other multi-item stage in this
+    codebase already uses - this was previously the one stage that
+    called its provider strictly one-at-a-time despite fitting that
+    pattern exactly, and it's also the single largest wall-clock cost in
+    the whole pipeline (image generation dominates the worked timing
+    example in MIGRATION_PLAN.md). Mirrors the established shape: DB
+    writes (start_analysis_run, GeneratedImage rows, mark_*) stay
+    sequential on this thread; only the slow network call moves into
+    worker threads. Concurrency is capped by
+    providers.yaml's concurrency_limits.image_generation (deliberately
+    NOT the generic MAX_CONCURRENT_CALLS every other stage shares -
+    image generation has its own, separately-verified ceiling, started
+    conservative since no confirmed per-account rate limit was available
+    for the image-generation models in use here - see that config key's
+    own comment). candidate_index is assigned by original loop position,
+    not completion order, so DB writes stay deterministic regardless of
+    which candidate's call finishes first.
     """
-    candidates: list[GeneratedImage] = []
-    for candidate_index in range(candidate_count):
-        analysis_run = start_analysis_run(
+    analysis_runs = [
+        start_analysis_run(
             db,
             slide_id=slide.id,
             analysis_type=ANALYSIS_TYPE_GENERATED_IMAGE,
@@ -170,9 +195,28 @@ def _generate_candidates(
             model_name=image_provider.model,
             durable=True,
         )
-        try:
-            result = image_provider.generate_image(request)
+        for _ in range(candidate_count)
+    ]
 
+    def _generate(_candidate_index: int):
+        start = time.perf_counter()
+        result = image_provider.generate_image(request)
+        provider_call_ms = (time.perf_counter() - start) * 1000
+        return result, provider_call_ms
+
+    call_results = run_concurrently(
+        list(range(candidate_count)), _generate, max_workers=get_image_generation_concurrency()
+    )
+
+    candidates: list[GeneratedImage] = []
+    for candidate_index, analysis_run in enumerate(analysis_runs):
+        outcome = call_results[candidate_index]
+        if isinstance(outcome, Exception):
+            mark_failed(db, analysis_run, outcome, rollback=True)
+            continue
+        result, provider_call_ms = outcome
+
+        try:
             generated_image = GeneratedImage(
                 analysis_run_id=analysis_run.id,
                 slideshow_id=slide.slideshow_id,
@@ -209,11 +253,7 @@ def _generate_candidates(
             mark_failed(db, analysis_run, exc, rollback=True)
             continue
 
-        # generation_time_seconds is already captured by the provider
-        # adapter (openai_adapter.py/nano_banana_adapter.py) around the
-        # exact same call - reused here as provider_call_ms rather than
-        # timing it a second time.
-        mark_succeeded(db, analysis_run, provider_call_ms=result.generation_time_seconds * 1000)
+        mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms)
         candidates.append(generated_image)
 
     return candidates

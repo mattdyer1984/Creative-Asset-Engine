@@ -65,6 +65,7 @@ of a text prompt and PIL.Image.Image objects, so there's no separate
 "edit" endpoint/parameter to branch on here.
 """
 
+import threading
 import time
 
 from google import genai
@@ -114,6 +115,10 @@ class NanoBananaImageGenerationAdapter:
     def __init__(self, model: str = "gemini-3.1-flash-image-preview", provider: str = "nano_banana"):
         self.model = model
         self.provider = provider
+        # Optimisation & Stability Pass, Tier 3.3 (see MIGRATION_PLAN.md) -
+        # see _decoded_reference_images's own docstring.
+        self._reference_image_cache: dict[tuple[str, ...], list[Image.Image]] = {}
+        self._reference_image_cache_lock = threading.Lock()
 
     @property
     def client(self) -> genai.Client:
@@ -138,9 +143,38 @@ class NanoBananaImageGenerationAdapter:
             supported_resolutions=_SUPPORTED_ASPECT_RATIOS,
         )
 
+    def _decoded_reference_images(self, paths: list[str]) -> list[Image.Image]:
+        """
+        Every candidate within one GenerationAttempt shares the exact
+        same reference_image_paths (generation_engine.py's "one
+        Reference Set per attempt, not per candidate" design) and, since
+        Tier 3.2, this adapter's generate_image is now called
+        concurrently for those candidates - each call previously
+        re-Image.open()'d and re-decoded the same files from disk
+        independently, N times instead of once. Cached per adapter
+        instance (the same instance is reused across every candidate in
+        an attempt - see run_generation_attempt), keyed by the exact
+        path tuple so a differently-scoped call never reuses another
+        call's images by accident.
+
+        Returns a fresh .copy() per caller, never the cached originals -
+        PIL Image objects aren't documented as safe for concurrent reads
+        by an arbitrary consumer, and a copy is cheap relative to a full
+        decode-from-disk, so this stays safe by construction regardless
+        of whether the SDK call itself touches what it's given in a way
+        that would mutate a shared object.
+        """
+        key = tuple(paths)
+        with self._reference_image_cache_lock:
+            cached = self._reference_image_cache.get(key)
+            if cached is None:
+                cached = [Image.open(path) for path in paths]
+                self._reference_image_cache[key] = cached
+        return [image.copy() for image in cached]
+
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
         prompt = self._compile_prompt(request)
-        reference_images = [Image.open(path) for path in request.reference_image_paths]
+        reference_images = self._decoded_reference_images(request.reference_image_paths)
         aspect_ratio = _aspect_ratio_for(request.aspect_ratio)
 
         start = time.monotonic()
