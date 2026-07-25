@@ -111,3 +111,92 @@ def compile_image_prompt(
             )
         )
     return "\n\n".join(parts)
+
+
+# --- Creative specification -------------------------------------------
+#
+# Two inline f-strings in openai_adapter.generate_creative_specification,
+# selected by whether a Product Lock Profile exists. They shared an
+# identical trailing paragraph and most of their opening clause - a
+# near-duplicate the survey flagged. The shared half is now one fragment,
+# so it cannot be improved in the product branch and left stale in the
+# story branch.
+CREATIVE_SPECIFICATION = register(
+    id="generation.creative_specification",
+    version="1.0",
+    description=(
+        "Composes the provider-neutral creative specification, from a Product "
+        "Lock Profile plus fingerprint, or from the fingerprint alone for a "
+        "story slide with no product."
+    ),
+    fragments={
+        "focus": (
+            "Focus on composition, style direction, color palette, "
+            "lighting, camera and perspective, background environment, "
+            "mood, suggested text overlays, things to avoid, and aspect "
+            "ratio."
+        ),
+        "product_mode": (
+            "Given the following Product Lock Profile and Creative "
+            "Fingerprint for a marketing creative, compose a "
+            "provider-neutral creative specification for generating a "
+            "NEW, visually original marketing image that features the "
+            "exact same product (per the Product Lock Profile) but is "
+            "NOT a copy of the original creative - it should feel "
+            "visually distinct while preserving the underlying "
+            "marketing strategy captured in the Creative Fingerprint."
+        ),
+        "story_mode": (
+            "Given the following Creative Fingerprint for a marketing "
+            "creative, compose a provider-neutral creative "
+            "specification for generating a NEW, visually original "
+            "recreation of this creative's scene and narrative - it "
+            "should feel visually distinct while preserving the "
+            "underlying marketing strategy captured in the Creative "
+            "Fingerprint. This slide does NOT feature a product - it "
+            "is a narrative/story slide (e.g. a hook, a reaction shot, "
+            "a text-only caption card). Do not invent, describe, or "
+            "reference any product; focus purely on recreating the "
+            "scene, composition, and mood."
+        ),
+    },
+    template="",  # assembled entirely from fragments - see below
+)
+
+
+def compile_creative_specification_prompt(
+    *, lock_profile_json: str | None, fingerprint_json: str
+) -> str:
+    """
+    Assembles the product or story variant.
+
+    `lock_profile_json=None` selects the story path - the same condition
+    the adapter used (`if lock_profile is not None`), kept here so the
+    branch lives with the text it selects between.
+    """
+    fragments = CREATIVE_SPECIFICATION.fragments
+    parts = [fragments["product_mode" if lock_profile_json is not None else "story_mode"]]
+    if lock_profile_json is not None:
+        parts.append(f"Product Lock Profile (JSON):\n{lock_profile_json}")
+    parts.append(f"Creative Fingerprint (JSON):\n{fingerprint_json}")
+    parts.append(fragments["focus"])
+    return "\n\n".join(parts)
+
+
+# --- Text rewrite -----------------------------------------------------
+TEXT_REWRITE = register(
+    id="generation.text_rewrite",
+    version="1.0",
+    description=(
+        "Rewrites every eligible overlay text block in one call, preserving each "
+        "block's role, tone and approximate length."
+    ),
+    variables=("block_list",),
+    template=(
+        "Rewrite each of the following marketing text elements, preserving "
+        "its persuasive intent, tone, and approximate reading length - do "
+        "not change what role it plays (a headline stays a headline, a CTA "
+        "stays a CTA). Return exactly one rewritten string per input, in "
+        "the same order.\n\n{block_list}"
+    ),
+)

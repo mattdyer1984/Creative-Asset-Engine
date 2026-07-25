@@ -64,6 +64,7 @@ from app.models.product_reference_image import ProductReferenceImage
 from app.services.reference_acquisition import get_unscored_candidates
 from app.services.provider_call_log import record_provider_call
 from app.stages.base import StageResult
+from app.prompts import library as _library_prompts
 
 # Tier 1 floor - deliberately conservative, filters only the obviously
 # unusable (near-blank/corrupt crops, thumbnail-sized images) rather
@@ -186,16 +187,7 @@ def _compare_against_same_role_included(
         result = vision_provider.analyze_creative(
             image_bytes=[candidate_bytes, existing_bytes],
             prompt_spec={
-                "prompt": (
-                    "The first image is a new candidate reference image for a "
-                    "product's Canonical Reference Library. The second image "
-                    "is an already-included reference image showing the same "
-                    "role/view. Judge whether the new candidate is a "
-                    "near-duplicate of the existing image - the same shot, "
-                    "same angle, carrying no meaningfully different "
-                    "information - rather than a genuinely different, useful "
-                    "view of the product."
-                ),
+                "prompt": _library_prompts.SUPERSEDE_CHECK.render(),
                 "schema_name": "reference_supersede_check",
             },
             response_schema=SUPERSEDE_SCHEMA,
@@ -206,6 +198,7 @@ def _compare_against_same_role_included(
             provider=vision_provider.provider,
             model=vision_provider.model,
             capability="vision_analysis",
+            prompt=_library_prompts.SUPERSEDE_CHECK,
             usage=compare_usage,
             provider_latency_ms=(time.perf_counter() - _compare_start) * 1000,
         )
@@ -233,17 +226,7 @@ def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> No
     tier2 = vision_provider.analyze_creative(
         image_bytes=image_bytes,
         prompt_spec={
-            "prompt": (
-                "This is a candidate reference image for a product's Canonical "
-                "Reference Library - a curated set of images used to condition "
-                "AI image generation so the product's real appearance is "
-                "preserved. Classify which view/role this image shows, and "
-                "judge its usability as a reference: is the product's front "
-                "clearly visible, is it occluded by anything, is any brand "
-                "text/logo readable, is packaging visible, and how would you "
-                "rate the overall composition. Give short reasons for your "
-                "judgments."
-            ),
+            "prompt": _library_prompts.REFERENCE_SCORING.render(),
             "schema_name": "reference_scoring",
         },
         response_schema=TIER2_SCHEMA,
@@ -256,6 +239,7 @@ def _score_one(db: Session, image: ProductReferenceImage, vision_provider) -> No
         provider=vision_provider.provider,
         model=vision_provider.model,
         capability="vision_analysis",
+        prompt=_library_prompts.REFERENCE_SCORING,
         usage=usage,
         provider_latency_ms=(time.perf_counter() - _start) * 1000,
     )

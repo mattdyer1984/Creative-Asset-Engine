@@ -439,42 +439,10 @@ class OpenAIPromptGenerationAdapter:
         # empty dict there would read as "there IS a product, it's just
         # blank," inviting the model to invent one), and must explicitly
         # instruct against inventing a product.
-        if lock_profile is not None:
-            prompt_text = (
-                "Given the following Product Lock Profile and Creative "
-                "Fingerprint for a marketing creative, compose a "
-                "provider-neutral creative specification for generating a "
-                "NEW, visually original marketing image that features the "
-                "exact same product (per the Product Lock Profile) but is "
-                "NOT a copy of the original creative - it should feel "
-                "visually distinct while preserving the underlying "
-                "marketing strategy captured in the Creative Fingerprint.\n\n"
-                f"Product Lock Profile (JSON):\n{json.dumps(lock_profile)}\n\n"
-                f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
-                "Focus on composition, style direction, color palette, "
-                "lighting, camera and perspective, background environment, "
-                "mood, suggested text overlays, things to avoid, and aspect "
-                "ratio."
-            )
-        else:
-            prompt_text = (
-                "Given the following Creative Fingerprint for a marketing "
-                "creative, compose a provider-neutral creative "
-                "specification for generating a NEW, visually original "
-                "recreation of this creative's scene and narrative - it "
-                "should feel visually distinct while preserving the "
-                "underlying marketing strategy captured in the Creative "
-                "Fingerprint. This slide does NOT feature a product - it "
-                "is a narrative/story slide (e.g. a hook, a reaction shot, "
-                "a text-only caption card). Do not invent, describe, or "
-                "reference any product; focus purely on recreating the "
-                "scene, composition, and mood.\n\n"
-                f"Creative Fingerprint (JSON):\n{json.dumps(fingerprint)}\n\n"
-                "Focus on composition, style direction, color palette, "
-                "lighting, camera and perspective, background environment, "
-                "mood, suggested text overlays, things to avoid, and aspect "
-                "ratio."
-            )
+        prompt_text = _generation_prompts.compile_creative_specification_prompt(
+            lock_profile_json=json.dumps(lock_profile) if lock_profile is not None else None,
+            fingerprint_json=json.dumps(fingerprint),
+        )
 
         client = self.client
         response = client.chat.completions.create(

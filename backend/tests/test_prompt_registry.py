@@ -39,6 +39,9 @@ RENDER_INPUTS: dict[str, dict] = {
         "slides_json": '[{"slide_index": 0, "text": "hook"}]'
     },
     "validation.creative_fidelity": {"field_lines": _FIELD_LINES},
+    "generation.text_rewrite": {
+        "block_list": '1. [headline] "Try it today"\n2. [cta] "Buy now"'
+    },
     "generation.creative_intelligence": {
         "preserved_text": "- keep the logo",
         "transformable_text": "- swap the background",
@@ -76,9 +79,29 @@ def _image_compilation_shapes() -> dict[str, str]:
     return shapes
 
 
+def _creative_specification_shapes() -> dict[str, str]:
+    """Both variants: with a Product Lock Profile, and story mode without."""
+    import json
+
+    from app.prompts.generation import compile_creative_specification_prompt
+
+    fingerprint = json.dumps({"style": "clean studio"})
+    return {
+        "generation.creative_specification.product": compile_creative_specification_prompt(
+            lock_profile_json=json.dumps({"brand": "Acme"}), fingerprint_json=fingerprint
+        ),
+        "generation.creative_specification.story": compile_creative_specification_prompt(
+            lock_profile_json=None, fingerprint_json=fingerprint
+        ),
+    }
+
+
 # Prompts assembled by a helper rather than rendered straight from a
 # template: snapshot every shape the helper can emit.
-ASSEMBLED = {"generation.image_compilation": _image_compilation_shapes}
+ASSEMBLED = {
+    "generation.image_compilation": _image_compilation_shapes,
+    "generation.creative_specification": _creative_specification_shapes,
+}
 
 
 def _snapshot_names(prompt) -> list[tuple[str, str]]:
@@ -230,3 +253,52 @@ def test_duplicate_ids_are_rejected():
     registry.register(Prompt(id="dupe", version="1.0", template="A"))
     with pytest.raises(ValueError, match="unique"):
         registry.register(Prompt(id="dupe", version="1.0", template="B"))
+
+
+def test_every_recording_call_site_supplies_prompt_identity():
+    """
+    Guards WP-3's actual deliverable. It is easy to add a new paid call
+    and forget the prompt, leaving a row that records what it cost but
+    not what produced it - and nothing else would fail.
+
+    Sites that emit no ProviderCall at all are exempt, and must say so
+    explicitly: either they pass no usage (nothing billable to record)
+    or emit_provider_call=False (they record their own finer-grained
+    rows). Anything else must name its prompt.
+    """
+    import ast
+    import pathlib
+
+    app_dir = pathlib.Path(__file__).parent.parent / "app"
+    offenders = []
+
+    for path in sorted(app_dir.rglob("*.py")):
+        if path.name == "execution.py" and path.parent.name == "stages":
+            continue  # the choke point itself - it forwards the argument
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+            if name not in {"record_provider_call", "mark_succeeded"}:
+                continue
+            keywords = {k.arg: k for k in node.keywords}
+            if "prompt" in keywords:
+                continue
+            # Exempt: emits nothing.
+            if name == "mark_succeeded":
+                emits = keywords.get("emit_provider_call")
+                if "usage" not in keywords or (
+                    emits is not None
+                    and isinstance(emits.value, ast.Constant)
+                    and emits.value.value is False
+                ):
+                    continue
+            offenders.append(f"{path.relative_to(app_dir.parent)}:{node.lineno} {name}()")
+
+    assert not offenders, (
+        "these paid-call sites record cost but not which prompt produced it:\n  "
+        + "\n  ".join(offenders)
+        + "\nPass prompt=<registered Prompt>, or make it explicit that the site "
+        "emits no ProviderCall."
+    )

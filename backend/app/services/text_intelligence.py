@@ -68,6 +68,7 @@ from sqlalchemy.orm import Session
 
 from app.models.ocr_result import OCRResult
 from app.services.provider_call_log import record_provider_call
+from app.prompts import generation as _generation_prompts
 
 TEXT_STRATEGY_REUSE_ORIGINAL = "reuse_original"
 TEXT_STRATEGY_AI_REWRITE = "ai_rewrite"
@@ -285,13 +286,10 @@ def build_text_assets(
     if text_generation_provider is None:
         raise ValueError("text_strategy='ai_rewrite' requires a text_generation_provider")
 
-    prompt = (
-        "Rewrite each of the following marketing text elements, preserving "
-        "its persuasive intent, tone, and approximate reading length - do "
-        "not change what role it plays (a headline stays a headline, a CTA "
-        "stays a CTA). Return exactly one rewritten string per input, in "
-        "the same order.\n\n"
-        + "\n".join(f'{i + 1}. [{b["role"]}] "{b["text"]}"' for i, b in enumerate(blocks))
+    prompt = _generation_prompts.TEXT_REWRITE.render(
+        block_list="\n".join(
+            f'{i + 1}. [{b["role"]}] "{b["text"]}"' for i, b in enumerate(blocks)
+        )
     )
     usage: dict = {}
     start = time.perf_counter()
@@ -307,6 +305,7 @@ def build_text_assets(
             provider=text_generation_provider.provider,
             model=text_generation_provider.model,
             capability="text_generation",
+            prompt=_generation_prompts.TEXT_REWRITE,
             usage=usage,
             provider_latency_ms=(time.perf_counter() - start) * 1000,
         )

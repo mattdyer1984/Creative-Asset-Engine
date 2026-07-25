@@ -27,8 +27,24 @@
     "content_hash": "fcffde2b386a53b3",
     "version": "1.0"
   },
+  "generation.creative_specification": {
+    "content_hash": "14f26214cea805ba",
+    "version": "1.0"
+  },
   "generation.image_compilation": {
     "content_hash": "74865eaa55bb7873",
+    "version": "1.0"
+  },
+  "generation.text_rewrite": {
+    "content_hash": "5d1318fa8fede98a",
+    "version": "1.0"
+  },
+  "library.reference_scoring": {
+    "content_hash": "b28b29fa5119f81d",
+    "version": "1.0"
+  },
+  "library.supersede_check": {
+    "content_hash": "2860ea5335b2a8e3",
     "version": "1.0"
   },
   "ocr.extract_text": {

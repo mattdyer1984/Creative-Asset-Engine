@@ -84,6 +84,7 @@ from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import generation as _generation_prompts
 
 
 def resolve_primary_appearance(
@@ -275,6 +276,12 @@ class SlideCreativeSpecificationStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             slide.current_creative_specification_id = creative_specification.id
-            result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+            result = mark_succeeded(
+                db,
+                analysis_run,
+                provider_call_ms=provider_call_ms,
+                usage=usage,
+                prompt=_generation_prompts.CREATIVE_SPECIFICATION,
+            )
 
         return result

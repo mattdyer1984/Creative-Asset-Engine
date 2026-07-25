@@ -24,6 +24,7 @@ from app.prompts.core import (
 from app.prompts import (  # noqa: E402,F401  (imported for side effects)
     analysis,
     generation,
+    library,
     validation,
 )
 

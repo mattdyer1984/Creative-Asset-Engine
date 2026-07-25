@@ -1,0 +1,6 @@
+Given the following Creative Fingerprint for a marketing creative, compose a provider-neutral creative specification for generating a NEW, visually original recreation of this creative's scene and narrative - it should feel visually distinct while preserving the underlying marketing strategy captured in the Creative Fingerprint. This slide does NOT feature a product - it is a narrative/story slide (e.g. a hook, a reaction shot, a text-only caption card). Do not invent, describe, or reference any product; focus purely on recreating the scene, composition, and mood.
+
+Creative Fingerprint (JSON):
+{"style": "clean studio"}
+
+Focus on composition, style direction, color palette, lighting, camera and perspective, background environment, mood, suggested text overlays, things to avoid, and aspect ratio.

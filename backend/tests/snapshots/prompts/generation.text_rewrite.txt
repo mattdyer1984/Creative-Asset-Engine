@@ -1,0 +1,4 @@
+Rewrite each of the following marketing text elements, preserving its persuasive intent, tone, and approximate reading length - do not change what role it plays (a headline stays a headline, a CTA stays a CTA). Return exactly one rewritten string per input, in the same order.
+
+1. [headline] "Try it today"
+2. [cta] "Buy now"

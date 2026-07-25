@@ -207,7 +207,11 @@ class SlideProductIsolationStage:
                         ProductAppearance.is_current.is_(True),
                     ).update({"is_current": False}, synchronize_session=False)
                     result = mark_succeeded(
-                        db, analysis_run, provider_call_ms=provider_call_ms, usage=usage
+                        db,
+                        analysis_run,
+                        provider_call_ms=provider_call_ms,
+                        usage=usage,
+                        prompt=_analysis_prompts.PRODUCT_ISOLATION,
                     )
                     continue
 

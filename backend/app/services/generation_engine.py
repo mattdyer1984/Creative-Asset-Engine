@@ -103,6 +103,7 @@ from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
+from app.prompts import generation as _generation_prompts
 
 logger = logging.getLogger(__name__)
 
@@ -314,6 +315,7 @@ def _generate_candidates(
             provider=result.provider,
             model=result.model,
             capability="image_generation",
+            prompt=_generation_prompts.IMAGE_COMPILATION,
             image_count=1,
             provider_latency_ms=provider_call_ms,
             analysis_run_id=analysis_run.id,
