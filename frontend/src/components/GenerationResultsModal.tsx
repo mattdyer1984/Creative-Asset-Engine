@@ -86,7 +86,16 @@ export function GenerationResultsModal({
         setReviewBySlide((prev) => ({ ...prev, [slideId]: detail.review }));
         setReviewLoadedBySlide((prev) => ({ ...prev, [slideId]: true }));
       })
-      .catch(() => setReviewLoadedBySlide((prev) => ({ ...prev, [slideId]: true })));
+      .catch(() => {
+        // Real bug found live (see MIGRATION_PLAN.md): this used to mark
+        // the slide as "loaded" even on a failed fetch, which
+        // closeBlocked below reads identically to "loaded, genuinely no
+        // review yet" - a single network hiccup on any slide in a
+        // multi-slide batch permanently locked the whole modal, since
+        // Learning Mode defaults to enabled for every user. Leaving
+        // reviewLoadedBySlide unset here means this slide simply never
+        // participates in the close gate instead of wrongly blocking it.
+      });
   };
 
   // Loads every slide's review up front (not just the active one) - the
@@ -108,6 +117,24 @@ export function GenerationResultsModal({
     setShowBefore(false);
     setZoomed(false);
   }, [clampedSlideIndex]);
+
+  // Real bug found live (see MIGRATION_PLAN.md): "there's no way to
+  // close the modal down once it appears on screen." Learning Mode's
+  // mandatory-review gate (closeBlocked below) defaults to enabled for
+  // every user (app_setting.py's own default), and the X/backdrop/
+  // footer-button close paths are all genuinely disabled while it's
+  // active - by design, to encourage review, but with no escape hatch
+  // at all that was a real dead end. Escape always closes regardless of
+  // closeBlocked - a near-universal modal expectation, and a guaranteed
+  // way out that doesn't remove the visual nudge for the normal
+  // click-driven flow.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!activeSlide) return null;
 
