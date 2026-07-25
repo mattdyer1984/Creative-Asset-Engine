@@ -19,6 +19,7 @@ from app.slideshow_stages.product_isolation_stage import (
     ISOLATION_METHOD,
     _MULTI_PRODUCT_ERROR,
     SlideProductIsolationStage,
+    _crop_bounding_boxes,
 )
 from tests.fakes import FakeAIProviderRegistry, FakeProductIsolationProvider
 
@@ -367,3 +368,58 @@ def test_fails_when_no_slide_at_all_has_a_detectable_product(db_session, tmp_pat
     runs = list(db_session.scalars(select(AnalysisRun)))
     assert len(runs) == 2
     assert all(r.status == STATUS_SUCCEEDED for r in runs)
+
+
+def test_crop_bounding_boxes_normalizes_an_inverted_box_instead_of_crashing():
+    """
+    Real bug found live (see MIGRATION_PLAN.md): the isolation model
+    occasionally returns y_min > y_max (or x_min > x_max) - uncorrected,
+    the padded top/bottom computed from that cross each other and PIL's
+    own crop() raises "Coordinate 'lower' is less than 'upper'".
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    image = Image.new("RGB", (400, 400), color=(210, 160, 120))
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    image_bytes = buffer.getvalue()
+
+    inverted_box = {
+        "x_min": 0.1,
+        "y_min": 0.9,  # inverted - larger than y_max
+        "x_max": 0.9,
+        "y_max": 0.1,
+        "confidence": 0.9,
+        "notes": "inverted box",
+    }
+
+    crops = _crop_bounding_boxes(image_bytes, [inverted_box])
+
+    assert len(crops) == 1
+    cropped = Image.open(BytesIO(crops[0]))
+    assert cropped.size[0] > 0
+    assert cropped.size[1] > 0
+
+
+def test_crop_bounding_boxes_still_crops_a_normal_box_correctly():
+    """Same normalization logic must be a no-op for the ordinary, already-correctly-ordered case."""
+    from io import BytesIO
+
+    from PIL import Image
+
+    image = Image.new("RGB", (400, 400), color=(210, 160, 120))
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    image_bytes = buffer.getvalue()
+
+    normal_box = {"x_min": 0.1, "y_min": 0.1, "x_max": 0.9, "y_max": 0.9, "confidence": 0.9, "notes": "normal"}
+
+    crops = _crop_bounding_boxes(image_bytes, [normal_box])
+
+    assert len(crops) == 1
+    cropped = Image.open(BytesIO(crops[0]))
+    # Roughly 0.8 * 400 = 320px, plus 5% padding on each side.
+    assert 300 < cropped.size[0] < 360
+    assert 300 < cropped.size[1] < 360

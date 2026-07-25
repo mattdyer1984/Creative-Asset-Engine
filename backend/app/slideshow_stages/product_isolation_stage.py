@@ -268,15 +268,30 @@ def _crop_bounding_boxes(image_bytes: bytes, bounding_boxes: list[dict]) -> list
 
     crops = []
     for box in bounding_boxes:
-        box_width_frac = box["x_max"] - box["x_min"]
-        box_height_frac = box["y_max"] - box["y_min"]
+        # Real bug found live (see MIGRATION_PLAN.md): the isolation
+        # model occasionally returns an inverted box (y_min > y_max, or
+        # x_min > x_max) - a real, observed anomaly (also seen during
+        # the Tier 4.1 downscaling benchmark), not a hypothetical edge
+        # case. Uncorrected, this makes the padded top/bottom (or
+        # left/right) computed below cross each other, and PIL's own
+        # crop() raises "Coordinate 'lower' is less than 'upper'" -
+        # normalizing min/max here guarantees a valid box regardless of
+        # which order the model returned the coordinates in; a no-op
+        # for the ordinary, already-correctly-ordered case.
+        x_min = min(box["x_min"], box["x_max"])
+        x_max = max(box["x_min"], box["x_max"])
+        y_min = min(box["y_min"], box["y_max"])
+        y_max = max(box["y_min"], box["y_max"])
+
+        box_width_frac = x_max - x_min
+        box_height_frac = y_max - y_min
         pad_x = box_width_frac * CROP_PADDING_FRACTION
         pad_y = box_height_frac * CROP_PADDING_FRACTION
 
-        left = max(0.0, box["x_min"] - pad_x) * width
-        top = max(0.0, box["y_min"] - pad_y) * height
-        right = min(1.0, box["x_max"] + pad_x) * width
-        bottom = min(1.0, box["y_max"] + pad_y) * height
+        left = max(0.0, x_min - pad_x) * width
+        top = max(0.0, y_min - pad_y) * height
+        right = min(1.0, x_max + pad_x) * width
+        bottom = min(1.0, y_max + pad_y) * height
 
         cropped = image.crop((int(left), int(top), int(right), int(bottom)))
         buffer = BytesIO()
