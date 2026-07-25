@@ -115,6 +115,7 @@ def compile_generation_request(
     user_feedback: str | None = None,
     story_mode: bool = False,
     retry_reason: str | None = None,
+    source_style=None,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -235,6 +236,7 @@ def compile_generation_request(
         branding_text=branding_text,
         user_feedback=user_feedback,
         retry_reason=retry_reason,
+        source_style=source_style,
     )
 
     things_to_avoid = list(creative_specification.get("things_to_avoid") or [])

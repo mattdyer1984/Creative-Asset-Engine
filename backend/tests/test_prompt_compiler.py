@@ -103,9 +103,9 @@ def test_missing_optional_creative_specification_fields_are_skipped_not_blank():
     # creative_intent is never truly blank anymore - only the optional
     # scene fields themselves are skipped when absent.
     assert request.creative_intent == (
-        "This must look like a real photograph, not an illustration, painting, "
-        "3D render, or cartoon - avoid stylized, plastic-looking, or "
-        "artificial textures."
+        "Match the visual medium and level of stylisation of the source "
+        "creative exactly as described above - do not shift it toward a "
+        "different medium."
     )
     assert "Composition" not in request.creative_intent
     assert "Style" not in request.creative_intent
@@ -149,15 +149,51 @@ def test_bundle_instruction_comes_before_the_ordinary_scene_fields():
 # §9/§15) -----------------------------------------------------------
 
 
-def test_photorealism_directive_is_unconditional():
-    """Every compiled prompt gets the photorealism directive, regardless of suppress_overlay_text."""
+def test_a_rendering_directive_is_always_present_but_style_aware():
+    """
+    There is ALWAYS a rendering-mode instruction, regardless of
+    suppress_overlay_text - but it is no longer unconditionally
+    photographic. This test used to assert "real photograph" appeared on
+    every prompt; that was the defect. With no style classification the
+    compiler now states the source-faithful instruction, which is safe
+    for any medium.
+    """
     request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
-    assert "real photograph" in request.creative_intent
+    assert "Match the visual medium" in request.creative_intent
 
     suppressed = compile_generation_request(
         _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
     )
-    assert "real photograph" in suppressed.creative_intent
+    assert "Match the visual medium" in suppressed.creative_intent
+
+
+def test_a_photographic_source_still_gets_the_realism_directive():
+    """The realism demand is kept - scoped to sources that are photographic."""
+    from app.services.source_style import classify_source_style
+
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION,
+        _REFERENCE_PATHS,
+        source_style=classify_source_style(
+            {"visual_style": "UGC candid photo", "graphic_style": "Photographic with text overlay"}
+        ),
+    )
+    assert "real photograph" in request.creative_intent
+
+
+def test_an_illustrated_source_never_gets_the_realism_directive():
+    """The incident: an illustrated slide told to become a photograph."""
+    from app.services.source_style import classify_source_style
+
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION,
+        _REFERENCE_PATHS,
+        source_style=classify_source_style(
+            {"visual_style": "Illustrative", "graphic_style": "Digital illustration, hand-drawn"}
+        ),
+    )
+    assert "real photograph" not in request.creative_intent
+    assert "remain an ILLUSTRATION" in request.creative_intent
 
 
 def test_default_behavior_still_renders_text_overlays_unchanged():

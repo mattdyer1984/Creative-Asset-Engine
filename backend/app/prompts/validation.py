@@ -75,3 +75,88 @@ PHOTOREALISM = register(
 """\
 This is an AI-generated marketing creative. Judge its photorealism - does it look like a real photograph, not an AI generation? Assess: is the lighting realistic, are shadows believable, do materials look physically accurate, are reflections correct, how would you rate texture quality and overall image sharpness, is the perspective/geometry correct, are objects structurally intact (no warping/melting/impossible geometry), are there any visible AI-generation artefacts (extra limbs, garbled text, impossible reflections, etc.), and if any human is depicted, is their anatomy correct (use "not_applicable" if no human appears in the image at all). Give short reasons for your overall judgment.""",
 )
+
+
+# --- Style-appropriate quality validation ----------------------------
+#
+# The photorealism prompt above is correct for a PHOTOGRAPHIC source and
+# wrong for every other kind. Applied universally it failed illustrated
+# candidates for being illustrated - "not photographic" was treated as a
+# defect rather than as the intended medium. These siblings ask the same
+# structural question (is this well-made, free of artefacts, coherent?)
+# against the medium the source actually used, so the schema and scoring
+# are shared and only the criteria change.
+STYLE_ILLUSTRATED = register(
+    id="validation.style_illustrated",
+    version="1.0",
+    description=(
+        "Quality of an illustrated candidate judged as an illustration - never "
+        "penalised for not being a photograph."
+    ),
+    template=(
+        "This is an AI-generated marketing creative whose source is an "
+        "ILLUSTRATION, and it is intended to be illustrated. Do NOT judge it "
+        "against photographic realism - being non-photographic is correct here, "
+        "not a defect. Judge how well-made it is as an illustration. Assess: is "
+        "the lighting/shading treatment internally consistent for this style, "
+        "are shadows coherent, do materials and surfaces read convincingly "
+        "within the illustrated idiom, are highlights and reflections handled "
+        "consistently, how would you rate the linework/texture quality and "
+        "overall crispness, is the perspective and construction sound, are "
+        "objects structurally intact (no warping, melting, or impossible "
+        "geometry), are there malformed or accidental artefacts (garbled text, "
+        "extra limbs, broken shapes), and if any human is depicted, is their "
+        "anatomy coherent within this illustration style (use "
+        "\"not_applicable\" if no human appears at all). Give short reasons for "
+        "your overall judgment."
+    ),
+)
+
+STYLE_RENDER = register(
+    id="validation.style_render",
+    version="1.0",
+    description=(
+        "Quality of a 3D-rendered candidate judged as a render - neither "
+        "photograph nor illustration."
+    ),
+    template=(
+        "This is an AI-generated marketing creative whose source is a 3D "
+        "RENDER, and it is intended to look rendered. Judge it as a render, not "
+        "as a photograph and not as a hand-drawn illustration - matching the "
+        "source's intended level of realism is what matters. Assess: is the "
+        "render lighting coherent, are shadows believable for the lighting "
+        "setup, are materials and shaders consistent and physically plausible, "
+        "are reflections correct, how would you rate surface/texture quality "
+        "and overall sharpness, is the perspective and geometry correct, are "
+        "objects structurally intact (no intersecting or broken geometry), are "
+        "there rendering artefacts (banding, garbled text, impossible "
+        "reflections), and if any human is depicted, is their anatomy correct "
+        "(use \"not_applicable\" if no human appears at all). Give short "
+        "reasons for your overall judgment."
+    ),
+)
+
+STYLE_MIXED = register(
+    id="validation.style_mixed",
+    version="1.0",
+    description=(
+        "Quality of a mixed-media candidate - each element judged in the medium "
+        "the source used for it."
+    ),
+    template=(
+        "This is an AI-generated marketing creative whose source is MIXED "
+        "MEDIA: different elements are deliberately in different media (for "
+        "example a photographic product with an illustrated figure, or a "
+        "rendered object on a drawn background). Judge each element against the "
+        "medium it is presented in - do not penalise an illustrated element for "
+        "not being photographic, or a photographic element for not being "
+        "stylised. Assess: is lighting coherent within and across the elements, "
+        "are shadows believable, do materials read convincingly for their own "
+        "medium, are reflections handled consistently, how would you rate "
+        "texture quality and overall sharpness, is perspective consistent where "
+        "elements meet, are objects structurally intact, are there malformed or "
+        "accidental artefacts, and if any human is depicted, is their anatomy "
+        "coherent for that element's medium (use \"not_applicable\" if no human "
+        "appears at all). Give short reasons for your overall judgment."
+    ),
+)

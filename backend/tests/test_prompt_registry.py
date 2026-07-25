@@ -377,7 +377,7 @@ def test_generated_images_record_identity_for_every_contributing_prompt():
 
     identity = generated_image_identity()
     assert identity["prompt_id"] == "generation.compiler+generation.image_compilation"
-    assert identity["prompt_version"] == "1.0+1.0"
+    assert identity["prompt_version"] == f"{GENERATION_COMPILER.version}+{IMAGE_COMPILATION.version}"
     # Neither contributor's own hash may masquerade as the composite.
     assert identity["prompt_content_hash"] not in (
         GENERATION_COMPILER.content_hash,
@@ -442,7 +442,7 @@ def test_a_generated_image_can_be_traced_back_to_its_prompt_definition():
     assert image.prompt_used.startswith("Composition:")
     # And the identity says which definition produced it.
     assert "generation.compiler" in image.prompt_id
-    assert image.prompt_version == "1.0+1.0"
+    assert image.prompt_version == generated_image_identity()["prompt_version"]
     assert image.prompt_content_hash == generated_image_identity()["prompt_content_hash"]
 
     # "Has the prompt changed since this image was made?" is now answerable.

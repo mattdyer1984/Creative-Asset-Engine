@@ -185,10 +185,10 @@ def _summarize_rejection_reason(db: Session, candidate_assessments: list[Candida
 
     photorealism_reasons = (qa.photorealism_json or {}).get("reasons") or []
     if photorealism_reasons:
-        return (
-            _generation_prompts.RETRY_REASON.fragments["photorealism"]
-            + "; ".join(photorealism_reasons)
-        )
+        # Style-aware opening. Telling an illustrated candidate it "didn't
+        # look sufficiently realistic" made every retry drift further from
+        # a source that is deliberately an illustration.
+        return _style_quality_opening(db, best.generated_image) + "; ".join(photorealism_reasons)
 
     return _generation_prompts.RETRY_REASON.fragments["none_passed"]
 
@@ -384,3 +384,29 @@ def generate_with_retry(
 
     _log_timing_breakdown(db, slide)
     return RetryLoopResult(attempts=attempts, winner=None)
+
+
+def _style_quality_opening(db: Session, generated_image: GeneratedImage) -> str:
+    """
+    The retry-feedback opening that matches the SOURCE medium.
+
+    Never returns wording that asks for a change of medium - see the
+    safeguard test in tests/test_source_style_policy.py, which asserts
+    an illustrated source can never be told to become a photograph.
+    """
+    from app.services.quality_engine import _classify_generated_image_style
+    from app.services.source_style import RenderingFamily
+
+    fragments = _generation_prompts.RETRY_REASON.fragments
+    if generated_image is None:
+        return fragments["photorealism"]
+
+    classification = _classify_generated_image_style(db, generated_image)
+    if not classification.is_confident:
+        return fragments["photorealism"]
+    return {
+        RenderingFamily.PHOTOGRAPHIC: fragments["photorealism"],
+        RenderingFamily.ILLUSTRATED: fragments["style_illustrated"],
+        RenderingFamily.RENDER: fragments["style_render"],
+        RenderingFamily.MIXED: fragments["style_mixed"],
+    }.get(classification.family, fragments["photorealism"])

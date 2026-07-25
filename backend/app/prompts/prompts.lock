@@ -24,8 +24,8 @@
     "version": "1.0"
   },
   "generation.compiler": {
-    "content_hash": "3ce9c0da9be83f09",
-    "version": "1.0"
+    "content_hash": "4b9e8aaa04718744",
+    "version": "2.0"
   },
   "generation.creative_intelligence": {
     "content_hash": "fcffde2b386a53b3",
@@ -40,8 +40,8 @@
     "version": "1.0"
   },
   "generation.retry_reason": {
-    "content_hash": "b2b0b2591a544d99",
-    "version": "1.0"
+    "content_hash": "a51bd518d3b9fc84",
+    "version": "2.0"
   },
   "generation.text_rewrite": {
     "content_hash": "5d1318fa8fede98a",
@@ -69,6 +69,18 @@
   },
   "validation.photorealism": {
     "content_hash": "8160d420d239d831",
+    "version": "1.0"
+  },
+  "validation.style_illustrated": {
+    "content_hash": "19dcefa8bc3e7255",
+    "version": "1.0"
+  },
+  "validation.style_mixed": {
+    "content_hash": "1e8f875431ecf859",
+    "version": "1.0"
+  },
+  "validation.style_render": {
+    "content_hash": "02cc42fbb0323e52",
     "version": "1.0"
   }
 }

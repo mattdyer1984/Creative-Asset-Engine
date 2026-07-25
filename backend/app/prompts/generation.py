@@ -265,6 +265,7 @@ def compile_creative_intent(
     branding_text: list[str] | None = None,
     user_feedback: str | None = None,
     retry_reason: str | None = None,
+    source_style=None,
 ) -> str:
     """
     Assembles the creative intent exactly as prompt_compiler always has.
@@ -305,15 +306,48 @@ def compile_creative_intent(
             overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
             parts.append(fragments["text_overlays"] + overlay_text)
 
-    # Unconditional - every prompt, every strategy.
-    parts.append(fragments["photorealism"])
+    # Style-aware, NOT unconditional. This line used to demand a real
+    # photograph on every prompt regardless of the source, directly
+    # contradicting an analysis that had correctly reported "digital
+    # illustration, hand-drawn feel" three lines earlier. The model was
+    # being asked to obey two opposite instructions, and the validator
+    # then failed it for picking the analysed one.
+    parts.append(_rendering_instruction(source_style))
 
     return "\n".join(parts)
 
 
+def _rendering_instruction(source_style) -> str:
+    """
+    Selects the rendering-mode wording from the classified source style.
+
+    Falls back to the source-faithful fragment when the style is unknown
+    or the classifier is not confident: describing the medium as the
+    analysis found it is always safe, whereas asserting a mode the
+    evidence does not support is exactly the bug this replaces.
+    """
+    fragments = GENERATION_COMPILER.fragments
+    if source_style is None:
+        return fragments["render_source_faithful"]
+
+    from app.services.source_style import RenderingFamily
+
+    if not getattr(source_style, "is_confident", False):
+        return fragments["render_source_faithful"]
+
+    return {
+        RenderingFamily.PHOTOGRAPHIC: fragments["render_photographic"],
+        RenderingFamily.ILLUSTRATED: fragments["render_illustrated"],
+        RenderingFamily.RENDER: fragments["render_3d"],
+        RenderingFamily.MIXED: fragments["render_mixed"],
+    }.get(source_style.family, fragments["render_source_faithful"])
+
+
 GENERATION_COMPILER = register(
     id="generation.compiler",
-    version="1.0",
+    # 2.0: the rendering instruction became style-aware. A deliberate
+    # behaviour change, so the semantic version moves, not just the hash.
+    version="2.0",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."
@@ -361,10 +395,43 @@ GENERATION_COMPILER = register(
             "description.)"
         ),
         "text_overlays": "Text overlays: ",
-        "photorealism": (
+        # One fragment per rendering family. Every branch is registered,
+        # so editing the one that did not fire still moves the content
+        # hash (see core.py).
+        "render_photographic": (
             "This must look like a real photograph, not an illustration, painting, "
             "3D render, or cartoon - avoid stylized, plastic-looking, or "
-            "artificial textures."
+            "artificial textures. Use natural photographic detail, plausible "
+            "lighting, realistic anatomy and materials, and believable depth and "
+            "perspective."
+        ),
+        "render_illustrated": (
+            "This must remain an ILLUSTRATION in the same style as the source - do "
+            "not convert it into a photograph. Preserve the source's level of "
+            "stylisation, line quality, shading style, colour treatment, "
+            "anatomical simplification, texture, and its editorial/infographic "
+            "character. Anatomy should be coherent and well-drawn within that "
+            "illustrated style, not photorealistic. Avoid malformed or accidental "
+            "artefacts, muddy linework, and inconsistent shading."
+        ),
+        "render_3d": (
+            "This must read as a 3D RENDER, in the same style as the source - "
+            "neither a photograph nor a hand-drawn illustration. Keep the source's "
+            "intended level of realism, with consistent materials, clean geometry, "
+            "and coherent render lighting. Avoid modelling artefacts, intersecting "
+            "geometry, and inconsistent surface shading."
+        ),
+        "render_mixed": (
+            "This is a MIXED-MEDIA composition: keep each element in the medium the "
+            "source used for it - photographic elements photographic, illustrated "
+            "elements illustrated, rendered elements rendered. Do not flatten "
+            "everything into one uniform medium, and do not convert the illustrated "
+            "parts into photography or vice versa."
+        ),
+        "render_source_faithful": (
+            "Match the visual medium and level of stylisation of the source "
+            "creative exactly as described above - do not shift it toward a "
+            "different medium."
         ),
         # The six spec field labels are prompt text as much as any
         # sentence is - the model reads "Composition:" verbatim - so they
@@ -404,7 +471,8 @@ def generated_image_identity() -> dict:
 # rarely-reached photorealism branch must still move the hash.
 RETRY_REASON = register(
     id="generation.retry_reason",
-    version="1.0",
+    # 2.0: openings became style-aware.
+    version="2.0",
     description=(
         "Opens the specific, detected reason a previous attempt was rejected, "
         "which the compiler then injects into the next attempt's prompt."
@@ -413,6 +481,14 @@ RETRY_REASON = register(
         "identity": "Product identity wasn't preserved: ",
         "fields": "Product details didn't match: ",
         "photorealism": "The image didn't look sufficiently realistic: ",
+        # Style-aware openings. The generic one above told an ILLUSTRATED
+        # candidate it "didn't look sufficiently realistic", which pushed
+        # each retry further from a source that was never meant to be a
+        # photograph. Retry feedback must describe a real style failure,
+        # never demand a change of medium.
+        "style_illustrated": "The illustration quality wasn't good enough: ",
+        "style_render": "The render quality wasn't good enough: ",
+        "style_mixed": "The composition quality wasn't good enough: ",
         "none_passed": "No candidate in the previous attempt passed quality validation.",
         "nothing_generated": "No candidate was generated to assess.",
     },

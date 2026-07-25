@@ -118,6 +118,47 @@ def _build_photorealism_prompt() -> str:
     return _validation_prompts.PHOTOREALISM.render()
 
 
+# Which validator prompt applies to which rendering family. The scoring
+# function and the floor are shared and UNCHANGED - only the criteria
+# differ, because "is this well-made?" is the same question in every
+# medium while "is this a photograph?" is not.
+def _style_validator_for(family):
+    from app.services.source_style import RenderingFamily
+
+    return {
+        RenderingFamily.PHOTOGRAPHIC: _validation_prompts.PHOTOREALISM,
+        RenderingFamily.ILLUSTRATED: _validation_prompts.STYLE_ILLUSTRATED,
+        RenderingFamily.RENDER: _validation_prompts.STYLE_RENDER,
+        RenderingFamily.MIXED: _validation_prompts.STYLE_MIXED,
+    }.get(family, _validation_prompts.PHOTOREALISM)
+
+
+def _classify_generated_image_style(db: Session, generated_image: GeneratedImage):
+    """The source style of the slide this candidate was generated for."""
+    from app.models.creative_fingerprint import CreativeFingerprint
+    from app.models.scene_analysis import SceneAnalysis
+    from app.models.slide import Slide
+    from app.services.source_style import classify_source_style
+
+    slide = db.get(Slide, generated_image.slide_id)
+    if slide is None:
+        return classify_source_style(None)
+    fingerprint = (
+        db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+        if slide.current_creative_fingerprint_id
+        else None
+    )
+    scene = (
+        db.get(SceneAnalysis, slide.current_scene_analysis_id)
+        if slide.current_scene_analysis_id
+        else None
+    )
+    return classify_source_style(
+        fingerprint.structured_json if fingerprint else None,
+        scene.regions_json if scene else None,
+    )
+
+
 def _score_photorealism(result: dict) -> float:
     boolean_checks = [
         result["realistic_lighting"],
@@ -149,10 +190,20 @@ def _run_photorealism(db: Session, generated_image: GeneratedImage) -> dict:
     generated_image_bytes = Path(generated_image.file_path).read_bytes()
     usage: dict = {}
 
+    # Judge the candidate in the medium its SOURCE used. Applying the
+    # photographic criteria universally is what failed illustrated
+    # candidates for being illustrated.
+    classification = _classify_generated_image_style(db, generated_image)
+    validator_prompt = (
+        _style_validator_for(classification.family)
+        if classification.is_confident
+        else _validation_prompts.PHOTOREALISM
+    )
+
     start = time.perf_counter()
     photorealism_json = vision_provider.analyze_creative(
         image_bytes=generated_image_bytes,
-        prompt_spec={"prompt": _build_photorealism_prompt(), "schema_name": "photorealism"},
+        prompt_spec={"prompt": validator_prompt.render(), "schema_name": "photorealism"},
         response_schema=PHOTOREALISM_SCHEMA,
         usage_sink=usage,
     )
@@ -163,7 +214,7 @@ def _run_photorealism(db: Session, generated_image: GeneratedImage) -> dict:
         provider=vision_provider.provider,
         model=vision_provider.model,
         capability="vision_analysis",
-        prompt=_validation_prompts.PHOTOREALISM,
+        prompt=validator_prompt,
         usage=usage,
         provider_latency_ms=provider_latency_ms,
         generated_image_id=generated_image.id,

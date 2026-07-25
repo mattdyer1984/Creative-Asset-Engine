@@ -117,6 +117,33 @@ def _current_lock_profile(db: Session, product_id: str) -> ProductLockProfile | 
     ).first()
 
 
+
+def _classify_slide_style(db: Session, slide: Slide):
+    """
+    The slide's source style, from what analysis already reported.
+
+    Deliberately reuses Creative Fingerprint and Scene Intelligence
+    rather than making a fresh AI call - a third opinion on the medium
+    is exactly how the compiler ended up contradicting its own analysis.
+    """
+    from app.services.source_style import classify_source_style
+
+    fingerprint = (
+        db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+        if slide.current_creative_fingerprint_id
+        else None
+    )
+    scene = (
+        db.get(SceneAnalysis, slide.current_scene_analysis_id)
+        if slide.current_scene_analysis_id
+        else None
+    )
+    return classify_source_style(
+        fingerprint.structured_json if fingerprint else None,
+        scene.regions_json if scene else None,
+    )
+
+
 def _enriched_creative_specification(
     db: Session, slide: Slide, product: Product, creative_specification: CreativeSpecification, plan: GenerationPlan
 ) -> dict:
@@ -381,6 +408,7 @@ def run_generation_attempt(
     request = compile_generation_request(
         enriched_specification,
         reference_image_paths,
+        source_style=_classify_slide_style(db, slide),
         suppress_overlay_text=plan.text_strategy is not None,
         branding_text=branding_text,
         user_feedback=plan.user_feedback,
@@ -429,6 +457,7 @@ def run_story_generation_attempt(
     request = compile_generation_request(
         creative_specification.structured_json,
         [slide.stored_file_path],
+        source_style=_classify_slide_style(db, slide),
         suppress_overlay_text=plan.text_strategy is not None,
         user_feedback=plan.user_feedback,
         story_mode=True,
@@ -542,6 +571,7 @@ def run_bundle_generation_attempt(
     request = compile_generation_request(
         creative_specification.structured_json,
         reference_image_paths,
+        source_style=_classify_slide_style(db, slide),
         bundle_members=bundle_member_prompt_metadata,
         suppress_overlay_text=plan.text_strategy is not None,
         user_feedback=plan.user_feedback,
