@@ -79,7 +79,11 @@ def test_vision_only_populates_immutable_and_contextual_fields(db_session):
     assert profile.fields["brand"].classification == "immutable"
     assert profile.fields["brand"].confidence == 0.85
 
-    assert profile.fields["color"].value.label == "amber"
+    # Both tones reach validation. This assertion used to read `== "amber"`
+    # while the fixture carried {"primary": ["amber"], "secondary": ["gold"]},
+    # which quietly enshrined the data loss that failed incident e3fbf713's
+    # two-tone product: the gold was dropped before validation ever saw it.
+    assert profile.fields["color"].value.label == "amber (primary); gold (secondary)"
     assert profile.fields["lighting"].value.text == "soft studio lighting"
     assert profile.fields["lighting"].classification == "contextual"
     # viewing_angle + perspective folded into one camera_angle field.
@@ -216,3 +220,57 @@ def test_extract_branding_text_returns_empty_list_when_no_labels_and_text():
         analysis_run_id="fake", product_id="fake", structured_json={}, reference_image_ids_json=[]
     )
     assert extract_branding_text(row) == []
+
+
+# --- Two-tone colour fidelity (incident e3fbf713, slide 6) ---
+def _lock_profile(db, structured):
+    """A minimal current ProductLockProfile with its required AnalysisRun."""
+    from app.models.analysis_run import AnalysisRun
+    from app.models.product import Product
+    from app.models.product_lock_profile import ProductLockProfile
+
+    product = Product(display_name="test product")
+    db.add(product)
+    db.flush()
+    run = AnalysisRun(
+        analysis_type="product_lock_profile", provider="gemini",
+        model_name="test", status="succeeded",
+    )
+    db.add(run)
+    db.flush()
+    db.add(
+        ProductLockProfile(
+            product_id=product.id, analysis_run_id=run.id,
+            is_current=True, structured_json=structured,
+        )
+    )
+    db.flush()
+    return product
+
+
+def test_secondary_colours_reach_validation(db_session):
+    """
+    Incident e3fbf713 slide 6: the Lock Profile correctly recorded
+    {"primary": ["Black"], "secondary": ["White/Silver (support strips)"]}
+    but validation only ever saw "Black", so a generated image that
+    reproduced the real product's white support strips exactly was failed
+    for the colour "not being black" - twice, scoring 0.0 both times. The
+    image thrown away was a clean commercial product shot.
+    """
+    from app.services.product_profile import _fields_from_current_lock_profile
+
+    product = _lock_profile(
+        db_session,
+        {"colors": {"primary": ["Black"], "secondary": ["White/Silver (support strips)"]}},
+    )
+    label = _fields_from_current_lock_profile(db_session, product.id)["color"][0].label
+    assert "Black" in label
+    assert "White/Silver" in label, "the secondary colour must reach validation"
+
+
+def test_single_colour_products_gain_no_noise(db_session):
+    """This fix must not add noise to genuinely single-colour products."""
+    from app.services.product_profile import _fields_from_current_lock_profile
+
+    product = _lock_profile(db_session, {"colors": {"primary": ["Black"]}})
+    assert _fields_from_current_lock_profile(db_session, product.id)["color"][0].label == "Black"

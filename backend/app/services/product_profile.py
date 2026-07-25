@@ -169,12 +169,28 @@ def _fields_from_current_lock_profile(db: Session, product_id: str) -> dict[str,
     if data.get("materials"):
         add("materials", ListValue(items=list(data["materials"])))
 
-    primary_colors = (data.get("colors") or {}).get("primary") or []
-    if primary_colors:
-        # Vision's colors.primary is a list; the canonical `color` field is
-        # a single ColorValue - the first primary color is "the" color for
-        # this field, a deliberate simplification, not an oversight.
-        add("color", ColorValue(label=primary_colors[0]))
+    colors = data.get("colors") or {}
+    primary_colors = colors.get("primary") or []
+    secondary_colors = colors.get("secondary") or []
+    if primary_colors or secondary_colors:
+        # Real-world-diagnosed fix (incident e3fbf713, slide 6): this used
+        # to keep ONLY primary_colors[0] and discard everything else. For a
+        # two-tone product that is not a simplification, it is a false
+        # expectation: the Product Lock Profile correctly recorded
+        # {"primary": ["Black"], "secondary": ["White/Silver (support
+        # strips)"]}, validation was handed the single word "Black", and a
+        # generated image that reproduced the white support strips exactly
+        # as the real product has them was failed for the colour "not being
+        # black". A clean, correct commercial product shot scored 0.0.
+        #
+        # The label now carries every colour the profile knows about, so
+        # validation compares against the product's actual colouring rather
+        # than against a lossy summary of it.
+        label = ", ".join(primary_colors)
+        if secondary_colors:
+            secondary_label = ", ".join(secondary_colors)
+            label = f"{label} (primary); {secondary_label} (secondary)" if label else secondary_label
+        add("color", ColorValue(label=label))
 
     branding = data.get("branding") or {}
     if branding.get("brand_name"):
