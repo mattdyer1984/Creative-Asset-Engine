@@ -45,7 +45,21 @@ export interface SlideGenerationOutcome {
 // Score References (Phase 9.2) is a background task with no completion
 // signal - same fixed-polling-window reasoning as
 // SlideshowBlueprintModal's own scoringProductId effect.
-const REFERENCE_SCORING_POLL_ATTEMPTS = 10;
+//
+// Real bug found live (see MIGRATION_PLAN.md): the backend scores every
+// candidate image strictly sequentially (reference_scoring_stage.py's
+// own run_reference_scoring, a plain for loop - the same-role
+// duplicate/supersede check has a real ordering dependency between
+// candidates, so it isn't safe to blindly parallelize), and each
+// candidate costs 1-2 real vision calls. Under real, observed API
+// latency (10-19s per call seen live this session) a handful of
+// candidates can genuinely take 60-90+ seconds - the old 15s window
+// (10 * 1500ms) gave up and showed "couldn't build a usable reference
+// image" even though scoring was still correctly running and would
+// have succeeded seconds later, confirmed live via direct DB
+// inspection. Widened, not just because "more is safer" - to actually
+// cover the real, measured worst case.
+const REFERENCE_SCORING_POLL_ATTEMPTS = 60;
 const REFERENCE_SCORING_POLL_INTERVAL_MS = 1500;
 
 // The main analysis poll below used to have no cap at all, unlike every

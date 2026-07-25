@@ -322,6 +322,13 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
   // score-references endpoint (Phase 9.2, see MIGRATION_PLAN.md) is a
   // fire-and-forget background task with no completion signal to poll
   // against, unlike blueprint analysis's queued/analyzing status.
+  //
+  // Real bug found live (see MIGRATION_PLAN.md, and
+  // CreateCreativeFlow.tsx's own matching REFERENCE_SCORING_POLL_ATTEMPTS
+  // comment for the full story) - the backend scores every candidate
+  // strictly sequentially, and under real observed API latency this can
+  // take 60-90+ seconds for a handful of candidates. 8 attempts (12s)
+  // gave up on scoring that was still correctly running.
   useEffect(() => {
     if (!scoringProductId) return;
     let attempts = 0;
@@ -334,7 +341,7 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
         )
         .catch((err) => setError((err as Error).message))
         .finally(() => {
-          if (attempts >= 8) setScoringProductId(null);
+          if (attempts >= 60) setScoringProductId(null);
         });
     }, 1500);
     return () => clearInterval(interval);
