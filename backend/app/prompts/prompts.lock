@@ -23,6 +23,10 @@
     "content_hash": "51ae78938b88dd19",
     "version": "1.0"
   },
+  "generation.compiler": {
+    "content_hash": "3ce9c0da9be83f09",
+    "version": "1.0"
+  },
   "generation.creative_intelligence": {
     "content_hash": "fcffde2b386a53b3",
     "version": "1.0"
@@ -33,6 +37,10 @@
   },
   "generation.image_compilation": {
     "content_hash": "74865eaa55bb7873",
+    "version": "1.0"
+  },
+  "generation.retry_reason": {
+    "content_hash": "b2b0b2591a544d99",
     "version": "1.0"
   },
   "generation.text_rewrite": {

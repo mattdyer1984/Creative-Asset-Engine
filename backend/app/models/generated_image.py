@@ -78,6 +78,20 @@ class GeneratedImage(Base, AnalysisArtifactMixin):
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
     model_name: Mapped[str] = mapped_column(String(128), nullable=False)
     prompt_used: Mapped[str] = mapped_column(Text, nullable=False)
+    # WP-3: prompt IDENTITY, stored alongside the rendered text rather
+    # than instead of it. The two answer different questions and neither
+    # replaces the other: `prompt_used` is exactly what this image was
+    # asked for, which is what you read when the output looks wrong;
+    # these three say which prompt DEFINITION produced it, which is what
+    # you group by when comparing many images, or check when asking
+    # "was this made before or after we changed the compiler?".
+    #
+    # Nullable because every image generated before WP-3 genuinely has
+    # no known prompt identity - back-filling a guess would be worse
+    # than an honest null.
+    prompt_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    prompt_content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     seed: Mapped[str | None] = mapped_column(String(128), nullable=True)
     generation_time_seconds: Mapped[float] = mapped_column(Float, nullable=False)
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)

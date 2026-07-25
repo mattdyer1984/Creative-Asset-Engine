@@ -200,3 +200,221 @@ TEXT_REWRITE = register(
         "the same order.\n\n{block_list}"
     ),
 )
+
+
+# --- The generation compiler ------------------------------------------
+#
+# The most consequential prompt in the application: this is the text that
+# actually tells the image model what to make. It had no identity at all
+# because it is not a template - it is assembled from up to twelve
+# conditional fragments, three of which embed unbounded free text, and
+# one of which (background_environment) may itself be the output of an
+# earlier AI stage.
+#
+# That is exactly why it needs a hash rather than why it cannot have one.
+# The hash covers every FRAGMENT, not the rendered result: the rendered
+# text changes on every slide, but the wording of the instructions
+# changes only when someone edits it. Fragments that a given call never
+# reaches are still hashed - editing the bundle-composition wording must
+# be visible even on a run with no bundle.
+#
+# The field LABELS are prompt text too ("Composition:", "Background:"),
+# not configuration, so they live here with everything else the model
+# reads.
+_SPEC_FIELD_LABELS = [
+    ("composition", "Composition"),
+    ("style_direction", "Style"),
+    ("lighting", "Lighting"),
+    ("camera_and_perspective", "Camera & perspective"),
+    ("background_environment", "Background"),
+    ("mood", "Mood"),
+]
+
+
+def _bundle_composition_fragment(bundle_members: list[dict]) -> str:
+    """
+    One line per member, with the positional reference-image ranges the
+    caller concatenated them in. Structurally identical prompts differ
+    here only by arithmetic, which is why the wording - not the computed
+    ranges - is what carries identity.
+    """
+    fragments = GENERATION_COMPILER.fragments
+    lines = [fragments["bundle_header"]]
+    start = 1
+    for member in bundle_members:
+        count = member["image_count"]
+        end = start + count - 1
+        image_ref = (
+            f"reference image {start}" if start == end else f"reference images {start}-{end}"
+        )
+        line = f"- {member['role_in_scene']}: shown in {image_ref}"
+        member_branding_text = member.get("branding_text")
+        if member_branding_text:
+            quoted = "; ".join(f'"{text}"' for text in member_branding_text)
+            line += fragments["bundle_member_branding"].format(quoted=quoted)
+        lines.append(line)
+        start = end + 1
+    return "\n".join(lines)
+
+
+def compile_creative_intent(
+    creative_specification: dict,
+    *,
+    bundle_members: list[dict] | None = None,
+    suppress_overlay_text: bool = False,
+    branding_text: list[str] | None = None,
+    user_feedback: str | None = None,
+    retry_reason: str | None = None,
+) -> str:
+    """
+    Assembles the creative intent exactly as prompt_compiler always has.
+
+    Fragment ORDER is deliberate and load-bearing: the user's own words
+    come first so the model weights them highest, and the absolute
+    text-suppression override comes near the end so it can override
+    anything an earlier fragment said about on-screen text.
+    """
+    fragments = GENERATION_COMPILER.fragments
+    parts: list[str] = []
+
+    if user_feedback:
+        parts.append(fragments["user_feedback"].format(user_feedback=user_feedback))
+    if retry_reason:
+        parts.append(fragments["retry_reason"].format(retry_reason=retry_reason))
+    if bundle_members:
+        parts.append(_bundle_composition_fragment(bundle_members))
+
+    for field_name, label in _SPEC_FIELD_LABELS:
+        value = creative_specification.get(field_name)
+        if value:
+            parts.append(f"{label}: {value}")
+
+    color_palette = creative_specification.get("color_palette") or []
+    if color_palette:
+        parts.append(fragments["color_palette"] + ", ".join(color_palette))
+
+    if branding_text:
+        quoted_text = "; ".join(f'"{text}"' for text in branding_text)
+        parts.append(fragments["branding_text"].format(quoted_text=quoted_text))
+
+    if suppress_overlay_text:
+        parts.append(fragments["suppress_overlay_text"])
+    else:
+        text_overlays = creative_specification.get("text_overlays") or []
+        if text_overlays:
+            overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
+            parts.append(fragments["text_overlays"] + overlay_text)
+
+    # Unconditional - every prompt, every strategy.
+    parts.append(fragments["photorealism"])
+
+    return "\n".join(parts)
+
+
+GENERATION_COMPILER = register(
+    id="generation.compiler",
+    version="1.0",
+    description=(
+        "Compiles the creative intent sent to the image model - the single most "
+        "consequential prompt in the application."
+    ),
+    renderer=compile_creative_intent,
+    fragments={
+        "user_feedback": (
+            "IMPORTANT - a previous attempt at this exact image had a "
+            'specific problem the user flagged: "{user_feedback}". '
+            "Directly address and fix this in the new image, while still "
+            "following every other instruction in this description."
+        ),
+        "retry_reason": (
+            "IMPORTANT - this is a retry: the previous attempt's best "
+            "candidate failed automated quality validation for this "
+            'specific, detected reason: "{retry_reason}". Directly '
+            "address and fix this in the new image, while still "
+            "following every other instruction in this description."
+        ),
+        "bundle_header": (
+            "This is a BUNDLE composition: compose the following distinct products "
+            "together in the same scene, matching each one's own reference photos "
+            "exactly. Every product listed below must be clearly visible and "
+            "recognizable in the final image - do not omit or merge any of them."
+        ),
+        "bundle_member_branding": (
+            ". Its own packaging/label shows this exact text - reproduce it verbatim: {quoted}."
+        ),
+        "color_palette": "Color palette: ",
+        "branding_text": (
+            "The product's own packaging/label shows this exact text - reproduce "
+            "it verbatim, spelled and worded exactly as given, in the same "
+            "position(s) shown in the reference images: {quoted_text}."
+        ),
+        "suppress_overlay_text": (
+            "Do not render ANY text of any kind into the image - no marketing "
+            "headline, subheadline, CTA, price, caption, callout, or watermark. "
+            "This overrides anything stated earlier in this description that "
+            "mentions or quotes on-screen text or a caption as part of the "
+            "scene - ignore that and leave every such area visually clean and "
+            "uncluttered instead. All of that text is composited separately by "
+            "the app afterward, not by you. (This does not apply to text "
+            "physically printed on the product's own packaging or label - "
+            "reproduce that exactly, as instructed elsewhere in this "
+            "description.)"
+        ),
+        "text_overlays": "Text overlays: ",
+        "photorealism": (
+            "This must look like a real photograph, not an illustration, painting, "
+            "3D render, or cartoon - avoid stylized, plastic-looking, or "
+            "artificial textures."
+        ),
+        # The six spec field labels are prompt text as much as any
+        # sentence is - the model reads "Composition:" verbatim - so they
+        # belong to this prompt's identity. Held as one fragment so
+        # renaming a label moves the hash.
+        "spec_field_labels": "\n".join(f"{key}={label}" for key, label in _SPEC_FIELD_LABELS),
+    },
+    template="",  # assembled entirely from fragments, in compile_creative_intent
+)
+
+
+def generated_image_identity() -> dict:
+    """
+    The prompt identity recorded on every GeneratedImage.
+
+    A generated image's text comes from TWO definitions: the compiler
+    builds the creative intent, and the image adapter wraps it in the
+    product-preservation or story-mode instruction. Both decide what the
+    model sees, so both are named - editing either moves the hash.
+    """
+    from app.prompts.core import composite_identity
+
+    return composite_identity(GENERATION_COMPILER, IMAGE_COMPILATION)
+
+
+# --- Retry reasons ----------------------------------------------------
+#
+# These five strings are prompt text, not log messages. Whatever
+# _summarize_rejection_reason returns is interpolated straight into the
+# generation compiler's `retry_reason` fragment and read by the image
+# model as an instruction about what to fix - so rewording one changes
+# what the next attempt generates. They were bare literals inside a
+# branching function, with no identity.
+#
+# Registered as one prompt because they are alternative openings of the
+# same instruction, exactly one of which fires per retry: editing the
+# rarely-reached photorealism branch must still move the hash.
+RETRY_REASON = register(
+    id="generation.retry_reason",
+    version="1.0",
+    description=(
+        "Opens the specific, detected reason a previous attempt was rejected, "
+        "which the compiler then injects into the next attempt's prompt."
+    ),
+    fragments={
+        "identity": "Product identity wasn't preserved: ",
+        "fields": "Product details didn't match: ",
+        "photorealism": "The image didn't look sufficiently realistic: ",
+        "none_passed": "No candidate in the previous attempt passed quality validation.",
+        "nothing_generated": "No candidate was generated to assess.",
+    },
+    template="",  # one fragment is selected per retry; see the module note
+)

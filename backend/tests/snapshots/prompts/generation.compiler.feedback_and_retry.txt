@@ -1,0 +1,11 @@
+IMPORTANT - a previous attempt at this exact image had a specific problem the user flagged: "the can looked squashed". Directly address and fix this in the new image, while still following every other instruction in this description.
+IMPORTANT - this is a retry: the previous attempt's best candidate failed automated quality validation for this specific, detected reason: "Product identity wasn't preserved: cap shape looked rounded". Directly address and fix this in the new image, while still following every other instruction in this description.
+Composition: centered hero shot
+Style: clean editorial
+Lighting: soft daylight
+Camera & perspective: eye level, 50mm
+Background: marble countertop
+Mood: fresh and calm
+Color palette: warm white, sage
+Text overlays: headline: Try it today
+This must look like a real photograph, not an illustration, painting, 3D render, or cartoon - avoid stylized, plastic-looking, or artificial textures.

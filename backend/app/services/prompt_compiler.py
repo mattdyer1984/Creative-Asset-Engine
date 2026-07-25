@@ -68,20 +68,17 @@ call, so it's asserted here rather than asked of any AI stage.
 
 from app.ai_providers.base import GenerationRequest
 from app.product_sources.base import ColorValue, DimensionValue, ListValue, NumberValue, TextValue
+from app.prompts import generation as _generation_prompts
+from app.prompts.generation import GENERATION_COMPILER
 
 # (CreativeSpecification field, human-readable label) - order here is the
 # order they appear in the compiled creative_intent text. "subject" is
 # deliberately absent (Phase 9.3) - it's the one field that describes
 # the product itself, and the reference images are the only source of
 # product identity now, not text.
-_CREATIVE_SPEC_INTENT_FIELDS = [
-    ("composition", "Composition"),
-    ("style_direction", "Style"),
-    ("lighting", "Lighting"),
-    ("camera_and_perspective", "Camera & perspective"),
-    ("background_environment", "Background"),
-    ("mood", "Mood"),
-]
+# The field labels moved to the registered prompt definition (WP-3) -
+# "Composition:" is text the model reads, so it is prompt content.
+_CREATIVE_SPEC_INTENT_FIELDS = _generation_prompts._SPEC_FIELD_LABELS
 
 
 def format_attribute_value(value) -> str:
@@ -107,28 +104,6 @@ def format_attribute_value(value) -> str:
     if isinstance(value, ListValue):
         return ", ".join(value.items)
     return str(value)
-
-
-def _bundle_composition_instruction(bundle_members: list[dict]) -> str:
-    lines = [
-        "This is a BUNDLE composition: compose the following distinct products "
-        "together in the same scene, matching each one's own reference photos "
-        "exactly. Every product listed below must be clearly visible and "
-        "recognizable in the final image - do not omit or merge any of them."
-    ]
-    start = 1
-    for member in bundle_members:
-        count = member["image_count"]
-        end = start + count - 1
-        image_ref = f"reference image {start}" if start == end else f"reference images {start}-{end}"
-        line = f"- {member['role_in_scene']}: shown in {image_ref}"
-        member_branding_text = member.get("branding_text")
-        if member_branding_text:
-            quoted = "; ".join(f'"{text}"' for text in member_branding_text)
-            line += f". Its own packaging/label shows this exact text - reproduce it verbatim: {quoted}."
-        lines.append(line)
-        start = end + 1
-    return "\n".join(lines)
 
 
 def compile_generation_request(
@@ -247,76 +222,25 @@ def compile_generation_request(
             "optional enhancement with a text-only fallback."
         )
 
-    intent_parts = []
-    if user_feedback:
-        intent_parts.append(
-            "IMPORTANT - a previous attempt at this exact image had a "
-            f'specific problem the user flagged: "{user_feedback}". '
-            "Directly address and fix this in the new image, while still "
-            "following every other instruction in this description."
-        )
-    if retry_reason:
-        intent_parts.append(
-            "IMPORTANT - this is a retry: the previous attempt's best "
-            f'candidate failed automated quality validation for this '
-            f'specific, detected reason: "{retry_reason}". Directly '
-            "address and fix this in the new image, while still "
-            "following every other instruction in this description."
-        )
-    if bundle_members:
-        intent_parts.append(_bundle_composition_instruction(bundle_members))
-
-    for field_name, label in _CREATIVE_SPEC_INTENT_FIELDS:
-        value = creative_specification.get(field_name)
-        if value:
-            intent_parts.append(f"{label}: {value}")
-
-    color_palette = creative_specification.get("color_palette") or []
-    if color_palette:
-        intent_parts.append("Color palette: " + ", ".join(color_palette))
-
-    if branding_text:
-        quoted_text = "; ".join(f'"{text}"' for text in branding_text)
-        intent_parts.append(
-            "The product's own packaging/label shows this exact text - reproduce "
-            "it verbatim, spelled and worded exactly as given, in the same "
-            f"position(s) shown in the reference images: {quoted_text}."
-        )
-
-    if suppress_overlay_text:
-        intent_parts.append(
-            "Do not render ANY text of any kind into the image - no marketing "
-            "headline, subheadline, CTA, price, caption, callout, or watermark. "
-            "This overrides anything stated earlier in this description that "
-            "mentions or quotes on-screen text or a caption as part of the "
-            "scene - ignore that and leave every such area visually clean and "
-            "uncluttered instead. All of that text is composited separately by "
-            "the app afterward, not by you. (This does not apply to text "
-            "physically printed on the product's own packaging or label - "
-            "reproduce that exactly, as instructed elsewhere in this "
-            "description.)"
-        )
-    else:
-        text_overlays = creative_specification.get("text_overlays") or []
-        if text_overlays:
-            overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
-            intent_parts.append(f"Text overlays: {overlay_text}")
-
-    # Phase 10.8, §9 Revision #1 - unconditional, every prompt, every
-    # strategy: a real photograph, not an illustration. Photorealism is
-    # already a hard-floor Quality Engine dimension (Phase 10.3); asking
-    # for it explicitly up front is the same objective, stated earlier
-    # in the pipeline rather than only measured after the fact.
-    intent_parts.append(
-        "This must look like a real photograph, not an illustration, painting, "
-        "3D render, or cartoon - avoid stylized, plastic-looking, or "
-        "artificial textures."
+    # WP-3: the prompt text and its assembly order now live on the
+    # registered prompt definition (app/prompts/generation.py), so the
+    # most consequential prompt in the application has an id, a semantic
+    # version and a content hash like every other one. This function
+    # keeps its signature, its validation, and its job of turning the
+    # compiled text into a provider-neutral GenerationRequest.
+    creative_intent = GENERATION_COMPILER.assemble(
+        creative_specification,
+        bundle_members=bundle_members,
+        suppress_overlay_text=suppress_overlay_text,
+        branding_text=branding_text,
+        user_feedback=user_feedback,
+        retry_reason=retry_reason,
     )
 
     things_to_avoid = list(creative_specification.get("things_to_avoid") or [])
 
     return GenerationRequest(
-        creative_intent="\n".join(intent_parts),
+        creative_intent=creative_intent,
         reference_image_paths=reference_image_paths,
         things_to_avoid=things_to_avoid,
         aspect_ratio="3:4",

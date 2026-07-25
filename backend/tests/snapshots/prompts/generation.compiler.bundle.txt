@@ -1,0 +1,12 @@
+This is a BUNDLE composition: compose the following distinct products together in the same scene, matching each one's own reference photos exactly. Every product listed below must be clearly visible and recognizable in the final image - do not omit or merge any of them.
+- hero: shown in reference images 1-2. Its own packaging/label shows this exact text - reproduce it verbatim: "ACME"; "500ml".
+- companion: shown in reference image 3
+Composition: centered hero shot
+Style: clean editorial
+Lighting: soft daylight
+Camera & perspective: eye level, 50mm
+Background: marble countertop
+Mood: fresh and calm
+Color palette: warm white, sage
+Text overlays: headline: Try it today
+This must look like a real photograph, not an illustration, painting, 3D render, or cartoon - avoid stylized, plastic-looking, or artificial textures.

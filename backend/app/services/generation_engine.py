@@ -281,6 +281,9 @@ def _generate_candidates(
                 provider=result.provider,
                 model_name=result.model,
                 prompt_used=result.prompt_used,
+                # WP-3: which prompt DEFINITION produced this image,
+                # stored alongside the rendered text, never instead of it.
+                **_generation_prompts.generated_image_identity(),
                 seed=result.seed,
                 generation_time_seconds=result.generation_time_seconds,
                 file_path="",

@@ -1,0 +1,10 @@
+Composition: centered hero shot
+Style: clean editorial
+Lighting: soft daylight
+Camera & perspective: eye level, 50mm
+Background: marble countertop
+Mood: fresh and calm
+Color palette: warm white, sage
+The product's own packaging/label shows this exact text - reproduce it verbatim, spelled and worded exactly as given, in the same position(s) shown in the reference images: "ACME"; "ORIGINAL".
+Text overlays: headline: Try it today
+This must look like a real photograph, not an illustration, painting, 3D render, or cartoon - avoid stylized, plastic-looking, or artificial textures.

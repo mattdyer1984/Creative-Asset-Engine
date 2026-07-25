@@ -41,7 +41,7 @@ an unnoticed edit does the most damage.
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 # 16 hex chars = 64 bits. Long enough that an accidental collision across
@@ -89,6 +89,13 @@ class Prompt:
     # empty tuple means "this text is final", and render() then returns
     # it verbatim without formatting at all.
     variables: tuple[str, ...] = ()
+    # The assembly function for prompts built from conditional fragments
+    # rather than one template. Held HERE, on the definition, so a
+    # prompt's identity and the code that produces its text cannot drift
+    # apart: `assemble()` and `content_hash` are then guaranteed to be
+    # talking about the same prompt. When this is None the prompt is a
+    # plain template and render() is the whole story.
+    renderer: "Callable[..., str] | None" = None
 
     @property
     def content_hash(self) -> str:
@@ -141,6 +148,22 @@ class Prompt:
             parts.append(fragment.format_map(_Strict(values, self.id)) if values else fragment)
         return "\n\n".join(part for part in parts if part.strip())
 
+    def assemble(self, *args, **kwargs) -> str:
+        """
+        Builds the prompt via its registered renderer.
+
+        This is the entry point for prompts whose text depends on runtime
+        state - the generation compiler, image compilation, creative
+        specification. Every branch the renderer can emit is registered
+        as a fragment, so `content_hash` covers wording that a given call
+        never reached.
+        """
+        if self.renderer is None:
+            raise TypeError(
+                f"prompt {self.id!r} has no renderer - it is a plain template, use render()"
+            )
+        return self.renderer(*args, **kwargs)
+
     def identity(self) -> dict:
         """The three fields ProviderCall records for every paid call."""
         return {
@@ -148,6 +171,32 @@ class Prompt:
             "prompt_version": self.version,
             "prompt_content_hash": self.content_hash,
         }
+
+
+def composite_identity(*prompts: Prompt) -> dict:
+    """
+    Identity for text produced by MORE THAN ONE prompt definition.
+
+    A generated image is the clearest case: the image adapter wraps the
+    generation compiler's output in its own product-preservation or
+    story-mode instruction, so two definitions decide what the model
+    reads. Recording either one alone would leave the other free to
+    change without the recorded identity moving - and "which prompt made
+    this image?" would then have a confidently wrong answer.
+
+    So the id and version list every contributor in order, and the hash
+    is taken over their hashes: edit ANY contributor and the composite
+    hash moves.
+    """
+    if not prompts:
+        raise ValueError("composite_identity needs at least one prompt")
+    if len(prompts) == 1:
+        return prompts[0].identity()
+    return {
+        "prompt_id": "+".join(p.id for p in prompts),
+        "prompt_version": "+".join(p.version for p in prompts),
+        "prompt_content_hash": content_hash_of(*(p.content_hash for p in prompts)),
+    }
 
 
 class _Strict(dict):
@@ -218,6 +267,7 @@ def register(
     description: str = "",
     variables: tuple[str, ...] = (),
     fragments: Mapping[str, str] | None = None,
+    renderer: Callable[..., str] | None = None,
 ) -> Prompt:
     """Defines a prompt and adds it to the registry. Returns it."""
     return REGISTRY.register(
@@ -228,6 +278,7 @@ def register(
             description=description,
             variables=tuple(variables),
             fragments=dict(fragments or {}),
+            renderer=renderer,
         )
     )
 

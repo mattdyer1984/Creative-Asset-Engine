@@ -96,18 +96,76 @@ def _creative_specification_shapes() -> dict[str, str]:
     }
 
 
+_COMPILER_SPEC = {
+    "composition": "centered hero shot",
+    "style_direction": "clean editorial",
+    "lighting": "soft daylight",
+    "camera_and_perspective": "eye level, 50mm",
+    "background_environment": "marble countertop",
+    "mood": "fresh and calm",
+    "color_palette": ["warm white", "sage"],
+    "text_overlays": [{"role": "headline", "content": "Try it today"}],
+    "things_to_avoid": ["blurry", "clutter"],
+}
+
+
+def _generation_compiler_shapes() -> dict[str, str]:
+    """
+    The most consequential prompt in the application, snapshotted across
+    every fragment that can fire. Twelve conditional fragments means a
+    single-shape snapshot would leave most of the text unguarded - and
+    the fragments that fire rarely (bundle composition, the absolute
+    text-suppression override) are precisely the ones where an
+    unnoticed edit would be hardest to trace back from a bad image.
+    """
+    from app.prompts.generation import GENERATION_COMPILER
+
+    bundle = [
+        {"role_in_scene": "hero", "image_count": 2, "branding_text": ["ACME", "500ml"]},
+        {"role_in_scene": "companion", "image_count": 1},
+    ]
+    shapes = {
+        "minimal": dict(),
+        "full_spec": dict(),
+        "bundle": dict(bundle_members=bundle),
+        "suppressed_text": dict(suppress_overlay_text=True),
+        "branding": dict(branding_text=["ACME", "ORIGINAL"]),
+        "feedback_and_retry": dict(
+            user_feedback="the can looked squashed",
+            retry_reason="Product identity wasn't preserved: cap shape looked rounded",
+        ),
+    }
+    out = {}
+    for name, kwargs in shapes.items():
+        spec = {"composition": "close up"} if name == "minimal" else _COMPILER_SPEC
+        out[f"generation.compiler.{name}"] = GENERATION_COMPILER.assemble(spec, **kwargs)
+    return out
+
+
 # Prompts assembled by a helper rather than rendered straight from a
 # template: snapshot every shape the helper can emit.
 ASSEMBLED = {
     "generation.image_compilation": _image_compilation_shapes,
     "generation.creative_specification": _creative_specification_shapes,
+    "generation.compiler": _generation_compiler_shapes,
 }
+
+
+# Prompts that are purely a set of alternative fragments, exactly one of
+# which is selected per call - no surrounding template to render. Each
+# fragment gets its own snapshot so editing the rarely-selected branch
+# still fails a test.
+FRAGMENT_ONLY = {"generation.retry_reason"}
 
 
 def _snapshot_names(prompt) -> list[tuple[str, str]]:
     """(snapshot name, rendered text) pairs for one prompt."""
     if prompt.id in ASSEMBLED:
         return sorted(ASSEMBLED[prompt.id]().items())
+    if prompt.id in FRAGMENT_ONLY:
+        return sorted(
+            (f"{prompt.id}.{name}", text) for name, text in prompt.fragments.items()
+        )
     inputs = dict(RENDER_INPUTS.get(prompt.id, {}))
     fragment_var = PER_FRAGMENT.get(prompt.id)
     if fragment_var is None:
@@ -302,3 +360,91 @@ def test_every_recording_call_site_supplies_prompt_identity():
         + "\nPass prompt=<registered Prompt>, or make it explicit that the site "
         "emits no ProviderCall."
     )
+
+
+def test_generated_images_record_identity_for_every_contributing_prompt():
+    """
+    A generated image's text comes from two definitions - the compiler
+    builds the creative intent, the adapter wraps it. Recording only one
+    would let the other change without the recorded identity moving, so
+    "which prompt made this image?" would answer confidently and wrongly.
+    """
+    from app.prompts.generation import (
+        GENERATION_COMPILER,
+        IMAGE_COMPILATION,
+        generated_image_identity,
+    )
+
+    identity = generated_image_identity()
+    assert identity["prompt_id"] == "generation.compiler+generation.image_compilation"
+    assert identity["prompt_version"] == "1.0+1.0"
+    # Neither contributor's own hash may masquerade as the composite.
+    assert identity["prompt_content_hash"] not in (
+        GENERATION_COMPILER.content_hash,
+        IMAGE_COMPILATION.content_hash,
+    )
+
+
+def test_editing_either_contributing_prompt_moves_the_recorded_hash():
+    """The composite is only useful if it is sensitive to both halves."""
+    from app.prompts.core import Prompt, composite_identity
+
+    compiler = Prompt(id="c", version="1.0", template="Compile.")
+    wrapper = Prompt(id="w", version="1.0", template="Wrap.")
+    baseline = composite_identity(compiler, wrapper)["prompt_content_hash"]
+
+    edited_compiler = composite_identity(
+        Prompt(id="c", version="1.0", template="Compile!"), wrapper
+    )["prompt_content_hash"]
+    edited_wrapper = composite_identity(
+        compiler, Prompt(id="w", version="1.0", template="Wrap!")
+    )["prompt_content_hash"]
+
+    assert baseline != edited_compiler, "an edit to the compiler must be visible"
+    assert baseline != edited_wrapper, "an edit to the wrapper must be visible"
+    assert edited_compiler != edited_wrapper
+
+
+def test_the_generation_compiler_is_registered():
+    """
+    The single most consequential prompt in the application. It had no
+    identity because it is assembled from twelve conditional fragments -
+    which is the reason it needs one, not a reason it cannot have one.
+    """
+    from app.prompts import REGISTRY
+
+    compiler = REGISTRY.get("generation.compiler")
+    assert compiler.renderer is not None, "its assembly must live with its definition"
+    # Fragments that a given call never reaches are still hashed.
+    for fragment in ("bundle_header", "suppress_overlay_text", "retry_reason"):
+        assert fragment in compiler.fragments
+
+
+def test_a_generated_image_can_be_traced_back_to_its_prompt_definition():
+    """
+    The point of the whole exercise: given a stored image, can you get
+    back to the exact prompt definition that produced it, and confirm
+    whether that definition has changed since?
+    """
+    from app.models.generated_image import GeneratedImage
+    from app.prompts.generation import GENERATION_COMPILER, generated_image_identity
+
+    image = GeneratedImage(
+        slideshow_id="s", slide_id="sl", provider="nano_banana",
+        model_name="gemini-3.1-flash-image-preview",
+        prompt_used="Composition: centered hero shot\n...",
+        generation_time_seconds=12.0, file_path="/tmp/x.png",
+        **generated_image_identity(),
+    )
+
+    # The rendered text is still there - it is what you read when one
+    # specific image looks wrong.
+    assert image.prompt_used.startswith("Composition:")
+    # And the identity says which definition produced it.
+    assert "generation.compiler" in image.prompt_id
+    assert image.prompt_version == "1.0+1.0"
+    assert image.prompt_content_hash == generated_image_identity()["prompt_content_hash"]
+
+    # "Has the prompt changed since this image was made?" is now answerable.
+    assert image.prompt_content_hash == generated_image_identity()["prompt_content_hash"]
+    assert GENERATION_COMPILER.content_hash  # contributor still resolvable by id

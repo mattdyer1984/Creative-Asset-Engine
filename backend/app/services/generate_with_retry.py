@@ -86,6 +86,7 @@ from app.services.product_profile import extract_branding_text
 from app.services.quality_engine import assess_bundle_candidate, assess_candidate, assess_story_candidate
 from app.services.rendering_engine import render_final_output
 from app.services.text_intelligence import build_text_assets
+from app.prompts import generation as _generation_prompts
 from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
@@ -158,7 +159,7 @@ def _summarize_rejection_reason(db: Session, candidate_assessments: list[Candida
     to explain), and Story Slide (neither - Photorealism only).
     """
     if not candidate_assessments:
-        return "No candidate was generated to assess."
+        return _generation_prompts.RETRY_REASON.fragments["nothing_generated"]
 
     best = max(candidate_assessments, key=lambda c: c.quality_assessment.overall_confidence_score)
     qa = best.quality_assessment
@@ -175,18 +176,21 @@ def _summarize_rejection_reason(db: Session, candidate_assessments: list[Candida
             continue
         identity_failures = _failed_check_reasons(result.identity_checks_json)
         if identity_failures:
-            return "Product identity wasn't preserved: " + "; ".join(identity_failures)
+            return _generation_prompts.RETRY_REASON.fragments["identity"] + "; ".join(identity_failures)
         field_failures = _failed_check_reasons(result.field_checks_json)
         if field_failures:
-            return "Product details didn't match: " + "; ".join(field_failures)
+            return _generation_prompts.RETRY_REASON.fragments["fields"] + "; ".join(field_failures)
         if result.overall_explanation and not result.passed:
             return result.overall_explanation
 
     photorealism_reasons = (qa.photorealism_json or {}).get("reasons") or []
     if photorealism_reasons:
-        return "The image didn't look sufficiently realistic: " + "; ".join(photorealism_reasons)
+        return (
+            _generation_prompts.RETRY_REASON.fragments["photorealism"]
+            + "; ".join(photorealism_reasons)
+        )
 
-    return "No candidate in the previous attempt passed quality validation."
+    return _generation_prompts.RETRY_REASON.fragments["none_passed"]
 
 
 def _packaging_text_for_winner(db: Session, slide: Slide) -> list[str]:
