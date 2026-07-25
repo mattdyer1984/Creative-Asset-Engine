@@ -29,7 +29,11 @@ class Slide(Base):
     __tablename__ = "slides"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    slideshow_id: Mapped[str] = mapped_column(ForeignKey("slideshows.id"), nullable=False)
+    # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+    # every `slideshow.slides` relationship access compiles to
+    # `WHERE slideshow_id = ?`, run on essentially every stage/request;
+    # SQLite doesn't auto-index foreign keys the way Postgres does.
+    slideshow_id: Mapped[str] = mapped_column(ForeignKey("slideshows.id"), nullable=False, index=True)
     slide_index: Mapped[int] = mapped_column(default=0)
 
     stored_file_path: Mapped[str] = mapped_column(String(1024), nullable=False)

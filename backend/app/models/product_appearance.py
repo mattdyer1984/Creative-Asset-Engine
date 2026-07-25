@@ -17,7 +17,7 @@ Additive as of Phase 2.1 - nothing reads or writes this table yet.
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, Float, ForeignKey, String
+from sqlalchemy import Boolean, Float, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -26,6 +26,12 @@ from app.models._shared import new_uuid, utcnow
 
 class ProductAppearance(Base):
     __tablename__ = "product_appearances"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current appearances on slide X" is the real, dominant query
+        # shape (slideshow_blueprint, the products-on-slide endpoints).
+        Index("ix_product_appearances_slide_id_is_current", "slide_id", "is_current"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     slide_id: Mapped[str] = mapped_column(ForeignKey("slides.id"), nullable=False)

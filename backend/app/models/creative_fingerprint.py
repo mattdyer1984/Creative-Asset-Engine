@@ -20,7 +20,7 @@ backfilled either. A None here means "no OCR dependency" or "unknown",
 never "stale" - see app.services.staleness.
 """
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -29,6 +29,12 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class CreativeFingerprint(Base, AnalysisArtifactMixin):
     __tablename__ = "creative_fingerprints"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current fingerprint for slide X" (creative_fingerprint_stage.py's
+        # own is_current flip, plus every reader).
+        Index("ix_creative_fingerprints_slide_id_is_current", "slide_id", "is_current"),
+    )
 
     slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
     ocr_result_id: Mapped[str | None] = mapped_column(ForeignKey("ocr_results.id"), nullable=True)

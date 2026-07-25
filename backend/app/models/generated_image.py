@@ -46,7 +46,7 @@ rows with both left null - Phase 10.2 is a genuinely new,
 candidate-count-aware path alongside it, not a replacement.
 """
 
-from sqlalchemy import Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -55,6 +55,13 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class GeneratedImage(Base, AnalysisArtifactMixin):
     __tablename__ = "generated_images"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current generated image for slide X" is the real, confirmed
+        # query shape everywhere this is read (routers, generate_with_retry,
+        # image_generation_stage) - never filtered by slideshow_id alone.
+        Index("ix_generated_images_slide_id_is_current", "slide_id", "is_current"),
+    )
 
     slideshow_id: Mapped[str] = mapped_column(ForeignKey("slideshows.id"), nullable=False)
     slide_id: Mapped[str] = mapped_column(ForeignKey("slides.id"), nullable=False)

@@ -64,7 +64,7 @@ manual library-status write (superseding the old image via the
 existing human-in-the-loop override endpoint), not a new mechanism.
 """
 
-from sqlalchemy import Float, ForeignKey, JSON, String
+from sqlalchemy import Float, ForeignKey, Index, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -73,6 +73,13 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class ProductReferenceImage(Base, AnalysisArtifactMixin):
     __tablename__ = "product_reference_images"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # the real, dominant query shape across this codebase (Reference
+        # Selection, staleness, Product Isolation, the products router):
+        # "the current Library images for product X."
+        Index("ix_product_reference_images_product_id_is_current", "product_id", "is_current"),
+    )
 
     analysis_run_id: Mapped[str | None] = mapped_column(ForeignKey("analysis_runs.id"), nullable=True)
 

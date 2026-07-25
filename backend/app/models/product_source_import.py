@@ -47,7 +47,7 @@ nothing about today's behavior changes.
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -60,6 +60,15 @@ FETCH_STATUS_FAILED = "failed"
 
 class ProductSourceImport(Base):
     __tablename__ = "product_source_imports"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # two real, independently-confirmed query shapes: "the current
+        # import for product X" (product_source_import.py, product_profile.py)
+        # and "the current import for listing X" (listing_import.py) - both
+        # columns are independently nullable, so neither subsumes the other.
+        Index("ix_product_source_imports_product_id_is_current", "product_id", "is_current"),
+        Index("ix_product_source_imports_listing_id_is_current", "listing_id", "is_current"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id"), nullable=True)

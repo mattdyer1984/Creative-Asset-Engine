@@ -54,8 +54,15 @@ class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
-    slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
+    # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+    # both real, confirmed query shapes (routers/slideshows.py's
+    # AnalysisRun history endpoint, timing_report.py) - SQLite doesn't
+    # auto-index foreign keys the way Postgres does, so these were full
+    # table scans without this.
+    slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True, index=True)
+    slideshow_id: Mapped[str | None] = mapped_column(
+        ForeignKey("slideshows.id"), nullable=True, index=True
+    )
     analysis_type: Mapped[str] = mapped_column(String(32), nullable=False)
 
     provider: Mapped[str] = mapped_column(String(64), nullable=False)

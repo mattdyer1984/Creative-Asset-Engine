@@ -30,7 +30,7 @@ Stage 2 creative checks specifically - no column renamed, no shape
 changed, only what the existing columns mean once both stages exist.
 """
 
-from sqlalchemy import Boolean, ForeignKey, JSON, Text
+from sqlalchemy import Boolean, ForeignKey, Index, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -39,6 +39,15 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class ImageValidationResult(Base, AnalysisArtifactMixin):
     __tablename__ = "image_validation_results"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current validation result for generated image X" is the
+        # dominant, confirmed query shape (image_validation_stage.py,
+        # quality_engine.py, the slideshows router) - product_id is only
+        # ever an additional filter on top of this, on the Bundle
+        # Composition path, never the leading column.
+        Index("ix_image_validation_results_generated_image_id_is_current", "generated_image_id", "is_current"),
+    )
 
     generated_image_id: Mapped[str] = mapped_column(
         ForeignKey("generated_images.id"), nullable=False

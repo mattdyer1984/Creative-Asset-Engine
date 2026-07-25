@@ -23,7 +23,7 @@ structured_json shape: {"slides": [{"slide_id": str, "beat": "hook" |
 "arc_summary": str}.
 """
 
-from sqlalchemy import JSON, ForeignKey
+from sqlalchemy import JSON, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -32,6 +32,12 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class NarrativeStructure(Base, AnalysisArtifactMixin):
     __tablename__ = "narrative_structures"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current narrative structure for slideshow X" (narrative_structure_stage.py's
+        # own is_current flip).
+        Index("ix_narrative_structures_slideshow_id_is_current", "slideshow_id", "is_current"),
+    )
 
     slideshow_id: Mapped[str] = mapped_column(ForeignKey("slideshows.id"), nullable=False)
     structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)

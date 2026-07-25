@@ -49,7 +49,12 @@ class GenerationLog(Base):
     slideshow_id: Mapped[str] = mapped_column(ForeignKey("slideshows.id"), nullable=False)
     slide_id: Mapped[str] = mapped_column(ForeignKey("slides.id"), nullable=False)
     project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
-    product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id"), nullable=True)
+    # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+    # only product_id has a confirmed, real filter query
+    # (routers/generation_logs.py's list endpoint); slideshow_id/slide_id/
+    # project_id have no confirmed filter query anywhere in this codebase
+    # today, so left un-indexed per "don't add indexes blindly."
+    product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id"), nullable=True, index=True)
     bundle_product_ids_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
     winning_generated_image_id: Mapped[str | None] = mapped_column(
         ForeignKey("generated_images.id"), nullable=True

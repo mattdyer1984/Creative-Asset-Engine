@@ -31,7 +31,7 @@ region's tier wrong would directly undermine Product Lock v2's
 identity-fidelity work.
 """
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -40,6 +40,12 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class SceneAnalysis(Base, AnalysisArtifactMixin):
     __tablename__ = "scene_analyses"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current scene analysis for slide X" (scene_intelligence_stage.py's
+        # own is_current flip).
+        Index("ix_scene_analyses_slide_id_is_current", "slide_id", "is_current"),
+    )
 
     slide_id: Mapped[str] = mapped_column(ForeignKey("slides.id"), nullable=False)
     regions_json: Mapped[list] = mapped_column(JSON, nullable=False)

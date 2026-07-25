@@ -12,7 +12,7 @@ if a later Product Isolation run has since produced new ones (plan §7's
 key design point on this).
 """
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -21,6 +21,12 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class ProductLockProfile(Base, AnalysisArtifactMixin):
     __tablename__ = "product_lock_profiles"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current Lock Profile for product X" is queried this way in
+        # nearly every stage/service that touches product identity.
+        Index("ix_product_lock_profiles_product_id_is_current", "product_id", "is_current"),
+    )
 
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
     structured_json: Mapped[dict] = mapped_column(JSON, nullable=False)

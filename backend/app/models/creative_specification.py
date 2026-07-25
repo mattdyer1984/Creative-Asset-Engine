@@ -33,7 +33,7 @@ creative_fingerprint_id -> creative_fingerprints.slide_id). `slideshow_id`
 is kept (still useful - "every spec ever built for this slideshow").
 """
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -42,6 +42,12 @@ from app.models._analysis_artifact_mixin import AnalysisArtifactMixin
 
 class CreativeSpecification(Base, AnalysisArtifactMixin):
     __tablename__ = "creative_specifications"
+    __table_args__ = (
+        # Optimisation & Stability Pass, Tier 3.1 (see MIGRATION_PLAN.md) -
+        # "the current spec for slide X" (creative_specification_stage.py's
+        # own is_current flip, plus generation_engine.py/generate_with_retry.py).
+        Index("ix_creative_specifications_slide_id_is_current", "slide_id", "is_current"),
+    )
 
     slideshow_id: Mapped[str | None] = mapped_column(ForeignKey("slideshows.id"), nullable=True)
     slide_id: Mapped[str | None] = mapped_column(ForeignKey("slides.id"), nullable=True)
