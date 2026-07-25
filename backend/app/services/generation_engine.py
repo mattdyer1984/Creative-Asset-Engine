@@ -92,6 +92,9 @@ from app.models.product import Product
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
+from app.models.ocr_result import OCRResult
+from app.services.reference_masking import masked_reference_path
+from pathlib import Path
 from app.services.cost_estimation import estimate_image_cost_usd
 from app.services.creative_intelligence import optimize_scene_description
 from app.services.decision_engine import GenerationPlan
@@ -433,6 +436,43 @@ def run_generation_attempt(
     return GenerationAttemptResult(attempt=attempt, candidates=candidates)
 
 
+
+def _story_reference_path(db: Session, slide: Slide, suppress_overlay_text: bool) -> str:
+    """
+    The reference image for a story slide, with its overlay caption
+    painted out when the app is going to composite text itself.
+
+    On a story slide the reference IS the original slide, and the prompt
+    asks the model to recreate its scene and composition. The original
+    has the caption burned in, so the model reproduced it - same serif,
+    same red/black split, same position - despite an emphatic "do not
+    render ANY text". The Rendering Engine then composited its own
+    overlay on top and the delivered image carried two overlapping sets
+    of captions, which every automated check passed because none of them
+    look for duplicated text.
+
+    Masking only applies when we are actually going to supply the text
+    ourselves; with text_strategy=None the original caption is the
+    intended output and must stay.
+    """
+    if not suppress_overlay_text:
+        return slide.stored_file_path
+
+    ocr_result = (
+        db.get(OCRResult, slide.current_ocr_result_id)
+        if slide.current_ocr_result_id
+        else None
+    )
+    if ocr_result is None or not ocr_result.structured_blocks_json:
+        return slide.stored_file_path
+
+    return masked_reference_path(
+        slide.stored_file_path,
+        ocr_result.structured_blocks_json,
+        Path(slide.stored_file_path).parent / "masked_references",
+    )
+
+
 def run_story_generation_attempt(
     db: Session, slide: Slide, creative_specification: CreativeSpecification, plan: GenerationPlan
 ) -> GenerationAttemptResult | StageResult:
@@ -454,11 +494,12 @@ def run_story_generation_attempt(
     """
     image_provider = default_registry.image_generation(plan.provider)
 
+    suppress_overlay_text = plan.text_strategy is not None
     request = compile_generation_request(
         creative_specification.structured_json,
-        [slide.stored_file_path],
+        [_story_reference_path(db, slide, suppress_overlay_text)],
         source_style=_classify_slide_style(db, slide),
-        suppress_overlay_text=plan.text_strategy is not None,
+        suppress_overlay_text=suppress_overlay_text,
         user_feedback=plan.user_feedback,
         story_mode=True,
         retry_reason=plan.retry_reason,

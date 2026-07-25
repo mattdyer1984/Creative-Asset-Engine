@@ -298,9 +298,7 @@ def compile_creative_intent(
         quoted_text = "; ".join(f'"{text}"' for text in branding_text)
         parts.append(fragments["branding_text"].format(quoted_text=quoted_text))
 
-    if suppress_overlay_text:
-        parts.append(fragments["suppress_overlay_text"])
-    else:
+    if not suppress_overlay_text:
         text_overlays = creative_specification.get("text_overlays") or []
         if text_overlays:
             overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
@@ -313,6 +311,16 @@ def compile_creative_intent(
     # being asked to obey two opposite instructions, and the validator
     # then failed it for picking the analysed one.
     parts.append(_rendering_instruction(source_style))
+
+    # Deliberately LAST. Buried mid-prompt this was outvoted by the
+    # composition and palette lines above it, which describe a "large red
+    # numeral", a "serif headline" and "bullet points" - the model dutifully
+    # rendered text-shaped content to satisfy them, inventing placeholder
+    # words like "Slerif Headline" once the real caption was masked out of
+    # the reference. Stated last, it is the instruction the model reconciles
+    # everything else against.
+    if suppress_overlay_text:
+        parts.append(fragments["suppress_overlay_text"])
 
     return "\n".join(parts)
 
@@ -345,9 +353,10 @@ def _rendering_instruction(source_style) -> str:
 
 GENERATION_COMPILER = register(
     id="generation.compiler",
-    # 2.0: the rendering instruction became style-aware. A deliberate
-    # behaviour change, so the semantic version moves, not just the hash.
-    version="2.0",
+    # 2.0: the rendering instruction became style-aware.
+    # 3.0: text suppression strengthened and moved last, after it was
+    #      shown to be outvoted by the layout prose above it.
+    version="3.0",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."
@@ -383,16 +392,20 @@ GENERATION_COMPILER = register(
             "position(s) shown in the reference images: {quoted_text}."
         ),
         "suppress_overlay_text": (
-            "Do not render ANY text of any kind into the image - no marketing "
-            "headline, subheadline, CTA, price, caption, callout, or watermark. "
-            "This overrides anything stated earlier in this description that "
-            "mentions or quotes on-screen text or a caption as part of the "
-            "scene - ignore that and leave every such area visually clean and "
-            "uncluttered instead. All of that text is composited separately by "
-            "the app afterward, not by you. (This does not apply to text "
-            "physically printed on the product's own packaging or label - "
-            "reproduce that exactly, as instructed elsewhere in this "
-            "description.)"
+            "FINAL AND ABSOLUTE INSTRUCTION - TEXT: render NO text anywhere in "
+            "this image. No headline, subheadline, CTA, price, caption, "
+            "callout, watermark, number, bullet point, label, or logo "
+            "lettering. This includes placeholder, decorative, dummy, lorem "
+            "ipsum, or nonsense letterforms - do not draw anything that even "
+            "resembles writing. Wherever the description above mentions a "
+            "headline, a numeral, bullet points, typography, or text colours, "
+            "treat that as describing an EMPTY LAYOUT ZONE and render it as "
+            "clean, uninterrupted background with nothing in it. This "
+            "instruction overrides every earlier statement in this description "
+            "without exception. All real copy is composited by the app "
+            "afterwards, not by you. (The sole exception is text physically "
+            "printed on the product's own packaging or label, which must be "
+            "reproduced exactly as instructed elsewhere.)"
         ),
         "text_overlays": "Text overlays: ",
         # One fragment per rendering family. Every branch is registered,

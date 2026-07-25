@@ -208,7 +208,7 @@ def test_suppress_overlay_text_removes_the_render_instruction_and_adds_the_clean
         _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
     )
     assert "Text overlays:" not in request.creative_intent
-    assert "Do not render ANY text" in request.creative_intent
+    assert "render NO text anywhere" in request.creative_intent
 
 
 def test_suppress_overlay_text_explicitly_overrides_earlier_scene_description():
@@ -223,8 +223,8 @@ def test_suppress_overlay_text_explicitly_overrides_earlier_scene_description():
     request = compile_generation_request(
         _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
     )
-    assert "overrides anything stated earlier in this description" in request.creative_intent
-    assert "does not apply to text physically printed on the product" in request.creative_intent
+    assert "overrides every earlier statement in this description" in request.creative_intent
+    assert "printed on the product's own packaging" in request.creative_intent
 
 
 # --- branding_text (real-world-diagnosed prompting fix, see MIGRATION_PLAN.md) ---
@@ -320,3 +320,28 @@ def test_user_feedback_and_retry_reason_can_both_be_present():
 
     assert '"make the background less busy"' in request.creative_intent
     assert '"The image didn\'t look sufficiently realistic: warped geometry."' in request.creative_intent
+
+
+def test_the_text_ban_is_the_last_instruction_in_the_prompt():
+    """
+    Buried mid-prompt, the ban was outvoted by the composition and palette
+    lines describing a "large red numeral", a "serif headline" and bullet
+    points: the model rendered text-shaped content to satisfy them, and
+    once the real caption was masked out of the reference it invented
+    placeholder words ("Slerif Headline") instead. Stated last, it is what
+    the model reconciles everything else against.
+    """
+    intent = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
+    ).creative_intent
+    assert intent.strip().endswith(")"), "the suppression block should close the prompt"
+    assert intent.rindex("render NO text anywhere") > intent.rindex("Composition:")
+
+
+def test_placeholder_and_decorative_lettering_are_banned_too():
+    """The model satisfied a described headline with fake words."""
+    intent = compile_generation_request(
+        _CREATIVE_SPECIFICATION, _REFERENCE_PATHS, suppress_overlay_text=True
+    ).creative_intent
+    for phrase in ("placeholder", "lorem", "resembles writing", "EMPTY LAYOUT ZONE"):
+        assert phrase in intent
