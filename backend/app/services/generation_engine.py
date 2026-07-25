@@ -360,6 +360,7 @@ def run_generation_attempt(
         suppress_overlay_text=plan.text_strategy is not None,
         branding_text=branding_text,
         user_feedback=plan.user_feedback,
+        retry_reason=plan.retry_reason,
     )
 
     attempt = GenerationAttempt(
@@ -407,6 +408,7 @@ def run_story_generation_attempt(
         suppress_overlay_text=plan.text_strategy is not None,
         user_feedback=plan.user_feedback,
         story_mode=True,
+        retry_reason=plan.retry_reason,
     )
 
     attempt = GenerationAttempt(
@@ -519,6 +521,7 @@ def run_bundle_generation_attempt(
         bundle_members=bundle_member_prompt_metadata,
         suppress_overlay_text=plan.text_strategy is not None,
         user_feedback=plan.user_feedback,
+        retry_reason=plan.retry_reason,
     )
 
     attempt = GenerationAttempt(

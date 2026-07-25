@@ -5,15 +5,25 @@ Decision Engine -> Generation Engine -> Quality Engine, per
 `GenerationAttempt.retry_of_generation_attempt_id`, until some
 candidate is accepted or `max_retries` is hit.
 
-**Deliberately the "basic" loop, per the ADR's own phased framing
-(§19 item 3)** - not yet the fully adaptive retry §11 describes (reading
-*why* a previous attempt failed - weak identity vs. weak photorealism
-vs. a generic creative choice - and changing strategy accordingly),
-since none of those richer failure signals exist yet (Photorealism and
-Creative Intelligence are Phases 10.3/10.4). A retry here always means
-"run the Decision Engine again with the same quality_mode and a
-generic 'nothing was accepted' reason" - true adaptive re-planning is
-explicit future work, not silently claimed here.
+**Real adaptive retry (see MIGRATION_PLAN.md)**: §11's "reading *why* a
+previous attempt failed... and changing strategy accordingly" was
+deliberately deferred at Phase 10.2 (§19 item 3) since none of the
+richer failure signals existed yet - they do now (Photorealism is
+Phase 10.3, Stage 1/2 Identity/Creative Validation were already live).
+`_summarize_rejection_reason` below builds a specific, real reason from
+the previous attempt's best (highest-confidence) rejected candidate's
+actual `QualityAssessment`/`ImageValidationResult` data - which exact
+identity/creative field didn't preserve, or which photorealism checks
+failed - not the generic "nothing was accepted" placeholder this loop
+used to pass. `decide_generation_plan`'s `retry_reason` was already
+carried through and persisted from Phase 10.2 onward specifically so
+this could be added without a schema change (see decision_engine.py's
+own docstring) - `generation_engine.py`'s three attempt functions now
+thread it into `compile_generation_request`, which gives the model an
+explicit, honest "here's specifically what was wrong, fix this"
+instruction on retry - still quality_mode/creativity_level/candidate_count
+unchanged between attempts, since those aren't what a rejection reason
+would inform; only the prompt's content changes.
 
 Deliberately **not** wired into `SLIDESHOW_STAGE_PIPELINE` or any
 background/automatic flow, per §14's own explicit instruction - every
@@ -60,6 +70,7 @@ from app.models.creative_specification import CreativeSpecification
 from app.models.final_output import FinalOutput
 from app.models.generated_image import GeneratedImage
 from app.models.generation_attempt import GenerationAttempt
+from app.models.image_validation_result import ImageValidationResult
 from app.models.ocr_result import OCRResult
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.quality_assessment import QualityAssessment
@@ -122,6 +133,60 @@ class RetryLoopResult:
     attempts: list[GenerationAttemptOutcome]
     winner: CandidateAssessment | None
     final_output: FinalOutput | None = None
+
+
+def _failed_check_reasons(checks: list[dict] | None) -> list[str]:
+    return [check["reason"] for check in (checks or []) if not check["preserved"]]
+
+
+def _summarize_rejection_reason(db: Session, candidate_assessments: list[CandidateAssessment]) -> str:
+    """
+    Real adaptive retry (see MIGRATION_PLAN.md and this module's own
+    docstring) - a specific, actionable reason for the next attempt's
+    prompt, not the old generic placeholder. Picks the highest-
+    confidence rejected candidate (closest to passing - the most
+    informative one to fix) and extracts the most fundamental failure
+    reason available for it, in priority order: Stage 1 Identity >
+    Stage 2 per-field creative > Photorealism > whatever
+    overall_explanation says. A candidate can fail at any of these
+    layers; a fixable identity problem is worth surfacing over a
+    generic photorealism note, so identity is checked first.
+
+    Handles all three GenerationEngine paths uniformly:
+    single-product (image_validation_result_id), Bundle Composition
+    (image_validation_result_ids_json, one member's failure is enough
+    to explain), and Story Slide (neither - Photorealism only).
+    """
+    if not candidate_assessments:
+        return "No candidate was generated to assess."
+
+    best = max(candidate_assessments, key=lambda c: c.quality_assessment.overall_confidence_score)
+    qa = best.quality_assessment
+
+    validation_result_ids: list[str] = []
+    if qa.image_validation_result_id:
+        validation_result_ids = [qa.image_validation_result_id]
+    elif qa.image_validation_result_ids_json:
+        validation_result_ids = list(qa.image_validation_result_ids_json)
+
+    for result_id in validation_result_ids:
+        result = db.get(ImageValidationResult, result_id)
+        if result is None:
+            continue
+        identity_failures = _failed_check_reasons(result.identity_checks_json)
+        if identity_failures:
+            return "Product identity wasn't preserved: " + "; ".join(identity_failures)
+        field_failures = _failed_check_reasons(result.field_checks_json)
+        if field_failures:
+            return "Product details didn't match: " + "; ".join(field_failures)
+        if result.overall_explanation and not result.passed:
+            return result.overall_explanation
+
+    photorealism_reasons = (qa.photorealism_json or {}).get("reasons") or []
+    if photorealism_reasons:
+        return "The image didn't look sufficiently realistic: " + "; ".join(photorealism_reasons)
+
+    return "No candidate in the previous attempt passed quality validation."
 
 
 def _packaging_text_for_winner(db: Session, slide: Slide) -> list[str]:
@@ -310,7 +375,7 @@ def generate_with_retry(
             return RetryLoopResult(attempts=attempts, winner=winner, final_output=final_output)
 
         retry_of_id = attempt_result.attempt.id
-        retry_reason = "No candidate in the previous attempt passed Product Fidelity validation."
+        retry_reason = _summarize_rejection_reason(db, candidate_assessments)
 
     _log_timing_breakdown(db, slide)
     return RetryLoopResult(attempts=attempts, winner=None)

@@ -139,6 +139,7 @@ def compile_generation_request(
     branding_text: list[str] | None = None,
     user_feedback: str | None = None,
     story_mode: bool = False,
+    retry_reason: str | None = None,
 ) -> GenerationRequest:
     """
     creative_specification is a CreativeSpecification.structured_json
@@ -223,6 +224,20 @@ def compile_generation_request(
     `_compile_*_prompt` is what reads this flag to swap its own
     "preserve the exact product" instruction for a "recreate this scene
     with subtle originality" one when there's no product to preserve.
+
+    retry_reason (real adaptive retry, see MIGRATION_PLAN.md and
+    decision_engine.py's own module docstring - this is the "later
+    sub-phase" that docstring named as the reason retry_reason was
+    carried through and persisted from the start): the *specific*,
+    real reason the previous attempt's best candidate was rejected
+    (e.g. "Product identity wasn't preserved: cap shape looked
+    rounded, not hexagonal"), built by generate_with_retry.py from the
+    actual QualityAssessment/ImageValidationResult data, not a generic
+    placeholder. Deliberately a separate instruction from
+    `user_feedback` (a human's own words) rather than merged into it -
+    both can be present at once (a user's regenerate note on a retry
+    that also auto-failed again), and conflating "the system detected"
+    with "the user said" would be dishonest about the source.
     """
     if not reference_image_paths:
         raise ValueError(
@@ -238,6 +253,14 @@ def compile_generation_request(
             "IMPORTANT - a previous attempt at this exact image had a "
             f'specific problem the user flagged: "{user_feedback}". '
             "Directly address and fix this in the new image, while still "
+            "following every other instruction in this description."
+        )
+    if retry_reason:
+        intent_parts.append(
+            "IMPORTANT - this is a retry: the previous attempt's best "
+            f'candidate failed automated quality validation for this '
+            f'specific, detected reason: "{retry_reason}". Directly '
+            "address and fix this in the new image, while still "
             "following every other instruction in this description."
         )
     if bundle_members:

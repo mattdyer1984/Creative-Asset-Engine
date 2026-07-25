@@ -417,3 +417,105 @@ def _real_png_bytes() -> bytes:
     buffer = BytesIO()
     PILImage.new("RGB", (400, 400), color=(180, 190, 200)).save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+def test_retry_prompt_includes_the_specific_rejection_reason_not_a_placeholder(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """
+    Real adaptive retry (see MIGRATION_PLAN.md) - the second attempt's
+    compiled prompt must carry the actual, specific reason the first
+    attempt's candidate was rejected (here, Stage 2's field_checks
+    reason "Wrong shade." on the "color" field via _CREATIVE_FAILS),
+    not the old generic "no candidate was accepted" placeholder.
+    """
+    _build_full_prerequisites(db_session, slideshow_with_product, monkeypatch)
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    call_count = {"n": 0}
+
+    class _AlternatingVisionProvider:
+        model = "fake-vision-model"
+        provider = "openai"
+
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
+            schema_name = prompt_spec.get("schema_name")
+            if schema_name == "identity_validation":
+                return _IDENTITY_PASSES
+            if schema_name == "photorealism":
+                return _PHOTOREALISM_PASSES
+            call_count["n"] += 1
+            return _CREATIVE_FAILS if call_count["n"] == 1 else _CREATIVE_PASSES
+
+    alternating_provider = _AlternatingVisionProvider()
+    monkeypatch.setattr(
+        "app.slideshow_stages.image_validation_stage.default_registry",
+        FakeAIProviderRegistry(vision_provider=alternating_provider),
+    )
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=alternating_provider),
+    )
+
+    result = generate_with_retry(db_session, slideshow_with_product, "fast", max_retries=1)
+
+    assert isinstance(result, RetryLoopResult)
+    assert result.winner is not None
+    assert "Wrong shade." in fake_image_provider.last_request.creative_intent
+    assert "this is a retry" in fake_image_provider.last_request.creative_intent.lower()
+
+
+def test_retry_prompt_falls_back_to_photorealism_reasons_when_no_product_validation_exists(
+    db_session, slideshow_with_slide, monkeypatch
+):
+    """
+    Real adaptive retry (see MIGRATION_PLAN.md) - a Story Slide
+    candidate has no ImageValidationResult at all (see
+    assess_story_candidate), so _summarize_rejection_reason must fall
+    back to the Photorealism dimension's own `reasons` list.
+    """
+    _build_story_slide_prerequisites(db_session, slideshow_with_slide, monkeypatch)
+    fake_image_provider = FakeImageGenerationProvider()
+    monkeypatch.setattr(
+        "app.services.generation_engine.default_registry",
+        FakeAIProviderRegistry(image_generation_provider=fake_image_provider),
+    )
+
+    call_count = {"n": 0}
+    photorealism_fails = {
+        "realistic_lighting": False,
+        "believable_shadows": False,
+        "material_accuracy": False,
+        "reflections_correct": False,
+        "texture_quality": "poor",
+        "perspective_correct": False,
+        "object_integrity": False,
+        "human_anatomy": "incorrect",
+        "ai_artefacts_detected": True,
+        "image_sharpness": "poor",
+        "reasons": ["warped hand geometry"],
+    }
+
+    class _AlternatingPhotorealismProvider:
+        model = "fake-vision-model"
+        provider = "openai"
+
+        def analyze_creative(self, image_bytes, prompt_spec, response_schema, *, usage_sink=None):
+            call_count["n"] += 1
+            return photorealism_fails if call_count["n"] == 1 else _PHOTOREALISM_PASSES
+
+    monkeypatch.setattr(
+        "app.services.quality_engine.default_registry",
+        FakeAIProviderRegistry(vision_provider=_AlternatingPhotorealismProvider()),
+    )
+
+    result = generate_with_retry(db_session, slideshow_with_slide, "fast", max_retries=1)
+
+    assert isinstance(result, RetryLoopResult)
+    assert result.winner is not None
+    assert "warped hand geometry" in fake_image_provider.last_request.creative_intent
+    assert "didn't look sufficiently realistic" in fake_image_provider.last_request.creative_intent

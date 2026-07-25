@@ -250,3 +250,37 @@ def test_user_feedback_is_quoted_verbatim_and_comes_first():
     lines = request.creative_intent.splitlines()
     assert lines[0].startswith("IMPORTANT - a previous attempt")
     assert '"the logo is upside down"' in lines[0]
+
+
+def test_no_retry_reason_instruction_when_omitted():
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert "this is a retry" not in request.creative_intent.lower()
+
+
+def test_retry_reason_is_quoted_verbatim_and_marked_as_a_retry():
+    """
+    Real adaptive retry (see MIGRATION_PLAN.md) - a specific, detected
+    reason (not a human's own words, unlike user_feedback) must reach
+    the compiled prompt honestly labeled as a retry/detected reason.
+    """
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION,
+        _REFERENCE_PATHS,
+        retry_reason="Product identity wasn't preserved: cap shape looked rounded, not hexagonal.",
+    )
+
+    assert '"Product identity wasn\'t preserved: cap shape looked rounded, not hexagonal."' in request.creative_intent
+    assert "this is a retry" in request.creative_intent.lower()
+
+
+def test_user_feedback_and_retry_reason_can_both_be_present():
+    """A real regenerate-with-feedback call that also auto-fails again carries both, distinctly."""
+    request = compile_generation_request(
+        _CREATIVE_SPECIFICATION,
+        _REFERENCE_PATHS,
+        user_feedback="make the background less busy",
+        retry_reason="The image didn't look sufficiently realistic: warped geometry.",
+    )
+
+    assert '"make the background less busy"' in request.creative_intent
+    assert '"The image didn\'t look sufficiently realistic: warped geometry."' in request.creative_intent
