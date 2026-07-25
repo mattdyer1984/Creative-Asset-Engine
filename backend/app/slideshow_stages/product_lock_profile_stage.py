@@ -187,14 +187,22 @@ class SlideProductLockProfileStage:
 
         A slide with no current product appearance is skipped, not
         failed - a completely normal, expected state for a slide that
-        hasn't been assigned a product yet (most non-primary slides,
-        most of the time). The *primary* slide having no product is
-        still a hard failure, exactly as before - that's a real setup
-        problem, not a transient one. A slide with 2+ appearances (the
-        still-unsupported multi-product-per-slide case) still fails the
-        whole stage loudly, same as it always has for the primary slide -
-        silently skipping a real, actionable problem would be worse than
-        an honest failure, unlike "nothing assigned yet."
+        hasn't been assigned a product yet. A slide with 2+ appearances
+        (the still-unsupported multi-product-per-slide case) still
+        fails the whole stage loudly - silently skipping a real,
+        actionable problem would be worse than an honest failure, unlike
+        "nothing assigned yet."
+
+        Real-world-diagnosed fix (see MIGRATION_PLAN.md): this Stage
+        used to hard-fail specially when the *primary* slide had no
+        product appearance, on the assumption the primary slide
+        (slides[0]) always shows the product - wrong for a real TikTok
+        slideshow that leads with a text-only "hook" slide and shows the
+        product later. No slide is treated specially now; the real
+        failure condition (checked once, after the loop below, mirroring
+        SlideCreativeSpecificationStage's own "no eligible slide at all"
+        check) is that literally no slide in the slideshow has a product
+        assigned at all.
 
         Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
         actual `analyze_creative` provider call for every eligible slide
@@ -207,7 +215,6 @@ class SlideProductLockProfileStage:
         contains, since nothing else in this stage writes
         ProductReferenceImage rows.
         """
-        primary_slide = slideshow.primary_slide
         result: StageResult = StageResult(succeeded=True)
 
         # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
@@ -221,11 +228,6 @@ class SlideProductLockProfileStage:
         for slide in slideshow.slides:
             current_appearances = slide.current_product_appearances
             if not current_appearances:
-                if slide.id == primary_slide.id:
-                    return StageResult(
-                        succeeded=False,
-                        error="No product assigned to this slide - assign one before generating a Product Lock Profile.",
-                    )
                 continue
             distinct_product_ids = {a.product_id for a in current_appearances}
             if len(distinct_product_ids) > 1:
@@ -244,6 +246,12 @@ class SlideProductLockProfileStage:
                 )
             )
             eligible.append((slide, product_id, current_reference_images))
+
+        if not eligible:
+            return StageResult(
+                succeeded=False,
+                error="No product assigned to any slide - assign one before generating a Product Lock Profile.",
+            )
 
         def _analyze(entry: tuple[Slide, str, list[ProductReferenceImage]]):
             slide, _product_id, _refs = entry

@@ -89,31 +89,37 @@ class SlideProductIsolationStage:
 
         A slide with no current product appearance is skipped, not
         failed - a completely normal, expected state for a slide that
-        hasn't been assigned a product yet (most non-primary slides,
-        most of the time). The *primary* slide having no product is
-        still a hard failure, exactly as before - that's a real setup
-        problem, not a transient one. A slide with 2+ appearances (the
-        still-unsupported multi-product-per-slide case) still fails the
-        whole stage loudly, same as it always has for the primary slide -
-        silently skipping a real, actionable problem would be worse than
-        an honest failure, unlike "nothing assigned yet."
+        hasn't been assigned a product yet. A slide with 2+ appearances
+        (the still-unsupported multi-product-per-slide case) still
+        fails the whole stage loudly - silently skipping a real,
+        actionable problem would be worse than an honest failure, unlike
+        "nothing assigned yet."
 
-        Real-world-diagnosed fix (see MIGRATION_PLAN.md): a slide CAN
-        have a current appearance assigned (e.g. the frontend's import
-        flow used to blanket-assign the chosen product to every slide)
-        and still genuinely not show that product - a narrative/story
-        slide with no product in frame. For a non-primary slide, the
-        provider correctly finding zero bounding boxes is no longer a
-        stage-wide hard failure: it retracts that slide's own
-        ProductAppearance (is_current=False, same soft-delete semantics
-        as the DELETE .../products/{appearance_id} endpoint) so every
-        downstream stage's existing "no current appearance -> skip"
-        logic picks it up for free, and moves on to the next slide - one
-        story slide with no product no longer aborts analysis for the
-        entire slideshow. The *primary* slide still hard-fails on zero
-        boxes, unchanged - the primary slide is expected to show the
-        product, same invariant as the "no appearance assigned" case
-        above.
+        Real-world-diagnosed fix (see MIGRATION_PLAN.md): earlier
+        revisions of this Stage treated the *primary* slide specially -
+        hard-failing if it had no product assigned, or if the provider
+        detected nothing there - on the assumption that the primary
+        slide (slides[0]) always shows the product. Real TikTok
+        slideshows regularly lead with a text-only "hook" slide and show
+        the product on a later slide instead - that assumption was
+        simply wrong, confirmed live. There is nothing structurally
+        special about the primary slide's *product content*; every
+        slide is treated identically now:
+
+        - No appearance assigned: skip (see above).
+        - Appearance assigned but the provider detects zero bounding
+          boxes: a narrative/story slide genuinely without the product
+          in frame - retract that slide's own ProductAppearance
+          (is_current=False, same soft-delete semantics as the DELETE
+          .../products/{appearance_id} endpoint) so every downstream
+          stage's existing "no current appearance -> skip" logic picks
+          it up for free, and move on to the next slide.
+
+        The real, still-necessary failure condition is checked once, at
+        the end, across the whole slideshow: if NOT ONE eligible slide
+        ends up with a detected product, there is nothing to build a
+        Canonical Reference Library from at all, and that's a genuine,
+        actionable setup problem worth failing loudly on.
 
         Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
         actual `isolate_product` provider call for every eligible slide
@@ -127,7 +133,6 @@ class SlideProductIsolationStage:
         single thread, in original slide order - only the slow network
         call itself was moved off the sequential path.
         """
-        primary_slide = slideshow.primary_slide
         isolation_provider = default_registry.isolation()
         result: StageResult = StageResult(succeeded=True)
 
@@ -135,16 +140,17 @@ class SlideProductIsolationStage:
         for slide in slideshow.slides:
             current_appearances = slide.current_product_appearances
             if not current_appearances:
-                if slide.id == primary_slide.id:
-                    return StageResult(
-                        succeeded=False,
-                        error="No product assigned to this slide - assign one before running Product Isolation.",
-                    )
                 continue
             distinct_product_ids = {a.product_id for a in current_appearances}
             if len(distinct_product_ids) > 1:
                 return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
             eligible.append((slide, current_appearances[0].product_id))
+
+        if not eligible:
+            return StageResult(
+                succeeded=False,
+                error="No product assigned to any slide - assign one before running Product Isolation.",
+            )
 
         def _isolate(entry: tuple[Slide, str]):
             slide, _product_id = entry
@@ -157,12 +163,13 @@ class SlideProductIsolationStage:
             # is no longer raised as an exception here - it's a
             # legitimate outcome (a story/narrative slide genuinely
             # doesn't show the product), not a provider error. The
-            # persist loop below decides what "zero boxes" means
-            # (primary-slide hard failure vs. non-primary soft skip),
-            # since that's a business rule, not a detection-call concern.
+            # persist loop below decides what "zero boxes on this slide"
+            # means for the slideshow overall, since that's a business
+            # rule, not a detection-call concern.
             return image_bytes, bounding_boxes, provider_call_ms, usage
 
         isolation_results = run_concurrently(eligible, _isolate)
+        any_product_detected = False
 
         for index, (slide, product_id) in enumerate(eligible):
             # Committed immediately as a durable "pending" record - same
@@ -185,18 +192,14 @@ class SlideProductIsolationStage:
                 image_bytes, bounding_boxes, provider_call_ms, usage = outcome
 
                 if not bounding_boxes:
-                    if slide.id == primary_slide.id:
-                        raise ValueError(
-                            "No product detected in the primary slide's image - assign the "
-                            "correct product, or a different primary slide, before running "
-                            "Product Isolation."
-                        )
-                    # Non-primary slide, genuinely no product in frame (a
-                    # narrative/story slide) - retract the mistaken
-                    # ProductAppearance so every downstream stage's
-                    # existing "no current appearance -> skip" logic
-                    # picks this slide up for free, and move on rather
-                    # than aborting the whole slideshow's analysis.
+                    # Genuinely no product in frame (a narrative/story
+                    # slide, or a mistaken assignment) - retract it so
+                    # every downstream stage's existing "no current
+                    # appearance -> skip" logic picks this slide up for
+                    # free, and move on rather than aborting the whole
+                    # slideshow's analysis. Whether this is actually a
+                    # problem for the slideshow overall is decided once,
+                    # after this loop, by any_product_detected.
                     db.query(ProductAppearance).filter(
                         ProductAppearance.slide_id == slide.id,
                         ProductAppearance.product_id == product_id,
@@ -207,6 +210,7 @@ class SlideProductIsolationStage:
                     )
                     continue
 
+                any_product_detected = True
                 crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
 
                 new_reference_images = []
@@ -238,6 +242,21 @@ class SlideProductIsolationStage:
                 return mark_failed(db, analysis_run, exc, rollback=True)
 
             result = mark_succeeded(db, analysis_run, provider_call_ms=provider_call_ms, usage=usage)
+
+        if not any_product_detected:
+            # Every eligible slide's ProductAppearance has now been
+            # retracted above - a real, actionable problem (nothing to
+            # build a Canonical Reference Library from), not silently
+            # swallowed just because no single slide was singled out as
+            # "the" one required to show it.
+            return StageResult(
+                succeeded=False,
+                error=(
+                    "No product could be detected in any slide - the assigned product "
+                    "doesn't appear to be visible in any of this slideshow's images. Check "
+                    "the product assignment, or add a slide that actually shows it."
+                ),
+            )
 
         return result
 

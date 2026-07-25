@@ -9,7 +9,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
-from app.models.analysis_run import STATUS_FAILED, STATUS_SUCCEEDED, AnalysisRun
+from app.models.analysis_run import STATUS_SUCCEEDED, AnalysisRun
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.product_reference_image import ProductReferenceImage
@@ -92,7 +92,12 @@ def test_succeeds_and_crops_reference_image(db_session, slideshow_with_product, 
     assert analysis_run.slide_id == slide.id
 
 
-def test_fails_gracefully_when_no_product_detected(db_session, slideshow_with_product, monkeypatch):
+def test_fails_gracefully_when_no_product_detected_anywhere(db_session, slideshow_with_product, monkeypatch):
+    """
+    The only slide in this slideshow has a product assigned but none
+    detected - with no other slide to fall back on, that's a real,
+    actionable failure (nothing to build a Reference Library from).
+    """
     monkeypatch.setattr(
         "app.slideshow_stages.product_isolation_stage.default_registry",
         FakeAIProviderRegistry(isolation_provider=FakeProductIsolationProvider(bounding_boxes=[])),
@@ -102,10 +107,18 @@ def test_fails_gracefully_when_no_product_detected(db_session, slideshow_with_pr
     result = stage.run(db_session, slideshow_with_product)
 
     assert result.succeeded is False
-    assert "No product detected" in result.error
+    assert "No product could be detected in any slide" in result.error
 
+    # The slide's own ProductAppearance was still retracted (consistent
+    # with the per-slide handling), and its AnalysisRun still succeeded -
+    # only the STAGE's overall result is a failure.
+    slide = slideshow_with_product.primary_slide
+    appearance = db_session.scalars(
+        select(ProductAppearance).where(ProductAppearance.slide_id == slide.id)
+    ).first()
+    assert appearance.is_current is False
     analysis_run = db_session.scalars(select(AnalysisRun)).first()
-    assert analysis_run.status == STATUS_FAILED
+    assert analysis_run.status == STATUS_SUCCEEDED
 
 
 def test_rerun_produces_new_version_and_flips_previous(db_session, slideshow_with_product, monkeypatch):
@@ -285,13 +298,22 @@ def test_non_primary_slide_with_no_product_detected_is_skipped_not_failed(db_ses
     assert all(r.status == STATUS_SUCCEEDED for r in runs)
 
 
-def test_primary_slide_with_no_product_detected_still_fails(db_session, tmp_path, monkeypatch):
-    """The primary slide is still expected to show the product - unchanged behavior."""
+def test_primary_slide_with_no_product_detected_is_also_skipped_not_failed(db_session, tmp_path, monkeypatch):
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): a real TikTok
+    slideshow can lead with a text-only "hook" slide (the primary slide,
+    slides[0]) and show the product on a LATER slide instead - the
+    primary slide has no structural claim to being the one that shows
+    the product. This must succeed overall (the non-primary slide's real
+    detection is enough), with the primary slide's own mistaken
+    ProductAppearance retracted exactly like any other slide's.
+    """
     slideshow, product, slides = _make_two_slide_slideshow_with_shared_product(db_session, tmp_path)
     primary_bytes = Path(slides[0].stored_file_path).read_bytes()
     story_bytes = Path(slides[1].stored_file_path).read_bytes()
 
-    # Real box on the non-primary slide, NONE on the primary - the interesting/wrong case.
+    # No box on the primary ("hook") slide, a real box on the second
+    # ("product") slide - the exact real scenario this fix targets.
     real_box = [{"x_min": 0.1, "y_min": 0.1, "x_max": 0.9, "y_max": 0.9, "confidence": 0.95, "notes": "bottle"}]
     fake_provider = _ByContentFakeIsolationProvider({primary_bytes: [], story_bytes: real_box})
     monkeypatch.setattr(
@@ -302,5 +324,46 @@ def test_primary_slide_with_no_product_detected_still_fails(db_session, tmp_path
     stage = SlideProductIsolationStage()
     result = stage.run(db_session, slideshow)
 
+    assert result.succeeded is True
+
+    primary_appearance = db_session.scalars(
+        select(ProductAppearance).where(ProductAppearance.slide_id == slides[0].id)
+    ).first()
+    assert primary_appearance.is_current is False
+
+    second_slide_images = list(
+        db_session.scalars(
+            select(ProductReferenceImage).where(ProductReferenceImage.source_slide_id == slides[1].id)
+        )
+    )
+    assert len(second_slide_images) == 1
+
+
+def test_fails_when_no_slide_at_all_has_a_detectable_product(db_session, tmp_path, monkeypatch):
+    """The genuine, still-necessary failure case: not one slide in the whole slideshow shows the product."""
+    slideshow, product, slides = _make_two_slide_slideshow_with_shared_product(db_session, tmp_path)
+    primary_bytes = Path(slides[0].stored_file_path).read_bytes()
+    story_bytes = Path(slides[1].stored_file_path).read_bytes()
+
+    fake_provider = _ByContentFakeIsolationProvider({primary_bytes: [], story_bytes: []})
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_isolation_stage.default_registry",
+        FakeAIProviderRegistry(isolation_provider=fake_provider),
+    )
+
+    stage = SlideProductIsolationStage()
+    result = stage.run(db_session, slideshow)
+
     assert result.succeeded is False
-    assert "No product detected" in result.error
+    assert "No product could be detected in any slide" in result.error
+
+    # Both appearances retracted, both AnalysisRuns still succeeded -
+    # only the stage's overall result is a failure.
+    for slide in slides:
+        appearance = db_session.scalars(
+            select(ProductAppearance).where(ProductAppearance.slide_id == slide.id)
+        ).first()
+        assert appearance.is_current is False
+    runs = list(db_session.scalars(select(AnalysisRun)))
+    assert len(runs) == 2
+    assert all(r.status == STATUS_SUCCEEDED for r in runs)
