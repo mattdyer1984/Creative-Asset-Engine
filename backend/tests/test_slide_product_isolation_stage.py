@@ -423,3 +423,118 @@ def test_crop_bounding_boxes_still_crops_a_normal_box_correctly():
     # Roughly 0.8 * 400 = 320px, plus 5% padding on each side.
     assert 300 < cropped.size[0] < 360
     assert 300 < cropped.size[1] < 360
+
+
+# --- Reference retirement (incident bd1f62a2) ------------------------
+
+
+def test_sibling_slides_crops_survive_the_same_run(db_session):
+    """
+    The incident: one product across three slides produced six crops, and
+    five were retired unscored because retirement ran INSIDE the per-slide
+    loop. The single survivor scored 0.458 against a 0.5 floor and blocked
+    generation entirely, while four never-scored candidates - including
+    the largest crop - sat retired in the database.
+    """
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.slideshow_stages.product_isolation_stage import _retire_superseded_references
+
+    rows = []
+    for slide_no in (1, 2, 2, 3):
+        image = ProductReferenceImage(
+            product_id="p1", source_slide_id=f"slide{slide_no}",
+            isolation_method="llm_bounding_box_v1", file_path="/tmp/x.jpg", is_current=True,
+        )
+        db_session.add(image)
+        rows.append(image)
+    db_session.flush()
+
+    # Everything above came from THIS run.
+    _retire_superseded_references(db_session, {"p1": [r.id for r in rows]})
+    db_session.flush()
+    db_session.expire_all()
+
+    assert all(r.is_current for r in rows), "a run must not retire its own crops"
+
+
+def test_a_new_run_supersedes_the_previous_runs_crops(db_session):
+    """The behaviour that was intended all along, and must be preserved."""
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.slideshow_stages.product_isolation_stage import _retire_superseded_references
+
+    old = ProductReferenceImage(
+        product_id="p2", source_slide_id="slideA", isolation_method="llm_bounding_box_v1",
+        file_path="/tmp/old.jpg", is_current=True,
+    )
+    new = ProductReferenceImage(
+        product_id="p2", source_slide_id="slideA", isolation_method="llm_bounding_box_v1",
+        file_path="/tmp/new.jpg", is_current=True,
+    )
+    db_session.add_all([old, new])
+    db_session.flush()
+
+    _retire_superseded_references(db_session, {"p2": [new.id]})
+    db_session.flush()
+    db_session.expire_all()  # bulk UPDATE(synchronize_session=False)
+
+    assert not old.is_current, "the previous run's crop should be superseded"
+    assert new.is_current
+
+
+def test_product_url_and_uploaded_references_are_never_retired(db_session):
+    """
+    Only slideshow crops are superseded by a new isolation pass. A clean
+    product-URL image or a hand-uploaded reference is not this stage's to
+    invalidate - and destroying them is what left the reference pool
+    containing nothing but slideshow crops.
+    """
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.slideshow_stages.product_isolation_stage import _retire_superseded_references
+
+    from_url = ProductReferenceImage(
+        product_id="p3", source_slide_id=None, source_product_source_import_id="imp1",
+        isolation_method="product_url", file_path="/tmp/url.jpg", is_current=True,
+    )
+    uploaded = ProductReferenceImage(
+        product_id="p3", source_slide_id=None, isolation_method="user_upload",
+        file_path="/tmp/up.jpg", is_current=True,
+    )
+    crop = ProductReferenceImage(
+        product_id="p3", source_slide_id="slideZ", isolation_method="llm_bounding_box_v1",
+        file_path="/tmp/crop.jpg", is_current=True,
+    )
+    db_session.add_all([from_url, uploaded, crop])
+    db_session.flush()
+
+    fresh = ProductReferenceImage(
+        product_id="p3", source_slide_id="slideZ", isolation_method="llm_bounding_box_v1",
+        file_path="/tmp/fresh.jpg", is_current=True,
+    )
+    db_session.add(fresh)
+    db_session.flush()
+
+    _retire_superseded_references(db_session, {"p3": [fresh.id]})
+    db_session.flush()
+    db_session.expire_all()
+
+    assert from_url.is_current, "a product-URL reference must survive isolation"
+    assert uploaded.is_current, "a user upload must survive isolation"
+    assert not crop.is_current, "the superseded slideshow crop should retire"
+
+
+def test_no_new_crops_means_nothing_is_retired(db_session):
+    """Retiring on an empty run would empty the library for no reason."""
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.slideshow_stages.product_isolation_stage import _retire_superseded_references
+
+    existing = ProductReferenceImage(
+        product_id="p4", source_slide_id="slideQ", isolation_method="llm_bounding_box_v1",
+        file_path="/tmp/e.jpg", is_current=True,
+    )
+    db_session.add(existing)
+    db_session.flush()
+
+    _retire_superseded_references(db_session, {"p4": []})
+    db_session.flush()
+    db_session.expire_all()
+    assert existing.is_current

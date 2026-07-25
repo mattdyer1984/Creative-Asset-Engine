@@ -171,6 +171,9 @@ class SlideProductIsolationStage:
 
         isolation_results = run_concurrently(eligible, _isolate)
         any_product_detected = False
+        # Every reference image THIS run produced, per product. Retirement
+        # happens once, after the loop - see the note there.
+        new_reference_ids_by_product: dict[str, list[str]] = {}
 
         for index, (slide, product_id) in enumerate(eligible):
             # Committed immediately as a durable "pending" record - same
@@ -236,12 +239,9 @@ class SlideProductIsolationStage:
                     reference_image.file_path = str(stored_path)
                     new_reference_images.append(reference_image)
 
-                new_ids = [img.id for img in new_reference_images]
-                db.query(ProductReferenceImage).filter(
-                    ProductReferenceImage.product_id == product_id,
-                    ProductReferenceImage.is_current.is_(True),
-                    ProductReferenceImage.id.notin_(new_ids),
-                ).update({"is_current": False}, synchronize_session=False)
+                new_reference_ids_by_product.setdefault(product_id, []).extend(
+                    img.id for img in new_reference_images
+                )
 
             except Exception as exc:
                 return mark_failed(db, analysis_run, exc, rollback=True)
@@ -253,6 +253,8 @@ class SlideProductIsolationStage:
                 usage=usage,
                 prompt=_analysis_prompts.PRODUCT_ISOLATION,
             )
+
+        _retire_superseded_references(db, new_reference_ids_by_product)
 
         if not any_product_detected:
             # Every eligible slide's ProductAppearance has now been
@@ -270,6 +272,46 @@ class SlideProductIsolationStage:
             )
 
         return result
+
+
+def _retire_superseded_references(
+    db: Session, new_reference_ids_by_product: dict[str, list[str]]
+) -> None:
+    """
+    Retire the PREVIOUS run's slideshow crops, once, after every slide in
+    this run has contributed.
+
+    Two real defects fixed here, both diagnosed from incident bd1f62a2:
+
+    1. **This used to run inside the per-slide loop.** Scoped to the
+       product but executed per slide, so when one product appeared on
+       several slides, each iteration retired its siblings' crops from the
+       SAME run. Slide 1 produced 1 crop, slide 2 produced 4, slide 3
+       produced 1 - and five of the six were retired before scoring ever
+       saw them, including the largest (1009x1412). The single survivor
+       scored 0.458 against a 0.5 floor and the whole generation was
+       blocked with "we couldn't build a usable reference image", while
+       four unscored candidates sat in the database.
+
+    2. **It retired references it had no business touching.** The filter
+       was product-scoped only, so a clean product-URL image or a
+       user-uploaded reference was retired by the next isolation run just
+       for existing. Only slideshow-derived crops are superseded by a new
+       isolation pass; images acquired from the product URL or uploaded by
+       hand are not this stage's to invalidate.
+    """
+    for product_id, new_ids in new_reference_ids_by_product.items():
+        if not new_ids:
+            # No new crops for this product means nothing superseded them.
+            # Retiring here would empty the library for no reason.
+            continue
+        db.query(ProductReferenceImage).filter(
+            ProductReferenceImage.product_id == product_id,
+            ProductReferenceImage.is_current.is_(True),
+            ProductReferenceImage.id.notin_(new_ids),
+            # Slideshow crops only - see point 2 above.
+            ProductReferenceImage.source_slide_id.isnot(None),
+        ).update({"is_current": False}, synchronize_session=False)
 
 
 def _crop_bounding_boxes(image_bytes: bytes, bounding_boxes: list[dict]) -> list[bytes]:
