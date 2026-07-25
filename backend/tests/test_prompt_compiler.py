@@ -99,15 +99,14 @@ def test_missing_optional_creative_specification_fields_are_skipped_not_blank():
 
     request = compile_generation_request(minimal, _REFERENCE_PATHS)
 
-    # Phase 10.8's unconditional photorealism directive means
-    # creative_intent is never truly blank anymore - only the optional
-    # scene fields themselves are skipped when absent.
-    assert request.creative_intent == (
-        "Match the visual medium and level of stylisation of the source "
-        "creative exactly as described above - do not shift it toward a "
-        "different medium."
-    )
-    assert "Composition" not in request.creative_intent
+    # creative_intent is never truly blank: the transformation policy and
+    # the rendering instruction are unconditional. What this test is
+    # actually about is that the OPTIONAL scene fields are skipped rather
+    # than emitted as empty labels.
+    assert "TRANSFORMATION POLICY" in request.creative_intent
+    assert "Match the visual medium" in request.creative_intent
+    for skipped in ("Composition:", "Style:", "Color palette:", "Text overlays:"):
+        assert skipped not in request.creative_intent
     assert "Style" not in request.creative_intent
     assert "Color palette" not in request.creative_intent
     assert "Text overlays" not in request.creative_intent

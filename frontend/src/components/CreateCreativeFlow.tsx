@@ -5,6 +5,7 @@ import {
   type GenerateCreativeRequest,
   type GenerateCreativeResponseData,
   type Product,
+  type ProductReferenceImage,
   type TextStrategy,
 } from '../api';
 import { GenerationResultsModal } from './GenerationResultsModal';
@@ -130,6 +131,58 @@ const TEXT_STRATEGY_OPTIONS: { value: TextStrategy; label: string; description: 
  * analyze (polled) -> generate-creative into one button with
  * plain-language progress, never internal stage names.
  */
+/**
+ * Why reference building failed, in terms the user can act on.
+ *
+ * This used to be one sentence for every cause: "We couldn't build a
+ * usable reference image for this product." That covered at least six
+ * genuinely different situations - nothing downloaded, nothing detected,
+ * scoring still running, scoring never ran, every crop scored too low,
+ * provider failure - and told the user which one applied in none of
+ * them. The single most common real case (crops rejected because
+ * promotional text covered the product) is fixable in seconds if you
+ * know that is what happened.
+ */
+function describeReferenceFailure(images: ProductReferenceImage[]): string {
+  if (images.length === 0) {
+    return (
+      'We could not find any usable product imagery. No images were downloaded from the ' +
+      'product URL, and no product was detected in the slideshow. Add a clear product photo ' +
+      'in Advanced mode and we will use the slideshow for composition only.'
+    );
+  }
+
+  const unscored = images.filter((image) => image.library_status === null);
+  if (unscored.length === images.length) {
+    return (
+      `Reference scoring did not complete for any of the ${images.length} candidate image(s) - ` +
+      'this usually means the AI provider returned an error. Your slideshow is saved; try again ' +
+      'in a moment.'
+    );
+  }
+
+  const rejected = images.filter((image) => image.library_status === 'rejected');
+  if (rejected.length > 0) {
+    const best = rejected.reduce((a, b) => ((a.quality_score ?? 0) >= (b.quality_score ?? 0) ? a : b));
+    const reasons = (best.quality_reasons_json ?? [])
+      .filter((reason) => !/^\d+x\d+|^role:|^composition:/.test(reason))
+      .slice(0, 3);
+    const detail = reasons.length > 0 ? ` Reasons: ${reasons.join('; ')}.` : '';
+    return (
+      `All ${images.length} candidate reference image(s) scored below the quality bar ` +
+      `(best ${(best.quality_score ?? 0).toFixed(2)}, needed 0.50).${detail} ` +
+      'This usually means the product is partly covered by on-screen text in the slideshow. ' +
+      'Add one clean product photo in Advanced mode and we will use the slideshow for ' +
+      'composition only.'
+    );
+  }
+
+  return (
+    `None of the ${images.length} candidate reference image(s) could be used for this product. ` +
+    'Add a clear front image, and an angled or side image, in Advanced mode.'
+  );
+}
+
 export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
   const [sourceMode, setSourceMode] = useState<'url' | 'upload'>('url');
   const [slideshowUrl, setSlideshowUrl] = useState('');
@@ -317,9 +370,7 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
           attempts += 1;
         }
         if (!images.some((image) => image.library_status === 'included')) {
-          throw new Error(
-            "We couldn't build a usable reference image for this product - try a different product, or add a reference image for it in Advanced mode."
-          );
+          throw new Error(describeReferenceFailure(images));
         }
       }
 

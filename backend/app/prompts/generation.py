@@ -310,6 +310,7 @@ def compile_creative_intent(
     # illustration, hand-drawn feel" three lines earlier. The model was
     # being asked to obey two opposite instructions, and the validator
     # then failed it for picking the analysed one.
+    parts.append(fragments["transformation_policy"])
     parts.append(_rendering_instruction(source_style))
 
     # Deliberately LAST. Buried mid-prompt this was outvoted by the
@@ -356,7 +357,9 @@ GENERATION_COMPILER = register(
     # 2.0: the rendering instruction became style-aware.
     # 3.0: text suppression strengthened and moved last, after it was
     #      shown to be outvoted by the layout prose above it.
-    version="3.0",
+    # 4.0: explicit transformation policy - preserve pose and composition,
+    #      make the person and the environment new. Previously emergent.
+    version="4.0",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."
@@ -408,6 +411,33 @@ GENERATION_COMPILER = register(
             "reproduced exactly as instructed elsewhere.)"
         ),
         "text_overlays": "Text overlays: ",
+        # What must stay the same and what must be made new. Before this
+        # existed the answer was whatever the creative-specification model
+        # happened to write that call: across seven slides of one run the
+        # instructions ranged from "avoid copying the exact original
+        # character... pose" (change the person AND the pose) to "the
+        # person should visibly feel discomfort" (preserve the expression)
+        # to nothing at all. Originality was emergent, not designed, and
+        # two slides were told to discard the pose - the one thing that
+        # should be kept.
+        "transformation_policy": (
+            "TRANSFORMATION POLICY - what to keep and what to make new:\n"
+            "- PRESERVE EXACTLY: the product's identity, geometry, branding, "
+            "colours and proportions, as shown in the reference images.\n"
+            "- PRESERVE CLOSELY: camera angle, framing, composition, layout, "
+            "negative space, and the visual style of the source.\n"
+            "- PRESERVE BEHAVIOURALLY: any person's pose, body language, gaze "
+            "direction, and how they interact with the product or the scene.\n"
+            "- MAKE NEW: any person's facial identity and features, hairstyle, "
+            "clothing and accessories. Generate a DIFFERENT individual of a "
+            "similar age range and body type - do not reproduce the likeness "
+            "of the person shown in the reference image.\n"
+            "- MAKE NEW: the background environment, furniture, props and "
+            "decorative objects - keep each one's functional role in the "
+            "scene, but design original ones rather than copying.\n"
+            "The result should read as the same creative concept, not as the "
+            "same person or the same room."
+        ),
         # One fragment per rendering family. Every branch is registered,
         # so editing the one that did not fire still moves the content
         # hash (see core.py).

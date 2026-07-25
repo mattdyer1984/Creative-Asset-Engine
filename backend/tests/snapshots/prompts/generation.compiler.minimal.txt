@@ -1,2 +1,9 @@
 Composition: close up
+TRANSFORMATION POLICY - what to keep and what to make new:
+- PRESERVE EXACTLY: the product's identity, geometry, branding, colours and proportions, as shown in the reference images.
+- PRESERVE CLOSELY: camera angle, framing, composition, layout, negative space, and the visual style of the source.
+- PRESERVE BEHAVIOURALLY: any person's pose, body language, gaze direction, and how they interact with the product or the scene.
+- MAKE NEW: any person's facial identity and features, hairstyle, clothing and accessories. Generate a DIFFERENT individual of a similar age range and body type - do not reproduce the likeness of the person shown in the reference image.
+- MAKE NEW: the background environment, furniture, props and decorative objects - keep each one's functional role in the scene, but design original ones rather than copying.
+The result should read as the same creative concept, not as the same person or the same room.
 Match the visual medium and level of stylisation of the source creative exactly as described above - do not shift it toward a different medium.

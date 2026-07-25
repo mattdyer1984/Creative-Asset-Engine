@@ -148,3 +148,43 @@ def test_retry_openings_never_demand_a_change_of_medium():
         text = RETRY_REASON.fragments[key].lower()
         for phrase in _PHOTO_DEMANDS:
             assert phrase not in text
+
+
+# --- Transformation policy -------------------------------------------
+
+
+def test_the_transformation_policy_is_explicit_not_emergent():
+    """
+    Before this existed, what to keep and what to change was whatever the
+    creative-specification model happened to write that call. Across seven
+    slides of one run the instructions ranged from "avoid copying the
+    exact original character... pose" to "the person should visibly feel
+    discomfort" to nothing at all - and two slides discarded the pose,
+    which is the one thing that should be kept.
+    """
+    intent = compile_creative_intent({"composition": "a person at a desk"})
+
+    assert "PRESERVE BEHAVIOURALLY" in intent
+    assert "pose" in intent
+    assert "MAKE NEW" in intent
+    assert "facial identity" in intent
+    assert "same creative concept, not as the same person" in intent
+
+
+def test_the_policy_keeps_pose_and_changes_identity():
+    """The two halves that must never be swapped."""
+    intent = compile_creative_intent({"composition": "x"})
+    preserve_block = intent[intent.index("PRESERVE BEHAVIOURALLY") : intent.index("MAKE NEW")]
+    make_new_block = intent[intent.index("MAKE NEW") :]
+
+    assert "pose" in preserve_block
+    assert "body language" in preserve_block
+    assert "facial identity" in make_new_block
+    assert "hairstyle" in make_new_block
+    assert "pose" not in make_new_block, "the pose must never be listed as something to change"
+
+
+def test_the_policy_applies_on_every_prompt():
+    """It is a product-wide rule, not something a spec model opts into."""
+    for spec in ({"composition": "a"}, {"mood": "b"}, {}):
+        assert "TRANSFORMATION POLICY" in compile_creative_intent(spec)
