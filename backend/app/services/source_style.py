@@ -218,3 +218,62 @@ def classify_source_style(
         secondary=runner_style if runner_score else None,
         scores={str(k): v for k, v in scores.items()},
     )
+
+
+# A slideshow is made as a SET: its slides are almost always in one
+# medium. Incident e3fbf713 slide 2 is a hand-drawn illustration whose
+# Creative Fingerprint described it as "Photographic with subtle digital
+# enhancements" - a confident, wrong answer. Classified alone it drew the
+# photographic criteria and its correctly-illustrated recreation was
+# rejected for looking "more like a polished AI illustration than a real
+# photograph", while its siblings passed as illustrations.
+#
+# Rather than adding a second opinion on the medium (the thing this
+# module exists to avoid), the slideshow's own majority breaks the tie.
+_CONSENSUS_MAJORITY = 0.6
+
+
+def apply_slideshow_consensus(
+    classification: StyleClassification, siblings: list[StyleClassification]
+) -> StyleClassification:
+    """
+    When a slide's medium disagrees with a clear majority of its
+    slideshow, treat it as MIXED rather than trusting either answer.
+
+    Deliberately NOT a flip to the majority. Flipping would be a second
+    guess dressed up as a rule, and a slideshow that genuinely mixes
+    product photography with illustrated explainers would have its
+    product shots forced into the wrong criteria. Downgrading to MIXED is
+    the honest response to a real contradiction: the mixed criteria ask
+    "is this well-made?" without penalising either medium, so a correct
+    illustration is not failed for being illustrated and a correct
+    photograph is not failed for being photographic.
+
+    The evidence records both readings so the disagreement is visible
+    rather than silently resolved.
+    """
+    others = [s for s in siblings if s is not classification and s.is_confident]
+    if len(others) < 3:
+        # Too few slides for a majority to mean anything.
+        return classification
+
+    counts: dict[RenderingFamily, int] = {}
+    for sibling in others:
+        counts[sibling.family] = counts.get(sibling.family, 0) + 1
+    family, votes = max(counts.items(), key=lambda kv: kv[1])
+
+    if family is classification.family or votes / len(others) < _CONSENSUS_MAJORITY:
+        return classification
+
+    return StyleClassification(
+        SourceStyle.MIXED_MEDIA,
+        round(votes / len(others), 3),
+        [
+            f"this slide reads as {classification.style}"
+            f" ({', '.join(classification.evidence[:2])})",
+            f"but {votes}/{len(others)} sibling slides read as {family}",
+            "treating as mixed media rather than trusting either reading",
+        ],
+        secondary=classification.style,
+        scores=classification.scores,
+    )

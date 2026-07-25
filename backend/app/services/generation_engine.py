@@ -129,7 +129,7 @@ def _classify_slide_style(db: Session, slide: Slide):
     rather than making a fresh AI call - a third opinion on the medium
     is exactly how the compiler ended up contradicting its own analysis.
     """
-    from app.services.source_style import classify_source_style
+    from app.services.source_style import apply_slideshow_consensus, classify_source_style
 
     fingerprint = (
         db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
@@ -141,10 +141,25 @@ def _classify_slide_style(db: Session, slide: Slide):
         if slide.current_scene_analysis_id
         else None
     )
-    return classify_source_style(
+    own = classify_source_style(
         fingerprint.structured_json if fingerprint else None,
         scene.regions_json if scene else None,
     )
+
+    # A slideshow is made as a set, so let its majority correct a lone
+    # misclassification - see apply_slideshow_consensus.
+    siblings = []
+    for other in db.query(Slide).filter(
+        Slide.slideshow_id == slide.slideshow_id, Slide.id != slide.id
+    ):
+        other_fingerprint = (
+            db.get(CreativeFingerprint, other.current_creative_fingerprint_id)
+            if other.current_creative_fingerprint_id
+            else None
+        )
+        if other_fingerprint is not None:
+            siblings.append(classify_source_style(other_fingerprint.structured_json))
+    return apply_slideshow_consensus(own, siblings)
 
 
 def _enriched_creative_specification(

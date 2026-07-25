@@ -188,3 +188,69 @@ def test_the_policy_applies_on_every_prompt():
     """It is a product-wide rule, not something a spec model opts into."""
     for spec in ({"composition": "a"}, {"mood": "b"}, {}):
         assert "TRANSFORMATION POLICY" in compile_creative_intent(spec)
+
+
+# --- Slideshow consensus ---------------------------------------------
+
+
+def _c(fingerprint):
+    return classify_source_style(fingerprint)
+
+
+def test_a_lone_disagreeing_slide_becomes_mixed_not_flipped():
+    """
+    Incident e3fbf713 slide 2 is a hand-drawn illustration whose Creative
+    Fingerprint confidently described it as "Photographic with subtle
+    digital enhancements". Classified alone it drew the photographic
+    criteria and its correctly-illustrated recreation was rejected for
+    looking "more like a polished AI illustration than a real photograph"
+    - while its siblings passed as illustrations.
+
+    It becomes MIXED rather than being flipped to illustrated: flipping
+    would be a second guess dressed as a rule, and would force a genuine
+    product photo in an illustrated deck into the wrong criteria.
+    """
+    from app.services.source_style import apply_slideshow_consensus
+
+    odd_one_out = _c(PHOTOGRAPHIC)
+    siblings = [_c(ILLUSTRATED), _c(ILLUSTRATED), _c(ILLUSTRATED), _c(INFOGRAPHIC)]
+
+    result = apply_slideshow_consensus(odd_one_out, siblings)
+
+    assert result.style is SourceStyle.MIXED_MEDIA
+    assert result.family is RenderingFamily.MIXED
+    assert any("sibling slides read as" in e for e in result.evidence)
+    assert result.secondary is SourceStyle.PHOTOGRAPHIC, "the original reading is kept"
+
+
+def test_a_slide_agreeing_with_its_slideshow_is_untouched():
+    from app.services.source_style import apply_slideshow_consensus
+
+    own = _c(ILLUSTRATED)
+    result = apply_slideshow_consensus(own, [_c(ILLUSTRATED), _c(ILLUSTRATED), _c(INFOGRAPHIC)])
+    assert result is own
+
+
+def test_a_genuinely_mixed_slideshow_leaves_every_slide_alone():
+    """No majority means no override - product shots keep their criteria."""
+    from app.services.source_style import apply_slideshow_consensus
+
+    own = _c(PHOTOGRAPHIC)
+    siblings = [_c(ILLUSTRATED), _c(ILLUSTRATED), _c(PHOTOGRAPHIC), _c(PHOTOGRAPHIC)]
+    assert apply_slideshow_consensus(own, siblings) is own
+
+
+def test_too_few_siblings_to_form_a_majority():
+    from app.services.source_style import apply_slideshow_consensus
+
+    own = _c(PHOTOGRAPHIC)
+    assert apply_slideshow_consensus(own, [_c(ILLUSTRATED), _c(ILLUSTRATED)]) is own
+
+
+def test_unconfident_siblings_do_not_vote():
+    """A slide with no style evidence has no opinion to contribute."""
+    from app.services.source_style import apply_slideshow_consensus
+
+    own = _c(PHOTOGRAPHIC)
+    siblings = [_c(ILLUSTRATED), _c({}), _c({}), _c({})]
+    assert apply_slideshow_consensus(own, siblings) is own
