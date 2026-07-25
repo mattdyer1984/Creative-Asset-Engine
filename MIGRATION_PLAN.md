@@ -5062,3 +5062,35 @@ Root cause, found in the real `OCRResult.structured_blocks_json`: the third line
 `tests/test_text_intelligence.py`: an OCR block with `role: "other"`/`surface: "overlay"` is now included, styled with the default fallback hierarchy - the exact real reported case. Full backend suite: 524 passed (up from 523); `ruff check` clean on every touched file (`app/db.py`, `app/services/text_intelligence.py`).
 
 - Commit: (see git log)
+
+---
+
+## Real color emoji rendering in text overlays (2026-07-25)
+
+### Context
+
+Direct user request, spotted in passing while fixing the previous report's Bug 2 and then explicitly asked for: "Yeah, we need to be able to use emojis. They're quite important on TikTok." Real captions this pipeline recreates - as the previous report's own "what have they done😭😭😭" example shows - routinely lean on emoji for tone, and the regular Helvetica typeface `rendering_engine.py` uses has no emoji glyphs at all, so every emoji rendered as a blank tofu box.
+
+### Why this couldn't be a Pillow one-liner
+
+Apple Color Emoji (already present on macOS at `/System/Library/Fonts/Apple Color Emoji.ttc` - no download needed) renders real, full-color glyphs via Pillow's own `draw.text(..., embedded_color=True)`, confirmed via a direct pixel-level render test before any production code changed. Two real constraints stood in the way of just swapping fonts in, though: it's a fixed-size bitmap ("sbix") font, not scalable - `ImageFont.truetype` only accepts a short list of exact "strike" sizes (confirmed via direct testing: 20, 32, 40, 48, 64, 96, 160; anything else raises `OSError: invalid pixel size`) - and Pillow's own `multiline_text`/`multiline_textbbox` (what every previous version of this module's text drawing used) accept exactly one font per call, so a caption mixing regular text and color emoji can never be one Pillow call.
+
+### The fix: custom per-line, per-run layout
+
+`_split_into_runs` uses the `emoji` package's own grapheme-cluster-aware `emoji.emoji_list` (not naive codepoint iteration - a single visible emoji can span several codepoints via skin-tone modifiers or ZWJ sequences) to split each already-wrapped line into (text, is_emoji) runs. `_layout_line` measures each run with the right font - the regular typeface for text, Apple Color Emoji (scaled to match the surrounding text's point size) for emoji - and returns the line's total width. `_measure_text_asset`/`_draw_text_asset` (previously thin wrappers around `multiline_textbbox`/`multiline_text`) now do this layout by hand: draw line by line, run by run, `draw.text(...)` with the usual white-fill/black-stroke style for text runs, and `_draw_emoji_run` (renders the glyph to a small RGBA cell at its native strike size, resizes it to match the surrounding text, and pastes it using its own alpha channel as the mask) for emoji runs - deliberately no stroke on emoji glyphs, since a color bitmap glyph is already high-contrast and stroke isn't meaningful combined with `embedded_color`. Centering each line independently against the full image width was confirmed to produce an identical visual result to the old two-step "center the block, then center each line within it" approach, so the redesign didn't need to preserve that machinery.
+
+**A real, live-found bug this surfaced during its own verification, not hypothetical**: `_greedy_wrap_lines` (the word-wrap step) originally still measured every candidate line with a plain `draw.textlength(candidate, font=font)` - the *regular* text font, even for candidates containing emoji. For "Why would u pay £24 for this 😭😭😭" this let a line pack all three emoji on, because Helvetica's own (much narrower) tofu-box advance width made the candidate look like it fit - once actually drawn with real, correctly-scaled emoji glyphs, that line overflowed the safe zone's central-two-thirds margin by ~18px, caught by a new safe-zone regression test, not by inspection. Fixed by measuring wrap candidates through the same `_layout_line` the real draw pass uses (with the correct per-size emoji font/scale threaded through `_choose_wrapped_lines`'s own font-shrinking loop), so wrapping decisions now see the same real widths that get drawn.
+
+**Graceful degradation, not a crash, when Apple Color Emoji isn't present**: `_load_emoji_font`/`_emoji_font_and_scale` return `None`/`1.0` if the font file doesn't exist (this machine is macOS-only for this specific font; not guaranteed on every machine this might run on, and downloading a font file isn't an option). Every call site falls back to drawing the emoji character via the regular text font on `None` - the exact pre-fix tofu-box behavior, not an error.
+
+`emoji==2.15.0` added to `backend/requirements.txt` (was already installed in the venv from investigation, not previously declared).
+
+### Test coverage
+
+`tests/test_rendering_engine.py`: `_split_into_runs` correctly separates text/emoji runs including an emoji at the very start of a line; `_nearest_emoji_strike_size` picks the closest supported bitmap size; `_emoji_font_and_scale` degrades to `(None, 1.0)` when the font is missing (monkeypatched, not dependent on the real font); a real render of "so good 😭" produces genuinely saturated color pixels no ordinary white-fill/black-stroke render could produce (skipped on machines without Apple Color Emoji); a render with the emoji font unavailable still succeeds without raising; the exact real "Why would u pay £24 for this 😭😭😭" case (the wrap-width bug above) stays within the safe zone. Full backend suite: 532 passed (up from 524); `ruff check` clean on `app/services/rendering_engine.py` and `tests/test_rendering_engine.py` (8 pre-existing, unrelated `F821` errors in `app/models/slideshow.py` confirmed present before this change too, via `git stash`).
+
+### Live verification
+
+Rendered the exact real reported caption ("what have they done😭😭😭") and a multi-asset/multi-line case directly through the real `render_final_output` (the same function the live app calls, pure local Pillow compositing with no AI provider involved) and visually inspected the output: real, correctly-colored, correctly-sized, correctly-centered emoji glyphs alongside the stroked text, with wrapping, stacking, and safe-zone behavior all still intact.
+
+- Commit: (see git log)

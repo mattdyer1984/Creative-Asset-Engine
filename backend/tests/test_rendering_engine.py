@@ -12,14 +12,21 @@ pixels rather than only checking "doesn't crash."
 """
 
 from io import BytesIO
+from pathlib import Path
 
+import pytest
 from PIL import Image, ImageChops, ImageDraw
 
+from app.services import rendering_engine
 from app.services.rendering_engine import (
+    _EMOJI_FONT_PATH,
     _base_font_size_for,
     _choose_wrapped_lines,
+    _emoji_font_and_scale,
     _load_default_typeface,
+    _nearest_emoji_strike_size,
     _resolve_y,
+    _split_into_runs,
     render_final_output,
 )
 
@@ -359,3 +366,117 @@ def test_text_is_drawn_with_a_visible_stroke_outline():
 
     assert (255, 255, 255) in colors  # white fill
     assert (0, 0, 0) in colors  # black stroke
+
+
+# --- emoji rendering: "Yeah, we need to be able to use emojis. They're quite important on TikTok." (real user request, see MIGRATION_PLAN.md) ---
+
+
+def test_split_into_runs_separates_text_and_emoji():
+    assert _split_into_runs("what have they done😭😭😭") == [
+        ("what have they done", False),
+        ("😭", True),
+        ("😭", True),
+        ("😭", True),
+    ]
+
+
+def test_split_into_runs_returns_the_whole_line_unchanged_when_no_emoji_present():
+    assert _split_into_runs("Now 30% off") == [("Now 30% off", False)]
+
+
+def test_split_into_runs_handles_an_emoji_at_the_very_start_of_the_line():
+    assert _split_into_runs("🔥 hot right now") == [("🔥", True), (" hot right now", False)]
+
+
+def test_nearest_emoji_strike_size_picks_the_closest_supported_bitmap_size():
+    """
+    Real constraint: Apple Color Emoji is a fixed-size bitmap ("sbix")
+    font, not scalable - `ImageFont.truetype` only accepts a handful of
+    exact sizes (confirmed via direct testing), anything else raises
+    `OSError: invalid pixel size`.
+    """
+    assert _nearest_emoji_strike_size(50) == 48
+    assert _nearest_emoji_strike_size(70) == 64
+    assert _nearest_emoji_strike_size(200) == 160
+
+
+def test_emoji_font_and_scale_degrades_gracefully_when_the_font_is_missing(monkeypatch):
+    """
+    Not every machine this runs on is macOS - a missing Apple Color
+    Emoji font must degrade to "no emoji font" (caller falls back to
+    drawing the emoji character via the regular text font, the same
+    tofu-box behavior this app had before emoji support), not crash.
+    """
+    monkeypatch.setattr(rendering_engine, "_EMOJI_FONT_PATH", "/nonexistent/does-not-exist.ttc")
+
+    font, scale = _emoji_font_and_scale(60)
+
+    assert font is None
+    assert scale == 1.0
+
+
+@pytest.mark.skipif(not Path(_EMOJI_FONT_PATH).exists(), reason="Apple Color Emoji not present on this machine")
+def test_emoji_renders_real_color_pixels_not_a_tofu_box():
+    """
+    Real bug this fixes: the regular Helvetica typeface has no emoji
+    glyphs at all, so an emoji in a caption rendered as a blank tofu
+    box - no saturated color anywhere, since this app's own text style
+    is pure white fill + black stroke (see this module's own
+    docstring). A real color emoji glyph (Apple Color Emoji,
+    composited via `_draw_emoji_run`) must show genuinely saturated
+    color pixels no ordinary text-and-stroke render could produce.
+    """
+    source = _source_image_bytes(size=(800, 800))
+    text_asset = {
+        "wording": "so good 😭",
+        "hierarchy": "headline",
+        "semantic_role": "hook",
+        "positioning": {"x": 0.1, "y": 0.4, "width": 0.8},
+        "styling": {"size_class": "large"},
+    }
+
+    result_image = Image.open(BytesIO(render_final_output(source, [text_asset]))).convert("RGB")
+    saturated = [pixel for pixel in result_image.getdata() if max(pixel) - min(pixel) > 60]
+
+    assert saturated, "expected real color emoji pixels, found none - emoji may have rendered as a tofu box"
+
+
+def test_render_falls_back_gracefully_when_the_emoji_font_is_unavailable(monkeypatch):
+    """Doesn't depend on the real font being present - simulates a non-macOS machine."""
+    monkeypatch.setattr(rendering_engine, "_EMOJI_FONT_PATH", "/nonexistent/does-not-exist.ttc")
+    source = _source_image_bytes(size=(800, 800))
+    text_asset = {
+        "wording": "so good 😭",
+        "hierarchy": "headline",
+        "semantic_role": "hook",
+        "positioning": {"x": 0.1, "y": 0.4, "width": 0.8},
+        "styling": {"size_class": "large"},
+    }
+
+    result_bytes = render_final_output(source, [text_asset])  # must not raise
+
+    result_image = Image.open(BytesIO(result_bytes))
+    assert result_image.size == (800, 800)
+
+
+def test_caption_mixing_text_and_emoji_still_stays_within_the_safe_zone():
+    """
+    Real user request (safe-zone) combined with emoji support - the
+    emoji-aware layout must still respect the same central-two-thirds/
+    never-bottom-20% bounds as plain text, not bypass them.
+    """
+    source = _source_image_bytes(size=(1080, 1920))
+    text_asset = {
+        "wording": "Why would u pay £24 for this 😭😭😭",
+        "hierarchy": "headline",
+        "semantic_role": "hook",
+        "positioning": {"x": 0.163, "y": 0.9, "width": 0.7},  # deep in the bottom 20%
+        "styling": {"size_class": "large"},
+    }
+
+    result_image = Image.open(BytesIO(render_final_output(source, [text_asset])))
+    bbox = _non_background_bbox(result_image)
+    assert bbox is not None
+    assert bbox[3] <= result_image.height * 0.80
+    assert bbox[0] >= result_image.width * (1 / 6) - 2
+    assert bbox[2] <= result_image.width * (5 / 6) + 2

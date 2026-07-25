@@ -61,6 +61,7 @@ persisting the result as a `FinalOutput` row.
 from io import BytesIO
 from pathlib import Path
 
+import emoji
 from PIL import Image, ImageDraw, ImageFont
 
 # hierarchy size_class -> point size, as a fraction of the image's
@@ -117,21 +118,149 @@ def _load_default_typeface(size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default(size=size)
 
 
+# Real-world-diagnosed fix (see MIGRATION_PLAN.md): "Yeah, we need to be
+# able to use emojis. They're quite important on TikTok" - the regular
+# Helvetica typeface above has no emoji glyphs at all, so any emoji in a
+# caption rendered as a blank tofu box. Apple Color Emoji renders real,
+# full-color glyphs (confirmed via a direct render + pixel-color test),
+# but it's a fixed-size bitmap ("sbix") font, not a scalable one -
+# `ImageFont.truetype` only accepts a handful of exact "strike" sizes
+# (confirmed via direct testing on this machine; anything else raises
+# `OSError: invalid pixel size`), and Pillow's own `multiline_text`/
+# `multiline_textbbox` only accept one font per call, so this text and
+# emoji can never be a single Pillow call. `_layout_line` splits each
+# wrapped line into (text, is_emoji) runs and measures/positions each
+# with its own font; `_draw_emoji_run` renders the color glyph to a
+# small RGBA cell at its native strike size and resizes it to match the
+# surrounding text before compositing it in place. No downloading a
+# font file - Apple Color Emoji already ships with macOS.
+_EMOJI_FONT_PATH = "/System/Library/Fonts/Apple Color Emoji.ttc"
+_EMOJI_FONT_STRIKE_SIZES = [20, 32, 40, 48, 64, 96, 160]
+_LINE_SPACING = 4  # Pillow's own multiline_text/multiline_textbbox default - kept identical so this module's own custom line layout (needed for mixed-font rendering) doesn't visibly change plain-text line spacing.
+
+
+def _nearest_emoji_strike_size(target_size: int) -> int:
+    return min(_EMOJI_FONT_STRIKE_SIZES, key=lambda size: abs(size - target_size))
+
+
+def _load_emoji_font(target_size: int) -> ImageFont.FreeTypeFont | None:
+    if not Path(_EMOJI_FONT_PATH).exists():
+        return None
+    return ImageFont.truetype(_EMOJI_FONT_PATH, size=_nearest_emoji_strike_size(target_size))
+
+
+def _emoji_font_and_scale(target_size: int) -> tuple[ImageFont.FreeTypeFont | None, float]:
+    """
+    `target_size` is the surrounding text font's own point size - emoji
+    should read at roughly the same visual size as the text beside
+    them. `None` (no Apple Color Emoji font on this machine) degrades
+    gracefully to a tofu box via the regular text font, matching this
+    app's pre-emoji behavior - not a crash.
+    """
+    emoji_font = _load_emoji_font(target_size)
+    if emoji_font is None:
+        return None, 1.0
+    return emoji_font, target_size / emoji_font.size
+
+
+def _split_into_runs(line: str) -> list[tuple[str, bool]]:
+    """
+    Splits one already-wrapped line into (text, is_emoji) runs, using
+    the `emoji` package's own grapheme-cluster-aware detection
+    (`emoji.emoji_list`) rather than iterating codepoints - a single
+    visible emoji can span several codepoints (skin-tone modifiers, ZWJ
+    sequences) that must stay together as one drawable unit.
+    """
+    matches = emoji.emoji_list(line)
+    if not matches:
+        return [(line, False)]
+    runs: list[tuple[str, bool]] = []
+    cursor = 0
+    for match in matches:
+        start, end = match["match_start"], match["match_end"]
+        if start > cursor:
+            runs.append((line[cursor:start], False))
+        runs.append((line[start:end], True))
+        cursor = end
+    if cursor < len(line):
+        runs.append((line[cursor:], False))
+    return runs
+
+
+def _layout_line(
+    draw: ImageDraw.ImageDraw,
+    line: str,
+    text_font: ImageFont.FreeTypeFont,
+    emoji_font: ImageFont.FreeTypeFont | None,
+    emoji_scale: float,
+) -> tuple[list[tuple[str, bool, float]], float]:
+    """
+    The shared measure/draw step behind both `_measure_text_asset`
+    (needs the resulting line width before committing to a position)
+    and `_draw_text_asset` (draws from the exact same layout, so what's
+    measured is what's drawn) - each run's own width, plus the line's
+    total width for centering.
+    """
+    runs = _split_into_runs(line)
+    measured: list[tuple[str, bool, float]] = []
+    total_width = 0.0
+    for text, is_emoji in runs:
+        if is_emoji and emoji_font is not None:
+            width = draw.textlength(text, font=emoji_font) * emoji_scale
+        else:
+            width = draw.textlength(text, font=text_font)
+        measured.append((text, is_emoji, width))
+        total_width += width
+    return measured, total_width
+
+
+def _draw_emoji_run(
+    image: Image.Image, emoji_text: str, emoji_font: ImageFont.FreeTypeFont, target_size: int, x: float, top: float
+) -> None:
+    """
+    Renders one real color emoji glyph to its own small RGBA cell at
+    the font's native strike size (the only sizes `ImageFont.truetype`
+    accepts for Apple Color Emoji - see `_load_emoji_font`), resizes it
+    to match the surrounding text, and pastes it onto `image` using its
+    own alpha channel as the mask - deliberately no stroke outline
+    (unlike the regular text runs): the glyph is already a distinct,
+    high-contrast pictorial image, and Pillow's stroke isn't meaningful
+    combined with `embedded_color`.
+    """
+    native_size = emoji_font.size
+    cell = Image.new("RGBA", (native_size, native_size), (0, 0, 0, 0))
+    ImageDraw.Draw(cell).text((0, 0), emoji_text, font=emoji_font, embedded_color=True)
+    if target_size != native_size:
+        cell = cell.resize((max(target_size, 1), max(target_size, 1)), Image.LANCZOS)
+    image.paste(cell, (int(x), int(top)), cell)
+
+
 def _base_font_size_for(text_asset: dict, image_height: int) -> int:
     fraction = _SIZE_CLASS_FRACTION.get(text_asset["styling"]["size_class"], _SIZE_CLASS_FRACTION["medium"])
     return max(int(image_height * fraction), 14)
 
 
-def _greedy_wrap_lines(draw: ImageDraw.ImageDraw, text: str, font, max_width: float) -> list[str]:
+def _greedy_wrap_lines(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    max_width: float,
+    emoji_font: ImageFont.FreeTypeFont | None = None,
+    emoji_scale: float = 1.0,
+) -> list[str]:
     """
     Pure word-wrap at a fixed font size - the mechanical wrapping step,
     with no opinion on font size or orphan words (see
     `_choose_wrapped_lines`, which calls this at several sizes to pick
-    the best result). `ImageDraw.textlength` has no `stroke_width`
-    parameter (unlike `text`/`textbbox`/`multiline_text`) - wrapping
-    doesn't need to be stroke-exact, a stroke only adds a few pixels
-    per side regardless of line length, well within word-boundary
-    granularity.
+    the best result). Measures candidates via `_layout_line` (not a
+    plain `draw.textlength`) so a caption containing emoji wraps
+    against their *actual* drawn width - real bug caught live: a plain
+    `draw.textlength` on an emoji character measures the regular text
+    font's own (much narrower) tofu-box advance, which let lines that
+    only fit once real emoji width is accounted for pack extra emoji
+    on, overflowing `max_width` and, downstream, the safe zone. Stroke
+    isn't included here - it only adds a few pixels per side regardless
+    of line length, well within word-boundary granularity.
     """
     words = text.split()
     if not words:
@@ -140,7 +269,8 @@ def _greedy_wrap_lines(draw: ImageDraw.ImageDraw, text: str, font, max_width: fl
     current = words[0]
     for word in words[1:]:
         candidate = f"{current} {word}"
-        if draw.textlength(candidate, font=font) <= max_width:
+        _, width = _layout_line(draw, candidate, font, emoji_font, emoji_scale)
+        if width <= max_width:
             current = candidate
         else:
             lines.append(current)
@@ -182,14 +312,16 @@ def _choose_wrapped_lines(
         # A single word can never be "orphaned" - nothing to rebalance,
         # and shrinking it would only make it needlessly smaller.
         font = _load_default_typeface(base_size)
-        return font, _greedy_wrap_lines(draw, text, font, max_width)
+        emoji_font, emoji_scale = _emoji_font_and_scale(font.size)
+        return font, _greedy_wrap_lines(draw, text, font, max_width, emoji_font, emoji_scale)
 
     best: tuple[int, bool, ImageFont.FreeTypeFont, list[str]] | None = None
     scale = 1.0
     while scale >= _MIN_FONT_SCALE - 1e-9:
         size = max(int(base_size * scale), 10)
         font = _load_default_typeface(size)
-        lines = _greedy_wrap_lines(draw, text, font, max_width)
+        emoji_font, emoji_scale = _emoji_font_and_scale(font.size)
+        lines = _greedy_wrap_lines(draw, text, font, max_width, emoji_font, emoji_scale)
         orphaned = _has_orphaned_last_word(lines)
         if len(lines) <= 2 and not orphaned:
             return font, lines
@@ -202,31 +334,44 @@ def _choose_wrapped_lines(
 
 def _measure_text_asset(
     draw: ImageDraw.ImageDraw, text_asset: dict, image_size: tuple[int, int], max_width: float
-) -> tuple[ImageFont.FreeTypeFont, str, int, tuple[float, float, float, float]]:
+) -> tuple[ImageFont.FreeTypeFont, list[str], int, tuple[float, float, float, float]]:
     """
     The wrapping/sizing half of what used to be `_render_text_asset` -
     split out so `render_final_output` can know a caption's real
     rendered height (and therefore whether it fits above the bottom
     safe zone, see that function's own docstring) before committing to
-    a y position, not just after drawing it. `bbox_at_zero` is this
-    text's own `multiline_textbbox` measured at a y anchor of 0 - since
-    Pillow's bbox is a pure translation of the anchor, `bbox_at_zero[1]`/
-    `bbox_at_zero[3]` are exactly how far the actual top/bottom edges
-    will land relative to whatever y this text is eventually drawn at.
+    a y position, not just after drawing it. `bbox_at_zero` mirrors
+    what Pillow's own `multiline_textbbox` used to return at a y anchor
+    of 0 (top/bottom offsets relative to wherever this text is
+    eventually drawn) - computed by hand now via `_layout_line` rather
+    than Pillow's own multi-line layout, since mixed text/emoji
+    rendering (see this module's own docstring above `_split_into_runs`)
+    needs its own per-line, per-run measurement Pillow can't do in one
+    call.
     """
     width, height = image_size
     base_size = _base_font_size_for(text_asset, height)
     stroke_width = max(int(height * _STROKE_WIDTH_FRACTION), 1)
     font, lines = _choose_wrapped_lines(draw, text_asset["wording"], base_size, max_width)
-    wrapped = "\n".join(lines)
-    bbox_at_zero = draw.multiline_textbbox((0, 0), wrapped, font=font, align="center", stroke_width=stroke_width)
-    return font, wrapped, stroke_width, bbox_at_zero
+    ascent, descent = font.getmetrics()
+    line_height = ascent + descent
+    block_height = len(lines) * line_height + max(len(lines) - 1, 0) * _LINE_SPACING
+    emoji_font, emoji_scale = _emoji_font_and_scale(font.size)
+    max_line_width = max((_layout_line(draw, line, font, emoji_font, emoji_scale)[1] for line in lines), default=0.0)
+    bbox_at_zero = (
+        -max_line_width / 2 - stroke_width,
+        -stroke_width,
+        max_line_width / 2 + stroke_width,
+        block_height + stroke_width,
+    )
+    return font, lines, stroke_width, bbox_at_zero
 
 
 def _draw_text_asset(
     draw: ImageDraw.ImageDraw,
+    image: Image.Image,
     font: ImageFont.FreeTypeFont,
-    wrapped: str,
+    lines: list[str],
     stroke_width: int,
     image_size: tuple[int, int],
     y: float,
@@ -234,25 +379,53 @@ def _draw_text_asset(
     """
     Draws at the given (already collision- and safe-zone-resolved) y,
     horizontally centered on the full image width - one unconditional
-    style for every TextAsset (see this module's own docstring).
-    Returns the pixel y of the drawn text's bottom edge, so the caller
-    can stack the next asset below it.
+    style for every TextAsset (see this module's own docstring). Draws
+    line by line, run by run (rather than one `multiline_text` call)
+    so a caption can mix the regular text font with real color emoji
+    glyphs (see `_split_into_runs`/`_draw_emoji_run`) - centering each
+    line independently against the full image width produces the same
+    visual result as the old "center the block, then center each line
+    within it" two-step approach. Returns the pixel y of the drawn
+    text's bottom edge, so the caller can stack the next asset below it.
     """
     width, height = image_size
-    bbox = draw.multiline_textbbox((0, y), wrapped, font=font, align="center", stroke_width=stroke_width)
-    block_width = bbox[2] - bbox[0]
-    x = (width - block_width) / 2 - bbox[0]
+    ascent, descent = font.getmetrics()
+    line_height = ascent + descent
+    emoji_font, emoji_scale = _emoji_font_and_scale(font.size)
 
-    draw.multiline_text(
-        (x, y),
-        wrapped,
-        font=font,
-        fill=_TEXT_FILL,
-        stroke_width=stroke_width,
-        stroke_fill=_STROKE_FILL,
-        align="center",
-    )
-    return bbox[3] + height * _PADDING_FRACTION
+    line_top = y
+    for line in lines:
+        runs, line_width = _layout_line(draw, line, font, emoji_font, emoji_scale)
+        # `draw.textlength` (what _layout_line measures text runs with)
+        # doesn't include stroke - Pillow's own stroke bleeds stroke_width
+        # pixels beyond the glyph's normal advance on every side. Padding
+        # the centered width by stroke_width on each side (and shifting
+        # the start position in by the same amount) keeps the *visible*
+        # stroked line centered, matching what the old multiline_textbbox
+        # -based bbox (which included stroke automatically) used to
+        # guarantee - without this, a full-width caption's stroke could
+        # bleed just past the safe-zone margin (real regression caught by
+        # test_caption_mixing_text_and_emoji_still_stays_within_the_safe_zone).
+        visual_width = line_width + 2 * stroke_width
+        x = (width - visual_width) / 2 + stroke_width
+        for text, is_emoji, run_width in runs:
+            if is_emoji and emoji_font is not None:
+                target_size = max(int(emoji_font.size * emoji_scale), 1)
+                _draw_emoji_run(image, text, emoji_font, target_size, x, line_top + ascent - target_size)
+            elif text:
+                draw.text(
+                    (x, line_top),
+                    text,
+                    font=font,
+                    fill=_TEXT_FILL,
+                    stroke_width=stroke_width,
+                    stroke_fill=_STROKE_FILL,
+                )
+            x += run_width
+        line_top += line_height + _LINE_SPACING
+
+    block_height = len(lines) * line_height + max(len(lines) - 1, 0) * _LINE_SPACING
+    return y + block_height + stroke_width + height * _PADDING_FRACTION
 
 
 def _resolve_y(y: float, x_start: float, x_end: float, placed: list[tuple[float, float, float]], margin: float) -> float:
@@ -326,7 +499,7 @@ def render_final_output(image_bytes: bytes, text_assets: list[dict]) -> bytes:
     safe_bottom = height * (1 - _BOTTOM_SAFE_ZONE_FRACTION)
 
     for text_asset in ordered:
-        font, wrapped, stroke_width, bbox_at_zero = _measure_text_asset(draw, text_asset, (width, height), max_width)
+        font, lines, stroke_width, bbox_at_zero = _measure_text_asset(draw, text_asset, (width, height), max_width)
         max_y = safe_bottom - bbox_at_zero[3]
         desired_y = min(max(text_asset["positioning"]["y"] * height, 0), max_y)
         y = _resolve_y(desired_y, x_start, x_end, placed, margin)
@@ -335,7 +508,7 @@ def render_final_output(image_bytes: bytes, text_assets: list[dict]) -> bytes:
         # position in the rare case a lower asset would otherwise be
         # pushed past it.
         y = max(min(y, max_y), 0)
-        bottom = _draw_text_asset(draw, font, wrapped, stroke_width, (width, height), y)
+        bottom = _draw_text_asset(draw, image, font, lines, stroke_width, (width, height), y)
         placed.append((x_start, x_end, bottom))
 
     output = BytesIO()
