@@ -73,7 +73,7 @@ def test_daily_costs_sums_analysis_runs(client, db_session, slideshow_with_slide
     assert len(body) == 1
     assert body[0]["analysis_cost_usd"] == pytest.approx(0.03)
     assert body[0]["call_count"] == 2
-    assert body[0]["total_estimated_cost_usd"] == pytest.approx(0.03)
+    assert body[0]["known_cost_subtotal_usd"] == pytest.approx(0.03)
 
 
 def test_daily_costs_includes_generated_image_cost(client, db_session, slideshow_with_slide):

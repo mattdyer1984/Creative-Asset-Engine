@@ -786,17 +786,30 @@ class DailyCostRead(BaseModel):
 
     Derived entirely from ProviderCall, one row per billable call.
     Costs only ever include rows whose cost_status is estimated/exact.
-    The two counters below exist so a total is never quietly wrong:
+    The two counters below exist so a figure is never quietly wrong:
     `calls_with_partial_cost` are known UNDER-COUNTS (some component
     uncosted) and `calls_with_unknown_cost` have no defensible figure at
-    all. Both are excluded from the money totals and reported instead.
+    all. Both are excluded from the money figures and reported instead.
+
+    **Deliberately not named "total".** `known_cost_subtotal_usd` is the
+    sum of what could be priced; when `cost_completeness` is
+    "incomplete" the real figure is higher by an unknown amount. Calling
+    that a total - or "total spend" - would be false precision, which is
+    the failure mode this pass exists to remove.
+
+    `legacy_aggregate_rows` counts rows reconstructed from pre-
+    ProviderCall history. They are NOT included in `call_count`: one
+    such row may stand for several real calls, so it is not evidence of
+    call volume, latency, or any per-call average.
     """
 
     date: str  # YYYY-MM-DD
     analysis_cost_usd: float
     image_generation_cost_usd: float
-    total_estimated_cost_usd: float
+    known_cost_subtotal_usd: float
+    cost_completeness: str  # "complete" | "incomplete"
     call_count: int
+    legacy_aggregate_rows: int = 0
     calls_with_unknown_cost: int = 0
     calls_with_partial_cost: int = 0
 
@@ -808,12 +821,20 @@ class CostBreakdownRead(BaseModel):
     provider, model, capability, slideshow, slide. `key` is null-free:
     calls not attributable on the chosen axis are excluded rather
     than bucketed under a fake "None" group.
+
+    Latency, tokens, images and `call_count` describe genuine per-call
+    records ONLY. Reconstructed history is counted separately in
+    `legacy_aggregate_rows` and contributes to money alone - its stored
+    latency is stage wall-clock, not provider time, and one row may
+    cover several calls.
     """
 
     group: str
     key: str
-    estimated_cost_usd: float
+    known_cost_subtotal_usd: float
+    cost_completeness: str  # "complete" | "incomplete"
     call_count: int
+    legacy_aggregate_rows: int = 0
     calls_with_unknown_cost: int = 0
     calls_with_partial_cost: int = 0
     total_provider_latency_ms: float = 0.0

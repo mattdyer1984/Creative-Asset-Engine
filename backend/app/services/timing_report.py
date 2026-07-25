@@ -14,6 +14,14 @@ reason, and would also miss the calls that belong to no run at all
 (photorealism, reference scoring, creative intelligence, text
 intelligence) - see provider_call.py's docstring.
 
+**Reconstructed history never poses as a provider call** (follow-up to
+Checkpoint B, item 4). Rows stamped `legacy_aggregate` were rebuilt from
+`AnalysisRun`: one row can cover several real calls, and the latency
+stored on it is stage wall-clock, not provider time. So they contribute
+to money only, are counted in their own column, and are excluded from
+call counts, provider latency and tokens - the figures a per-call
+average would be built from.
+
 **Overhead is labelled as inferred, never presented as measured.**
 `overhead_seconds` is `stage wall-clock - summed provider latency`. That
 is a subtraction, not a measurement: it silently absorbs DB writes, file
@@ -29,7 +37,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.analysis_run import AnalysisRun
-from app.models.provider_call import ProviderCall
+from app.models.provider_call import RECORD_SOURCE_LEGACY_AGGREGATE, ProviderCall
 from app.services.cost_estimation import CostStatus
 
 # Display order/labels. Not exhaustive - unrecognised types still
@@ -88,7 +96,9 @@ def build_timing_breakdown(
                 "cost_usd": 0.0,
                 "has_cost": False,
                 "calls": 0,
+                "legacy_rows": 0,
                 "untrusted_calls": 0,
+                "untrusted_legacy_rows": 0,
                 "prompt_tokens": 0,
                 "completion_tokens": 0,
                 "image_count": 0,
@@ -116,14 +126,24 @@ def build_timing_breakdown(
     for call in calls:
         key = run_type_by_id.get(call.analysis_run_id) if call.analysis_run_id else None
         bucket = bucket_for(key or call.capability)
-        bucket["calls"] += 1
-        bucket["provider_latency_ms"] += call.provider_latency_ms or 0.0
-        bucket["prompt_tokens"] += call.prompt_tokens or 0
-        bucket["completion_tokens"] += call.completion_tokens or 0
-        bucket["image_count"] += call.image_count or 0
+        is_legacy = call.record_source == RECORD_SOURCE_LEGACY_AGGREGATE
+
+        if is_legacy:
+            bucket["legacy_rows"] += 1
+        else:
+            bucket["calls"] += 1
+            bucket["provider_latency_ms"] += call.provider_latency_ms or 0.0
+            bucket["prompt_tokens"] += call.prompt_tokens or 0
+            bucket["completion_tokens"] += call.completion_tokens or 0
+            bucket["image_count"] += call.image_count or 0
+
+        # Money is the one figure a reconstructed row can still support
+        # honestly - it is what was spent, however many calls it covered.
         if call.cost_status in _TRUSTED and call.estimated_cost_usd is not None:
             bucket["cost_usd"] += call.estimated_cost_usd
             bucket["has_cost"] = True
+        elif is_legacy:
+            bucket["untrusted_legacy_rows"] += 1
         else:
             bucket["untrusted_calls"] += 1
 
@@ -144,9 +164,11 @@ def build_timing_breakdown(
                 "provider_latency_seconds": latency_s,
                 # Inferred, not measured - see the module docstring.
                 "inferred_overhead_seconds": max(duration_s - latency_s, 0.0),
-                "estimated_cost_usd": b["cost_usd"] if b["has_cost"] else None,
+                "known_cost_subtotal_usd": b["cost_usd"] if b["has_cost"] else None,
                 "call_count": b["calls"],
+                "legacy_aggregate_rows": b["legacy_rows"],
                 "calls_without_trusted_cost": b["untrusted_calls"],
+                "legacy_rows_without_trusted_cost": b["untrusted_legacy_rows"],
                 "prompt_tokens": b["prompt_tokens"],
                 "completion_tokens": b["completion_tokens"],
                 "image_count": b["image_count"],
@@ -163,28 +185,39 @@ def format_timing_breakdown(breakdown: list[dict]) -> str:
         Image Generation       48.4s  (provider 48.1s)   $0.5000
         Validation              4.1s  (provider 3.9s)    $0.0350  [2 calls without a trusted cost]
 
-        TOTAL                  63.8s  (provider 61.2s)   $0.5350
+        TOTAL TIME             63.8s  (provider 61.2s)
         Overhead (inferred)     2.6s  = wall-clock minus provider time
 
-    The cost column only appears when at least one row has a trusted
-    figure; an all-None column is noise. Calls whose cost is partial or
-    unknown are never summed into the money total - they are called out
-    so the total is not quietly wrong.
+        Known cost subtotal:   $0.5350
+        Unknown-cost calls:    2
+        Overall cost:          incomplete - the subtotal above is a floor
+
+    **The money line is never labelled "total spend"** (follow-up to
+    Checkpoint B, item 5). Calls whose cost is partial or unknown are
+    excluded from the sum, so the sum is a SUBTOTAL of what is known.
+    When any such call exists, the report says "incomplete" outright
+    instead of presenting a figure that looks authoritative and is not.
+    Only when every call is priced does it read "complete".
+
+    The time total keeps the word TOTAL because it genuinely is one -
+    every timed stage contributes.
     """
     if not breakdown:
         return "(no timed stages recorded)"
 
-    any_cost = any(row.get("estimated_cost_usd") is not None for row in breakdown)
+    any_cost = any(row.get("known_cost_subtotal_usd") is not None for row in breakdown)
     label_width = max(len(row["label"]) for row in breakdown) + 2
 
     lines = []
-    total_seconds = total_latency = total_cost = 0.0
-    total_untrusted = 0
+    total_seconds = total_latency = known_cost = 0.0
+    untrusted_calls = untrusted_legacy = legacy_rows = 0
 
     for row in breakdown:
         total_seconds += row.get("duration_seconds", 0.0)
         total_latency += row.get("provider_latency_seconds", 0.0)
-        total_untrusted += row.get("calls_without_trusted_cost", 0)
+        untrusted_calls += row.get("calls_without_trusted_cost", 0)
+        untrusted_legacy += row.get("legacy_rows_without_trusted_cost", 0)
+        legacy_rows += row.get("legacy_aggregate_rows", 0)
 
         duration_s = row.get("duration_seconds", 0.0)
         latency_s = row.get("provider_latency_seconds", 0.0)
@@ -194,30 +227,45 @@ def format_timing_breakdown(breakdown: list[dict]) -> str:
             f"  (provider {latency_s:.1f}s)"
         )
         if any_cost:
-            cost = row.get("estimated_cost_usd")
-            total_cost += cost or 0.0
+            cost = row.get("known_cost_subtotal_usd")
+            known_cost += cost or 0.0
             line += f"   ${cost:.4f}" if cost is not None else "   $  --  "
         if untrusted:
             line += f"  [{untrusted} call(s) without a trusted cost]"
         lines.append(line)
 
     lines.append("")
-    total_line = (
-        f"{'TOTAL':<{label_width}}{total_seconds:>6.1f}s  (provider {total_latency:.1f}s)"
+    lines.append(
+        f"{'TOTAL TIME':<{label_width}}{total_seconds:>6.1f}s  (provider {total_latency:.1f}s)"
     )
-    if any_cost:
-        total_line += f"   ${total_cost:.4f}"
-    lines.append(total_line)
 
     overhead = max(total_seconds - total_latency, 0.0)
     lines.append(
         f"{'Overhead (inferred)':<{label_width}}{overhead:>6.1f}s"
         "  = wall-clock minus provider time, not directly measured"
     )
-    if total_untrusted:
+
+    # Money is reported as its own block, in the wording agreed at
+    # Checkpoint B: a subtotal of what is known, an explicit count of
+    # what could not be priced, and a plain completeness verdict.
+    unpriced = untrusted_calls + untrusted_legacy
+    if any_cost or unpriced:
+        lines.append("")
+        lines.append(f"{'Known cost subtotal:':<{label_width}}${known_cost:.4f}")
+        lines.append(f"{'Unknown-cost calls:':<{label_width}}{unpriced}")
+        if unpriced:
+            lines.append(
+                f"{'Overall cost:':<{label_width}}incomplete - real spend is at least the "
+                "subtotal above, by an unknown margin (see pricing.yaml)"
+            )
+        else:
+            lines.append(f"{'Overall cost:':<{label_width}}complete")
+
+    if legacy_rows:
         lines.append(
-            f"\nNote: {total_untrusted} provider call(s) had a partial or unknown cost and are "
-            "excluded from the total above - see pricing.yaml."
+            f"\nNote: {legacy_rows} row(s) above were reconstructed from pre-instrumentation "
+            "history. They contribute to cost only - not to call counts, provider latency or "
+            "any per-call average, since one row may cover several calls."
         )
 
     return "\n".join(lines)

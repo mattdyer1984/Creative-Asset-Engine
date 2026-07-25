@@ -55,7 +55,7 @@ def test_build_timing_breakdown_includes_cost_when_configured(db_session, slides
 
     by_type = {row["analysis_type"]: row for row in breakdown}
     # 10/1000*0.5 + 5/1000*1.0 = 0.005 + 0.005
-    assert by_type["ocr"]["estimated_cost_usd"] == pytest.approx(0.01)
+    assert by_type["ocr"]["known_cost_subtotal_usd"] == pytest.approx(0.01)
     assert by_type["ocr"]["call_count"] == 1
 
 
@@ -109,12 +109,12 @@ def test_build_timing_breakdown_requires_a_scope():
 
 def test_format_timing_breakdown_renders_total_row():
     breakdown = [
-        {"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.9, "estimated_cost_usd": None},
+        {"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.9, "known_cost_subtotal_usd": None},
         {
             "analysis_type": "marketing_analysis",
             "label": "Marketing Analysis",
             "duration_seconds": 1.4,
-            "estimated_cost_usd": None,
+            "known_cost_subtotal_usd": None,
         },
     ]
 
@@ -122,16 +122,16 @@ def test_format_timing_breakdown_renders_total_row():
 
     assert "OCR" in output
     assert "Marketing Analysis" in output
-    assert "TOTAL" in output
+    assert "TOTAL TIME" in output
     assert "3.3s" in output  # 1.9 + 1.4
 
 
 def test_format_timing_breakdown_shows_cost_column_only_when_present():
     without_cost = format_timing_breakdown(
-        [{"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.0, "estimated_cost_usd": None}]
+        [{"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.0, "known_cost_subtotal_usd": None}]
     )
     with_cost = format_timing_breakdown(
-        [{"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.0, "estimated_cost_usd": 0.0025}]
+        [{"analysis_type": "ocr", "label": "OCR", "duration_seconds": 1.0, "known_cost_subtotal_usd": 0.0025}]
     )
 
     assert "$" not in without_cost
@@ -140,3 +140,61 @@ def test_format_timing_breakdown_shows_cost_column_only_when_present():
 
 def test_format_timing_breakdown_handles_empty_input():
     assert format_timing_breakdown([]) == "(no timed stages recorded)"
+
+
+def test_report_never_calls_an_incomplete_figure_a_total():
+    """
+    Follow-up to Checkpoint B, item 5. When any call could not be
+    priced, the money block must say "incomplete" and name its figure a
+    subtotal - never "total spend", and never a bare total that looks
+    authoritative while quietly excluding unpriced calls.
+    """
+    output = format_timing_breakdown(
+        [
+            {
+                "analysis_type": "ocr",
+                "label": "OCR",
+                "duration_seconds": 2.0,
+                "provider_latency_seconds": 1.8,
+                "known_cost_subtotal_usd": 0.035,
+                "call_count": 1,
+                "calls_without_trusted_cost": 0,
+            },
+            {
+                "analysis_type": "generated_image",
+                "label": "Image Generation",
+                "duration_seconds": 40.0,
+                "provider_latency_seconds": 39.0,
+                "known_cost_subtotal_usd": None,
+                "call_count": 1,
+                "calls_without_trusted_cost": 1,
+            },
+        ]
+    )
+
+    assert "Known cost subtotal:" in output
+    assert "Unknown-cost calls:" in output
+    assert "incomplete" in output
+    assert "total spend" not in output.lower()
+    # The time total is a genuine total and keeps its name.
+    assert "TOTAL TIME" in output
+
+
+def test_reconstructed_rows_are_called_out_in_the_report():
+    """Item 4: the reader must be told those rows are not real calls."""
+    output = format_timing_breakdown(
+        [
+            {
+                "analysis_type": "ocr",
+                "label": "OCR",
+                "duration_seconds": 2.0,
+                "provider_latency_seconds": 1.8,
+                "known_cost_subtotal_usd": 0.01,
+                "call_count": 0,
+                "legacy_aggregate_rows": 3,
+                "calls_without_trusted_cost": 0,
+            }
+        ]
+    )
+    assert "reconstructed" in output
+    assert "not to call counts" in output

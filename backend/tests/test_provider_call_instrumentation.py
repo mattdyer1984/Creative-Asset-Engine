@@ -195,7 +195,7 @@ def test_daily_costs_exclude_untrustworthy_figures_from_the_total(db_session, mo
     assert row.calls_with_unknown_cost == 1
     assert row.calls_with_partial_cost == 1
     # Only the fully-costed call contributes money.
-    assert row.total_estimated_cost_usd == pytest.approx(0.035)
+    assert row.known_cost_subtotal_usd == pytest.approx(0.035)
 
 
 def test_breakdown_supports_every_required_axis(db_session, monkeypatch):
@@ -214,7 +214,7 @@ def test_breakdown_supports_every_required_axis(db_session, monkeypatch):
 
     by_capability = get_cost_breakdown(db=db_session, group_by="capability")
     assert by_capability[0].key == "ocr"
-    assert by_capability[0].estimated_cost_usd == pytest.approx(0.035)
+    assert by_capability[0].known_cost_subtotal_usd == pytest.approx(0.035)
 
 
 def test_pipeline_stages_emit_provider_calls_via_mark_succeeded(db_session, monkeypatch):
@@ -388,3 +388,87 @@ def test_resolved_model_priced_directly_is_preferred(db_session, monkeypatch):
 
     # The snapshot's own rate, not the alias entry's.
     assert call.estimated_cost_usd == pytest.approx(0.035)
+
+
+# --- Follow-up to Checkpoint B, items 4 & 5 -------------------------
+
+
+def _row(db, **overrides):
+    defaults = dict(
+        provider="openai",
+        model="gpt-5.5",
+        capability="ocr",
+        prompt_tokens=1000,
+        completion_tokens=1000,
+        provider_latency_ms=500.0,
+        estimated_cost_usd=0.035,
+        cost_status=str(CostStatus.ESTIMATED),
+        record_source=RECORD_SOURCE_PER_CALL,
+    )
+    defaults.update(overrides)
+    call = ProviderCall(**defaults)
+    db.add(call)
+    db.flush()
+    return call
+
+
+def test_legacy_rows_are_never_counted_as_provider_calls(db_session):
+    """
+    Item 4: a reconstructed row may stand for several real calls, and the
+    latency stored on it is stage wall-clock, not provider time. It must
+    contribute to money ONLY - never to call counts, latency or tokens,
+    which are exactly the figures a per-call average is built from.
+    """
+    from app.routers.costs import get_cost_breakdown, get_daily_costs
+
+    _row(db_session)
+    _row(
+        db_session,
+        record_source=RECORD_SOURCE_LEGACY_AGGREGATE,
+        provider_latency_ms=99_000.0,
+        prompt_tokens=50_000,
+        completion_tokens=50_000,
+    )
+    db_session.commit()
+
+    daily = get_daily_costs(db=db_session)[0]
+    assert daily.call_count == 1, "a reconstructed row is not a provider call"
+    assert daily.legacy_aggregate_rows == 1, "but it must still be visible"
+
+    row = get_cost_breakdown(db=db_session, group_by="capability")[0]
+    assert row.call_count == 1
+    assert row.legacy_aggregate_rows == 1
+    assert row.total_provider_latency_ms == pytest.approx(500.0), (
+        "the legacy row's 99s of stage wall-clock must not be reported as provider latency"
+    )
+    assert row.prompt_tokens == 1000, "legacy tokens are not per-call evidence"
+    # Money is the one figure a reconstructed row can still support.
+    assert row.known_cost_subtotal_usd == pytest.approx(0.07)
+
+
+def test_incomplete_costs_are_named_as_such_not_as_a_total(db_session):
+    """
+    Item 5: when anything could not be priced, the report says so. The
+    money field is a subtotal of what is KNOWN and is never presented as
+    a total.
+    """
+    from app.routers.costs import get_daily_costs
+
+    _row(db_session)
+    _row(db_session, estimated_cost_usd=None, cost_status=str(CostStatus.UNKNOWN))
+    db_session.commit()
+
+    daily = get_daily_costs(db=db_session)[0]
+    assert not hasattr(daily, "total_estimated_cost_usd"), "the misleading name is gone"
+    assert daily.known_cost_subtotal_usd == pytest.approx(0.035)
+    assert daily.calls_with_unknown_cost == 1
+    assert daily.cost_completeness == "incomplete"
+
+
+def test_fully_priced_days_read_as_complete(db_session):
+    """The counterpart: do not cry "incomplete" when nothing is missing."""
+    from app.routers.costs import get_daily_costs
+
+    _row(db_session)
+    db_session.commit()
+    assert get_daily_costs(db=db_session)[0].cost_completeness == "complete"
