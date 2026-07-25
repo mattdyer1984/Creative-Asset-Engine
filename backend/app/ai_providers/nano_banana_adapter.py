@@ -114,13 +114,16 @@ class NanoBananaImageGenerationAdapter:
     def __init__(self, model: str = "gemini-3.1-flash-image-preview", provider: str = "nano_banana"):
         self.model = model
         self.provider = provider
-        self._client: genai.Client | None = None
 
     @property
     def client(self) -> genai.Client:
-        if self._client is None:
-            self._client = genai.Client(api_key=get_api_key(self.provider))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh
+        # client per access, not memoized on self - see
+        # app.ai_providers.openai_adapter's identical fix for the full
+        # reasoning (a memoized, registry-shared client broke under real
+        # concurrent use once per-slide stage calls started running
+        # concurrently).
+        return genai.Client(api_key=get_api_key(self.provider))
 
     @property
     def capabilities(self) -> ProviderCapabilities:
@@ -138,7 +141,13 @@ class NanoBananaImageGenerationAdapter:
         aspect_ratio = _aspect_ratio_for(request.aspect_ratio)
 
         start = time.monotonic()
-        response = self.client.models.generate_content(
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md and
+        # app.ai_providers.gemini_adapter's identical fix) - captured
+        # into a local variable, not chained directly off `self.client`,
+        # so genai.Client's own __del__ can't close its transport
+        # mid-request.
+        client = self.client
+        response = client.models.generate_content(
             model=self.model,
             contents=[prompt, *reference_images],
             config=types.GenerateContentConfig(

@@ -133,19 +133,32 @@ class OpenAIOCRAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        # Lazy init: importing/instantiating this adapter never requires
-        # an API key to already be configured - only actually calling
-        # extract_text() does.
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key("openai"))
 
     def extract_text(self, image_bytes: bytes) -> OCRExtraction:
-        response = self.client.chat.completions.create(
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): capture into
+        # a local variable rather than chaining `self.client.chat...`
+        # directly - since `client` (above) now constructs a fresh
+        # object with no reference kept anywhere else, chaining would
+        # let its refcount hit zero (and __del__ close its own
+        # transport) the instant Python's `LOAD_ATTR` finishes reading
+        # `.chat` off it, sometimes before the request the same
+        # expression is about to make even completes. A local variable
+        # keeps one live reference for this whole method body.
+        client = self.client
+        response = client.chat.completions.create(
             model=self.model,
             messages=[
                 {
@@ -217,16 +230,23 @@ class OpenAIProductIsolationAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key("openai"))
 
     def isolate_product(self, image_bytes: bytes) -> list[dict]:
-        response = self.client.chat.completions.create(
+        client = self.client
+        response = client.chat.completions.create(
             model=self.model,
             messages=[
                 {
@@ -261,13 +281,19 @@ class OpenAIVisionAnalysisAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key("openai"))
 
     def analyze_creative(
         self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
@@ -276,7 +302,8 @@ class OpenAIVisionAnalysisAdapter:
         schema_name = prompt_spec.get("schema_name", "analysis")
         images = [image_bytes] if isinstance(image_bytes, bytes) else image_bytes
 
-        response = self.client.chat.completions.create(
+        client = self.client
+        response = client.chat.completions.create(
             model=self.model,
             messages=[
                 {
@@ -309,19 +336,26 @@ class OpenAITextGenerationAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key("openai"))
 
     def generate(self, prompt_spec: dict, response_schema: dict) -> dict:
         prompt_text = prompt_spec["prompt"]
         schema_name = prompt_spec.get("schema_name", "generation")
 
-        response = self.client.chat.completions.create(
+        client = self.client
+        response = client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt_text}],
             response_format={
@@ -353,13 +387,19 @@ class OpenAIPromptGenerationAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key("openai"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key("openai"))
 
     def generate_creative_specification(
         self, lock_profile: dict, fingerprint: dict, response_schema: dict
@@ -381,7 +421,8 @@ class OpenAIPromptGenerationAdapter:
             "ratio."
         )
 
-        response = self.client.chat.completions.create(
+        client = self.client
+        response = client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt_text}],
             response_format={
@@ -463,13 +504,19 @@ class OpenAIImageGenerationAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
         self.provider = provider
-        self._client: OpenAI | None = None
 
     @property
     def client(self) -> OpenAI:
-        if self._client is None:
-            self._client = OpenAI(api_key=get_api_key(self.provider))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh client
+        # per access, not memoized on self - a memoized client, shared
+        # across every concurrent call this adapter instance ever makes
+        # (the registry hands out one adapter instance for the whole
+        # process), broke under real concurrent use ("Cannot send a
+        # request, as the client has been closed") once per-slide stage
+        # calls started running concurrently. Construction itself does no
+        # network I/O, so this stays just as lazy as the memoized version
+        # ever was - only actually calling a method needs a real API key.
+        return OpenAI(api_key=get_api_key(self.provider))
 
     @property
     def capabilities(self) -> ProviderCapabilities:
@@ -496,7 +543,8 @@ class OpenAIImageGenerationAdapter:
         reference_files = [_load_reference_file(path) for path in request.reference_image_paths]
 
         start = time.monotonic()
-        response = self.client.images.edit(
+        client = self.client
+        response = client.images.edit(
             model=self.model,
             image=reference_files,
             prompt=prompt,

@@ -48,8 +48,10 @@ from sqlalchemy.orm import Session
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_ISOLATION
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 from app.storage import save_product_reference_image
 
@@ -93,11 +95,24 @@ class SlideProductIsolationStage:
         whole stage loudly, same as it always has for the primary slide -
         silently skipping a real, actionable problem would be worse than
         an honest failure, unlike "nothing assigned yet."
+
+        Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
+        actual `isolate_product` provider call for every eligible slide
+        now runs concurrently (app.slideshow_stages.concurrency), not
+        one slide at a time - the skip/fail eligibility checks above
+        still run first, sequentially, exactly as before, so an early
+        return for "no product on the primary slide" or "2+ products on
+        one slide" never even starts any provider calls. Every other DB
+        write (start_analysis_run, ProductReferenceImage rows,
+        mark_succeeded/mark_failed) still happens afterward, on this
+        single thread, in original slide order - only the slow network
+        call itself was moved off the sequential path.
         """
         primary_slide = slideshow.primary_slide
         isolation_provider = default_registry.isolation()
         result: StageResult = StageResult(succeeded=True)
 
+        eligible: list[tuple[Slide, str]] = []
         for slide in slideshow.slides:
             current_appearances = slide.current_product_appearances
             if not current_appearances:
@@ -110,8 +125,19 @@ class SlideProductIsolationStage:
             distinct_product_ids = {a.product_id for a in current_appearances}
             if len(distinct_product_ids) > 1:
                 return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
-            product_id = current_appearances[0].product_id
+            eligible.append((slide, current_appearances[0].product_id))
 
+        def _isolate(entry: tuple[Slide, str]) -> tuple[bytes, list[dict]]:
+            slide, _product_id = entry
+            image_bytes = Path(slide.stored_file_path).read_bytes()
+            bounding_boxes = isolation_provider.isolate_product(image_bytes)
+            if not bounding_boxes:
+                raise ValueError("No product detected in the image")
+            return image_bytes, bounding_boxes
+
+        isolation_results = run_concurrently(eligible, _isolate)
+
+        for index, (slide, product_id) in enumerate(eligible):
             # Committed immediately as a durable "pending" record - same
             # reasoning as the old stage: if anything below fails and we
             # roll back, this row survives, so the failure is never silently
@@ -126,10 +152,10 @@ class SlideProductIsolationStage:
             )
 
             try:
-                image_bytes = Path(slide.stored_file_path).read_bytes()
-                bounding_boxes = isolation_provider.isolate_product(image_bytes)
-                if not bounding_boxes:
-                    raise ValueError("No product detected in the image")
+                outcome = isolation_results[index]
+                if isinstance(outcome, Exception):
+                    raise outcome
+                image_bytes, bounding_boxes = outcome
                 crops = _crop_bounding_boxes(image_bytes, bounding_boxes)
 
                 new_reference_images = []

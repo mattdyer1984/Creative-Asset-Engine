@@ -28,8 +28,10 @@ from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_CREATIVE_FINGERPRINT
 from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.ocr_result import OCRResult
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 CREATIVE_FINGERPRINT_SCHEMA = {
@@ -126,17 +128,47 @@ class SlideCreativeFingerprintStage:
         precedent - unlike Product Isolation/Lock Profile, this stage
         never depended on a product appearance at all, so every slide
         is processed unconditionally, exactly like OCR already does.
+
+        Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
+        actual `analyze_creative` provider call for every slide now runs
+        concurrently (app.slideshow_stages.concurrency). Each slide's
+        own OCR-enrichment prompt is built up front, sequentially - a
+        real DB read (`db.get(OCRResult, ...)`) that must stay on this
+        thread, and building it early doesn't change its content, since
+        nothing else in this stage writes OCRResult rows.
         """
         result: StageResult = StageResult(succeeded=True)
 
-        for slide in slideshow.slides:
-            # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
-            # explicit provider_name="gemini" override: this is one of only
-            # two vision_analysis tasks moved to Gemini (Product Lock
-            # Profile is the other), a narrower scope the user chose over
-            # moving every vision_analysis task at once.
-            vision_provider = default_registry.vision(provider_name="gemini")
+        # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+        # explicit provider_name="gemini" override: this is one of only
+        # two vision_analysis tasks moved to Gemini (Product Lock
+        # Profile is the other), a narrower scope the user chose over
+        # moving every vision_analysis task at once.
+        vision_provider = default_registry.vision(provider_name="gemini")
 
+        entries: list[tuple[Slide, str, str | None]] = []
+        for slide in slideshow.slides:
+            prompt = CREATIVE_FINGERPRINT_PROMPT
+            used_ocr_result_id = None
+            if slide.current_ocr_result_id is not None:
+                ocr_result = db.get(OCRResult, slide.current_ocr_result_id)
+                if ocr_result is not None and ocr_result.raw_text:
+                    prompt += f"\n\nText detected in the image via OCR: {ocr_result.raw_text}"
+                    used_ocr_result_id = ocr_result.id
+            entries.append((slide, prompt, used_ocr_result_id))
+
+        def _analyze(entry: tuple[Slide, str, str | None]) -> dict:
+            slide, prompt, _used_ocr_result_id = entry
+            image_bytes = Path(slide.stored_file_path).read_bytes()
+            return vision_provider.analyze_creative(
+                image_bytes=image_bytes,
+                prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
+                response_schema=CREATIVE_FINGERPRINT_SCHEMA,
+            )
+
+        analysis_results = run_concurrently(entries, _analyze)
+
+        for index, (slide, _prompt, used_ocr_result_id) in enumerate(entries):
             analysis_run = start_analysis_run(
                 db,
                 slide_id=slide.id,
@@ -146,21 +178,11 @@ class SlideCreativeFingerprintStage:
                 durable=True,
             )
 
-            prompt = CREATIVE_FINGERPRINT_PROMPT
-            used_ocr_result_id = None
-            if slide.current_ocr_result_id is not None:
-                ocr_result = db.get(OCRResult, slide.current_ocr_result_id)
-                if ocr_result is not None and ocr_result.raw_text:
-                    prompt += f"\n\nText detected in the image via OCR: {ocr_result.raw_text}"
-                    used_ocr_result_id = ocr_result.id
-
             try:
-                image_bytes = Path(slide.stored_file_path).read_bytes()
-                analysis_result = vision_provider.analyze_creative(
-                    image_bytes=image_bytes,
-                    prompt_spec={"prompt": prompt, "schema_name": "creative_fingerprint"},
-                    response_schema=CREATIVE_FINGERPRINT_SCHEMA,
-                )
+                outcome = analysis_results[index]
+                if isinstance(outcome, Exception):
+                    raise outcome
+                analysis_result = outcome
 
                 db.query(CreativeFingerprint).filter(
                     CreativeFingerprint.slide_id == slide.id,

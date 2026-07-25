@@ -43,8 +43,10 @@ from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
 from app.models.product_lock_profile import ProductLockProfile
 from app.models.product_reference_image import ProductReferenceImage
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 PRODUCT_LOCK_PROFILE_SCHEMA = {
@@ -192,10 +194,29 @@ class SlideProductLockProfileStage:
         whole stage loudly, same as it always has for the primary slide -
         silently skipping a real, actionable problem would be worse than
         an honest failure, unlike "nothing assigned yet."
+
+        Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
+        actual `analyze_creative` provider call for every eligible slide
+        now runs concurrently (app.slideshow_stages.concurrency).
+        Eligibility checks and the Product's current reference image
+        snapshot are both read up front, sequentially, before any
+        provider call starts - the snapshot is a real DB read that must
+        stay on this thread, and reading it early (rather than
+        interleaved per-slide as before) doesn't change what it
+        contains, since nothing else in this stage writes
+        ProductReferenceImage rows.
         """
         primary_slide = slideshow.primary_slide
         result: StageResult = StageResult(succeeded=True)
 
+        # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
+        # explicit provider_name="gemini" override: this is one of only
+        # two vision_analysis tasks moved to Gemini (Creative Fingerprint
+        # is the other), a narrower scope the user chose over moving
+        # every vision_analysis task at once.
+        vision_provider = default_registry.vision(provider_name="gemini")
+
+        eligible: list[tuple[Slide, str, list[ProductReferenceImage]]] = []
         for slide in slideshow.slides:
             current_appearances = slide.current_product_appearances
             if not current_appearances:
@@ -210,22 +231,6 @@ class SlideProductLockProfileStage:
                 return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
             product_id = current_appearances[0].product_id
 
-            # Real-world-driven cost/quality change (see MIGRATION_PLAN.md) -
-            # explicit provider_name="gemini" override: this is one of only
-            # two vision_analysis tasks moved to Gemini (Creative Fingerprint
-            # is the other), a narrower scope the user chose over moving
-            # every vision_analysis task at once.
-            vision_provider = default_registry.vision(provider_name="gemini")
-
-            analysis_run = start_analysis_run(
-                db,
-                slide_id=slide.id,
-                analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
-                provider=vision_provider.provider,
-                model_name=vision_provider.model,
-                durable=False,
-            )
-
             # Reads the Product's current reference images - if Product
             # Isolation hasn't produced any yet (e.g. this stage is rerun
             # standalone before isolation ever succeeded), we still proceed
@@ -237,19 +242,36 @@ class SlideProductLockProfileStage:
                     ProductReferenceImage.is_current.is_(True),
                 )
             )
+            eligible.append((slide, product_id, current_reference_images))
 
-            try:
-                image_bytes = Path(slide.stored_file_path).read_bytes()
-                analysis_result = vision_provider.analyze_creative(
-                    image_bytes=image_bytes,
-                    prompt_spec={
-                        "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
-                        "schema_name": "product_lock_profile",
-                    },
-                    response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
-                )
-            except Exception as exc:
-                return mark_failed(db, analysis_run, exc, rollback=False)
+        def _analyze(entry: tuple[Slide, str, list[ProductReferenceImage]]) -> dict:
+            slide, _product_id, _refs = entry
+            image_bytes = Path(slide.stored_file_path).read_bytes()
+            return vision_provider.analyze_creative(
+                image_bytes=image_bytes,
+                prompt_spec={
+                    "prompt": PRODUCT_LOCK_PROFILE_PROMPT,
+                    "schema_name": "product_lock_profile",
+                },
+                response_schema=PRODUCT_LOCK_PROFILE_SCHEMA,
+            )
+
+        analysis_results = run_concurrently(eligible, _analyze)
+
+        for index, (slide, product_id, current_reference_images) in enumerate(eligible):
+            analysis_run = start_analysis_run(
+                db,
+                slide_id=slide.id,
+                analysis_type=ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+                provider=vision_provider.provider,
+                model_name=vision_provider.model,
+                durable=False,
+            )
+
+            outcome = analysis_results[index]
+            if isinstance(outcome, Exception):
+                return mark_failed(db, analysis_run, outcome, rollback=False)
+            analysis_result = outcome
 
             db.query(ProductLockProfile).filter(
                 ProductLockProfile.product_id == product_id,

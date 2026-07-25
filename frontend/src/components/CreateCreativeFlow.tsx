@@ -48,6 +48,48 @@ export interface SlideGenerationOutcome {
 const REFERENCE_SCORING_POLL_ATTEMPTS = 10;
 const REFERENCE_SCORING_POLL_INTERVAL_MS = 1500;
 
+// Real-world-diagnosed speed fix (see MIGRATION_PLAN.md) - Generate All
+// used to await api.generateCreative one slide at a time; real timing
+// data showed each call taking ~70-125s, so a 4-slide slideshow took
+// 5-8 minutes end to end. Each generate-creative call is a fully
+// independent HTTP request (its own backend DB session, its own
+// product/spec resolution - proven by §0's fix), so running several at
+// once is safe. Bounded rather than fully unlimited (Promise.all across
+// every slide) on purpose: the backend is plain SQLite with no unusual
+// write-concurrency tuning, and the AI providers have their own real
+// rate limits - a small, fixed concurrency cap gets most of the
+// wall-clock win without hammering either.
+const GENERATE_ALL_CONCURRENCY = 3;
+
+// Runs `fn` over `items` with at most `limit` in flight at once,
+// returning results in the SAME order as `items` regardless of which
+// one finishes first - a plain worker-pool, not `items.map` wrapped in
+// a concurrency library, since this is the only place in the codebase
+// that needs bounded parallelism.
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+  onItemDone?: (completedCount: number) => void
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+  let completedCount = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const current = nextIndex;
+      nextIndex += 1;
+      results[current] = await fn(items[current], current);
+      completedCount += 1;
+      onItemDone?.(completedCount);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
+}
+
 const TEXT_STRATEGY_OPTIONS: { value: TextStrategy; label: string; description: string }[] = [
   { value: 'reuse_original', label: 'Keep original text', description: 'Reuse the text and placement from the source slideshow.' },
   { value: 'ai_rewrite', label: 'AI-improve the text', description: 'Rewrite the on-screen text to read better.' },
@@ -246,36 +288,39 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       }
 
       setPhase('generating');
-      const outcomes: SlideGenerationOutcome[] = [];
-      for (let i = 0; i < blueprint.slides.length; i++) {
-        const slide = blueprint.slides[i];
-        setGeneratingProgress({ current: i + 1, total: blueprint.slides.length });
-        const { selectedProductIds, roles } = perSlideSelection[i];
-        const bundleMembers =
-          selectedProductIds.length > 1
-            ? selectedProductIds.map((productId) => ({
-                product_id: productId,
-                role_in_scene: roles[productId] ?? productId,
-              }))
-            : undefined;
-        const request: GenerateCreativeRequest = {
-          quality_mode: 'fast',
-          creativity_level: 'conservative',
-          text_strategy: textStrategy,
-          ...(bundleMembers ? { bundle_members: bundleMembers } : {}),
-        };
-        try {
-          const response = await api.generateCreative(slideshow.id, slide.id, request);
-          outcomes.push({ slideId: slide.id, response, error: null, regenerateRequest: request });
-        } catch (err) {
-          outcomes.push({
-            slideId: slide.id,
-            response: null,
-            error: (err as Error).message,
-            regenerateRequest: request,
-          });
-        }
-      }
+      setGeneratingProgress({ current: 0, total: blueprint.slides.length });
+      const outcomes = await mapWithConcurrency(
+        blueprint.slides,
+        GENERATE_ALL_CONCURRENCY,
+        async (slide, i): Promise<SlideGenerationOutcome> => {
+          const { selectedProductIds, roles } = perSlideSelection[i];
+          const bundleMembers =
+            selectedProductIds.length > 1
+              ? selectedProductIds.map((productId) => ({
+                  product_id: productId,
+                  role_in_scene: roles[productId] ?? productId,
+                }))
+              : undefined;
+          const request: GenerateCreativeRequest = {
+            quality_mode: 'fast',
+            creativity_level: 'conservative',
+            text_strategy: textStrategy,
+            ...(bundleMembers ? { bundle_members: bundleMembers } : {}),
+          };
+          try {
+            const response = await api.generateCreative(slideshow.id, slide.id, request);
+            return { slideId: slide.id, response, error: null, regenerateRequest: request };
+          } catch (err) {
+            return {
+              slideId: slide.id,
+              response: null,
+              error: (err as Error).message,
+              regenerateRequest: request,
+            };
+          }
+        },
+        (completedCount) => setGeneratingProgress({ current: completedCount, total: blueprint.slides.length })
+      );
 
       setResults(outcomes);
       setResultSlideshowId(slideshow.id);

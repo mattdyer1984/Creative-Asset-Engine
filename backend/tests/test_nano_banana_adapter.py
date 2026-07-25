@@ -54,9 +54,16 @@ def test_generate_image_sends_prompt_and_reference_images(tmp_path):
         aspect_ratio="3:4",
     )
 
-    with patch.object(
-        client.models, "generate_content", return_value=canned_response
-    ) as mock_generate_content:
+    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): `client` is now a
+    # fresh-per-access property (no longer memoized, for thread-safety) -
+    # pinning the class attribute to this one already-configured client
+    # for the test's duration makes every `.client` access return the
+    # same object, so patching its methods below still reaches the
+    # adapter's own real call.
+    with (
+        patch.object(NanoBananaImageGenerationAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=canned_response) as mock_generate_content,
+    ):
         result = adapter.generate_image(request)
 
     assert result.image_bytes == fake_bytes
@@ -90,7 +97,10 @@ def test_aspect_ratio_matched_by_substring_against_supported_values(tmp_path):
         aspect_ratio="9:16 vertical marketing ad",
     )
 
-    with patch.object(client.models, "generate_content", return_value=canned_response) as mock_call:
+    with (
+        patch.object(NanoBananaImageGenerationAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=canned_response) as mock_call,
+    ):
         adapter.generate_image(request)
 
     _, kwargs = mock_call.call_args
@@ -111,7 +121,10 @@ def test_unrecognized_aspect_ratio_falls_back_to_square(tmp_path):
         aspect_ratio="unknown-ratio",
     )
 
-    with patch.object(client.models, "generate_content", return_value=canned_response) as mock_call:
+    with (
+        patch.object(NanoBananaImageGenerationAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=canned_response) as mock_call,
+    ):
         adapter.generate_image(request)
 
     _, kwargs = mock_call.call_args
@@ -140,7 +153,10 @@ def test_raises_a_clear_error_when_the_response_has_no_image_part(tmp_path):
         aspect_ratio="1:1",
     )
 
-    with patch.object(client.models, "generate_content", return_value=text_only_response):
+    with (
+        patch.object(NanoBananaImageGenerationAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=text_only_response),
+    ):
         try:
             adapter.generate_image(request)
             assert False, "expected a RuntimeError"

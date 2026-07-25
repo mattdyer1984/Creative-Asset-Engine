@@ -44,11 +44,18 @@ def test_openai_ocr_adapter_parses_structured_response():
     adapter = OpenAIOCRAdapter(model="gpt-5.5")
 
     with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
-        client = adapter.client  # forces lazy construction using the patched key
+        client = adapter.client  # a real client, used only as a target to patch methods on
 
-    with patch.object(
-        client.chat.completions, "create", return_value=canned_response
-    ) as mock_create:
+    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): `client` is now a
+    # fresh-per-access property (no longer memoized, for thread-safety) -
+    # pinning the class attribute to this one already-configured client
+    # for the test's duration makes every `.client` access return the
+    # same object, so patching its methods below still reaches the
+    # adapter's own real call.
+    with (
+        patch.object(OpenAIOCRAdapter, "client", client),
+        patch.object(client.chat.completions, "create", return_value=canned_response) as mock_create,
+    ):
         result = adapter.extract_text(b"fake-image-bytes")
 
     assert result.raw_text == "20% Off Today Only"
@@ -104,7 +111,13 @@ def test_openai_image_generation_adapter_parses_b64_response(tmp_path):
         aspect_ratio="4:5",
     )
 
-    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
+    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): `client` is now a
+    # fresh-per-access property (no longer memoized, for thread-safety) -
+    # see the OCR adapter test above for the full reasoning.
+    with (
+        patch.object(OpenAIImageGenerationAdapter, "client", client),
+        patch.object(client.images, "edit", return_value=canned_response) as mock_edit,
+    ):
         result = adapter.generate_image(request)
 
     assert result.image_bytes == fake_png_bytes
@@ -143,7 +156,10 @@ def test_openai_image_generation_adapter_omits_things_to_avoid_when_empty(tmp_pa
         aspect_ratio="unknown-ratio",
     )
 
-    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
+    with (
+        patch.object(OpenAIImageGenerationAdapter, "client", client),
+        patch.object(client.images, "edit", return_value=canned_response) as mock_edit,
+    ):
         result = adapter.generate_image(request)
 
     assert "Composition: a bottle on a counter" in result.prompt_used
@@ -175,7 +191,10 @@ def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring(tmp_p
         aspect_ratio="4:5 vertical marketing ad",
     )
 
-    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
+    with (
+        patch.object(OpenAIImageGenerationAdapter, "client", client),
+        patch.object(client.images, "edit", return_value=canned_response) as mock_edit,
+    ):
         adapter.generate_image(request)
 
     _, kwargs = mock_edit.call_args
@@ -199,7 +218,10 @@ def test_openai_image_generation_adapter_sends_multiple_reference_images(tmp_pat
         aspect_ratio="1:1",
     )
 
-    with patch.object(client.images, "edit", return_value=canned_response) as mock_edit:
+    with (
+        patch.object(OpenAIImageGenerationAdapter, "client", client),
+        patch.object(client.images, "edit", return_value=canned_response) as mock_edit,
+    ):
         adapter.generate_image(request)
 
     _, kwargs = mock_edit.call_args

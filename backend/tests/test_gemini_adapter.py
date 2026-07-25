@@ -52,9 +52,16 @@ def test_ocr_adapter_extracts_text_and_structured_blocks():
     with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
         client = adapter.client
 
-    with patch.object(
-        client.models, "generate_content", return_value=_fake_response(payload)
-    ) as mock_call:
+    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): `client` is now a
+    # fresh-per-access property (no longer memoized, for thread-safety) -
+    # pinning the class attribute to this one already-configured client
+    # for the test's duration makes every `.client` access return the
+    # same object, so patching its methods below still reaches the
+    # adapter's own real call.
+    with (
+        patch.object(GeminiOCRAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=_fake_response(payload)) as mock_call,
+    ):
         result = adapter.extract_text(_make_image_bytes())
 
     assert result.raw_text == "Sunrise Juice"
@@ -76,9 +83,10 @@ def test_vision_analysis_adapter_single_image():
     with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
         client = adapter.client
 
-    with patch.object(
-        client.models, "generate_content", return_value=_fake_response(payload)
-    ) as mock_call:
+    with (
+        patch.object(GeminiVisionAnalysisAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=_fake_response(payload)) as mock_call,
+    ):
         result = adapter.analyze_creative(
             image_bytes=_make_image_bytes(),
             prompt_spec={"prompt": "Analyze this product.", "schema_name": "product_lock_profile"},
@@ -104,9 +112,10 @@ def test_vision_analysis_adapter_multi_image():
     with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
         client = adapter.client
 
-    with patch.object(
-        client.models, "generate_content", return_value=_fake_response(payload)
-    ) as mock_call:
+    with (
+        patch.object(GeminiVisionAnalysisAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=_fake_response(payload)) as mock_call,
+    ):
         result = adapter.analyze_creative(
             image_bytes=[_make_image_bytes(), _make_image_bytes()],
             prompt_spec={"prompt": "Compare these images.", "schema_name": "identity_validation"},
@@ -131,9 +140,10 @@ def test_vision_analysis_adapter_reuses_caller_supplied_schema_verbatim():
     with patch("app.ai_providers.gemini_adapter.get_api_key", return_value="fake-key"):
         client = adapter.client
 
-    with patch.object(
-        client.models, "generate_content", return_value=_fake_response({"foo": "bar"})
-    ) as mock_call:
+    with (
+        patch.object(GeminiVisionAnalysisAdapter, "client", client),
+        patch.object(client.models, "generate_content", return_value=_fake_response({"foo": "bar"})) as mock_call,
+    ):
         adapter.analyze_creative(
             image_bytes=_make_image_bytes(),
             prompt_spec={"prompt": "p", "schema_name": "s"},

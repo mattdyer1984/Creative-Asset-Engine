@@ -28,6 +28,21 @@ single-slide failure semantics, and "honest failure over silent partial
 data") - slides processed before the failing one keep their already-
 committed, already-current OCR results; the failing slide and any after
 it are simply not attempted this run.
+
+Real-world-diagnosed speed fix (Generate All follow-up, see
+MIGRATION_PLAN.md): the actual `extract_text` provider call for every
+slide now runs concurrently (app.slideshow_stages.concurrency), not one
+slide at a time - real timing data from a real multi-slide /analyze run
+showed this stage's own wall-clock time scaling linearly with slide
+count even though every slide's OCR call is fully independent of every
+other's. Every DB write still happens afterward, sequentially, in
+original slide order - only the slow network call itself moved off the
+sequential path. The "failure stops the run" semantics above are now
+"a failure stops the DB-writing pass" specifically - every slide's call
+still fires regardless (see app.slideshow_stages.concurrency's own
+docstring for why that tradeoff was accepted), but a failing slide's
+result still stops this stage from persisting anything for that slide
+or any slide after it in the original order, exactly as before.
 """
 
 from pathlib import Path
@@ -37,8 +52,10 @@ from sqlalchemy.orm import Session
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_OCR
 from app.models.ocr_result import OCRResult
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 
@@ -47,9 +64,15 @@ class SlideOCRStage:
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         ocr_provider = default_registry.ocr()
-
         result: StageResult = StageResult(succeeded=True)
-        for slide in slideshow.slides:
+
+        def _extract(slide: Slide):
+            image_bytes = Path(slide.stored_file_path).read_bytes()
+            return ocr_provider.extract_text(image_bytes)
+
+        extraction_results = run_concurrently(slideshow.slides, _extract)
+
+        for index, slide in enumerate(slideshow.slides):
             analysis_run = start_analysis_run(
                 db,
                 slide_id=slide.id,
@@ -59,11 +82,10 @@ class SlideOCRStage:
                 durable=False,
             )
 
-            try:
-                image_bytes = Path(slide.stored_file_path).read_bytes()
-                extraction = ocr_provider.extract_text(image_bytes)
-            except Exception as exc:
-                return mark_failed(db, analysis_run, exc, rollback=False)
+            outcome = extraction_results[index]
+            if isinstance(outcome, Exception):
+                return mark_failed(db, analysis_run, outcome, rollback=False)
+            extraction = outcome
 
             if slide.current_ocr_result_id is not None:
                 previous_result = db.get(OCRResult, slide.current_ocr_result_id)

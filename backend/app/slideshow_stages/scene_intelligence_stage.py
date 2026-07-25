@@ -28,8 +28,10 @@ from sqlalchemy.orm import Session
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_SCENE_INTELLIGENCE
 from app.models.scene_analysis import SceneAnalysis
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 REGION_TYPES = [
@@ -102,12 +104,27 @@ class SceneIntelligenceStage:
         precedent - like Creative Fingerprint, this stage never depended
         on a product appearance, so every slide is processed
         unconditionally.
+
+        Real-world-diagnosed speed fix (see MIGRATION_PLAN.md): the
+        actual `analyze_creative` provider call for every slide now runs
+        concurrently (app.slideshow_stages.concurrency) - the simplest
+        of the four widened stages to convert, since it has no per-slide
+        eligibility check or enrichment read of its own.
         """
         result: StageResult = StageResult(succeeded=True)
+        vision_provider = default_registry.vision()
 
-        for slide in slideshow.slides:
-            vision_provider = default_registry.vision()
+        def _analyze(slide: Slide) -> dict:
+            image_bytes = Path(slide.stored_file_path).read_bytes()
+            return vision_provider.analyze_creative(
+                image_bytes=image_bytes,
+                prompt_spec={"prompt": SCENE_INTELLIGENCE_PROMPT, "schema_name": "scene_intelligence"},
+                response_schema=SCENE_REGION_SCHEMA,
+            )
 
+        analysis_results = run_concurrently(slideshow.slides, _analyze)
+
+        for index, slide in enumerate(slideshow.slides):
             analysis_run = start_analysis_run(
                 db,
                 slide_id=slide.id,
@@ -118,13 +135,10 @@ class SceneIntelligenceStage:
             )
 
             try:
-                image_bytes = Path(slide.stored_file_path).read_bytes()
-                analysis_result = vision_provider.analyze_creative(
-                    image_bytes=image_bytes,
-                    prompt_spec={"prompt": SCENE_INTELLIGENCE_PROMPT, "schema_name": "scene_intelligence"},
-                    response_schema=SCENE_REGION_SCHEMA,
-                )
-                regions = _enforce_product_region_is_essential(analysis_result["regions"])
+                outcome = analysis_results[index]
+                if isinstance(outcome, Exception):
+                    raise outcome
+                regions = _enforce_product_region_is_essential(outcome["regions"])
 
                 db.query(SceneAnalysis).filter(
                     SceneAnalysis.slide_id == slide.id,

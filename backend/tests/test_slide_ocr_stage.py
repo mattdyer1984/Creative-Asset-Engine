@@ -103,7 +103,14 @@ def _make_multi_slide_slideshow(db_session, tmp_path, slide_count: int) -> Slide
 
     for i in range(slide_count):
         image_path = tmp_path / f"slide-{i}.jpg"
-        image_path.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
+        # Real-world-diagnosed fix (Generate All follow-up, see
+        # MIGRATION_PLAN.md): distinguishable per-slide bytes, not
+        # identical placeholder content - once the stage's provider
+        # calls run concurrently (this same fix), a fake provider needs
+        # a deterministic way to tell slides apart from image_bytes
+        # alone, since call order/count is no longer guaranteed to
+        # match slide order.
+        image_path.write_bytes(f"fake-jpeg-bytes-{i}".encode())
         db_session.add(
             Slide(
                 slideshow_id=slideshow.id,
@@ -119,26 +126,31 @@ def _make_multi_slide_slideshow(db_session, tmp_path, slide_count: int) -> Slide
     return slideshow
 
 
-class _SequentialFakeOCRProvider:
-    """Returns a distinct extraction per call, in order - proves each slide gets its own OCR, not one repeated."""
+class _ByContentFakeOCRProvider:
+    """
+    Returns a distinct extraction keyed by the image_bytes it receives -
+    proves each slide gets its own OCR, not one repeated. Real-world-
+    diagnosed fix (Generate All follow-up, see MIGRATION_PLAN.md):
+    replaces an earlier call-order-keyed version, which broke once this
+    stage's provider calls started running concurrently - call order is
+    no longer guaranteed to match slide order, but each slide's own
+    image_bytes still deterministically identifies it.
+    """
 
     model = "fake-ocr-model"
     provider = "openai"
 
-    def __init__(self, extractions: list[OCRExtraction]):
-        self._extractions = extractions
-        self._call_count = 0
+    def __init__(self, extractions_by_content: dict[bytes, OCRExtraction]):
+        self._extractions_by_content = extractions_by_content
 
     def extract_text(self, image_bytes: bytes) -> OCRExtraction:
-        extraction = self._extractions[self._call_count]
-        self._call_count += 1
-        return extraction
+        return self._extractions_by_content[image_bytes]
 
 
 def test_ocr_stage_runs_on_every_slide_in_a_multi_slide_slideshow(db_session, tmp_path, monkeypatch):
     slideshow = _make_multi_slide_slideshow(db_session, tmp_path, slide_count=3)
-    extractions = [
-        OCRExtraction(
+    extractions_by_content = {
+        f"fake-jpeg-bytes-{i}".encode(): OCRExtraction(
             raw_text=f"Slide {i} text",
             structured_blocks=[
                 {
@@ -149,8 +161,8 @@ def test_ocr_stage_runs_on_every_slide_in_a_multi_slide_slideshow(db_session, tm
             ],
         )
         for i in range(3)
-    ]
-    fake_registry = FakeAIProviderRegistry(ocr_provider=_SequentialFakeOCRProvider(extractions))
+    }
+    fake_registry = FakeAIProviderRegistry(ocr_provider=_ByContentFakeOCRProvider(extractions_by_content))
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)
 
     stage = SlideOCRStage()
@@ -168,26 +180,27 @@ def test_ocr_stage_runs_on_every_slide_in_a_multi_slide_slideshow(db_session, tm
 def test_ocr_stage_fails_the_whole_stage_if_any_slide_fails(db_session, tmp_path, monkeypatch):
     """
     One slide's OCR failure fails the stage - slides processed before the
-    failing one keep their already-committed results, per the stage's own
-    documented "honest failure" behavior (see MIGRATION_PLAN.md's Phase
-    7.1 report).
+    failing one (in original slide order) keep their already-committed
+    results, per the stage's own documented "honest failure" behavior
+    (see MIGRATION_PLAN.md's Phase 7.1 report). Real-world-diagnosed
+    follow-up (see MIGRATION_PLAN.md): the provider calls themselves now
+    run concurrently, so slide 2's own call still fires even though
+    slide 1 is about to fail - but the DB-writing pass still stops at
+    slide 1 in original order, so slide 2 never gets a persisted result,
+    exactly as before this speed fix.
     """
     slideshow = _make_multi_slide_slideshow(db_session, tmp_path, slide_count=3)
 
-    class _FailOnSecondCallOCRProvider:
+    class _FailOnSlideOneContentOCRProvider:
         model = "fake-ocr-model"
         provider = "openai"
 
-        def __init__(self):
-            self._call_count = 0
-
         def extract_text(self, image_bytes: bytes) -> OCRExtraction:
-            self._call_count += 1
-            if self._call_count == 2:
+            if image_bytes == b"fake-jpeg-bytes-1":
                 raise RuntimeError("provider timed out on slide 2")
             return OCRExtraction(raw_text="ok", structured_blocks=[])
 
-    fake_registry = FakeAIProviderRegistry(ocr_provider=_FailOnSecondCallOCRProvider())
+    fake_registry = FakeAIProviderRegistry(ocr_provider=_FailOnSlideOneContentOCRProvider())
     monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", fake_registry)
 
     stage = SlideOCRStage()
@@ -202,4 +215,4 @@ def test_ocr_stage_fails_the_whole_stage_if_any_slide_fails(db_session, tmp_path
     db_session.refresh(slides[2])
     assert slides[0].current_ocr_result_id is not None  # succeeded before the failure
     assert slides[1].current_ocr_result_id is None  # the failing slide
-    assert slides[2].current_ocr_result_id is None  # never attempted
+    assert slides[2].current_ocr_result_id is None  # never persisted (write loop stopped at slide 1)

@@ -83,16 +83,29 @@ class GeminiOCRAdapter:
     def __init__(self, model: str = "gemini-flash-latest", provider: str = "gemini"):
         self.model = model
         self.provider = provider
-        self._client: genai.Client | None = None
 
     @property
     def client(self) -> genai.Client:
-        if self._client is None:
-            self._client = genai.Client(api_key=get_api_key("nano_banana"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh
+        # client per access, not memoized on self - see
+        # app.ai_providers.openai_adapter's identical fix for the full
+        # reasoning (a memoized, registry-shared client broke under real
+        # concurrent use once per-slide stage calls started running
+        # concurrently).
+        return genai.Client(api_key=get_api_key("nano_banana"))
 
     def extract_text(self, image_bytes: bytes) -> OCRExtraction:
-        response = self.client.models.generate_content(
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md and
+        # openai_adapter.py's identical fix for the full reasoning) -
+        # captured into a local variable, not chained directly off
+        # `self.client`: `genai.Client` has a real `__del__` that closes
+        # its own httpx transport, and chaining would let its refcount
+        # hit zero mid-expression, sometimes closing the transport
+        # before the very request that same expression was making had
+        # finished - confirmed live ("Cannot send a request, as the
+        # client has been closed").
+        client = self.client
+        response = client.models.generate_content(
             model=self.model,
             contents=[OCR_PROMPT, *_images_from_bytes(image_bytes)],
             config=types.GenerateContentConfig(
@@ -118,13 +131,16 @@ class GeminiVisionAnalysisAdapter:
     def __init__(self, model: str = "gemini-pro-latest", provider: str = "gemini"):
         self.model = model
         self.provider = provider
-        self._client: genai.Client | None = None
 
     @property
     def client(self) -> genai.Client:
-        if self._client is None:
-            self._client = genai.Client(api_key=get_api_key("nano_banana"))
-        return self._client
+        # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a fresh
+        # client per access, not memoized on self - see
+        # app.ai_providers.openai_adapter's identical fix for the full
+        # reasoning (a memoized, registry-shared client broke under real
+        # concurrent use once per-slide stage calls started running
+        # concurrently).
+        return genai.Client(api_key=get_api_key("nano_banana"))
 
     def analyze_creative(
         self, image_bytes: bytes | list[bytes], prompt_spec: dict, response_schema: dict
@@ -132,7 +148,8 @@ class GeminiVisionAnalysisAdapter:
         prompt_text = prompt_spec["prompt"]
         images = _images_from_bytes(image_bytes)
 
-        response = self.client.models.generate_content(
+        client = self.client
+        response = client.models.generate_content(
             model=self.model,
             contents=[prompt_text, *images],
             config=types.GenerateContentConfig(
