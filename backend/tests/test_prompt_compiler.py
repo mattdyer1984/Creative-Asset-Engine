@@ -40,20 +40,29 @@ def test_reference_image_paths_pass_through_unchanged():
     assert request.reference_image_paths == _REFERENCE_PATHS
 
 
-def test_things_to_avoid_and_aspect_ratio_pass_through_unchanged():
+def test_things_to_avoid_passes_through_unchanged():
     request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
 
     assert request.things_to_avoid == ["cluttered background", "artificial-looking lighting"]
-    assert request.aspect_ratio == "4:5"
 
 
-def test_aspect_ratio_falls_back_to_platform_default_when_missing():
+def test_aspect_ratio_is_always_3_4_regardless_of_the_creative_specification():
+    """
+    Real-world-diagnosed fix (see MIGRATION_PLAN.md): aspect_ratio used
+    to pass through whatever the Creative Specification's own AI stage
+    inferred (typically "9:16 vertical social media frame", matching
+    the source slide) - once actually posted to TikTok, the app's own
+    UI covers a real, fixed strip of a 9:16 frame. 3:4 is now a flat,
+    unconditional product policy, not a per-creative judgment call or a
+    per-platform lookup.
+    """
+    request = compile_generation_request(_CREATIVE_SPECIFICATION, _REFERENCE_PATHS)
+    assert request.aspect_ratio == "3:4"
+
     spec_without_ratio = dict(_CREATIVE_SPECIFICATION)
     spec_without_ratio.pop("aspect_ratio")
-
-    request = compile_generation_request(spec_without_ratio, _REFERENCE_PATHS, platform="generic")
-
-    assert request.aspect_ratio == "1:1"
+    request = compile_generation_request(spec_without_ratio, _REFERENCE_PATHS)
+    assert request.aspect_ratio == "3:4"
 
 
 def test_creative_intent_excludes_subject_but_includes_scene_fields_color_palette_and_overlays():

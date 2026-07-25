@@ -132,6 +132,20 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
       setImportedSlideCount(slideshow.slides.length);
 
       setPhase('resolving_product');
+      // Real-world-diagnosed fix (Generate All follow-up, see
+      // MIGRATION_PLAN.md): there is no automatic per-slide product
+      // detection anywhere in this codebase - Product Isolation/Lock
+      // Profile only ever process a slide's EXISTING appearances, they
+      // never discover new ones. Assigning the chosen product only to
+      // the primary slide (the old behavior) meant every other slide
+      // permanently had zero appearances, so Generate All's own
+      // generate-creative call for those slides 422'd with "No product
+      // assigned to this slide yet" every single time - confirmed live.
+      // The common case for this simplified flow is one product
+      // (or one bundle) advertised across the whole slideshow, so the
+      // resolved product id(s) are assigned to every imported slide,
+      // not just the primary one.
+      const productIdsToAssign: string[] = [];
       if (productMode === 'url') {
         // createListingSourceImport is get-or-create by URL (see
         // app.services.listing_import's own docstring) - pasting a product
@@ -146,12 +160,10 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
         const listing = await api.createListingSourceImport(productUrl.trim());
         const detail = await api.getListing(listing.id);
         if (detail.resolved_product_id) {
-          await api.addSlideProduct(slideshow.id, primarySlideId, detail.resolved_product_id);
+          productIdsToAssign.push(detail.resolved_product_id);
         } else if (detail.resolved_bundle_id) {
           const bundleView = await api.getBundleView(detail.resolved_bundle_id);
-          for (const member of bundleView.members) {
-            await api.addSlideProduct(slideshow.id, primarySlideId, member.product_id);
-          }
+          productIdsToAssign.push(...bundleView.members.map((member) => member.product_id));
         } else if (detail.pending_bundle_hints.length > 0) {
           const members = detail.pending_bundle_hints.map((hint) => ({
             new_product_display_name: hint.label,
@@ -163,19 +175,22 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
           );
           if (!resolved.resolved_bundle_id) throw new Error("Couldn't resolve the product bundle.");
           const bundleView = await api.getBundleView(resolved.resolved_bundle_id);
-          for (const member of bundleView.members) {
-            await api.addSlideProduct(slideshow.id, primarySlideId, member.product_id);
-          }
+          productIdsToAssign.push(...bundleView.members.map((member) => member.product_id));
         } else {
           const resolved = await api.resolveListingToNewProduct(
             listing.id,
             detail.pending_product_title ?? 'New Product'
           );
           if (!resolved.resolved_product_id) throw new Error("Couldn't resolve the product.");
-          await api.addSlideProduct(slideshow.id, primarySlideId, resolved.resolved_product_id);
+          productIdsToAssign.push(resolved.resolved_product_id);
         }
       } else {
-        await api.addSlideProduct(slideshow.id, primarySlideId, existingProductId);
+        productIdsToAssign.push(existingProductId);
+      }
+      for (const slide of slideshow.slides) {
+        for (const productId of productIdsToAssign) {
+          await api.addSlideProduct(slideshow.id, slide.id, productId);
+        }
       }
 
       setPhase('analyzing');

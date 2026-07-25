@@ -53,19 +53,21 @@ reference_selection) is what actually queries the Library and asks a
 provider's capabilities for max_reference_images - by the time its
 output reaches this function, it's already just data.
 
-"Platform Rules" (aspect ratio defaults per target platform) is
-deliberately minimal here - a plain fallback dict, not a persisted
-entity. Proving the loop once, for one slide, one provider, doesn't
-need a real Platform Rules subsystem; see the architecture direction's
-explicit scope decision on this.
+Aspect ratio is a hardcoded, unconditional "3:4" (real-world-diagnosed
+fix, see MIGRATION_PLAN.md) - not a per-platform "Platform Rules"
+lookup (an earlier, more speculative design here that never grew past
+one entry) and not read from `creative_specification`'s own AI-inferred
+field (typically "9:16 vertical social media frame", matching whatever
+aspect the source slide happened to be). Once actually posted to
+TikTok, the app's own UI (like/comment/share icons, caption bar,
+username) covers a real, fixed strip of any 9:16 frame - 3:4 leaves
+enough of that away from the final crop that it doesn't overlap what
+this app renders. A flat product policy, not a per-creative judgment
+call, so it's asserted here rather than asked of any AI stage.
 """
 
 from app.ai_providers.base import GenerationRequest
 from app.product_sources.base import ColorValue, DimensionValue, ListValue, NumberValue, TextValue
-
-_PLATFORM_DEFAULT_ASPECT_RATIOS = {
-    "generic": "1:1",
-}
 
 # (CreativeSpecification field, human-readable label) - order here is the
 # order they appear in the compiled creative_intent text. "subject" is
@@ -132,7 +134,6 @@ def _bundle_composition_instruction(bundle_members: list[dict]) -> str:
 def compile_generation_request(
     creative_specification: dict,
     reference_image_paths: list[str],
-    platform: str = "generic",
     bundle_members: list[dict] | None = None,
     suppress_overlay_text: bool = False,
     branding_text: list[str] | None = None,
@@ -281,13 +282,9 @@ def compile_generation_request(
 
     things_to_avoid = list(creative_specification.get("things_to_avoid") or [])
 
-    aspect_ratio = creative_specification.get("aspect_ratio") or _PLATFORM_DEFAULT_ASPECT_RATIOS.get(
-        platform, _PLATFORM_DEFAULT_ASPECT_RATIOS["generic"]
-    )
-
     return GenerationRequest(
         creative_intent="\n".join(intent_parts),
         reference_image_paths=reference_image_paths,
         things_to_avoid=things_to_avoid,
-        aspect_ratio=aspect_ratio,
+        aspect_ratio="3:4",
     )

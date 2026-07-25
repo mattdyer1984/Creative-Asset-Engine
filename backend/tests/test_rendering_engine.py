@@ -13,9 +13,15 @@ pixels rather than only checking "doesn't crash."
 
 from io import BytesIO
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageDraw
 
-from app.services.rendering_engine import _load_default_typeface, _resolve_y, render_final_output
+from app.services.rendering_engine import (
+    _base_font_size_for,
+    _choose_wrapped_lines,
+    _load_default_typeface,
+    _resolve_y,
+    render_final_output,
+)
 
 _BACKGROUND_COLOR = (120, 130, 140)
 
@@ -117,6 +123,54 @@ def test_default_typeface_has_a_real_pound_sterling_glyph():
     assert mask.getbbox() is not None  # a real glyph occupies pixels; a missing one renders empty
 
 
+def test_wraps_the_exact_reported_caption_onto_two_lines_with_no_orphan_word():
+    """
+    Real bug, reported live: "Why would u pay £24 for this…" wrapped
+    onto 3 lines at a real portrait image size, with "this…" alone on
+    the final line. The user's own direction: fit text onto 2 lines
+    wherever possible, never start a new line for one word.
+    """
+    image = Image.new("RGB", (1080, 1920), color=_BACKGROUND_COLOR)
+    draw = ImageDraw.Draw(image)
+    text_asset = {
+        "wording": "Why would u pay £24 for this…",
+        "styling": {"size_class": "large"},
+    }
+    base_size = _base_font_size_for(text_asset, image.height)
+    max_width = image.width * 0.88  # matches render_final_output's own margin math
+
+    _font, lines = _choose_wrapped_lines(draw, text_asset["wording"], base_size, max_width)
+
+    assert len(lines) <= 2
+    assert len(lines[-1].split()) > 1
+
+
+def test_choose_wrapped_lines_shrinks_the_font_to_avoid_an_orphaned_last_word():
+    """A narrow max_width that would otherwise strand one word alone on
+    its own line should be rescued by shrinking the font, not left as-is."""
+    image = Image.new("RGB", (400, 400), color=_BACKGROUND_COLOR)
+    draw = ImageDraw.Draw(image)
+    text = "A somewhat long marketing headline overflow"
+    base_font = _load_default_typeface(60)
+    # A width that forces the last word onto its own line at full size.
+    narrow_width = draw.textlength("A somewhat long marketing headline", font=base_font) + 10
+
+    font, lines = _choose_wrapped_lines(draw, text, 60, narrow_width)
+
+    assert not (len(lines) > 1 and len(lines[-1].split()) == 1)
+    assert font.size <= 60
+
+
+def test_choose_wrapped_lines_never_shrinks_or_wraps_a_single_word():
+    image = Image.new("RGB", (400, 400), color=_BACKGROUND_COLOR)
+    draw = ImageDraw.Draw(image)
+
+    font, lines = _choose_wrapped_lines(draw, "Sale", 60, max_width=10)
+
+    assert lines == ["Sale"]
+    assert font.size == 60
+
+
 def test_resolve_y_pushes_down_when_a_horizontally_overlapping_box_is_below_it():
     placed = [(0, 100, 100)]  # a box spanning x=0-100, bottom edge at y=100
     assert _resolve_y(y=50, x_start=20, x_end=80, placed=placed, margin=5) == 105
@@ -210,6 +264,55 @@ def test_text_is_horizontally_centered_on_the_image_not_left_justified():
     text_center_x = (bbox[0] + bbox[2]) / 2
     image_center_x = result_image.width / 2
     assert abs(text_center_x - image_center_x) < result_image.width * 0.02
+
+
+# --- text safe zone: central two-thirds width, never bottom 15-20% (real-world-diagnosed fix, see MIGRATION_PLAN.md) ---
+
+
+def test_text_never_extends_into_the_bottom_safe_zone():
+    """
+    Real user request: once actually posted to TikTok, the app's own
+    caption/username/comment-bar UI covers the bottom of the frame -
+    text positioned low (as this fixture's positioning.y is, and as a
+    real reported caption was) must be pulled up to stay clear of it,
+    not rendered wherever the original slide's OCR happened to find it.
+    """
+    source = _source_image_bytes(size=(800, 1200))
+    text_asset = {
+        "wording": "Why would u pay £24 for this...",
+        "hierarchy": "headline",
+        "semantic_role": "hook",
+        "positioning": {"x": 0.163, "y": 0.9, "width": 0.7},  # deep in the bottom 20%
+        "styling": {"size_class": "large"},
+    }
+
+    result_image = Image.open(BytesIO(render_final_output(source, [text_asset])))
+    bbox = _non_background_bbox(result_image)
+    assert bbox is not None
+    assert bbox[3] <= result_image.height * 0.80
+
+
+def test_text_stays_within_the_central_two_thirds_width():
+    """
+    Real user request: TikTok's own like/comment/share icon column sits
+    on the right edge once posted - text must never reach into the
+    outer sixth of the width on either side, even for a caption long
+    enough to want the full original margin.
+    """
+    source = _source_image_bytes(size=(1080, 1920))
+    text_asset = {
+        "wording": "A genuinely long marketing caption that would want the full width",
+        "hierarchy": "headline",
+        "semantic_role": "hook",
+        "positioning": {"x": 0.05, "y": 0.3, "width": 0.9},
+        "styling": {"size_class": "large"},
+    }
+
+    result_image = Image.open(BytesIO(render_final_output(source, [text_asset])))
+    bbox = _non_background_bbox(result_image)
+    assert bbox is not None
+    assert bbox[0] >= result_image.width * (1 / 6) - 2  # small tolerance for stroke width
+    assert bbox[2] <= result_image.width * (5 / 6) + 2
 
 
 def test_no_background_box_is_drawn_behind_the_text():

@@ -157,6 +157,54 @@ def _eligible_blocks(ocr_result: OCRResult | None, packaging_text: list[str]) ->
     ]
 
 
+def _merge_adjacent_overlay_blocks(blocks: list[dict]) -> list[dict]:
+    """
+    Real-world-diagnosed fix (Generate All follow-up, see
+    MIGRATION_PLAN.md): a real caption ("Why would u pay £24 for
+    this...") came back from OCR as two separate blocks - the source
+    video's own on-screen caption had a line break, so OCR reported two
+    spatially distinct text regions, same role, one almost directly
+    beneath the other. Built as two independent TextAssets, the second
+    ("this...") rendered as its own single-word line with no knowledge
+    of the first - the exact "orphan word on its own line" the user
+    flagged, except no single TextAsset's own wrapping could ever fix
+    it, since the two words were never in the same string to begin
+    with. Merges same-role blocks that are vertically adjacent (the gap
+    between them is small relative to their own line height) and
+    horizontally overlapping (a real continuation of the same caption,
+    not an unrelated nearby element) into one combined block, in
+    reading order (top to bottom), before any TextAsset is built -
+    downstream wrapping then sees and rebalances the whole caption
+    together.
+    """
+    ordered = sorted(blocks, key=lambda block: block["bounding_box"]["y_min"])
+    merged: list[dict] = []
+    for block in ordered:
+        box = block["bounding_box"]
+        if merged:
+            prev = merged[-1]
+            prev_box = prev["bounding_box"]
+            same_role = prev["role"] == block["role"]
+            line_height = prev_box["y_max"] - prev_box["y_min"]
+            vertical_gap = box["y_min"] - prev_box["y_max"]
+            close_enough = vertical_gap <= max(line_height, 0.02) * 1.5
+            horizontally_overlaps = box["x_min"] < prev_box["x_max"] and prev_box["x_min"] < box["x_max"]
+            if same_role and close_enough and horizontally_overlaps:
+                merged[-1] = {
+                    **prev,
+                    "text": f"{prev['text']} {block['text']}",
+                    "bounding_box": {
+                        "x_min": min(prev_box["x_min"], box["x_min"]),
+                        "y_min": prev_box["y_min"],
+                        "x_max": max(prev_box["x_max"], box["x_max"]),
+                        "y_max": box["y_max"],
+                    },
+                }
+                continue
+        merged.append(dict(block))
+    return merged
+
+
 def _text_asset_from_block(block: dict, wording: str) -> dict:
     hierarchy = _ROLE_TO_HIERARCHY[block["role"]]
     style = _HIERARCHY_STYLE[hierarchy]
@@ -205,7 +253,7 @@ def build_text_assets(
     if text_strategy == TEXT_STRATEGY_NO_TEXT:
         return []
 
-    blocks = _eligible_blocks(ocr_result, packaging_text or [])
+    blocks = _merge_adjacent_overlay_blocks(_eligible_blocks(ocr_result, packaging_text or []))
     if not blocks:
         return []
 

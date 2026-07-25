@@ -72,10 +72,18 @@ _TEXT_FILL = (255, 255, 255, 255)
 _STROKE_FILL = (0, 0, 0, 255)
 _STROKE_WIDTH_FRACTION = 0.006  # "a little bit of stroke" - a thin legibility outline, not a heavy comic-style one
 _PADDING_FRACTION = 0.02
-# Centered, near-full-width - the user's own direction ("always centered,
-# never left justified"), not confined to wherever the original slide's
-# OCR happened to find this text's narrow bounding box.
-_HORIZONTAL_MARGIN_FRACTION = 0.06
+
+# Real-world-diagnosed fix (see MIGRATION_PLAN.md): once actually posted
+# to TikTok, the app's own UI sits on top of the final image - a column
+# of like/comment/share icons on the right, and a caption/username/
+# comment-bar strip along the bottom. Text rendered near either edge (as
+# a real generated caption was, right up against the right/bottom margin)
+# would be covered. Centered, and now confined to the central two-thirds
+# of the width and never the bottom 15-20% - the user's own explicit
+# direction, not just "always centered, never left justified" (the
+# original, narrower reasoning for centering at all).
+_SAFE_HORIZONTAL_MARGIN_FRACTION = 1 / 6  # (1 - 2/3) / 2 each side - central two-thirds of the width
+_BOTTOM_SAFE_ZONE_FRACTION = 0.20  # text must never extend into the bottom 20% of the image
 
 # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a real generation's
 # rendered overlay showed every "£" as a blank tofu box - confirmed via
@@ -109,23 +117,25 @@ def _load_default_typeface(size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default(size=size)
 
 
-def _font_for(text_asset: dict, image_height: int) -> ImageFont.FreeTypeFont:
+def _base_font_size_for(text_asset: dict, image_height: int) -> int:
     fraction = _SIZE_CLASS_FRACTION.get(text_asset["styling"]["size_class"], _SIZE_CLASS_FRACTION["medium"])
-    size = max(int(image_height * fraction), 14)
-    return _load_default_typeface(size)
+    return max(int(image_height * fraction), 14)
 
 
-def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: float) -> str:
+def _greedy_wrap_lines(draw: ImageDraw.ImageDraw, text: str, font, max_width: float) -> list[str]:
     """
-    `ImageDraw.textlength` has no `stroke_width` parameter (unlike
-    `text`/`textbbox`/`multiline_text`) - wrapping doesn't need to be
-    stroke-exact, a stroke only adds a few pixels per side regardless
-    of line length, well within this function's own word-boundary
+    Pure word-wrap at a fixed font size - the mechanical wrapping step,
+    with no opinion on font size or orphan words (see
+    `_choose_wrapped_lines`, which calls this at several sizes to pick
+    the best result). `ImageDraw.textlength` has no `stroke_width`
+    parameter (unlike `text`/`textbbox`/`multiline_text`) - wrapping
+    doesn't need to be stroke-exact, a stroke only adds a few pixels
+    per side regardless of line length, well within word-boundary
     granularity.
     """
     words = text.split()
     if not words:
-        return text
+        return [text]
     lines: list[str] = []
     current = words[0]
     for word in words[1:]:
@@ -136,27 +146,100 @@ def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: float) -> 
             lines.append(current)
             current = word
     lines.append(current)
-    return "\n".join(lines)
+    return lines
 
 
-def _render_text_asset(draw: ImageDraw.ImageDraw, text_asset: dict, image_size: tuple[int, int], y: float) -> float:
+# Real-world-diagnosed fix (Generate All follow-up, see MIGRATION_PLAN.md):
+# a real caption wrapped onto 3 lines at the size_class's fixed font
+# size, with the final line holding a single orphaned word - the user's
+# own explicit direction is to fit text onto two lines wherever
+# possible, and never start a new line for just one word.
+_MIN_FONT_SCALE = 0.6  # never shrink a caption below 60% of its size-class's target size
+_FONT_SCALE_STEP = 0.05
+
+
+def _has_orphaned_last_word(lines: list[str]) -> bool:
+    return len(lines) > 1 and len(lines[-1].split()) == 1
+
+
+def _choose_wrapped_lines(
+    draw: ImageDraw.ImageDraw, text: str, base_size: int, max_width: float
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
     """
-    Draws at the given (already collision-resolved) y, horizontally
-    centered on the full image width - one unconditional style for
-    every TextAsset (see this module's own docstring). Returns the
-    pixel y of the drawn text's bottom edge, so the caller can stack
-    the next asset below it.
+    Tries the size_class's own target size first, then shrinks in small
+    steps down to `_MIN_FONT_SCALE`, always preferring the largest size
+    that wraps the text onto 2 lines or fewer with no single-word last
+    line - a size that reads a little smaller but wraps cleanly beats
+    the "ideal" size wrapping badly. If no size in that range achieves
+    both, falls back to whichever size produced the fewest lines, then
+    (tie-break) whichever still avoids an orphaned last word, then
+    (tie-break) the largest font - not every caption can be rescued
+    (e.g. one genuinely long final word), so this is a best-effort
+    preference, not a guarantee.
+    """
+    words = text.split()
+    if len(words) <= 1:
+        # A single word can never be "orphaned" - nothing to rebalance,
+        # and shrinking it would only make it needlessly smaller.
+        font = _load_default_typeface(base_size)
+        return font, _greedy_wrap_lines(draw, text, font, max_width)
+
+    best: tuple[int, bool, ImageFont.FreeTypeFont, list[str]] | None = None
+    scale = 1.0
+    while scale >= _MIN_FONT_SCALE - 1e-9:
+        size = max(int(base_size * scale), 10)
+        font = _load_default_typeface(size)
+        lines = _greedy_wrap_lines(draw, text, font, max_width)
+        orphaned = _has_orphaned_last_word(lines)
+        if len(lines) <= 2 and not orphaned:
+            return font, lines
+        if best is None or (len(lines), orphaned) < (best[0], best[1]):
+            best = (len(lines), orphaned, font, lines)
+        scale -= _FONT_SCALE_STEP
+    assert best is not None
+    return best[2], best[3]
+
+
+def _measure_text_asset(
+    draw: ImageDraw.ImageDraw, text_asset: dict, image_size: tuple[int, int], max_width: float
+) -> tuple[ImageFont.FreeTypeFont, str, int, tuple[float, float, float, float]]:
+    """
+    The wrapping/sizing half of what used to be `_render_text_asset` -
+    split out so `render_final_output` can know a caption's real
+    rendered height (and therefore whether it fits above the bottom
+    safe zone, see that function's own docstring) before committing to
+    a y position, not just after drawing it. `bbox_at_zero` is this
+    text's own `multiline_textbbox` measured at a y anchor of 0 - since
+    Pillow's bbox is a pure translation of the anchor, `bbox_at_zero[1]`/
+    `bbox_at_zero[3]` are exactly how far the actual top/bottom edges
+    will land relative to whatever y this text is eventually drawn at.
     """
     width, height = image_size
-    font = _font_for(text_asset, height)
+    base_size = _base_font_size_for(text_asset, height)
     stroke_width = max(int(height * _STROKE_WIDTH_FRACTION), 1)
-    margin = width * _HORIZONTAL_MARGIN_FRACTION
-    max_width = width - 2 * margin
+    font, lines = _choose_wrapped_lines(draw, text_asset["wording"], base_size, max_width)
+    wrapped = "\n".join(lines)
+    bbox_at_zero = draw.multiline_textbbox((0, 0), wrapped, font=font, align="center", stroke_width=stroke_width)
+    return font, wrapped, stroke_width, bbox_at_zero
 
-    wrapped = _wrap_text(draw, text_asset["wording"], font, max_width)
-    bbox = draw.multiline_textbbox(
-        (0, y), wrapped, font=font, align="center", stroke_width=stroke_width
-    )
+
+def _draw_text_asset(
+    draw: ImageDraw.ImageDraw,
+    font: ImageFont.FreeTypeFont,
+    wrapped: str,
+    stroke_width: int,
+    image_size: tuple[int, int],
+    y: float,
+) -> float:
+    """
+    Draws at the given (already collision- and safe-zone-resolved) y,
+    horizontally centered on the full image width - one unconditional
+    style for every TextAsset (see this module's own docstring).
+    Returns the pixel y of the drawn text's bottom edge, so the caller
+    can stack the next asset below it.
+    """
+    width, height = image_size
+    bbox = draw.multiline_textbbox((0, y), wrapped, font=font, align="center", stroke_width=stroke_width)
     block_width = bbox[2] - bbox[0]
     x = (width - block_width) / 2 - bbox[0]
 
@@ -184,8 +267,9 @@ def _resolve_y(y: float, x_start: float, x_end: float, placed: list[tuple[float,
     version of this function, because it only ever compared y values.
     Only a box whose *x range actually overlaps* this one's can push it
     down; boxes that are genuinely side-by-side must be left alone.
-    Now that every TextAsset renders centered across nearly the full
-    image width (see `_render_text_asset`), every asset's x-range
+    Now that every TextAsset renders centered across the same
+    central-two-thirds band (see `_SAFE_HORIZONTAL_MARGIN_FRACTION`),
+    every asset's x-range
     overlaps every other's by construction - this still matters, but
     only ever resolves to straightforward top-to-bottom stacking now,
     which is exactly correct for centered captions (they can never
@@ -226,16 +310,32 @@ def render_final_output(image_bytes: bytes, text_assets: list[dict]) -> bytes:
     ordered = sorted(text_assets, key=lambda asset: asset["positioning"]["y"])
     margin = height * _PADDING_FRACTION
     placed: list[tuple[float, float, float]] = []
-    # Every asset now renders centered across the same near-full-width
-    # band (see _render_text_asset) - x bounds for collision purposes
-    # are that fixed band, not the original OCR position/width, which
-    # no longer determines where the text is actually drawn.
-    horizontal_margin = width * _HORIZONTAL_MARGIN_FRACTION
+    # Every asset now renders centered across the same central-two-thirds
+    # band (see _SAFE_HORIZONTAL_MARGIN_FRACTION) - x bounds for
+    # collision purposes are that fixed band, not the original OCR
+    # position/width, which no longer determines where the text is
+    # actually drawn.
+    horizontal_margin = width * _SAFE_HORIZONTAL_MARGIN_FRACTION
     x_start, x_end = horizontal_margin, width - horizontal_margin
+    max_width = x_end - x_start
+    # Real-world-diagnosed fix (see MIGRATION_PLAN.md): a real caption
+    # was placed low enough that TikTok's own UI (posted afterward)
+    # would cover it - text must never extend into the bottom
+    # _BOTTOM_SAFE_ZONE_FRACTION of the image, regardless of where the
+    # original slide's own OCR happened to find it.
+    safe_bottom = height * (1 - _BOTTOM_SAFE_ZONE_FRACTION)
 
     for text_asset in ordered:
-        y = _resolve_y(text_asset["positioning"]["y"] * height, x_start, x_end, placed, margin)
-        bottom = _render_text_asset(draw, text_asset, (width, height), y)
+        font, wrapped, stroke_width, bbox_at_zero = _measure_text_asset(draw, text_asset, (width, height), max_width)
+        max_y = safe_bottom - bbox_at_zero[3]
+        desired_y = min(max(text_asset["positioning"]["y"] * height, 0), max_y)
+        y = _resolve_y(desired_y, x_start, x_end, placed, margin)
+        # Re-clamped after collision-stacking: keeping every asset out of
+        # the bottom safe zone takes priority over its exact stacked
+        # position in the rare case a lower asset would otherwise be
+        # pushed past it.
+        y = max(min(y, max_y), 0)
+        bottom = _draw_text_asset(draw, font, wrapped, stroke_width, (width, height), y)
         placed.append((x_start, x_end, bottom))
 
     output = BytesIO()

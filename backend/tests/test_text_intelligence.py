@@ -213,3 +213,87 @@ def test_reuse_original_keeps_genuine_overlay_text():
     assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
 
     assert [a["wording"] for a in assets] == ["SMELL LIKE YOU MEAN IT", "SHOP NOW"]
+
+
+# --- _merge_adjacent_overlay_blocks (real-world-diagnosed fix, see MIGRATION_PLAN.md) ---
+
+
+def test_reuse_original_merges_a_caption_split_across_two_adjacent_ocr_blocks():
+    """
+    Real bug, reported live: the exact real caption "Why would u pay
+    £24 for this..." came back from OCR as two separate blocks (the
+    source video's own on-screen caption had a line break) - built as
+    two independent TextAssets, "this..." rendered alone on its own
+    line with no knowledge of the first block. These are the real
+    bounding boxes from that report.
+    """
+    first = {
+        "text": "Why would u pay £24 for",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.163, "y_min": 0.63, "x_max": 0.866, "y_max": 0.672},
+    }
+    second = {
+        "text": "this...",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.449, "y_min": 0.686, "x_max": 0.587, "y_max": 0.728},
+    }
+    ocr = _ocr_result([first, second])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert len(assets) == 1
+    assert assets[0]["wording"] == "Why would u pay £24 for this..."
+    assert assets[0]["positioning"] == {"x": 0.163, "y": 0.63, "width": pytest.approx(0.866 - 0.163)}
+
+
+def test_merge_leaves_unrelated_same_role_blocks_separate():
+    """Far apart vertically, same role (headline + cta from the shared fixtures) - must not merge."""
+    ocr = _ocr_result([_HEADLINE_BLOCK, _CTA_BLOCK])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert len(assets) == 2
+
+
+def test_merge_does_not_combine_blocks_with_no_horizontal_overlap():
+    """Vertically adjacent, same role, but side-by-side (e.g. two independent captions stacked by
+    coincidence) - no horizontal overlap means they aren't a continuation of the same caption."""
+    first = {
+        "text": "Left caption",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.0, "y_min": 0.5, "x_max": 0.2, "y_max": 0.55},
+    }
+    second = {
+        "text": "Right caption",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.6, "y_min": 0.55, "x_max": 0.9, "y_max": 0.6},
+    }
+    ocr = _ocr_result([first, second])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert [a["wording"] for a in assets] == ["Left caption", "Right caption"]
+
+
+def test_merge_does_not_combine_blocks_of_different_roles():
+    headline = {
+        "text": "Big headline",
+        "role": "headline",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.1, "y_min": 0.5, "x_max": 0.9, "y_max": 0.55},
+    }
+    cta = {
+        "text": "Shop now",
+        "role": "cta",
+        "surface": "overlay",
+        "bounding_box": {"x_min": 0.1, "y_min": 0.56, "x_max": 0.9, "y_max": 0.6},
+    }
+    ocr = _ocr_result([headline, cta])
+
+    assets = build_text_assets(TEXT_STRATEGY_REUSE_ORIGINAL, ocr)
+
+    assert [a["wording"] for a in assets] == ["Big headline", "Shop now"]
