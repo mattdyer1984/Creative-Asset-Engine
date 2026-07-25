@@ -519,8 +519,19 @@ class OpenAIPromptGenerationAdapter:
 # checked before "3:2" would otherwise never get a chance to match
 # strings containing both as substrings of a longer phrase, though none
 # of today's real outputs do - kept explicit for when they might.
+# Real bug found live (see MIGRATION_PLAN.md): "3:4" - prompt_compiler.
+# compile_generation_request's own unconditional, hardcoded default for
+# every generation request in the app - had no entry here at all, so
+# every OpenAI-generated image silently fell through to square
+# (1024x1024) instead of portrait. Invisible until today: Nano Banana
+# (the default image_generation provider, whose own _SUPPORTED_ASPECT_RATIOS
+# already lists "3:4" directly) was always the one actually generating
+# in real use - this table's gap only surfaced once the new fallback-
+# on-provider-failure feature made OpenAI run for the first time in
+# real, live testing.
 _ASPECT_RATIO_TO_OPENAI_SIZE: list[tuple[str, str]] = [
     ("1:1", "1024x1024"),
+    ("3:4", "1024x1536"),
     ("4:5", "1024x1536"),
     ("9:16", "1024x1536"),
     ("2:3", "1024x1536"),

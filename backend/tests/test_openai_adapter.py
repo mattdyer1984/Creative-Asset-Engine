@@ -243,6 +243,40 @@ def test_openai_image_generation_adapter_matches_aspect_ratio_by_substring(tmp_p
     assert kwargs["size"] == "1024x1536"
 
 
+def test_openai_image_generation_adapter_maps_the_apps_real_default_aspect_ratio(tmp_path):
+    """
+    Real bug found live (see MIGRATION_PLAN.md): "3:4" is
+    prompt_compiler.compile_generation_request's own unconditional,
+    hardcoded aspect_ratio for every real generation request the app
+    ever sends - and this adapter had no mapping entry for it at all,
+    silently falling through to square. Invisible until a real 503 from
+    Nano Banana (whose own mapping does include "3:4") triggered the
+    fallback-on-failure feature and OpenAI actually generated for the
+    first time in live use, at the wrong ratio.
+    """
+    canned_response = _fake_image_response(base64.b64encode(b"bytes").decode())
+    adapter = OpenAIImageGenerationAdapter(model="gpt-5.5")
+
+    with patch("app.ai_providers.openai_adapter.get_api_key", return_value="sk-fake-test-key"):
+        client = adapter.client
+
+    request = GenerationRequest(
+        creative_intent="Composition: a bottle",
+        reference_image_paths=[_make_reference_image_file(tmp_path)],
+        things_to_avoid=[],
+        aspect_ratio="3:4",
+    )
+
+    with (
+        patch.object(OpenAIImageGenerationAdapter, "client", client),
+        patch.object(client.images, "edit", return_value=canned_response) as mock_edit,
+    ):
+        adapter.generate_image(request)
+
+    _, kwargs = mock_edit.call_args
+    assert kwargs["size"] == "1024x1536"
+
+
 def test_openai_image_generation_adapter_sends_multiple_reference_images(tmp_path):
     canned_response = _fake_image_response(base64.b64encode(b"bytes").decode())
     adapter = OpenAIImageGenerationAdapter(model="gpt-5.5")
