@@ -10,11 +10,19 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 
-from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE, STATUS_SUCCEEDED, AnalysisRun
+from app.models.analysis_run import (
+    ANALYSIS_TYPE_CREATIVE_FINGERPRINT,
+    ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE,
+    STATUS_SUCCEEDED,
+    AnalysisRun,
+)
+from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.product import Product
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
+from app.models.slide import Slide
+from app.models.slideshow import Slideshow
 from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
 from app.slideshow_stages.creative_specification_stage import (
     SlideCreativeSpecificationStage,
@@ -130,13 +138,15 @@ def test_succeeds_and_assembles_product_lock_reference(db_session, slideshow_wit
 
     assert result.succeeded is True
 
-    db_session.refresh(slideshow_with_product)
-    spec_id = slideshow_with_product.current_creative_specification_id
+    slide = slideshow_with_product.primary_slide
+    db_session.refresh(slide)
+    spec_id = slide.current_creative_specification_id
     assert spec_id is not None
 
     spec = db_session.get(CreativeSpecification, spec_id)
     assert spec.is_current is True
     assert spec.slideshow_id == slideshow_with_product.id
+    assert spec.slide_id == slide.id
 
     structured = spec.structured_json
     assert structured["subject"]
@@ -151,7 +161,7 @@ def test_succeeds_and_assembles_product_lock_reference(db_session, slideshow_wit
     analysis_run = db_session.get(AnalysisRun, spec.analysis_run_id)
     assert analysis_run.status == STATUS_SUCCEEDED
     assert analysis_run.analysis_type == "creative_specification"
-    assert analysis_run.slideshow_id == slideshow_with_product.id
+    assert analysis_run.slide_id == slide.id
 
 
 def test_ai_is_never_asked_to_produce_ids(db_session, slideshow_with_product, monkeypatch):
@@ -185,8 +195,9 @@ def test_fails_gracefully_on_provider_error(db_session, slideshow_with_product, 
     assert result.succeeded is False
     assert "provider down" in result.error
 
-    db_session.refresh(slideshow_with_product)
-    assert slideshow_with_product.current_creative_specification_id is None
+    slide = slideshow_with_product.primary_slide
+    db_session.refresh(slide)
+    assert slide.current_creative_specification_id is None
 
 
 def test_rerun_produces_new_version(db_session, slideshow_with_product, monkeypatch):
@@ -195,14 +206,15 @@ def test_rerun_produces_new_version(db_session, slideshow_with_product, monkeypa
         "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
     )
 
+    slide = slideshow_with_product.primary_slide
     stage = SlideCreativeSpecificationStage()
     stage.run(db_session, slideshow_with_product)
-    db_session.refresh(slideshow_with_product)
-    first_id = slideshow_with_product.current_creative_specification_id
+    db_session.refresh(slide)
+    first_id = slide.current_creative_specification_id
 
     stage.run(db_session, slideshow_with_product)
-    db_session.refresh(slideshow_with_product)
-    second_id = slideshow_with_product.current_creative_specification_id
+    db_session.refresh(slide)
+    second_id = slide.current_creative_specification_id
 
     assert second_id != first_id
     first = db_session.get(CreativeSpecification, first_id)
@@ -279,6 +291,207 @@ def test_multi_product_slide_builds_specification_around_the_primary_appearance(
     result = SlideCreativeSpecificationStage().run(db_session, slideshow_with_product)
 
     assert result.succeeded is True
-    db_session.refresh(slideshow_with_product)
-    spec = db_session.get(CreativeSpecification, slideshow_with_product.current_creative_specification_id)
+    db_session.refresh(slide)
+    spec = db_session.get(CreativeSpecification, slide.current_creative_specification_id)
     assert spec.product_lock_profile_id == primary_profile.id
+
+
+# --- real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md): per-slide, not per-slideshow ---
+
+
+def _create_fingerprint(db_session, slide_id, structured_json):
+    """
+    Directly persists a current CreativeFingerprint for a slide,
+    bypassing SlideCreativeFingerprintStage - same reasoning as
+    _create_lock_profile above.
+    """
+    analysis_run = start_analysis_run(
+        db_session,
+        analysis_type=ANALYSIS_TYPE_CREATIVE_FINGERPRINT,
+        provider="fake",
+        model_name="fake",
+        durable=False,
+    )
+    fingerprint = CreativeFingerprint(
+        analysis_run_id=analysis_run.id,
+        slide_id=slide_id,
+        structured_json=structured_json,
+    )
+    db_session.add(fingerprint)
+    db_session.commit()
+    slide = db_session.get(Slide, slide_id)
+    slide.current_creative_fingerprint_id = fingerprint.id
+    db_session.commit()
+    return fingerprint
+
+
+def _make_two_slide_slideshow_with_products(db_session, tmp_path):
+    """Two slides, each with its own product and that product's own current ProductLockProfile."""
+    slideshow = Slideshow(imported_at=datetime.now(timezone.utc))
+    db_session.add(slideshow)
+    db_session.flush()
+
+    slides = []
+    for i in range(2):
+        image_path = tmp_path / f"slide-{i}.jpg"
+        image_path.write_bytes(f"fake-jpeg-bytes-{i}".encode())
+        slide = Slide(
+            slideshow_id=slideshow.id,
+            slide_index=i,
+            stored_file_path=str(image_path),
+            original_filename=f"slide-{i}.jpg",
+            source_type="local_file",
+            source_locator=f"slide-{i}.jpg",
+        )
+        db_session.add(slide)
+        slides.append(slide)
+    db_session.commit()
+
+    for slide in slides:
+        product = Product(display_name=f"Product for slide {slide.slide_index}")
+        db_session.add(product)
+        db_session.flush()
+        db_session.add(
+            ProductAppearance(
+                slide_id=slide.id,
+                product_id=product.id,
+                prominence="primary",
+                confidence=1.0,
+                is_current=True,
+            )
+        )
+        db_session.commit()
+        _create_lock_profile(db_session, product.id, {"product_category": f"product-{slide.slide_index}"})
+
+    db_session.refresh(slideshow)
+    return slideshow
+
+
+def test_multi_slide_success_gives_each_slide_its_own_specification(db_session, tmp_path, monkeypatch):
+    slideshow = _make_two_slide_slideshow_with_products(db_session, tmp_path)
+    for slide in slideshow.slides:
+        _create_fingerprint(db_session, slide.id, FINGERPRINT_RESULT)
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
+    )
+    result = SlideCreativeSpecificationStage().run(db_session, slideshow)
+
+    assert result.succeeded is True
+    spec_ids = set()
+    for slide in slideshow.slides:
+        db_session.refresh(slide)
+        assert slide.current_creative_specification_id is not None
+        spec_ids.add(slide.current_creative_specification_id)
+    assert len(spec_ids) == 2  # each slide got its own distinct row, not a shared one
+
+
+def test_skips_a_slide_with_no_product_assigned(db_session, tmp_path, monkeypatch):
+    """
+    A slide with no product is skipped, not failed - mirrors
+    SlideProductIsolationStage's own documented skip-not-fail precedent.
+    """
+    slideshow = _make_two_slide_slideshow_with_products(db_session, tmp_path)
+    slide_with_product, slide_without_product = slideshow.slides
+    for appearance in slide_without_product.current_product_appearances:
+        appearance.is_current = False
+    db_session.commit()
+
+    for slide in slideshow.slides:
+        _create_fingerprint(db_session, slide.id, FINGERPRINT_RESULT)
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
+    )
+    result = SlideCreativeSpecificationStage().run(db_session, slideshow)
+
+    assert result.succeeded is True
+    db_session.refresh(slide_with_product)
+    db_session.refresh(slide_without_product)
+    assert slide_with_product.current_creative_specification_id is not None
+    assert slide_without_product.current_creative_specification_id is None
+
+
+def test_is_current_is_scoped_per_slide_not_per_slideshow(db_session, tmp_path, monkeypatch):
+    """A second slide's new spec must not flip the first slide's own is_current to false."""
+    slideshow = _make_two_slide_slideshow_with_products(db_session, tmp_path)
+    for slide in slideshow.slides:
+        _create_fingerprint(db_session, slide.id, FINGERPRINT_RESULT)
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
+    )
+    SlideCreativeSpecificationStage().run(db_session, slideshow)
+
+    for slide in slideshow.slides:
+        db_session.refresh(slide)
+        spec = db_session.get(CreativeSpecification, slide.current_creative_specification_id)
+        assert spec.is_current is True
+
+
+class _EchoFingerprintFakePromptProvider:
+    """
+    Returns a result whose background_environment mirrors the input
+    fingerprint's own background_environment - proves each slide's own
+    CreativeSpecification reflects THAT slide's fingerprint, not
+    another slide's.
+    """
+
+    model = "fake-prompt-model"
+    provider = "openai"
+
+    def generate_creative_specification(self, lock_profile: dict, fingerprint: dict, response_schema: dict) -> dict:
+        return {
+            "subject": "test subject",
+            "composition": "test composition",
+            "style_direction": "test style",
+            "color_palette": ["black", "white"],
+            "lighting": "test lighting",
+            "camera_and_perspective": "test camera",
+            "background_environment": fingerprint["background_environment"],
+            "mood": "test mood",
+            "text_overlays": [],
+            "things_to_avoid": [],
+            "aspect_ratio": "4:5",
+            "extensions": "",
+        }
+
+
+def test_each_slides_specification_reflects_its_own_scene_not_another_slides(db_session, tmp_path, monkeypatch):
+    """
+    Real bug, live-reported: a Generate All run showed slide 2's
+    generated image built from slide 1's own scene, because Creative
+    Specification used to be one shared row per slideshow, built only
+    from the primary slide's own Creative Fingerprint. Two slides with
+    distinct scenes (mirroring the real brick-wall-vs-fence-and-paving
+    difference from the actual reported slideshow) - each slide's own
+    CreativeSpecification must reflect THAT slide's own scene, not the
+    other slide's.
+    """
+    slideshow = _make_two_slide_slideshow_with_products(db_session, tmp_path)
+    slide_one, slide_two = slideshow.slides
+    _create_fingerprint(
+        db_session,
+        slide_one.id,
+        {**FINGERPRINT_RESULT, "background_environment": "Outdoor brick wall under a partly cloudy sky."},
+    )
+    _create_fingerprint(
+        db_session,
+        slide_two.id,
+        {**FINGERPRINT_RESULT, "background_environment": "Paved area with a dark fence/shed."},
+    )
+
+    monkeypatch.setattr(
+        "app.slideshow_stages.creative_specification_stage.default_registry",
+        FakeAIProviderRegistry(prompt_generation_provider=_EchoFingerprintFakePromptProvider()),
+    )
+    result = SlideCreativeSpecificationStage().run(db_session, slideshow)
+
+    assert result.succeeded is True
+    db_session.refresh(slide_one)
+    db_session.refresh(slide_two)
+    spec_one = db_session.get(CreativeSpecification, slide_one.current_creative_specification_id)
+    spec_two = db_session.get(CreativeSpecification, slide_two.current_creative_specification_id)
+
+    assert spec_one.structured_json["background_environment"] == "Outdoor brick wall under a partly cloudy sky."
+    assert spec_two.structured_json["background_environment"] == "Paved area with a dark fence/shed."

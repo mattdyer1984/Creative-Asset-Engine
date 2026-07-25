@@ -48,6 +48,13 @@ class Slide(Base):
     # ADR §8) - same plain-string-pointer convention as the two above
     # (no FK constraint), not a new pattern.
     current_scene_analysis_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+    # Creative Specification was previously slideshow-scoped
+    # (Slideshow.current_creative_specification_id, now removed) - every
+    # slide's generation silently shared the primary slide's own spec, a
+    # real cross-slide contamination bug. Same plain-string-pointer
+    # convention as the three above.
+    current_creative_specification_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     slideshow: Mapped["Slideshow"] = relationship(back_populates="slides")
     product_appearances: Mapped[list["ProductAppearance"]] = relationship(back_populates="slide")

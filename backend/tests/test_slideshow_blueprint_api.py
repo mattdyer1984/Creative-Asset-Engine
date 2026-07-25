@@ -86,8 +86,8 @@ def test_blueprint_is_all_null_for_a_fresh_slideshow(client):
     assert len(slide["products"]) == 1
     assert slide["products"][0]["product_lock_profile"] is None
     assert slide["creative_fingerprint"] is None
+    assert slide["creative_specification"] is None
     assert body["marketing_analysis"] is None
-    assert body["creative_specification"] is None
     assert body["failed_stage"] is None
 
 
@@ -235,7 +235,7 @@ def test_rerun_reflects_failure_in_the_assembled_blueprint(client, monkeypatch):
     assert body["status"] == "failed"
     assert body["failed_stage"] == "creative_specification"
     assert "No Product Lock Profile" in body["failed_stage_error"]
-    assert body["creative_specification"] is None
+    assert body["slides"][0]["creative_specification"] is None
 
 
 def test_analyze_returns_202_and_queued_immediately(client, monkeypatch):
@@ -430,8 +430,8 @@ def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
         {"slide_id": slide["id"], "slide_index": 0, "beat": "hook"}
     ]
     assert blueprint["narrative_structure"]["structured"]["arc_summary"] == "A short arc."
-    assert blueprint["creative_specification"] is not None
-    assert blueprint["creative_specification"]["structured"]["product_lock_reference"][
+    assert slide["creative_specification"] is not None
+    assert slide["creative_specification"]["structured"]["product_lock_reference"][
         "product_lock_profile_id"
     ] == product["product_lock_profile"]["id"]
 
@@ -490,8 +490,8 @@ def test_blueprint_reflects_staleness_after_an_upstream_rerun(client, monkeypatc
     fresh = client.get(f"/api/slideshows/{slideshow_id}/blueprint").json()
     assert fresh["slides"][0]["creative_fingerprint"]["is_stale"] is False
     assert fresh["marketing_analysis"]["is_stale"] is False
-    assert fresh["creative_specification"]["is_stale"] is False
-    creative_specification_id = fresh["creative_specification"]["id"]
+    assert fresh["slides"][0]["creative_specification"]["is_stale"] is False
+    creative_specification_id = fresh["slides"][0]["creative_specification"]["id"]
 
     # Rerun only Creative Fingerprint - everything downstream of it should
     # go stale, everything else (e.g. OCR, Product Lock Profile) shouldn't.
@@ -501,10 +501,10 @@ def test_blueprint_reflects_staleness_after_an_upstream_rerun(client, monkeypatc
     assert after["slides"][0]["creative_fingerprint"]["is_stale"] is False
     assert after["marketing_analysis"]["is_stale"] is True
     assert after["marketing_analysis"]["stale_because"] == ["creative_fingerprint"]
-    assert after["creative_specification"]["is_stale"] is True
-    assert after["creative_specification"]["stale_because"] == ["creative_fingerprint"]
+    assert after["slides"][0]["creative_specification"]["is_stale"] is True
+    assert after["slides"][0]["creative_specification"]["stale_because"] == ["creative_fingerprint"]
     # The stale Creative Specification row itself hasn't been touched/regenerated.
-    assert after["creative_specification"]["id"] == creative_specification_id
+    assert after["slides"][0]["creative_specification"]["id"] == creative_specification_id
     assert after["slides"][0]["products"][0]["product_lock_profile"]["is_stale"] is False
 
 

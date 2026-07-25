@@ -26,7 +26,9 @@ _IDENTITY_FAILS = {"field_checks": [{"field_name": "silhouette", "preserved": Fa
 
 
 def _get_creative_specification(db_session, slideshow):
-    return db_session.get(CreativeSpecification, slideshow.current_creative_specification_id)
+    return db_session.get(
+        CreativeSpecification, slideshow.primary_slide.current_creative_specification_id
+    )
 
 
 def _make_second_product_with_library(db_session, tmp_path, *, name="Red Mug") -> Product:

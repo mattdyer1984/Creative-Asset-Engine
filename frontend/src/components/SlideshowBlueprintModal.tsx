@@ -717,6 +717,28 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
             </BlueprintSection>
 
             <BlueprintSection
+              id="section-creative-specification"
+              title="Creative Specification"
+              generated={slide.creative_specification !== null}
+              failed={blueprint.failed_stage === 'creative_specification'}
+              error={blueprint.failed_stage === 'creative_specification' ? blueprint.failed_stage_error : null}
+              rerunLabel="Regenerate specification"
+              onRerun={() => handleRerun('creative_specification')}
+              busy={busyAction === 'creative_specification' || runInFlight}
+              isStale={slide.creative_specification?.is_stale}
+              staleBecause={slide.creative_specification?.stale_because}
+              extraAction={
+                slide.creative_specification ? (
+                  <CopyJsonButton data={slide.creative_specification.structured} />
+                ) : undefined
+              }
+            >
+              {slide.creative_specification && (
+                <CreativeSpecificationFields structured={slide.creative_specification.structured} />
+              )}
+            </BlueprintSection>
+
+            <BlueprintSection
               id="section-marketing-analysis"
               title="Marketing Analysis"
               generated={blueprint.marketing_analysis !== null}
@@ -786,28 +808,6 @@ export function SlideshowBlueprintModal({ slideshowId, onClose, onChanged }: Sli
                     </table>
                   )}
                 </>
-              )}
-            </BlueprintSection>
-
-            <BlueprintSection
-              id="section-creative-specification"
-              title="Creative Specification"
-              generated={blueprint.creative_specification !== null}
-              failed={blueprint.failed_stage === 'creative_specification'}
-              error={blueprint.failed_stage === 'creative_specification' ? blueprint.failed_stage_error : null}
-              rerunLabel="Regenerate specification"
-              onRerun={() => handleRerun('creative_specification')}
-              busy={busyAction === 'creative_specification' || runInFlight}
-              isStale={blueprint.creative_specification?.is_stale}
-              staleBecause={blueprint.creative_specification?.stale_because}
-              extraAction={
-                blueprint.creative_specification ? (
-                  <CopyJsonButton data={blueprint.creative_specification.structured} />
-                ) : undefined
-              }
-            >
-              {blueprint.creative_specification && (
-                <CreativeSpecificationFields structured={blueprint.creative_specification.structured} />
               )}
             </BlueprintSection>
 

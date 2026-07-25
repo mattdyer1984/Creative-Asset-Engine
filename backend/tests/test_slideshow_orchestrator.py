@@ -201,7 +201,7 @@ def test_default_pipeline_runs_all_seven_stages(db_session, slideshow_with_produ
     assert slide.current_creative_fingerprint_id is not None
     assert slideshow_with_product.current_marketing_analysis_id is not None
     assert slideshow_with_product.current_narrative_structure_id is not None
-    assert slideshow_with_product.current_creative_specification_id is not None
+    assert slide.current_creative_specification_id is not None
 
     product_id = slide.product_appearances[0].product_id
     current_lock_profile = db_session.scalars(

@@ -23,7 +23,9 @@ from tests.test_slide_image_generation_stage import _build_full_prerequisites
 
 
 def _get_creative_specification(db_session, slideshow):
-    return db_session.get(CreativeSpecification, slideshow.current_creative_specification_id)
+    return db_session.get(
+        CreativeSpecification, slideshow.primary_slide.current_creative_specification_id
+    )
 
 
 def test_generates_exactly_candidate_count_candidates(db_session, slideshow_with_product, monkeypatch):

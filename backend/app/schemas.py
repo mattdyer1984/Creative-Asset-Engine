@@ -682,6 +682,11 @@ class AssembledSlideBlueprint(BaseModel):
 
     ocr_result: OCRResultRead | None = None
     creative_fingerprint: CreativeFingerprintRead | None = None
+    # Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+    # moved here from AssembledSlideshowBlueprint - Creative
+    # Specification is now slide-scoped, not slideshow-scoped (a real
+    # cross-slide contamination bug otherwise).
+    creative_specification: CreativeSpecificationRead | None = None
     scene_analysis: SceneAnalysisRead | None = None
     products: list[AssembledSlideProductBlueprint] = []
 
@@ -704,7 +709,6 @@ class AssembledSlideshowBlueprint(BaseModel):
 
     marketing_analysis: MarketingAnalysisRead | None = None
     narrative_structure: NarrativeStructureRead | None = None
-    creative_specification: CreativeSpecificationRead | None = None
 
     failed_stage: str | None = None
     failed_stage_error: str | None = None

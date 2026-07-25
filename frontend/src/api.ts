@@ -955,6 +955,11 @@ export interface AssembledSlideBlueprint {
   source_locator: string;
   ocr_result: OCRResult | null;
   creative_fingerprint: CreativeFingerprintData | null;
+  // Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+  // moved here from AssembledSlideshowBlueprint - Creative
+  // Specification is now slide-scoped, not slideshow-scoped (a real
+  // cross-slide contamination bug otherwise).
+  creative_specification: CreativeSpecificationData | null;
   products: AssembledSlideProductBlueprint[];
 }
 
@@ -967,7 +972,6 @@ export interface AssembledSlideshowBlueprint {
   slides: AssembledSlideBlueprint[];
   marketing_analysis: MarketingAnalysisData | null;
   narrative_structure: NarrativeStructureData | null;
-  creative_specification: CreativeSpecificationData | null;
   failed_stage: string | null;
   failed_stage_error: string | null;
 }

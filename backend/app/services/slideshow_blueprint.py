@@ -107,6 +107,28 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
                 created_at=row.created_at,
             )
 
+    # Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+    # moved here from the slideshow-level block below - Creative
+    # Specification is now slide-scoped (Slide.current_creative_
+    # specification_id), same reasoning/placement as creative_fingerprint
+    # just above.
+    creative_specification = None
+    if slide.current_creative_specification_id:
+        row = db.get(CreativeSpecification, slide.current_creative_specification_id)
+        if row is not None:
+            staleness = creative_specification_staleness(db, row)
+            creative_specification = CreativeSpecificationRead(
+                id=row.id,
+                schema_version=row.schema_version,
+                is_current=row.is_current,
+                product_lock_profile_id=row.product_lock_profile_id,
+                creative_fingerprint_id=row.creative_fingerprint_id,
+                structured=row.structured_json,
+                created_at=row.created_at,
+                is_stale=staleness.is_stale,
+                stale_because=staleness.stale_because,
+            )
+
     current_appearances = list(
         db.scalars(
             select(ProductAppearance).where(
@@ -126,6 +148,7 @@ def _assemble_slide(db: Session, slide: Slide) -> AssembledSlideBlueprint:
         source_locator=slide.source_locator,
         ocr_result=ocr_result,
         creative_fingerprint=creative_fingerprint,
+        creative_specification=creative_specification,
         scene_analysis=scene_analysis,
         products=products,
     )
@@ -202,23 +225,6 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
                 stale_because=staleness.stale_because,
             )
 
-    creative_specification = None
-    if slideshow.current_creative_specification_id:
-        row = db.get(CreativeSpecification, slideshow.current_creative_specification_id)
-        if row is not None:
-            staleness = creative_specification_staleness(db, row)
-            creative_specification = CreativeSpecificationRead(
-                id=row.id,
-                schema_version=row.schema_version,
-                is_current=row.is_current,
-                product_lock_profile_id=row.product_lock_profile_id,
-                creative_fingerprint_id=row.creative_fingerprint_id,
-                structured=row.structured_json,
-                created_at=row.created_at,
-                is_stale=staleness.is_stale,
-                stale_because=staleness.stale_because,
-            )
-
     slides = [_assemble_slide(db, slide) for slide in slideshow.slides]
 
     return AssembledSlideshowBlueprint(
@@ -230,7 +236,6 @@ def assemble_slideshow_blueprint(db: Session, slideshow: Slideshow) -> Assembled
         slides=slides,
         marketing_analysis=marketing_analysis,
         narrative_structure=narrative_structure,
-        creative_specification=creative_specification,
         failed_stage=slideshow.last_failed_stage,
         failed_stage_error=slideshow.last_failed_stage_error,
     )

@@ -164,13 +164,18 @@ def generate_with_retry(
     `slideshow.primary_slide`, exactly as this function always did.
     Every other line in this function already reads `slide`, not
     `slideshow.primary_slide` - this was the one hardcoded line
-    blocking generation on any other slide in the slideshow. The
-    Creative Specification stays shared/slideshow-scoped regardless of
-    which slide is passed (see `compile_generation_request`'s own
-    docstring for why that's safe: only scene/marketing fields ever
-    reach the compiled prompt, never product identity, which each
-    generation attempt already resolves independently from the actual
-    `slide` passed in here).
+    blocking generation on any other slide in the slideshow.
+
+    Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md): the
+    Creative Specification used to be resolved from
+    `slideshow.current_creative_specification_id` (one shared row per
+    slideshow, always built from the *primary* slide) regardless of
+    which `slide` was passed in here - a real cross-slide contamination
+    bug, confirmed live (a non-primary slide's generated image was
+    built from the primary slide's own scene). Creative Specification is
+    now slide-scoped (`Slide.current_creative_specification_id`), so
+    this resolves the *actual* `slide` being generated, not the
+    slideshow's shared pointer.
 
     user_feedback (Generate All, see MIGRATION_PLAN.md) - the same
     free-text note carried unchanged across every retry attempt within
@@ -179,18 +184,18 @@ def generate_with_retry(
     user note for the whole call).
     """
     slide = slide if slide is not None else slideshow.primary_slide
-    if slideshow.current_creative_specification_id is None:
+    if slide.current_creative_specification_id is None:
         return StageResult(
             succeeded=False,
-            error="No Creative Specification available yet - run that stage first.",
+            error="No Creative Specification available yet for this slide - run that stage first.",
         )
     creative_specification = db.get(
-        CreativeSpecification, slideshow.current_creative_specification_id
+        CreativeSpecification, slide.current_creative_specification_id
     )
     if creative_specification is None:
         return StageResult(
             succeeded=False,
-            error="Creative Specification referenced by the Slideshow no longer exists.",
+            error="Creative Specification referenced by the Slide no longer exists.",
         )
 
     attempts: list[GenerationAttemptOutcome] = []

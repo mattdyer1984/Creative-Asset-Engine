@@ -62,18 +62,29 @@ class SlideImageGenerationStage:
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide
 
-        if slideshow.current_creative_specification_id is None:
+        # Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md):
+        # Creative Specification is now slide-scoped
+        # (Slide.current_creative_specification_id), not a single
+        # shared pointer on Slideshow - see
+        # creative_specification_stage.py's own docstring for the real
+        # cross-slide contamination bug this fixes. This stage is still
+        # primary-slide-only by its own deliberate scope boundary
+        # (see this module's docstring), so `slide` here is always the
+        # primary slide - resolving via the slide's own pointer keeps
+        # this consistent with every other consumer, not because this
+        # particular call site could otherwise disagree.
+        if slide.current_creative_specification_id is None:
             return StageResult(
                 succeeded=False,
                 error="No Creative Specification available yet - run that stage first.",
             )
         creative_specification = db.get(
-            CreativeSpecification, slideshow.current_creative_specification_id
+            CreativeSpecification, slide.current_creative_specification_id
         )
         if creative_specification is None:
             return StageResult(
                 succeeded=False,
-                error="Creative Specification referenced by the Slideshow no longer exists.",
+                error="Creative Specification referenced by the Slide no longer exists.",
             )
 
         current_appearance = resolve_primary_appearance(slide.current_product_appearances)

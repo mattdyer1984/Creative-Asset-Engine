@@ -9,10 +9,12 @@ Validation proof of loop (see MIGRATION_PLAN.md) - see
 app.models.creative_specification's docstring for why.
 
 Parallel equivalent of app.stages.recreation_prompt_stage.
-RecreationPromptStage (old pipeline, removed). Slideshow-scoped (owns
-Slideshow.current_creative_specification_id, writes
-CreativeSpecification.slideshow_id) - same reasoning as Marketing
-Analysis (Phase 2.4d).
+RecreationPromptStage (old pipeline, removed). Originally slideshow-
+scoped (owned Slideshow.current_creative_specification_id, same
+reasoning as Marketing Analysis, Phase 2.4d) - see the "Real-world-
+diagnosed fix" note below for why that turned out to be wrong and this
+is now slide-scoped instead, owning Slide.current_creative_specification_id
+and writing CreativeSpecification.slide_id.
 
 One real difference from the old stage, beyond entity plumbing: finding
 "the current Product Lock Profile" is no longer a single pointer
@@ -42,6 +44,23 @@ boundary, not a full solution - a slide with several equally-important
 products still only gets one creative specification, built around
 whichever product resolves as primary. Broader multi-product support is
 future work, not attempted here.
+
+Real-world-diagnosed fix (Generate All, see MIGRATION_PLAN.md): a real
+Generate All run showed slide 2's generated image was built from slide
+1's own scene - this stage used to be slideshow-scoped, building exactly
+one CreativeSpecification per slideshow from `slideshow.primary_slide`
+only, so every slide's generation silently shared the primary slide's
+own spec regardless of which slide's image was actually being produced.
+Widened to loop over every slide, mirroring `SlideCreativeFingerprintStage`
+(Phase 2.4c)'s own per-slide pattern exactly: `run(self, db, slideshow)`'s
+signature is unchanged (looping is internal to the stage, not the
+orchestrator), owns `Slide.current_creative_specification_id` instead of
+`Slideshow.current_creative_specification_id` (removed), and `is_current`
+is now scoped to `slide_id`. A slide with no current product appearance
+is skipped, not failed - mirrors `SlideProductIsolationStage`'s own
+documented skip-not-fail precedent. A slide *with* a product but missing
+its Product Lock Profile or Creative Fingerprint is still a hard
+failure - a real ordering violation, not a normal/expected state.
 """
 
 from sqlalchemy.orm import Session
@@ -52,8 +71,10 @@ from app.models.creative_fingerprint import CreativeFingerprint
 from app.models.creative_specification import CreativeSpecification
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
+from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.base import StageResult
+from app.slideshow_stages.concurrency import run_concurrently
 from app.stages.execution import mark_failed, mark_succeeded, start_analysis_run
 
 
@@ -132,11 +153,14 @@ class SlideCreativeSpecificationStage:
     name = "creative_specification"
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
-        slide = slideshow.primary_slide
+        prompt_provider = default_registry.prompt_generation()
 
-        current_appearance = resolve_primary_appearance(slide.current_product_appearances)
-        lock_profile = None
-        if current_appearance is not None:
+        eligible: list[tuple[Slide, ProductLockProfile, CreativeFingerprint]] = []
+        for slide in slideshow.slides:
+            current_appearance = resolve_primary_appearance(slide.current_product_appearances)
+            if current_appearance is None:
+                continue
+
             lock_profile = (
                 db.query(ProductLockProfile)
                 .filter(
@@ -145,72 +169,90 @@ class SlideCreativeSpecificationStage:
                 )
                 .first()
             )
-        if lock_profile is None:
+            if lock_profile is None:
+                return StageResult(
+                    succeeded=False,
+                    error="No Product Lock Profile available yet - run that stage first.",
+                )
+
+            if slide.current_creative_fingerprint_id is None:
+                return StageResult(
+                    succeeded=False,
+                    error="No Creative Fingerprint available yet - run that stage first.",
+                )
+            fingerprint = db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
+            if fingerprint is None:
+                return StageResult(
+                    succeeded=False,
+                    error="Creative Fingerprint referenced by the Slide no longer exists.",
+                )
+
+            eligible.append((slide, lock_profile, fingerprint))
+
+        if not eligible:
             return StageResult(
                 succeeded=False,
-                error="No Product Lock Profile available yet - run that stage first.",
+                error="No slide has a product assigned yet - assign one before generating a Creative Specification.",
             )
 
-        if slide.current_creative_fingerprint_id is None:
-            return StageResult(
-                succeeded=False,
-                error="No Creative Fingerprint available yet - run that stage first.",
-            )
-        fingerprint = db.get(CreativeFingerprint, slide.current_creative_fingerprint_id)
-        if fingerprint is None:
-            return StageResult(
-                succeeded=False,
-                error="Creative Fingerprint referenced by the Slide no longer exists.",
-            )
-
-        prompt_provider = default_registry.prompt_generation()
-
-        analysis_run = start_analysis_run(
-            db,
-            slideshow_id=slideshow.id,
-            analysis_type=ANALYSIS_TYPE_CREATIVE_SPECIFICATION,
-            provider=prompt_provider.provider,
-            model_name=prompt_provider.model,
-            durable=True,
-        )
-
-        try:
-            lock_profile_data = lock_profile.structured_json
-            fingerprint_data = fingerprint.structured_json
-
-            ai_result = prompt_provider.generate_creative_specification(
-                lock_profile=lock_profile_data,
-                fingerprint=fingerprint_data,
+        def _generate(entry: tuple[Slide, ProductLockProfile, CreativeFingerprint]) -> dict:
+            _slide, lock_profile, fingerprint = entry
+            return prompt_provider.generate_creative_specification(
+                lock_profile=lock_profile.structured_json,
+                fingerprint=fingerprint.structured_json,
                 response_schema=CREATIVE_SPECIFICATION_AI_SCHEMA,
             )
 
-            # Assembled directly from known facts, never asked of the AI.
-            final_structured = dict(ai_result)
-            final_structured["product_lock_reference"] = {
-                "product_lock_profile_id": lock_profile.id,
-                "reference_image_ids": lock_profile.reference_image_ids_json,
-                "immutable_characteristics": lock_profile_data.get(
-                    "immutable_characteristics", []
-                ),
-            }
+        generation_results = run_concurrently(eligible, _generate)
 
-            db.query(CreativeSpecification).filter(
-                CreativeSpecification.slideshow_id == slideshow.id,
-                CreativeSpecification.is_current.is_(True),
-            ).update({"is_current": False})
-
-            creative_specification = CreativeSpecification(
-                analysis_run_id=analysis_run.id,
-                slideshow_id=slideshow.id,
-                product_lock_profile_id=lock_profile.id,
-                creative_fingerprint_id=fingerprint.id,
-                structured_json=final_structured,
+        result: StageResult = StageResult(succeeded=True)
+        for index, (slide, lock_profile, fingerprint) in enumerate(eligible):
+            analysis_run = start_analysis_run(
+                db,
+                slide_id=slide.id,
+                analysis_type=ANALYSIS_TYPE_CREATIVE_SPECIFICATION,
+                provider=prompt_provider.provider,
+                model_name=prompt_provider.model,
+                durable=True,
             )
-            db.add(creative_specification)
-            db.flush()
 
-        except Exception as exc:
-            return mark_failed(db, analysis_run, exc, rollback=True)
+            try:
+                outcome = generation_results[index]
+                if isinstance(outcome, Exception):
+                    raise outcome
 
-        slideshow.current_creative_specification_id = creative_specification.id
-        return mark_succeeded(db, analysis_run)
+                lock_profile_data = lock_profile.structured_json
+
+                # Assembled directly from known facts, never asked of the AI.
+                final_structured = dict(outcome)
+                final_structured["product_lock_reference"] = {
+                    "product_lock_profile_id": lock_profile.id,
+                    "reference_image_ids": lock_profile.reference_image_ids_json,
+                    "immutable_characteristics": lock_profile_data.get(
+                        "immutable_characteristics", []
+                    ),
+                }
+
+                db.query(CreativeSpecification).filter(
+                    CreativeSpecification.slide_id == slide.id,
+                    CreativeSpecification.is_current.is_(True),
+                ).update({"is_current": False})
+
+                creative_specification = CreativeSpecification(
+                    analysis_run_id=analysis_run.id,
+                    slideshow_id=slideshow.id,
+                    slide_id=slide.id,
+                    product_lock_profile_id=lock_profile.id,
+                    creative_fingerprint_id=fingerprint.id,
+                    structured_json=final_structured,
+                )
+                db.add(creative_specification)
+                db.flush()
+
+            except Exception as exc:
+                return mark_failed(db, analysis_run, exc, rollback=True)
+
+            slide.current_creative_specification_id = creative_specification.id
+            result = mark_succeeded(db, analysis_run)
+
+        return result
