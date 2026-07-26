@@ -5,7 +5,7 @@
 | **Status** | **Proposed** — becomes Accepted only when the gates in §17 pass |
 | **Proposed** | 2026-07-26 |
 | **Baseline commit** | `8f1b881318513f5c3438d19fd5991ac988a7a882` |
-| **Benchmark fixture version** | `v0` (not yet committed — WP-0.1) |
+| **Benchmark fixture version** | `v0` — committed, 8 cases (WP-0.1) |
 | **Supersedes** | Slide-level architectural assumptions in `MIGRATION_PLAN.md` §"ADR: AI Creative Engine vNext" (2026-07-23). Product Lock v2 remains in force and is extended, not replaced. |
 
 ---
@@ -590,10 +590,16 @@ environment *transformable*.
 
 Status moves **Proposed → Accepted** only when all four pass:
 
-1. Benchmark fixtures and ground truth committed (WP-0.1).
-2. Current baseline captured (WP-0.3).
-3. **Typography prototype succeeds on the posture benchmark** (WP-1.4).
-4. Migration and rollback strategy confirmed against a copy of the database.
+1. ✅ **PASSED** — benchmark fixtures and ground truth committed (WP-0.1),
+   8 cases with closed-vocabulary annotation.
+2. ✅ **PASSED** — baseline captured (WP-0.3),
+   `backend/tests/benchmarks/baseline.json`. `text_handling` 1.000 across 8
+   cases; five of seven stages honestly report `not_implemented`.
+3. ✅ **PASSED** — deterministic L1 typography reaches benchmark quality on
+   case 4. Visual proof:
+   `backend/tests/benchmarks/case04_posture/typography_gate.jpg`.
+4. ⏳ **PENDING** — no schema change has been made yet. WP-1.1 introduces the
+   first (`creative_project_profiles`); this gate is assessed then.
 
 Gate 3 is the programme's premise. If deterministic L1 typography does not look
 right on case 4, Phase 1's foundation is wrong and the roadmap must be revised
