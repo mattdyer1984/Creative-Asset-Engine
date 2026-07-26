@@ -75,7 +75,7 @@ def _case04_system() -> TypographySystem:
 
 def test_the_renderer_draws_into_its_zone_and_leaves_the_rest_alone():
     canvas = Image.new("RGB", (400, 600), (247, 245, 240))
-    result = render_typography(
+    result, _ = render_typography(
         canvas, [TextBlock("Your upper back", "headline", (0.05, 0.10, 0.60, 0.20))],
         _case04_system(),
     )
@@ -102,7 +102,7 @@ def test_case_rules_are_applied():
     upper = TypographySystem(styles={"h": TextStyle(case="upper", size_ratio=1.0)})
     lower = TypographySystem(styles={"h": TextStyle(case="lower", size_ratio=1.0)})
     block = [TextBlock("MiXeD", "h", (0.05, 0.1, 0.9, 0.5))]
-    assert render_typography(canvas, block, upper) != render_typography(canvas, block, lower)
+    assert render_typography(canvas, block, upper)[0] != render_typography(canvas, block, lower)[0]
 
 
 def test_rendering_never_mutates_the_source_image():
@@ -115,7 +115,7 @@ def test_rendering_never_mutates_the_source_image():
 def test_long_words_overflow_rather_than_being_hyphenated():
     """Breaking a brand name mid-word is worse than a slightly wide line."""
     canvas = Image.new("RGB", (200, 200), (255, 255, 255))
-    result = render_typography(
+    result, _ = render_typography(
         canvas,
         [TextBlock("Supercalifragilistic", "headline", (0.05, 0.1, 0.4, 0.6))],
         _case04_system(),

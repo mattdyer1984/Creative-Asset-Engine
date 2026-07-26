@@ -182,9 +182,27 @@ class TypographySystem:
         return self.styles.get(role, TextStyle(family=self.primary_family))
 
 
-def resolve_colour(role: str) -> tuple[int, int, int]:
-    """A role name to RGB, falling back to near-black rather than guessing."""
-    return _COLOUR_ROLES.get(role, _COLOUR_ROLES["near-black"])
+def is_known_colour(name: str) -> bool:
+    return name in _COLOUR_ROLES
+
+
+def resolve_colour(name: str) -> tuple[int, int, int]:
+    """
+    A NAMED COLOUR to RGB. Not a role name - see `to_renderer_system`, which
+    dereferences the project's `colour_roles` map first.
+
+    The distinction is not pedantic. This function was being handed role
+    names like `accent`, which it did not recognise and silently rendered
+    near-black. Benchmark 4's dark-red accent came out black, and no test
+    caught it because the schema-level assertions only checked that the
+    accent role DIFFERED from the body role - which it did, right up until
+    both were drawn in the same colour.
+
+    Still falls back rather than raising, because a wrong colour is
+    recoverable and a crashed render is not - but callers should check
+    `is_known_colour` first and warn, so the fallback is never silent.
+    """
+    return _COLOUR_ROLES.get(name, _COLOUR_ROLES["near-black"])
 
 
 def token_for(family: FamilyClass, weight: str = "regular", italic: bool = False) -> FontToken:

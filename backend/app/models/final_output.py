@@ -38,4 +38,10 @@ class FinalOutput(Base):
     generated_image_id: Mapped[str] = mapped_column(ForeignKey("generated_images.id"), nullable=False)
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     text_assets_json: Mapped[list] = mapped_column(JSON, default=list)
+    #: ADR 0001 WP-1.5A, Package E. The render manifest for outputs produced
+    #: by the ownership-aware path: who owned every block, what was drawn,
+    #: where, in what style, which zones were enforced and what that cost.
+    #: Null for every output produced by the legacy renderer, which is the
+    #: honest record - those runs genuinely had no manifest.
+    render_manifest_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=utcnow)

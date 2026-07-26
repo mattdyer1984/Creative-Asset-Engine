@@ -65,6 +65,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
+from app.config import settings
 from app.ai_providers.registry import default_registry
 from app.models.creative_specification import CreativeSpecification
 from app.models.final_output import FinalOutput
@@ -218,6 +219,59 @@ def _packaging_text_for_winner(db: Session, slide: Slide) -> list[str]:
     return extract_branding_text(lock_profile)
 
 
+def _render_with_ownership(db: Session, slide: Slide, source_bytes: bytes):
+    """
+    The ownership-aware path (ADR 0001, Package E), behind
+    `CAE_TYPOGRAPHY_RENDERER_ENABLED`.
+
+    Reads what analysis already decided rather than re-deriving it: the
+    persisted ownership artifact (E3), the Composition Contract (E1) and the
+    Creative Project Profile (E2). Re-deriving here would let the image be
+    rendered against a different set of decisions from the one recorded, so
+    the manifest would describe work that did not happen.
+
+    Returns `(bytes, manifest)`, or `(None, None)` when the prerequisites are
+    absent - a slide analysed before this stage existed must fall through to
+    the legacy renderer rather than lose its text.
+    """
+    from app.services.composition_contract import contract_of, get_current_contract
+    from app.services.creative_project_profile import (
+        effective_copy_policy,
+        effective_overlay_policy,
+        effective_primary_text_mode,
+        effective_typography_system,
+        get_current_profile,
+    )
+    from app.services.ownership_artifact import decisions_of, get_current
+    from app.services.text_ownership import OwnershipPlan
+    from app.services.typography_pipeline import apply_typography
+
+    artifact = get_current(db, slide.id)
+    if artifact is None:
+        logger.info(
+            "slide %s has no ownership artifact - falling back to the legacy "
+            "renderer rather than rendering without ownership", slide.id,
+        )
+        return None, None
+
+    profile = get_current_profile(db, slide.slideshow_id)
+    system = effective_typography_system(profile) if profile else None
+    plan = OwnershipPlan(decisions=decisions_of(artifact))
+
+    return apply_typography(
+        source_bytes,
+        plan,
+        system,
+        profile_id=profile.id if profile else None,
+        contract=contract_of(get_current_contract(db, slide.id)),
+        effective_policies={
+            "text_mode": str(effective_primary_text_mode(profile)) if profile else "unknown",
+            "copy_policy": str(effective_copy_policy(profile)) if profile else "unknown",
+            "overlay_policy": str(effective_overlay_policy(profile)) if profile else "unknown",
+        },
+    )
+
+
 def _render_final_output_for_winner(
     db: Session, slide: Slide, winner: CandidateAssessment, text_strategy: str
 ) -> FinalOutput:
@@ -232,12 +286,27 @@ def _render_final_output_for_winner(
     )
 
     source_bytes = Path(winner.generated_image.file_path).read_bytes()
-    rendered_bytes = render_final_output(source_bytes, text_assets)
+
+    manifest = None
+    rendered_bytes = None
+    if settings.typography_renderer_enabled:
+        rendered_bytes, manifest = _render_with_ownership(db, slide, source_bytes)
+        if manifest is not None and not manifest.accounts_for_every_block():
+            # Every block must land in exactly one outcome bucket. One that
+            # vanished is the failure this manifest exists to make visible,
+            # so it is not allowed to pass silently.
+            manifest.warnings.append(
+                "manifest does not account for every block - review this output"
+            )
+            logger.warning("slide %s: render manifest is incomplete", slide.id)
+    if rendered_bytes is None:
+        rendered_bytes = render_final_output(source_bytes, text_assets)
 
     final_output = FinalOutput(
         generation_attempt_id=winner.generated_image.generation_attempt_id,
         generated_image_id=winner.generated_image.id,
         text_assets_json=text_assets,
+        render_manifest_json=manifest.model_dump(mode="json") if manifest else None,
         file_path="",
     )
     db.add(final_output)

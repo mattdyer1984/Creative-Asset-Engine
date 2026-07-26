@@ -25,6 +25,7 @@ from app.services.render_manifest import (
 from app.services.text_ownership import Owner, OwnershipPlan
 from app.services.editorial_renderer import TextBlock, render_typography
 from app.services.typography import (
+    is_known_colour,
     CapabilityLevel,
     FamilyClass,
     TextStyle,
@@ -40,7 +41,35 @@ logger = logging.getLogger(__name__)
 _DEFAULT_ROLE = "body"
 
 
-def to_renderer_system(system: TypographySystem) -> RendererSystem:
+def _colour_resolver(system: TypographySystem):
+    """
+    Turn a style's colour ROLE into a named colour, via the project's own map.
+
+    `TextRole.colour_role` names a role the design distinguishes (`accent`,
+    `body`); `system.colour_roles` says what colour that role is in this
+    project. Skipping the dereference handed `accent` straight to the
+    renderer, which did not recognise it and drew near-black - flattening
+    benchmark 4's red accent to black while every schema-level assertion
+    still passed.
+
+    Returns `(resolve, unresolved)`, where `unresolved` collects roles the
+    project never defined so the caller can warn rather than let the
+    fallback pass unnoticed.
+    """
+    unresolved: list[str] = []
+
+    def resolve(role: str | None) -> str | None:
+        if role is None:
+            return None
+        named = system.colour_roles.get(role, role)
+        if not is_known_colour(named):
+            unresolved.append(role)
+        return named
+
+    return resolve, unresolved
+
+
+def to_renderer_system(system: TypographySystem) -> tuple[RendererSystem, list[str]]:
     """
     Translate the persisted (Pydantic) system into the renderer's own dataclass.
 
@@ -48,8 +77,11 @@ def to_renderer_system(system: TypographySystem) -> RendererSystem:
     WITHOUT collapsing marker, rule or italic roles into the text style - the
     WP-1.4 gate proved that conflation renders benchmark 4's red markers black
     and visibly flattens the hierarchy.
+
+    Returns the system and any colour roles that could not be resolved.
     """
     styles: dict[str, TextStyle] = {}
+    colour_of, unresolved = _colour_resolver(system)
 
     for role, text_role in system.text_roles.items():
         marker = system.marker_roles.get(role)
@@ -59,13 +91,13 @@ def to_renderer_system(system: TypographySystem) -> RendererSystem:
             weight=text_role.weight,
             italic=text_role.italic,
             case=text_role.case,
-            colour_role=text_role.colour_role,
+            colour_role=colour_of(text_role.colour_role),
             alignment=text_role.alignment,
             size_ratio=text_role.size_ratio,
             tracking=text_role.tracking,
             line_spacing=text_role.line_height,
             bullet=marker.glyph if marker else None,
-            bullet_colour_role=marker.colour_role if marker else None,
+            bullet_colour_role=colour_of(marker.colour_role) if marker else None,
             rule_below=rule is not None,
         )
 
@@ -75,14 +107,14 @@ def to_renderer_system(system: TypographySystem) -> RendererSystem:
             weight=italic_role.weight,
             italic=True,
             case=italic_role.case,
-            colour_role=italic_role.colour_role,
+            colour_role=colour_of(italic_role.colour_role),
             alignment=italic_role.alignment,
             size_ratio=italic_role.size_ratio,
             tracking=italic_role.tracking,
             line_spacing=italic_role.line_height,
         )
 
-    return RendererSystem(
+    renderer_system = RendererSystem(
         primary_family=FamilyClass(str(system.primary_family_class)),
         secondary_family=(
             FamilyClass(str(system.secondary_family_class))
@@ -93,6 +125,7 @@ def to_renderer_system(system: TypographySystem) -> RendererSystem:
         capability_level=CapabilityLevel(str(system.capability_level)),
         base_size_ratio=system.base_size_ratio,
     )
+    return renderer_system, sorted(set(unresolved))
 
 
 def apply_typography(
@@ -153,7 +186,12 @@ def apply_typography(
             )
         return image_bytes, manifest
 
-    renderer_system = to_renderer_system(system)
+    renderer_system, unresolved_colours = to_renderer_system(system)
+    for role in unresolved_colours:
+        manifest.warnings.append(
+            f"colour role {role!r} is not defined by the project and no named "
+            "colour matches it - drawn near-black, which may flatten the hierarchy"
+        )
     from io import BytesIO
 
     # Every owner gets clean, uncontested space before it renders. Zones come
@@ -162,7 +200,24 @@ def apply_typography(
     if enforce_clean_zones:
         from app.services.graphic_ownership import enforce
 
-        image_bytes, enforcement = enforce(image_bytes, plan, contract)
+        # Only clear graphic zones something will actually redraw. Without a
+        # rule or divider role there is no owner for them, and clearing an
+        # unowned zone deletes the element rather than cleaning it.
+        graphic_owner_will_draw = bool(system.rule_roles or system.divider_roles)
+        image_bytes, enforcement = enforce(
+            image_bytes, plan, contract,
+            graphic_owner_will_draw=graphic_owner_will_draw,
+        )
+        if not graphic_owner_will_draw and contract is not None:
+            unowned = [
+                z.zone_id for z in contract.zones if str(z.role) == "graphic"
+            ]
+            if unowned:
+                manifest.warnings.append(
+                    f"graphic zones {unowned} were left untouched - the project's "
+                    "typography system defines no rule or divider role, so nothing "
+                    "would have redrawn them"
+                )
         manifest.render_zones = enforcement.render_zones
         manifest.zone_occupancy = enforcement.occupancy
         manifest.ownership_attempts = enforcement.attempts
@@ -217,7 +272,8 @@ def apply_typography(
         for token in manifest.font_token_bindings:
             path, index = resolve_token(token)
             manifest.font_token_bindings[token] = f"{path}[{index}]"
-        rendered = render_typography(image, to_draw, renderer_system)
+        rendered, fit_warnings = render_typography(image, to_draw, renderer_system)
+        manifest.warnings.extend(fit_warnings)
         buffer = BytesIO()
         rendered.save(buffer, format="PNG")
         image_bytes = buffer.getvalue()

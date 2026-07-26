@@ -110,9 +110,51 @@ def _draw_tracked(
     return x - xy[0]
 
 
+#: Smallest type the fitter will shrink to before giving up, as a share of
+#: the requested size. Below this the block is too big for its box by a
+#: margin no amount of shrinking fixes gracefully, and shrinking further
+#: would produce text nobody can read - which is not a better outcome than
+#: reporting the overflow.
+_MIN_FIT_RATIO = 0.45
+
+
+def _fit_size(draw, text, style, bounds, size, width, height):
+    """
+    Shrink until the wrapped text fits the height of its own zone.
+
+    The style's `size_ratio` is what the DESIGN wants; the block's bounds are
+    the space it actually occupied in the source. When they disagree, the box
+    wins. An earlier version honoured the ratio unconditionally and drew a
+    124px headline into an 81px box: it wrapped to three lines, overflowed
+    into the bullets below, and every structural check still passed because
+    the block had been "rendered". Text that lands on top of its neighbour is
+    not rendered, it is destroyed.
+
+    Returns `(size, lines, overflowed)`. `overflowed` is True when even the
+    smallest permitted size does not fit - reported rather than hidden.
+    """
+    x_min, y_min, x_max, y_max = bounds
+    box_width = max(int((x_max - x_min) * width), 1)
+    box_height = max(int((y_max - y_min) * height), 1)
+    floor = max(int(size * _MIN_FIT_RATIO), 8)
+
+    candidate = size
+    while candidate >= floor:
+        font = _font(style, candidate)
+        indent = int(draw.textlength(f"{style.bullet} ", font=font)) if style.bullet else 0
+        lines = _wrap(draw, text, font, box_width - indent)
+        if len(lines) * int(candidate * style.line_spacing) <= box_height:
+            return candidate, lines, False
+        candidate = int(candidate * 0.94)
+
+    font = _font(style, floor)
+    indent = int(draw.textlength(f"{style.bullet} ", font=font)) if style.bullet else 0
+    return floor, _wrap(draw, text, font, box_width - indent), True
+
+
 def render_typography(
     image: Image.Image, blocks: list[TextBlock], system: TypographySystem
-) -> Image.Image:
+) -> tuple[Image.Image, list[str]]:
     """
     Draw `blocks` onto a copy of `image` using `system`.
 
@@ -120,11 +162,17 @@ def render_typography(
     case, tracking, leading, bullets and rules all come from the style for
     that block's role - which is the whole point: the renderer holds no
     opinion of its own about how text should look.
+
+    Returns the canvas and any warnings. A block that could not be fitted
+    into its own zone is a warning, not a silent success: the ADR's whole
+    complaint about the previous renderer was that its failures were
+    invisible until somebody looked at the image.
     """
     canvas = image.convert("RGB").copy()
     draw = ImageDraw.Draw(canvas)
     width, height = canvas.size
     base_size = max(int(height * system.base_size_ratio), 8)
+    warnings: list[str] = []
 
     for block in blocks:
         style = system.style_for(block.role)
@@ -136,7 +184,15 @@ def render_typography(
         left, top = int(x_min * width), int(y_min * height)
         box_width = max(int((x_max - x_min) * width), 1)
 
-        size = max(int(base_size * style.size_ratio), 8)
+        requested = max(int(base_size * style.size_ratio), 8)
+        size, _fitted_lines, overflowed = _fit_size(
+            draw, text, style, block.bounds, requested, width, height
+        )
+        if overflowed:
+            warnings.append(
+                f"{block.text[:40]!r} does not fit its zone even at the minimum "
+                f"size - drawn at {size}px and may overlap its neighbour"
+            )
         font = _font(style, size)
         tracking_px = style.tracking * size
 
@@ -189,4 +245,4 @@ def render_typography(
                 [left, rule_y, left + rule_width, rule_y + thickness], fill=fill
             )
 
-    return canvas
+    return canvas, warnings

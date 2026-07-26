@@ -152,7 +152,10 @@ class RenderZone(BaseModel):
 
 
 def owner_render_zones(
-    plan: OwnershipPlan, contract: CompositionContract | None
+    plan: OwnershipPlan,
+    contract: CompositionContract | None,
+    *,
+    graphic_owner_will_draw: bool = True,
 ) -> list[RenderZone]:
     """
     Every region a deterministic renderer will occupy on this slide.
@@ -165,6 +168,13 @@ def owner_render_zones(
        is owned by the typography system, is never reported by OCR, and is
        exactly where case 4's residue sits. Deriving it from the contract is
        what makes finding it general rather than a case-4 special case.
+
+    `graphic_owner_will_draw=False` withholds the second kind. Clearing a
+    zone nobody will draw into does not clean it - it DELETES the element.
+    Case 4's live run proved it: enforcement reconstructed the rule under the
+    numeral away, no rule role existed to redraw it, and the finished image
+    had simply lost a piece of the design. Leaving the original element in
+    place is the recoverable failure; erasing it is not.
 
     Falls back to bounds for a decision the contract does not place, so an
     incomplete contract degrades rather than dropping an owner's zone.
@@ -211,6 +221,9 @@ def owner_render_zones(
             )
 
     if contract is None:
+        return zones
+
+    if not graphic_owner_will_draw:
         return zones
 
     for zone in contract.zones:
@@ -381,6 +394,7 @@ def enforce(
     contract: CompositionContract | None = None,
     *,
     allow_reconstruct: bool = True,
+    graphic_owner_will_draw: bool = True,
 ) -> tuple[bytes, EnforcementResult]:
     """
     Walk the ladder for every owner zone until it is clean or exhausted.
@@ -391,7 +405,11 @@ def enforce(
     own. Reaching rung 4 or 5 is recorded honestly so it is visible rather
     than hidden behind a silent cleanup.
     """
-    result = EnforcementResult(render_zones=owner_render_zones(plan, contract))
+    result = EnforcementResult(
+        render_zones=owner_render_zones(
+            plan, contract, graphic_owner_will_draw=graphic_owner_will_draw
+        )
+    )
     current = image_bytes
 
     for zone in result.render_zones:
