@@ -6,4 +6,4 @@ Product Lock Profile (JSON):
 Creative Fingerprint (JSON):
 {"style": "clean studio"}
 
-Focus on composition, style direction, color palette, lighting, camera and perspective, background environment, mood, suggested text overlays, things to avoid, and aspect ratio.
+Focus on composition, style direction, color palette, lighting, camera and perspective, background environment, mood, text overlays, things to avoid, and aspect ratio.

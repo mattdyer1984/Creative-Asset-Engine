@@ -452,7 +452,7 @@ class _EchoFingerprintFakePromptProvider:
     model = "fake-prompt-model"
     provider = "openai"
 
-    def generate_creative_specification(self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None) -> dict:
+    def generate_creative_specification(self, lock_profile: dict, fingerprint: dict, response_schema: dict, *, overlay_blocks: list[str] | None = None, usage_sink: dict | None = None) -> dict:
         return {
             "subject": "test subject",
             "composition": "test composition",

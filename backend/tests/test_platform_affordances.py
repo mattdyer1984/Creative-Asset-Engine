@@ -162,3 +162,12 @@ def test_carries_pointer_emoji_detects_and_ignores_correctly():
     assert carries_pointer_emoji("right now only 👇👇👇")
     assert not carries_pointer_emoji("🔥 best deal ✨")
     assert not carries_pointer_emoji("plain words")
+
+
+def test_cta_wording_must_sit_above_the_pointer():
+    """
+    A pointer with text under it points at the text, not the buy button.
+    """
+    text = placement_instruction(Platform.TIKTOK)
+    assert "ABOVE the pointer" in text
+    assert "never below" in text

@@ -219,5 +219,8 @@ def placement_instruction(platform: Platform = Platform.TIKTOK) -> str:
         f"image MUST be positioned in the bottom {side} and aligned to the "
         f"{side} edge, so it points at the buy button. Do not centre it and "
         f"do not place it on the opposite side - it would direct attention "
-        f"at empty interface."
+        f"at empty interface. If there is also call-to-action wording, it "
+        f"goes ABOVE the pointer, never below it: the pointer must be the "
+        f"lowest element so that what it points at is the buy button and "
+        f"not more of your own text."
     )

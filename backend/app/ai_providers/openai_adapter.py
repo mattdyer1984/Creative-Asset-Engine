@@ -431,6 +431,7 @@ class OpenAIPromptGenerationAdapter:
         fingerprint: dict,
         response_schema: dict,
         *,
+        overlay_blocks: list[str] | None = None,
         usage_sink: dict | None = None,
     ) -> dict:
         # Story Slide feature (see MIGRATION_PLAN.md): lock_profile is
@@ -442,6 +443,7 @@ class OpenAIPromptGenerationAdapter:
         prompt_text = _generation_prompts.compile_creative_specification_prompt(
             lock_profile_json=json.dumps(lock_profile) if lock_profile is not None else None,
             fingerprint_json=json.dumps(fingerprint),
+            overlay_blocks=overlay_blocks,
         )
 
         client = self.client

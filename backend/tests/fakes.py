@@ -361,9 +361,19 @@ class FakePromptGenerationProvider:
         self.last_call: dict | None = None
 
     def generate_creative_specification(
-        self, lock_profile: dict | None, fingerprint: dict, response_schema: dict, *, usage_sink: dict | None = None
+        self,
+        lock_profile: dict | None,
+        fingerprint: dict,
+        response_schema: dict,
+        *,
+        overlay_blocks: list[str] | None = None,
+        usage_sink: dict | None = None,
     ) -> dict:
-        self.last_call = {"lock_profile": lock_profile, "fingerprint": fingerprint}
+        self.last_call = {
+            "lock_profile": lock_profile,
+            "fingerprint": fingerprint,
+            "overlay_blocks": overlay_blocks,
+        }
         if self._raise_error is not None:
             raise self._raise_error
         if usage_sink is not None:

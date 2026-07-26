@@ -71,11 +71,13 @@ expected state, regardless of whether the slide has a product.
 
 import time
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_CREATIVE_SPECIFICATION
 from app.models.creative_fingerprint import CreativeFingerprint
+from app.models.ocr_result import OCRResult
 from app.models.creative_specification import CreativeSpecification
 from app.models.product_appearance import ProductAppearance
 from app.models.product_lock_profile import ProductLockProfile
@@ -125,7 +127,15 @@ CREATIVE_SPECIFICATION_AI_SCHEMA = {
                 "properties": {
                     "role": {
                         "type": "string",
-                        "description": "headline, subhead, or cta",
+                        # Describes what a block IS, not a set to fill in.
+                        # "headline, subhead, or cta" read as a template and
+                        # the model duly produced all three, inventing a CTA
+                        # for a creative whose source has one caption.
+                        "description": (
+                            "the role this block plays in the ORIGINAL "
+                            "creative, e.g. headline, subhead or cta. Only "
+                            "describe blocks the original actually has."
+                        ),
                     },
                     "content": {"type": "string"},
                 },
@@ -156,6 +166,43 @@ CREATIVE_SPECIFICATION_AI_SCHEMA = {
     ],
     "additionalProperties": False,
 }
+
+
+def _overlay_text(db: Session, slide_id: str) -> list[str] | None:
+    """
+    The overlay text the source creative actually carries.
+
+    `ocr` has always been a declared dependency of this stage, but nothing
+    read it: the specification was composed from the Lock Profile and the
+    Creative Fingerprint alone, so the model had no idea how much text the
+    original had and wrote a full three-part advert. case02's source has one
+    overlay block; the specification invented a headline, a subhead and a
+    "Tap the link before it's gone" CTA that appears nowhere in the original.
+
+    Only `surface == "overlay"` blocks count. Text physically printed on a
+    product - a book cover, a label - is part of the photographed scene, not
+    an overlay the recreation should be reproducing as marketing copy.
+
+    Returns `None` when no OCR result exists, which is different from an
+    empty list: `None` means "not known, leave the prompt as it was", while
+    `[]` means "the original genuinely has no overlay text".
+    """
+    # `is_current` matters: re-analysing a slide leaves the superseded OCR
+    # rows in place, and an unfiltered `.first()` would hand the
+    # specification whichever one the database happened to return.
+    result = db.scalars(
+        select(OCRResult).where(
+            OCRResult.slide_id == slide_id,
+            OCRResult.is_current.is_(True),
+        )
+    ).first()
+    if result is None:
+        return None
+    return [
+        text
+        for block in (result.structured_blocks_json or [])
+        if block.get("surface") == "overlay" and (text := (block.get("text") or "").strip())
+    ]
 
 
 class SlideCreativeSpecificationStage:
@@ -208,6 +255,10 @@ class SlideCreativeSpecificationStage:
         if not eligible:
             return StageResult(succeeded=False, error="This slideshow has no slides.")
 
+        # Read on the calling thread: `_generate` runs concurrently and
+        # SQLAlchemy sessions are not thread-safe.
+        overlays = {slide.id: _overlay_text(db, slide.id) for slide, _, _ in eligible}
+
         def _generate(entry: tuple[Slide, ProductLockProfile | None, CreativeFingerprint]):
             _slide, lock_profile, fingerprint = entry
             usage: dict = {}
@@ -216,6 +267,7 @@ class SlideCreativeSpecificationStage:
                 lock_profile=lock_profile.structured_json if lock_profile is not None else None,
                 fingerprint=fingerprint.structured_json,
                 response_schema=CREATIVE_SPECIFICATION_AI_SCHEMA,
+                overlay_blocks=overlays.get(_slide.id),
                 usage_sink=usage,
             )
             provider_call_ms = (time.perf_counter() - start) * 1000

@@ -127,7 +127,12 @@ def compile_image_prompt(
 # story branch.
 CREATIVE_SPECIFICATION = register(
     id="generation.creative_specification",
-    version="1.0",
+    # 2.0: the specification is now given the source's actual overlay text
+    #      and told to reproduce those blocks and only those. Previously it
+    #      was asked for "suggested text overlays" with no inventory, and
+    #      invented a headline/subhead/CTA set for a creative whose source
+    #      carries a single caption.
+    version="2.0",
     description=(
         "Composes the provider-neutral creative specification, from a Product "
         "Lock Profile plus fingerprint, or from the fingerprint alone for a "
@@ -137,8 +142,39 @@ CREATIVE_SPECIFICATION = register(
         "focus": (
             "Focus on composition, style direction, color palette, "
             "lighting, camera and perspective, background environment, "
-            "mood, suggested text overlays, things to avoid, and aspect "
+            "mood, text overlays, things to avoid, and aspect "
             "ratio."
+        ),
+        # The word "suggested" used to appear above, and the overlay role is
+        # described in the schema as "headline, subhead, or cta" - between
+        # them the model read the field as an invitation to write a full
+        # three-part ad. case02's source carries ONE overlay block; the
+        # specification produced a headline, a subhead and a "Tap the link
+        # before it's gone" CTA that exists nowhere in the original. OCR had
+        # the truth the whole time and this stage never looked at it.
+        # Scoped to WORDS on purpose. An earlier wording said "reproduce
+        # these blocks and only these", and the model read it as covering
+        # every overlaid element - so it silently dropped the original's
+        # pointing-emoji row, which OCR does not record as text. The list
+        # constrains copy; it says nothing about non-text affordances.
+        "overlay_inventory": (
+            "The original creative's overlay WORDS, exactly as they appear, "
+            "are listed below. Reproduce these lines of copy and no others. "
+            "Do not add a headline, subhead or call-to-action the original "
+            "does not have, and do not split one line into several - if the "
+            "original has one line of overlay text, the specification has "
+            "one. You may reword a line to suit the new image; you may not "
+            "invent one.\n{blocks}\n"
+            "This list covers WORDS ONLY. Non-text overlay elements - "
+            "pointing emoji, arrows, stickers - are not in it and are not "
+            "affected by it. If the original has them, keep them."
+        ),
+        "no_overlays": (
+            "The original creative has NO overlay WORDS. Return an empty "
+            "text_overlays array. Do not invent a headline or a "
+            "call-to-action for it. This says nothing about non-text "
+            "elements such as pointing emoji or arrows - if the original "
+            "has them, keep them."
         ),
         "product_mode": (
             "Given the following Product Lock Profile and Creative "
@@ -169,7 +205,10 @@ CREATIVE_SPECIFICATION = register(
 
 
 def compile_creative_specification_prompt(
-    *, lock_profile_json: str | None, fingerprint_json: str
+    *,
+    lock_profile_json: str | None,
+    fingerprint_json: str,
+    overlay_blocks: list[str] | None = None,
 ) -> str:
     """
     Assembles the product or story variant.
@@ -177,6 +216,12 @@ def compile_creative_specification_prompt(
     `lock_profile_json=None` selects the story path - the same condition
     the adapter used (`if lock_profile is not None`), kept here so the
     branch lives with the text it selects between.
+
+    `overlay_blocks` is the source creative's actual overlay text, from OCR.
+    `None` means the caller did not look, and the prompt stays as it was -
+    an unmigrated caller must not silently get an empty inventory, which
+    would read as "the original has no text" and suppress every overlay.
+    An empty LIST is different, and does mean exactly that.
     """
     fragments = CREATIVE_SPECIFICATION.fragments
     parts = [fragments["product_mode" if lock_profile_json is not None else "story_mode"]]
@@ -184,6 +229,13 @@ def compile_creative_specification_prompt(
         parts.append(f"Product Lock Profile (JSON):\n{lock_profile_json}")
     parts.append(f"Creative Fingerprint (JSON):\n{fingerprint_json}")
     parts.append(fragments["focus"])
+
+    if overlay_blocks is not None:
+        if overlay_blocks:
+            listed = "\n".join(f'  - "{text}"' for text in overlay_blocks)
+            parts.append(fragments["overlay_inventory"].format(blocks=listed))
+        else:
+            parts.append(fragments["no_overlays"])
     return "\n\n".join(parts)
 
 
