@@ -97,3 +97,35 @@ The following is the on-screen text extracted from each slide of a marketing sli
 Slides:
 {slides_json}""",
 )
+
+COMPOSITION_CONTRACT = register(
+    id="analysis.composition_contract",
+    version="1.0",
+    description=(
+        "Infers the slide's layout device, zones and spatial relations "
+        "(ADR 0001 §9). The vocabularies are closed; the model chooses from "
+        "them and may answer `unknown`."
+    ),
+    template=
+"""\
+Describe the LAYOUT of this marketing creative - how it is arranged, not what it depicts.
+
+First name the compositional device, choosing exactly one of: split-comparison (one image divided into contrasting halves), grid-collage (four or more panels in a grid), side-by-side-comparison (two separate subjects placed next to each other), product-hero (one product dominating the frame), scene-with-caption (a photographed scene with text laid over it), shelf-snapshot (a product photographed in a retail setting), diagram-with-callout (an illustration annotated with a pointer or highlight), screen-in-scene (a display or monitor within a wider scene), or unknown. Answer `unknown` with a low confidence rather than guessing - a wrong device is worse than an admitted one. Give device_confidence between 0.0 and 1.0.
+
+Then list the ZONES. Each zone gets a short lowercase id unique within this image and descriptive of what it is (`caption`, `price-label`, `left-stack`, `numeral-rule`), one role, and a normalized bounding box (x_min/y_min/x_max/y_max, 0.0-1.0). The roles are:
+- text: copy the design has placed deliberately, as part of the creative
+- caption: platform caption furniture laid over the top, of the kind a poster adds
+- subject: a person, animal or scene that is the focus
+- product: the item being sold, including its packaging
+- callout: an annotation pointing into the subject, such as a highlighted body part
+- price: a shelf edge label or price tag
+- screen: a phone, monitor or television display within the scene
+- graphic: a rule, divider, underline or design mark carrying NO text
+- negative-space: deliberately empty area
+
+Include `graphic` zones even though they contain no words - a rule under a heading or a divider splitting a comparison is part of the design and must be listed. Include a zone for the caption if there is one.
+
+Then list the RELATIONS between zones. Each relation is a subject zone id, one of above / below / left-of / right-of / attached-to / points-to / splits / flanks / contains, and an object zone id. BOTH ids must be zones you listed above - do not name anything else. Prefer relations that carry meaning a reader would lose if they were missing: which product a price belongs to, what a callout points at, what a divider splits.
+
+Finally give `emphasis`: the zone ids in the order the eye reaches them, most prominent first. Every id must be one you listed.""",
+)

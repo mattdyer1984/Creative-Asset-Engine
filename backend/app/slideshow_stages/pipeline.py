@@ -13,6 +13,11 @@ narrative-adjacent; Narrative Structure depends on OCR, Marketing
 Analysis depends on Creative Fingerprint), grouped here for pipeline
 readability.
 
+Composition Contract (ADR 0001 §9, Package E) added after Scene
+Intelligence and before Creative Specification. It depends on nothing but
+the slide's raw image, but it must precede any stage that reasons about
+spatial ownership - which is the point of it existing.
+
 Scene Intelligence (Phase 10.4 of AI Creative Engine vNext, see
 MIGRATION_PLAN.md's ADR §8) added after Creative Fingerprint - no
 ordering dependency either way (it only reads the slide's raw image,
@@ -23,6 +28,7 @@ own placement above.
 
 from app.slideshow_stages.base import SlideshowAnalysisStage
 from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
+from app.slideshow_stages.composition_contract_stage import SlideCompositionContractStage
 from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
 from app.slideshow_stages.marketing_analysis_stage import SlideshowMarketingAnalysisStage
 from app.slideshow_stages.narrative_structure_stage import SlideshowNarrativeStructureStage
@@ -37,6 +43,7 @@ SLIDESHOW_STAGE_PIPELINE: list[SlideshowAnalysisStage] = [
     SlideProductLockProfileStage(),
     SlideCreativeFingerprintStage(),
     SceneIntelligenceStage(),
+    SlideCompositionContractStage(),
     SlideshowMarketingAnalysisStage(),
     SlideshowNarrativeStructureStage(),
     SlideCreativeSpecificationStage(),

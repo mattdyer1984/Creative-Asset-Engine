@@ -37,6 +37,10 @@ ANALYSIS_TYPE_NARRATIVE_STRUCTURE = "narrative_structure"
 # artifact above it (unlike GENERATED_IMAGE/IMAGE_VALIDATION below,
 # this is an analysis pass, not a paid generation/validation action).
 ANALYSIS_TYPE_SCENE_INTELLIGENCE = "scene_intelligence"
+# ADR 0001 §9, Package E. Part of SLIDESHOW_STAGE_PIPELINE - an analysis
+# pass producing the layout contract that spatial ownership (Package C) and
+# graphic ownership enforcement (Package D) both read.
+ANALYSIS_TYPE_COMPOSITION_CONTRACT = "composition_contract"
 # Phase 8.3 of the Generation -> Validation proof of loop (see
 # MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
 # see app.slideshow_stages.image_generation_stage's docstring for why.

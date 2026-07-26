@@ -1,4 +1,8 @@
 {
+  "analysis.composition_contract": {
+    "content_hash": "0db35485b641e91a",
+    "version": "1.0"
+  },
   "analysis.creative_fingerprint": {
     "content_hash": "84ff5f3fc9da7d49",
     "version": "1.0"
