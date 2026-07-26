@@ -85,6 +85,8 @@ def _enforce_product_region_is_essential(regions: list[dict]) -> list[dict]:
 
 class SceneIntelligenceStage:
     name = "scene_intelligence"
+    #: O1. reads only the slide image.
+    depends_on: tuple[str, ...] = ()
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

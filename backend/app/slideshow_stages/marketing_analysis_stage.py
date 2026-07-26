@@ -58,6 +58,8 @@ MARKETING_ANALYSIS_PROMPT_TEMPLATE = _analysis_prompts.MARKETING_ANALYSIS.templa
 
 class SlideshowMarketingAnalysisStage:
     name = "marketing_analysis"
+    #: O1. reads the primary slide's fingerprint.
+    depends_on: tuple[str, ...] = ("creative_fingerprint",)
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slide = slideshow.primary_slide

@@ -186,6 +186,8 @@ def build_contract(response: dict) -> tuple[CompositionContract, list[str]]:
 
 class SlideCompositionContractStage:
     name = "composition_contract"
+    #: O1. reads only the slide image.
+    depends_on: tuple[str, ...] = ()
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

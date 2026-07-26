@@ -43,6 +43,8 @@ logger = logging.getLogger(__name__)
 
 class SlideTextOwnershipStage:
     name = "text_ownership"
+    #: O1. routes OCR blocks using the contract and the profile.
+    depends_on: tuple[str, ...] = ("ocr", "composition_contract", "creative_profile")
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         profile = get_current_profile(db, slideshow.id)

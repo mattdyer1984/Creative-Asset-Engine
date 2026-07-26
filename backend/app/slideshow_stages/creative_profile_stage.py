@@ -290,6 +290,8 @@ def build_typography_system(response: dict) -> TypographySystem:
 
 class SlideshowCreativeProfileStage:
     name = "creative_profile"
+    #: O1. text mode from OCR blocks, source style from the fingerprint.
+    depends_on: tuple[str, ...] = ("ocr", "creative_fingerprint")
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

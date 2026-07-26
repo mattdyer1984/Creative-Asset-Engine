@@ -109,6 +109,8 @@ CREATIVE_FINGERPRINT_PROMPT = _analysis_prompts.CREATIVE_FINGERPRINT.render()
 
 class SlideCreativeFingerprintStage:
     name = "creative_fingerprint"
+    #: O1. enriches its prompt with the slide's OCR text.
+    depends_on: tuple[str, ...] = ("ocr",)
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

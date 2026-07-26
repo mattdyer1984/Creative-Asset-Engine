@@ -160,6 +160,8 @@ CREATIVE_SPECIFICATION_AI_SCHEMA = {
 
 class SlideCreativeSpecificationStage:
     name = "creative_specification"
+    #: O1. composes the recreation prompt from upstream analysis.
+    depends_on: tuple[str, ...] = ("ocr", "creative_fingerprint", "marketing_analysis")
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         prompt_provider = default_registry.prompt_generation()

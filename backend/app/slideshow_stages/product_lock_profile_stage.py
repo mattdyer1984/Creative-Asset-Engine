@@ -164,6 +164,8 @@ PRODUCT_LOCK_PROFILE_PROMPT = _analysis_prompts.PRODUCT_LOCK_PROFILE.render()
 
 class SlideProductLockProfileStage:
     name = "product_lock_profile"
+    #: O1. reads the isolated product images.
+    depends_on: tuple[str, ...] = ("product_isolation",)
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

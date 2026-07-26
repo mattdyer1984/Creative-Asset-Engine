@@ -75,6 +75,8 @@ _MULTI_PRODUCT_ERROR = (
 
 class SlideProductIsolationStage:
     name = "product_isolation"
+    #: O1. reads the slide image and its product appearance.
+    depends_on: tuple[str, ...] = ()
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         """

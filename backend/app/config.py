@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     # regress. Rollback is this flag, not a database intervention.
     typography_renderer_enabled: bool = False
 
+    # O1. Concurrent stage execution is on by default; this forces the old
+    # strictly-sequential schedule. An escape hatch that must be reachable in
+    # an incident without a deploy, which is why it is a setting rather than
+    # only a code path.
+    sequential_stages: bool = False
+
     @property
     def database_path(self) -> Path:
         return self.data_dir / "creative_asset_engine.db"

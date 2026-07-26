@@ -63,6 +63,8 @@ logger = logging.getLogger(__name__)
 
 class SlideOCRStage:
     name = "ocr"
+    #: O1. reads only the slide image.
+    depends_on: tuple[str, ...] = ()
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         ocr_provider = default_registry.ocr()

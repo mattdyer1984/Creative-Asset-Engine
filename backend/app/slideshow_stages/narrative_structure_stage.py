@@ -81,6 +81,8 @@ NARRATIVE_STRUCTURE_PROMPT_TEMPLATE = _analysis_prompts.NARRATIVE_STRUCTURE.temp
 
 class SlideshowNarrativeStructureStage:
     name = "narrative_structure"
+    #: O1. reads every slide's OCR text.
+    depends_on: tuple[str, ...] = ("ocr",)
 
     def run(self, db: Session, slideshow: Slideshow) -> StageResult:
         slides = slideshow.slides

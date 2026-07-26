@@ -12,6 +12,7 @@ Slideshow directly instead of Creative + CreativeBlueprint.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from sqlalchemy.orm import Session
 
@@ -25,8 +26,20 @@ from app.models.slideshow import (
 from app.services.timing_report import build_timing_breakdown, format_timing_breakdown
 from app.slideshow_stages.base import SlideshowAnalysisStage, StageResult
 from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
+from app.slideshow_stages.scheduling import describe_waves, plan_waves
 
 logger = logging.getLogger(__name__)
+
+def _sequential_requested() -> bool:
+    """
+    O1. Concurrent stage execution is on by default; `CAE_SEQUENTIAL_STAGES=1`
+    forces the old schedule. Read through Settings rather than os.environ so
+    the config guard knows about it - it caught this flag being undeclared
+    the first time, which is what that guard is for.
+    """
+    from app.config import settings
+
+    return settings.sequential_stages
 
 
 class SlideshowOrchestrator:
@@ -42,33 +55,28 @@ class SlideshowOrchestrator:
         slideshow.status = STATUS_ANALYZING
         db.commit()
 
+        waves = plan_waves(self.stages)
+        sequential = _sequential_requested() or all(len(w) == 1 for w in waves)
+        if not sequential:
+            logger.info("Slideshow %s stage schedule: %s", slideshow.id, describe_waves(waves))
+
         outcome: tuple[str | None, StageResult]
-        for stage in self.stages:
-            try:
-                result = stage.run(db, slideshow)
-            except Exception as exc:
-                # A stage is only ever supposed to raise for a genuine bug
-                # (see SlideshowAnalysisStage.run's own docstring) - but if
-                # one does, the Slideshow was already committed at
-                # STATUS_ANALYZING above and must not be left there
-                # forever. Same terminal-state contract as an ordinary
-                # StageResult(succeeded=False) below, just reached via an
-                # unexpected exception instead of an expected one.
-                db.rollback()
-                slideshow.status = STATUS_FAILED
-                slideshow.last_failed_stage = stage.name
-                slideshow.last_failed_stage_error = str(exc)
-                db.commit()
-                outcome = stage.name, StageResult(succeeded=False, error=str(exc))
+        ordered = (
+            [[stage] for stage in self.stages] if sequential else waves
+        )
+        failure = None
+        for wave in ordered:
+            failure = self._run_wave(db, slideshow, wave)
+            if failure is not None:
                 break
 
-            if not result.succeeded:
-                slideshow.status = STATUS_FAILED
-                slideshow.last_failed_stage = stage.name
-                slideshow.last_failed_stage_error = result.error
-                db.commit()
-                outcome = stage.name, result
-                break
+        if failure is not None:
+            stage_name, result = failure
+            slideshow.status = STATUS_FAILED
+            slideshow.last_failed_stage = stage_name
+            slideshow.last_failed_stage_error = result.error
+            db.commit()
+            outcome = stage_name, result
         else:
             slideshow.status = STATUS_READY
             slideshow.last_failed_stage = None
@@ -78,6 +86,74 @@ class SlideshowOrchestrator:
 
         self._log_timing_breakdown(db, slideshow)
         return outcome
+
+    def _run_wave(
+        self, db: Session, slideshow: Slideshow, wave: list
+    ) -> tuple[str, StageResult] | None:
+        """
+        Run one wave, returning the first failure in DECLARATION order.
+
+        Concurrent execution cannot stop at the first failure the way the
+        sequential loop did - the other stages are already in flight. So the
+        wave runs to completion and the earliest-declared failure is
+        reported, which keeps the reported failure stable regardless of
+        which thread happened to finish first.
+        """
+        if len(wave) == 1:
+            return self._run_one(db, slideshow, wave[0])
+
+        # Each thread gets its own Session: SQLAlchemy Sessions are not
+        # thread-safe, and sharing one would interleave flushes from
+        # different stages into a single unit of work.
+        from app.db import SessionLocal
+
+        # Read the id HERE, on the calling thread. Touching any attribute of
+        # an ORM object from a worker thread can trigger a lazy refresh
+        # against the session that owns it, which is precisely the unsafe
+        # access this isolation exists to prevent - and it fails as an
+        # ObjectDeletedError far from the real cause.
+        slideshow_id = slideshow.id
+
+        def _isolated(stage):
+            session = SessionLocal()
+            try:
+                own_slideshow = session.get(Slideshow, slideshow_id)
+                if own_slideshow is None:
+                    return stage.name, StageResult(
+                        succeeded=False,
+                        error=f"slideshow {slideshow_id} is not visible to this session",
+                    )
+                return self._run_one(session, own_slideshow, stage)
+            finally:
+                session.close()
+
+        with ThreadPoolExecutor(max_workers=len(wave)) as executor:
+            outcomes = list(executor.map(_isolated, wave))
+
+        # The orchestrator's own session still holds the pre-wave state of
+        # every row the wave just committed through other sessions.
+        db.expire_all()
+
+        for outcome in outcomes:
+            if outcome is not None:
+                return outcome
+        return None
+
+    def _run_one(
+        self, db: Session, slideshow: Slideshow, stage
+    ) -> tuple[str, StageResult] | None:
+        try:
+            result = stage.run(db, slideshow)
+        except Exception as exc:
+            # A stage is only ever supposed to raise for a genuine bug (see
+            # SlideshowAnalysisStage.run's own docstring) - but if one does,
+            # the Slideshow was already committed at STATUS_ANALYZING and
+            # must not be left there forever.
+            db.rollback()
+            logger.exception("stage %s raised", stage.name)
+            return stage.name, StageResult(succeeded=False, error=str(exc))
+
+        return None if result.succeeded else (stage.name, result)
 
     def _log_timing_breakdown(self, db: Session, slideshow: Slideshow) -> None:
         """

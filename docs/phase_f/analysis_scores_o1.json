@@ -1,0 +1,1469 @@
+{
+  "run_id": "b127db63-5675-4d33-a136-2ace3d5f706a",
+  "cases": [
+    {
+      "case": "case01_weather_tv",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "screen-in-scene",
+          "expected": "screen-in-scene",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.93
+        },
+        "zones": {
+          "expected": 4,
+          "inferred": 4,
+          "matched": 1,
+          "unmatched": [
+            {
+              "expected_id": "caption",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.12 < 0.30"
+            },
+            {
+              "expected_id": "tv-screen",
+              "role": "screen",
+              "verdict": "missing",
+              "detail": "best overlap 0.28 < 0.30"
+            },
+            {
+              "expected_id": "subtitle",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.28 < 0.30"
+            }
+          ],
+          "extra": [
+            "top-caption",
+            "screen",
+            "bottom-caption"
+          ],
+          "role_exact": 0,
+          "role_acceptable": 0,
+          "role_disagreement": 1,
+          "detail": [
+            {
+              "expected_id": "room",
+              "inferred_id": "room-scene",
+              "expected_role": "negative-space",
+              "inferred_role": "subject",
+              "iou": 0.54,
+              "verdict": "disagreement",
+              "detail": "inferred 'subject', benchmark says 'negative-space'"
+            }
+          ]
+        },
+        "relations": {
+          "expected": 3,
+          "inferred": 5
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "platform_caption",
+          "expected": "platform_caption",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "expected": null,
+        "verdict": "exact",
+        "detail": "no system expected and none produced"
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 5,
+        "inferred_blocks": 16,
+        "matched": 3,
+        "exact": 3,
+        "disagreement": 0,
+        "missing": 2,
+        "detail": [
+          {
+            "text": "NOW WAY NOT AGAINNN\ud83d\ude29",
+            "expected_class": "platform_caption",
+            "inferred_class": "platform_caption",
+            "expected_owner": "caption",
+            "inferred_owner": "caption",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "caption",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "Apparently it's only going to get hotter so please don't be ",
+            "expected_class": "platform_caption",
+            "inferred_class": "platform_caption",
+            "expected_owner": "caption",
+            "inferred_owner": "caption",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "caption",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "Lerwick / Stornoway / Aberdeen / Edinburgh / Glasgow / Belfa",
+            "expected_class": "environmental",
+            "verdict": "missing",
+            "detail": "no OCR block matched this text"
+          },
+          {
+            "text": "16 17 21 23 24 26 27 29 30 32 35 25 28",
+            "expected_class": "environmental",
+            "verdict": "missing",
+            "detail": "no OCR block matched this text"
+          },
+          {
+            "text": "Thursday",
+            "expected_class": "environmental",
+            "inferred_class": "environmental",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "generated",
+            "confidence": 1.0,
+            "composition_zone_role": "screen",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "humour",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Problem agitation and cost avoidance."
+      }
+    },
+    {
+      "case": "case02_books",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "scene-with-caption",
+          "expected": "product-hero",
+          "verdict": "acceptable",
+          "detail": "'scene-with-caption' is a defensible reading of 'product-hero'",
+          "confidence": 0.9
+        },
+        "zones": {
+          "expected": 3,
+          "inferred": 7,
+          "matched": 2,
+          "unmatched": [
+            {
+              "expected_id": "emoji-row",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.11 < 0.30"
+            }
+          ],
+          "extra": [
+            "down-emojis"
+          ],
+          "role_exact": 1,
+          "role_acceptable": 1,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "caption",
+              "inferred_id": "top-caption",
+              "expected_role": "text",
+              "inferred_role": "caption",
+              "iou": 0.686,
+              "verdict": "acceptable",
+              "detail": "'caption' is a defensible reading of 'text'"
+            },
+            {
+              "expected_id": "books",
+              "inferred_id": "atomic-book+money-book+green-book+thinking-book+courage-book",
+              "expected_role": "product",
+              "inferred_role": "product",
+              "iou": 0.594,
+              "match_kind": "decomposed",
+              "verdict": "exact",
+              "detail": "5 inferred zone(s) cover 59% of this region - finer granularity than the annotation"
+            }
+          ]
+        },
+        "relations": {
+          "expected": 2,
+          "inferred": 9
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "platform_caption",
+          "expected": "platform_caption",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "elevate",
+          "verdict": "disagreement",
+          "detail": "inferred 'refine', benchmark says 'elevate'"
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "expected": null,
+        "verdict": "exact",
+        "detail": "no system expected and none produced"
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 7,
+        "inferred_blocks": 23,
+        "matched": 6,
+        "exact": 6,
+        "disagreement": 0,
+        "missing": 1,
+        "detail": [
+          {
+            "text": "All 5 books for the price of 1 right now",
+            "expected_class": "platform_caption",
+            "inferred_class": "platform_caption",
+            "expected_owner": "caption",
+            "inferred_owner": "caption",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "caption",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "\ud83d\udc47\ud83d\udc47\ud83d\udc47",
+            "expected_class": "platform_caption",
+            "verdict": "missing",
+            "detail": "no OCR block matched this text"
+          },
+          {
+            "text": "Atomic Habits / James Clear",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "The Psychology of Money / Morgan Housel",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "The Let Them Theory / Mel Robbins",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "Don't Believe Everything You Think / Joseph Nguyen",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "The Courage To Be Disliked / Ichiro Kishimi and Fumitake Kog",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "aspiration",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Unbeatable Value Proposition ('All 5 books for the price of 1 right now')."
+      }
+    },
+    {
+      "case": "case03_mini_ac",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "scene-with-caption",
+          "expected": "scene-with-caption",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.92
+        },
+        "zones": {
+          "expected": 4,
+          "inferred": 4,
+          "matched": 3,
+          "unmatched": [
+            {
+              "expected_id": "subtitle",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.15 < 0.30"
+            }
+          ],
+          "extra": [
+            "bottom-caption"
+          ],
+          "role_exact": 3,
+          "role_acceptable": 0,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "caption",
+              "inferred_id": "top-copy",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.727,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "ac-unit",
+              "inferred_id": "mini-ac",
+              "expected_role": "product",
+              "inferred_role": "product",
+              "iou": 0.39,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "bed",
+              "inferred_id": "bedroom-scene",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 0.314,
+              "verdict": "exact",
+              "detail": ""
+            }
+          ]
+        },
+        "relations": {
+          "expected": 3,
+          "inferred": 5
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "platform_caption",
+          "expected": "platform_caption",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "expected": null,
+        "verdict": "exact",
+        "detail": "no system expected and none produced"
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 3,
+        "inferred_blocks": 3,
+        "matched": 3,
+        "exact": 3,
+        "disagreement": 0,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "When this mini AC costs a fraction of them prices and does a",
+            "expected_class": "platform_caption",
+            "inferred_class": "platform_caption",
+            "expected_owner": "caption",
+            "inferred_owner": "caption",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "(Just add water & plug it in \u2705)",
+            "expected_class": "platform_caption",
+            "inferred_class": "platform_caption",
+            "expected_owner": "caption",
+            "inferred_owner": "caption",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "caption",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "88",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "demonstration",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Value proposition: high performance at a low cost, coupled with extreme ease of use."
+      }
+    },
+    {
+      "case": "case04_posture",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "diagram-with-callout",
+          "expected": "diagram-with-callout",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.78
+        },
+        "zones": {
+          "expected": 7,
+          "inferred": 11,
+          "matched": 4,
+          "unmatched": [
+            {
+              "expected_id": "numeral-rule",
+              "role": "graphic",
+              "verdict": "missing",
+              "detail": "best overlap 0.20 < 0.30"
+            },
+            {
+              "expected_id": "bullets",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.27 < 0.30"
+            },
+            {
+              "expected_id": "whitespace",
+              "role": "negative-space",
+              "verdict": "missing",
+              "detail": "best overlap 0.00 < 0.30"
+            }
+          ],
+          "extra": [
+            "top-negative-space",
+            "number-underline",
+            "bullet-one-dot",
+            "bullet-one-text",
+            "bullet-two-dot",
+            "bullet-two-text",
+            "laptop-screen"
+          ],
+          "role_exact": 4,
+          "role_acceptable": 0,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "numeral",
+              "inferred_id": "step-number",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.691,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "headline",
+              "inferred_id": "headline",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.775,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "figure",
+              "inferred_id": "seated-figure",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 0.789,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "spine-overlay",
+              "inferred_id": "spine-highlight",
+              "expected_role": "callout",
+              "inferred_role": "callout",
+              "iou": 0.874,
+              "verdict": "exact",
+              "detail": ""
+            }
+          ]
+        },
+        "relations": {
+          "expected": 6,
+          "inferred": 11
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "designed_typography",
+          "expected": "designed_typography",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "primary_family_class": {
+          "inferred": "serif",
+          "expected": "serif",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "secondary_family_class": {
+          "inferred": null,
+          "expected": "serif",
+          "verdict": "missing",
+          "detail": "nothing was inferred"
+        },
+        "capability_level": {
+          "inferred": "L1",
+          "expected": "L1",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "roles_inferred": [
+          "bullet-marker",
+          "bullet-text",
+          "headline",
+          "headline-emphasis",
+          "section-numeral"
+        ],
+        "colour_roles_inferred": {
+          "primary-text": "near-black",
+          "accent": "dark-red"
+        }
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 5,
+        "inferred_blocks": 5,
+        "matched": 5,
+        "exact": 5,
+        "disagreement": 0,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "1.",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "Your upper back",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "feels rounded",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "You struggle to straighten up",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 0.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "Shoulders keep falling forward",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 0.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "education",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Identifying a common pain point (poor posture) to build resonance before offering a solution."
+      }
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "grid-collage",
+          "expected": "grid-collage",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.97
+        },
+        "zones": {
+          "expected": 5,
+          "inferred": 8,
+          "matched": 5,
+          "unmatched": [],
+          "extra": [
+            "headline",
+            "vertical-divider",
+            "horizontal-divider"
+          ],
+          "role_exact": 5,
+          "role_acceptable": 0,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "panel-top-left",
+              "inferred_id": "top-left-scene",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 1.0,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "panel-top-right",
+              "inferred_id": "top-right-scene",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 1.0,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "panel-bottom-left",
+              "inferred_id": "bottom-left-scene",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 1.0,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "panel-bottom-right",
+              "inferred_id": "bottom-right-scene",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 1.0,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "centre-text",
+              "inferred_id": "subheadline",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.441,
+              "verdict": "exact",
+              "detail": ""
+            }
+          ]
+        },
+        "relations": {
+          "expected": 6,
+          "inferred": 13
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "designed_typography",
+          "expected": "designed_typography",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "primary_family_class": {
+          "inferred": "grotesque",
+          "expected": "condensed-sans",
+          "verdict": "disagreement",
+          "detail": "inferred 'grotesque', benchmark says 'condensed-sans'"
+        },
+        "secondary_family_class": {
+          "inferred": "serif",
+          "expected": "display",
+          "verdict": "disagreement",
+          "detail": "inferred 'serif', benchmark says 'display'"
+        },
+        "capability_level": {
+          "inferred": "L1",
+          "expected": "L2",
+          "verdict": "disagreement",
+          "detail": "inferred 'L1', benchmark says 'L2'"
+        },
+        "roles_inferred": [],
+        "colour_roles_inferred": {
+          "headline_light": "warm-white",
+          "accent": "deep-red"
+        }
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 2,
+        "inferred_blocks": 2,
+        "matched": 2,
+        "exact": 1,
+        "disagreement": 1,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "HOW TO BE A",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "10/10 man",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "image",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "disagreement",
+            "detail": "inferred 'typography', benchmark says 'image'"
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "aspiration",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Achieving the peak male archetype"
+      }
+    },
+    {
+      "case": "case06_meal_prep",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "side-by-side-comparison",
+          "expected": "side-by-side-comparison",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.88
+        },
+        "zones": {
+          "expected": 4,
+          "inferred": 7,
+          "matched": 4,
+          "unmatched": [],
+          "extra": [
+            "left-flag",
+            "versus",
+            "right-flag"
+          ],
+          "role_exact": 4,
+          "role_acceptable": 0,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "left-label",
+              "inferred_id": "left-label",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.335,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "right-label",
+              "inferred_id": "right-label",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.381,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "left-stack",
+              "inferred_id": "left-stack",
+              "expected_role": "product",
+              "inferred_role": "product",
+              "iou": 0.878,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "right-stack",
+              "inferred_id": "right-stack",
+              "expected_role": "product",
+              "inferred_role": "product",
+              "iou": 0.799,
+              "verdict": "exact",
+              "detail": ""
+            }
+          ]
+        },
+        "relations": {
+          "expected": 4,
+          "inferred": 6
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "designed_typography",
+          "expected": "designed_typography",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "elevate",
+          "verdict": "disagreement",
+          "detail": "inferred 'refine', benchmark says 'elevate'"
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "primary_family_class": {
+          "inferred": "grotesque",
+          "expected": "serif",
+          "verdict": "disagreement",
+          "detail": "inferred 'grotesque', benchmark says 'serif'"
+        },
+        "secondary_family_class": {
+          "inferred": null,
+          "expected": null,
+          "verdict": "exact",
+          "detail": ""
+        },
+        "capability_level": {
+          "inferred": "L1",
+          "expected": "L1",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "roles_inferred": [],
+        "colour_roles_inferred": {
+          "type": "white"
+        }
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 3,
+        "inferred_blocks": 3,
+        "matched": 3,
+        "exact": 3,
+        "disagreement": 0,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "british meal prep \ud83c\uddec\ud83c\udde7",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "vs",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "japanese meal prep \ud83c\uddf0\ud83c\uddf7",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "comparison",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Highlighting a perceived cultural difference in meal preparation to generate engagement or highlight a specific product feature (e.g., the containers themselves)."
+      }
+    },
+    {
+      "case": "case07_gut_health",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "split-comparison",
+          "expected": "split-comparison",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.94
+        },
+        "zones": {
+          "expected": 5,
+          "inferred": 8,
+          "matched": 3,
+          "unmatched": [
+            {
+              "expected_id": "bad-label",
+              "role": "text",
+              "verdict": "missing",
+              "detail": "best overlap 0.27 < 0.30"
+            },
+            {
+              "expected_id": "divider",
+              "role": "graphic",
+              "verdict": "missing",
+              "detail": "best overlap 0.19 < 0.30"
+            }
+          ],
+          "extra": [
+            "subheadline",
+            "left-rule",
+            "right-rule",
+            "bad-label",
+            "center-divider"
+          ],
+          "role_exact": 3,
+          "role_acceptable": 0,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "headline",
+              "inferred_id": "headline",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.491,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "good-label",
+              "inferred_id": "good-label",
+              "expected_role": "text",
+              "inferred_role": "text",
+              "iou": 0.322,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "face",
+              "inferred_id": "subject-face",
+              "expected_role": "subject",
+              "inferred_role": "subject",
+              "iou": 0.793,
+              "verdict": "exact",
+              "detail": ""
+            }
+          ]
+        },
+        "relations": {
+          "expected": 6,
+          "inferred": 9
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "designed_typography",
+          "expected": "designed_typography",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "primary_family_class": {
+          "inferred": "condensed-sans",
+          "expected": "grotesque",
+          "verdict": "disagreement",
+          "detail": "inferred 'condensed-sans', benchmark says 'grotesque'"
+        },
+        "secondary_family_class": {
+          "inferred": null,
+          "expected": null,
+          "verdict": "exact",
+          "detail": ""
+        },
+        "capability_level": {
+          "inferred": "L1",
+          "expected": "L1",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "roles_inferred": [],
+        "colour_roles_inferred": {
+          "primary": "near-black",
+          "negative-accent": "dark-red",
+          "positive-accent": "green",
+          "divider": "white"
+        }
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 5,
+        "inferred_blocks": 5,
+        "matched": 5,
+        "exact": 5,
+        "disagreement": 0,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "3 SIGNS OF",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "BAD GUT HEALTH",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "AND HOW TO SUPPORT IT",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "BAD",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "GOOD",
+            "expected_class": "designed_typography",
+            "inferred_class": "designed_typography",
+            "expected_owner": "typography",
+            "inferred_owner": "typography",
+            "image_strategy": null,
+            "confidence": 1.0,
+            "composition_zone_role": "text",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "education",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Problem-Solution (identifying a hidden cause for physical symptoms and offering a fix)"
+      }
+    },
+    {
+      "case": "case08_fan_shelf",
+      "pipeline_succeeded": true,
+      "composition_contract": {
+        "artifact": "composition_contract",
+        "device": {
+          "inferred": "shelf-snapshot",
+          "expected": "shelf-snapshot",
+          "verdict": "exact",
+          "detail": "",
+          "confidence": 0.94
+        },
+        "zones": {
+          "expected": 3,
+          "inferred": 5,
+          "matched": 2,
+          "unmatched": [
+            {
+              "expected_id": "price-label",
+              "role": "price",
+              "verdict": "missing",
+              "detail": "best overlap 0.12 < 0.30"
+            }
+          ],
+          "extra": [
+            "shelf-context",
+            "right-product-box",
+            "price-label"
+          ],
+          "role_exact": 1,
+          "role_acceptable": 1,
+          "role_disagreement": 0,
+          "detail": [
+            {
+              "expected_id": "product",
+              "inferred_id": "main-product-box",
+              "expected_role": "product",
+              "inferred_role": "product",
+              "iou": 0.707,
+              "verdict": "exact",
+              "detail": ""
+            },
+            {
+              "expected_id": "caption",
+              "inferred_id": "caption-overlay",
+              "expected_role": "text",
+              "inferred_role": "caption",
+              "iou": 0.445,
+              "verdict": "acceptable",
+              "detail": "'caption' is a defensible reading of 'text'"
+            }
+          ]
+        },
+        "relations": {
+          "expected": 3,
+          "inferred": 6
+        }
+      },
+      "creative_project_profile": {
+        "artifact": "creative_project_profile",
+        "primary_text_mode": {
+          "inferred": "platform_caption",
+          "expected": "platform_caption",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "copy_policy": {
+          "inferred": "preserve_verbatim",
+          "expected": "preserve_verbatim",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "production_value_strategy": {
+          "inferred": "refine",
+          "expected": "refine",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "overlay_policy": {
+          "inferred": "keep",
+          "expected": "keep",
+          "verdict": "exact",
+          "detail": ""
+        },
+        "text_mode_confidence": 1.0
+      },
+      "typography_system": {
+        "artifact": "typography_system",
+        "expected": null,
+        "verdict": "exact",
+        "detail": "no system expected and none produced"
+      },
+      "text_ownership": {
+        "artifact": "text_ownership",
+        "expected_blocks": 4,
+        "inferred_blocks": 22,
+        "matched": 4,
+        "exact": 3,
+        "disagreement": 1,
+        "missing": 0,
+        "detail": [
+          {
+            "text": "when ur paying \u00a330 for this...",
+            "expected_class": "platform_caption",
+            "inferred_class": "product_native",
+            "expected_owner": "caption",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "disagreement",
+            "detail": "inferred 'image', benchmark says 'caption'"
+          },
+          {
+            "text": "16\" Pedestal Fan",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "3 speed settings / Adjustable height / Oscillating function",
+            "expected_class": "product_native",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          },
+          {
+            "text": "\u00a330",
+            "expected_class": "environmental",
+            "inferred_class": "product_native",
+            "expected_owner": "image",
+            "inferred_owner": "image",
+            "image_strategy": "product_lock",
+            "confidence": 1.0,
+            "composition_zone_role": "product",
+            "verdict": "exact",
+            "detail": ""
+          }
+        ]
+      },
+      "creative_intent": {
+        "artifact": "creative_intent",
+        "expected": "discovery",
+        "inferred": null,
+        "verdict": "not_implemented",
+        "detail": "no stage infers Creative Intent; the Creative Fingerprint records a free-text 'marketing angle' but nothing maps it to the closed vocabulary",
+        "nearest_evidence": "Focusing on the perceived high price of a standard, basic item."
+      }
+    }
+  ]
+}
