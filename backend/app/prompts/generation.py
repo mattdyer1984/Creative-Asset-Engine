@@ -16,6 +16,7 @@ changed no wording.
 from app.prompts.core import register
 from app.services.platform_affordances import (
     placement_instruction as platform_placement_instruction,
+    strip_pointer_emoji,
 )
 
 CREATIVE_INTELLIGENCE = register(
@@ -305,8 +306,19 @@ def compile_creative_intent(
     if not suppress_overlay_text:
         text_overlays = creative_specification.get("text_overlays") or []
         if text_overlays:
-            overlay_text = "; ".join(f"{o['role']}: {o['content']}" for o in text_overlays)
-            parts.append(fragments["text_overlays"] + overlay_text)
+            # A pointing emoji inside overlay copy gets drawn wherever that
+            # overlay lands - on top of wherever the scene description and
+            # the platform rule already place it. case02's spec asked for
+            # `subhead: "right now only 👇👇👇"` AND for the same three
+            # emoji in the lower left; the model drew both sets. Placement
+            # is the platform's job, so the copy keeps only the words.
+            overlay_text = "; ".join(
+                f"{o['role']}: {strip_pointer_emoji(o['content'])}"
+                for o in text_overlays
+                if strip_pointer_emoji(o["content"])
+            )
+            if overlay_text:
+                parts.append(fragments["text_overlays"] + overlay_text)
 
     # Style-aware, NOT unconditional. This line used to demand a real
     # photograph on every prompt regardless of the source, directly
@@ -384,7 +396,11 @@ GENERATION_COMPILER = register(
     # 6.0: states where the platform's buy button is, so a bottom CTA points
     #      at it. The first instruction here that comes from the destination
     #      platform rather than the source creative.
-    version="6.0",
+    # 6.1: pointer emoji are stripped from overlay copy - placement is the
+    #      platform's job, and carrying one inside an overlay drew it twice.
+    #      Bumped deliberately: no snapshot fixture contains an emoji, so the
+    #      content hash did NOT move and neither guard would have caught this.
+    version="6.1",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."

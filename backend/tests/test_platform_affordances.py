@@ -19,9 +19,11 @@ from app.services.platform_affordances import (
     Platform,
     alignment_for,
     buy_box_violations,
+    carries_pointer_emoji,
     is_bottom_zone,
     is_left_justified,
     placement_instruction,
+    strip_pointer_emoji,
 )
 
 GROUND_TRUTH_EMOJI_ROW = {
@@ -113,3 +115,50 @@ def test_the_instruction_states_the_side_and_the_reason():
 def test_the_left_justification_boundary(x0, compliant):
     zone = {"id": "cta", "role": "graphic", "bounds": [x0, 0.85, x0 + 0.3, 0.93]}
     assert is_left_justified(zone) is compliant
+
+
+# ---------------------------------------------------------------------------
+# Pointer emoji are affordances, not copy.
+#
+# case02's specification asked for `subhead: "right now only 👇👇👇"` AND for
+# the same three emoji in the lower left. The model obeyed both instructions
+# and drew two sets - one under the caption, one at the bottom.
+# ---------------------------------------------------------------------------
+
+
+def test_the_case02_subhead_keeps_its_words_and_loses_its_pointers():
+    assert strip_pointer_emoji("right now only 👇👇👇") == "right now only"
+
+
+def test_every_direction_of_pointer_is_stripped():
+    assert strip_pointer_emoji("tap 👇 or 👆 or 👈 or 👉 now") == "tap or or or now"
+
+
+def test_skin_toned_pointers_leave_no_residue():
+    """A modifier left behind would render as a stray colour swatch."""
+    assert strip_pointer_emoji("look 👇🏽 here") == "look here"
+    assert strip_pointer_emoji("look 👇🏿 here") == "look here"
+
+
+def test_arrow_symbols_count_as_pointers():
+    assert strip_pointer_emoji("scroll ⬇️ down") == "scroll down"
+
+
+def test_decorative_emoji_are_left_alone():
+    """A 🔥 in a headline is styling, not an affordance."""
+    assert strip_pointer_emoji("🔥 best deal ✨") == "🔥 best deal ✨"
+
+
+def test_copy_without_emoji_is_untouched():
+    assert strip_pointer_emoji("Tap below before it's gone") == "Tap below before it's gone"
+
+
+def test_an_overlay_that_was_only_pointers_becomes_empty():
+    """The caller drops it rather than sending an empty subhead."""
+    assert strip_pointer_emoji("👇👇👇") == ""
+
+
+def test_carries_pointer_emoji_detects_and_ignores_correctly():
+    assert carries_pointer_emoji("right now only 👇👇👇")
+    assert not carries_pointer_emoji("🔥 best deal ✨")
+    assert not carries_pointer_emoji("plain words")

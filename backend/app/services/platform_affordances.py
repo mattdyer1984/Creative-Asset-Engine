@@ -156,6 +156,52 @@ def buy_box_violations(contract, platform: Platform = Platform.TIKTOK) -> list[V
     return violations
 
 
+#: Emoji whose whole job is to point at something. Deliberately limited to
+#: directional pointers - a 🔥 or ✨ in a headline is styling and stays.
+#: Skin-tone modifiers (U+1F3FB-U+1F3FF) and VS16 are stripped alongside so
+#: "👇🏽" does not leave a stray modifier behind.
+_POINTER_CODEPOINTS = frozenset(
+    "\U0001f447"   # 👇 down
+    "\U0001f446"   # 👆 up
+    "\U0001f448"   # 👈 left
+    "\U0001f449"   # 👉 right
+    "⬇"       # ⬇ down arrow
+    "⬆"       # ⬆
+    "⬅"       # ⬅
+    "➡"       # ➡
+    "\U0001f5b1"   # 🖱
+    "️"       # VS16
+    "\U0001f3fb\U0001f3fc\U0001f3fd\U0001f3fe\U0001f3ff"  # skin tones
+)
+
+
+def strip_pointer_emoji(text: str) -> str:
+    """
+    Remove directional emoji from overlay copy.
+
+    **A pointer emoji is an affordance, not copy.** Where it goes is decided
+    by where the buy box is; where an overlay goes is decided by the layout.
+    Carrying one inside the other means it gets drawn wherever the overlay
+    lands, in addition to wherever the scene description puts it - which is
+    exactly what happened on case02, whose specification simultaneously said
+
+        subhead: "right now only 👇👇👇"
+
+    and "the lower-left area should retain the three downward pointing hand
+    emojis". The model obeyed both and drew two sets.
+
+    Only the emoji are removed. The words around them are the creative's
+    actual copy and are left untouched, including their spacing.
+    """
+    cleaned = "".join(c for c in text if c not in _POINTER_CODEPOINTS)
+    # Collapse the gap the emoji left, without disturbing internal wording.
+    return " ".join(cleaned.split())
+
+
+def carries_pointer_emoji(text: str) -> bool:
+    return any(c in _POINTER_CODEPOINTS for c in text if c != "️")
+
+
 def placement_instruction(platform: Platform = Platform.TIKTOK) -> str:
     """
     The constraint, as an instruction for the image model.
