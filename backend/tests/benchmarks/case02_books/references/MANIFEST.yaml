@@ -1,11 +1,17 @@
 # Canonical Product References for case02_books.
 # See ../../REFERENCES.md for acceptance criteria.
 #
-# The books ARE the products in this creative's listing. Three covers
-# match the editions shown; two are different editions and are marked
-# edition_mismatch. A different cover is a different visual identity, so
-# those two exercise the reference pipeline WITHOUT validating identity
-# preservation for their titles.
+# The books ARE the products in this creative's listing. All five covers
+# now match the editions shown.
+#
+# Three come from Open Library as flat cover scans. Two - Let Them Theory
+# and The Courage to be Disliked - come from the seller's own TikTok Shop
+# listing for this exact bundle, because Open Library served the wrong
+# edition for both (Greek, and a blue/trees cover). Those two are
+# photographs of the physical books at a slight angle rather than flat
+# scans; that is a deliberate trade, since imagery from the listing being
+# recreated is stronger evidence of the product's visual identity than a
+# scan of a different edition.
 assets:
 - file: book-atomic-habits.jpg
   role: product
@@ -19,16 +25,18 @@ assets:
   notes: cream cover, gradient dot lettering - matches the creative
 - file: book-courage-disliked.jpg
   role: product
-  sha256: c9b7e9d26180da633ef794182761af99ccb95eb38fa1cc1327ef3283e1de3d11
-  source: Open Library covers API, cover id 10873626
+  sha256: 3eb19c47f5b097820f3c7551ce34eed29ff0e681882b5c4ddd982179848dcceb
+  source: seller's TikTok Shop listing for this bundle, PDP 1729839262236121327,
+    gallery image 1, cropped to the front cover
   licence: publisher cover art, used for identification in a personal non-commercial
     test benchmark
-  licence_url: https://openlibrary.org/developers/api
-  added_in_suite_version: 3
-  edition_match: edition_mismatch
-  notes: white/blue cover with trees; the creative shows the red and black brush-circle
-    edition. Open Library has no English cover for this title, so identity preservation
-    is NOT validated for it
+  licence_url: https://www.tiktok.com/shop/gb/pdp/1729839262236121327
+  added_in_suite_version: 4
+  edition_match: edition_match
+  notes: white cover, red and black brush enso, "THE 10 MILLION COPY BESTSELLER"
+    above and "ICHIRO KISHIMI and FUMITAKE KOGA" below - matches the creative.
+    Replaces the Open Library blue/trees cover, which was a different edition.
+    Photographed at a slight angle against a blurred shelf, not a flat scan
 - file: book-dont-believe.jpg
   role: product
   sha256: fc2ed29eab13eed3057f9b5b441fbdd59221984e99fdfab04713baa72760a908
@@ -41,16 +49,18 @@ assets:
   notes: white cover, single-line head illustration - matches the creative
 - file: book-let-them-theory.jpg
   role: product
-  sha256: a6eb7cfcd4cd123608efef828280d7aef42e1e547bfcf0f55469602c40f4a9d6
-  source: Open Library covers API, cover id 15165806
+  sha256: cb5fcb5db8917552a9c3ece66212515a0e88a2f49e5f13435dd243c0d60d3518
+  source: seller's TikTok Shop listing for this bundle, PDP 1729839262236121327,
+    gallery image 3, cropped to the front cover
   licence: publisher cover art, used for identification in a personal non-commercial
     test benchmark
-  licence_url: https://openlibrary.org/developers/api
-  added_in_suite_version: 3
-  edition_match: edition_mismatch
-  notes: Greek edition; the creative shows the English green cover. The Open Library
-    record is tagged English but serves the Greek cover art, so identity preservation
-    is NOT validated for it
+  licence_url: https://www.tiktok.com/shop/gb/pdp/1729839262236121327
+  added_in_suite_version: 4
+  edition_match: edition_match
+  notes: green cover with yellow speckle, "THE LET THEM THEORY" in white and
+    "Mel Robbins and Sawyer Robbins" below - matches the creative. Replaces the
+    Greek edition Open Library served. Isolated product shot, photographed at a
+    slight angle
 - file: book-psychology-of-money.jpg
   role: product
   sha256: 3e675b44d8f51234dbc2fc27d575faa0a26c6a712a4e32628c7b2a73570634bc

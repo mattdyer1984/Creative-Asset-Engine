@@ -59,6 +59,49 @@ The two disputes in Benchmark Review 001 remain **open and unchanged**.
 
 ---
 
+## v4 — 2026-07-26
+
+**case02_books: the two mismatched cover references replaced with the real
+editions, from the seller's own listing.**
+
+v3 shipped this case with three usable references out of five. Open Library
+served the wrong edition for two titles, and the manifest recorded both as
+`edition_mismatch`, so the harness deliberately withheld them. Identity
+preservation was therefore never validated for those two books.
+
+The owner supplied the TikTok Shop PDP for this exact bundle
+(`1729839262236121327`). Its gallery contains the physical products, and both
+missing covers were taken from it.
+
+| Title | v3 reference | v4 reference |
+|---|---|---|
+| The Let Them Theory | Greek edition (Open Library 15165806) | green cover, yellow speckle, "Mel Robbins and Sawyer Robbins" — listing gallery image 3, an isolated product shot |
+| The Courage to be Disliked | blue/trees cover (Open Library 10873626) | white cover, red and black brush enso, "ICHIRO KISHIMI and FUMITAKE KOGA" — listing gallery image 1 |
+
+**Evidence this was a genuine fixture defect, not score tuning.** Both
+replacements were already documented as wrong in the v3 manifest, before any
+score was measured against them. Independently, the tier-comparison run
+(`docs/phase_f/tier_comparison/`) produced *The Courage to be Disliked* in
+**blue** at both the Lite and high-quality tiers — matching the wrong
+reference rather than the creative, which shows the white brush-circle
+edition. The defect was visible in output before it was corrected in the
+fixture.
+
+**Approved by:** the owner, who supplied the listing URL for this purpose.
+
+**Known inconsistency, recorded rather than hidden:** the three Open Library
+references are flat cover scans; these two are photographs at a slight angle,
+one against a blurred shelf. Imagery from the listing being recreated is
+better evidence of visual identity than a scan of a different edition, but
+the two reference types are not like-for-like.
+
+**Effect on scores:** case02 identity validation moves from 3/5 titles
+validated to 5/5 attempted. Any case02 identity figure measured at v3 is a
+partial result and is **not** comparable to a v4 figure. Other cases are
+untouched and remain comparable.
+
+---
+
 ## v3 — 2026-07-26
 
 **Canonical Product References introduced, and one product case withdrawn.**
