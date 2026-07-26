@@ -31,11 +31,11 @@ creative_intent: education
 composition_contract:
   device: diagram-with-callout
   zones:
-    - role: text-zone
+    - role: text
       bounds: [0.04, 0.10, 0.45, 0.62]
-    - role: subject-zone
+    - role: subject
       bounds: [0.30, 0.18, 1.00, 1.00]
-    - role: callout-zone
+    - role: callout
       bounds: [0.34, 0.24, 0.52, 0.56]
     - role: negative-space
       bounds: [0.00, 0.62, 0.30, 1.00]

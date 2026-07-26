@@ -31,11 +31,11 @@ creative_intent: humour
 composition_contract:
   device: screen-in-scene
   zones:
-    - role: text-zone
+    - role: text
       bounds: [0.10, 0.09, 0.90, 0.15]
-    - role: subject-zone
+    - role: subject
       bounds: [0.08, 0.15, 0.92, 0.36]
-    - role: text-zone
+    - role: text
       bounds: [0.10, 0.36, 0.90, 0.46]
     - role: negative-space
       bounds: [0.00, 0.46, 1.00, 1.00]

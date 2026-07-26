@@ -127,10 +127,12 @@ from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.models.text_ownership_artifact import TextOwnershipArtifact
+from app.models.composition_contract import CompositionContractArtifact
 
 __all__ = [
     "CreativeProjectProfile",
     "TextOwnershipArtifact",
+    "CompositionContractArtifact",
     "Project",
     "ProviderCall",
     "ProjectProduct",

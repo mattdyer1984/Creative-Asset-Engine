@@ -23,13 +23,13 @@ creative_intent: demonstration
 composition_contract:
   device: scene-with-caption
   zones:
-    - role: text-zone
+    - role: text
       bounds: [0.14, 0.09, 0.86, 0.24]
-    - role: product-zone
+    - role: product
       bounds: [0.52, 0.30, 0.80, 0.72]
-    - role: subject-zone
+    - role: subject
       bounds: [0.00, 0.28, 0.55, 0.85]
-    - role: text-zone
+    - role: text
       bounds: [0.12, 0.84, 0.88, 0.92]
   relations:
     - [caption, above, product]

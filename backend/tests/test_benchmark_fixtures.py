@@ -30,10 +30,17 @@ INTENTS = {
     "transformation", "humour", "social_proof", "demonstration", "product_reveal",
 }
 DEVICES = {
+    "unknown",
     "split-comparison", "grid-collage", "side-by-side-comparison", "product-hero",
     "scene-with-caption", "shelf-snapshot", "diagram-with-callout", "screen-in-scene",
 }
-ZONE_ROLES = {"text-zone", "subject-zone", "product-zone", "negative-space", "callout-zone"}
+# Package B closed vocabulary (app/services/composition_schema.py). Kept in
+# sync deliberately: the fixtures are the specification the schema must
+# express, so a divergence here is a real disagreement, not a typo.
+ZONE_ROLES = {
+    "text", "caption", "subject", "product", "callout",
+    "negative-space", "screen", "price", "graphic",
+}
 RELATIONS = {
     "above", "below", "left-of", "right-of", "attached-to", "points-to",
     "splits", "flanks", "contains",

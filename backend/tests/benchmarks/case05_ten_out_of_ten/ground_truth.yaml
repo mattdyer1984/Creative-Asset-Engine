@@ -19,15 +19,15 @@ creative_intent: aspiration
 composition_contract:
   device: grid-collage
   zones:
-    - role: subject-zone
+    - role: subject
       bounds: [0.00, 0.00, 0.50, 0.50]
-    - role: subject-zone
+    - role: subject
       bounds: [0.50, 0.00, 1.00, 0.50]
-    - role: subject-zone
+    - role: subject
       bounds: [0.00, 0.50, 0.50, 1.00]
-    - role: subject-zone
+    - role: subject
       bounds: [0.50, 0.50, 1.00, 1.00]
-    - role: text-zone
+    - role: text
       bounds: [0.05, 0.40, 0.95, 0.60]
   relations:
     - [headline, above, subheadline]
