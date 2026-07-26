@@ -33,6 +33,19 @@ from enum import StrEnum
 from pathlib import Path
 
 
+class FontResolutionError(RuntimeError):
+    """Base for font problems. Never swallowed into a silent substitution."""
+
+
+class UnmappedFontToken(FontResolutionError):
+    """No logical token covers this style - a gap in the token table."""
+
+
+class UnavailableFontToken(FontResolutionError):
+    """The token is mapped but no face for it exists on this host."""
+
+
+
 class FamilyClass(StrEnum):
     SERIF = "serif"
     GROTESQUE = "grotesque"
@@ -49,58 +62,72 @@ class CapabilityLevel(StrEnum):
     L3 = "L3"
 
 
-# Curated faces, mapped by family class. Every entry is a system face present
-# on macOS; licensing is checked per face before anything is added here.
-# `index` selects a face out of a .ttc collection.
-_FACES: dict[FamilyClass, list[tuple[str, int]]] = {
-    FamilyClass.SERIF: [
+# --- Logical font tokens -------------------------------------------------
+#
+# The renderer asks for a TOKEN, never for a host font by name. "Georgia"
+# existing is an accident of this machine; `serif_editorial_regular` is a
+# design intent that survives a move to Linux or a container. The mapping
+# below is the local development binding and is expected to be replaced by
+# packaged, licence-cleared assets - see FONT_PORTABILITY.md.
+#
+# Every dependency here is documented, and an unavailable token raises or
+# warns rather than degrading silently. Silently falling back to the caption
+# face is precisely the defect this whole subsystem replaces.
+
+FontToken = str
+
+#: token -> ordered candidate (path, ttc index) pairs, most preferred first.
+FONT_TOKENS: dict[FontToken, list[tuple[str, int]]] = {
+    "serif_editorial_regular": [
         ("/System/Library/Fonts/Supplemental/Georgia.ttf", 0),
         ("/System/Library/Fonts/Palatino.ttc", 0),
         ("/System/Library/Fonts/Times.ttc", 0),
     ],
-    FamilyClass.GROTESQUE: [
-        ("/System/Library/Fonts/HelveticaNeue.ttc", 0),
-        ("/System/Library/Fonts/Helvetica.ttc", 0),
-    ],
-    FamilyClass.GEOMETRIC_SANS: [
-        ("/System/Library/Fonts/Avenir Next.ttc", 0),
-        ("/System/Library/Fonts/Avenir.ttc", 0),
-    ],
-    FamilyClass.CONDENSED_SANS: [
-        ("/System/Library/Fonts/Avenir Next Condensed.ttc", 0),
-        ("/System/Library/Fonts/HelveticaNeue.ttc", 0),
-    ],
-    FamilyClass.SLAB: [
-        ("/System/Library/Fonts/Supplemental/Georgia.ttf", 0),
-        ("/System/Library/Fonts/Palatino.ttc", 0),
-    ],
-    FamilyClass.SCRIPT: [
-        ("/System/Library/Fonts/Supplemental/SnellRoundhand.ttc", 0),
-        ("/System/Library/Fonts/Supplemental/Georgia.ttf", 0),
-    ],
-    FamilyClass.DISPLAY: [
-        ("/System/Library/Fonts/Supplemental/Impact.ttf", 0),
-        ("/System/Library/Fonts/HelveticaNeue.ttc", 0),
-    ],
-}
-
-# Bold and italic variants, where the system provides a real face rather than
-# a synthetic slant. A real italic matters for benchmark 4, whose subhead is
-# the emphasis in the hierarchy.
-_VARIANTS: dict[tuple[FamilyClass, str], list[tuple[str, int]]] = {
-    (FamilyClass.SERIF, "italic"): [
+    "serif_editorial_italic": [
         ("/System/Library/Fonts/Supplemental/Georgia Italic.ttf", 0),
         ("/System/Library/Fonts/Times.ttc", 1),
     ],
-    (FamilyClass.SERIF, "bold"): [
+    "serif_editorial_bold": [
         ("/System/Library/Fonts/Supplemental/Georgia Bold.ttf", 0),
         ("/System/Library/Fonts/Times.ttc", 2),
     ],
-    (FamilyClass.GROTESQUE, "bold"): [("/System/Library/Fonts/HelveticaNeue.ttc", 1)],
-    (FamilyClass.GEOMETRIC_SANS, "bold"): [("/System/Library/Fonts/Avenir Next.ttc", 1)],
-    (FamilyClass.CONDENSED_SANS, "bold"): [
-        ("/System/Library/Fonts/Avenir Next Condensed.ttc", 1)
+    "grotesque_regular": [
+        ("/System/Library/Fonts/HelveticaNeue.ttc", 0),
+        ("/System/Library/Fonts/Helvetica.ttc", 0),
     ],
+    "grotesque_bold": [("/System/Library/Fonts/HelveticaNeue.ttc", 1)],
+    "geometric_sans_regular": [
+        ("/System/Library/Fonts/Avenir Next.ttc", 0),
+        ("/System/Library/Fonts/Avenir.ttc", 0),
+    ],
+    "geometric_sans_bold": [("/System/Library/Fonts/Avenir Next.ttc", 1)],
+    "condensed_display_regular": [("/System/Library/Fonts/Avenir Next Condensed.ttc", 0)],
+    "condensed_display_bold": [("/System/Library/Fonts/Avenir Next Condensed.ttc", 1)],
+    "slab_regular": [
+        ("/System/Library/Fonts/Supplemental/Georgia.ttf", 0),
+        ("/System/Library/Fonts/Palatino.ttc", 0),
+    ],
+    "script_regular": [("/System/Library/Fonts/Supplemental/SnellRoundhand.ttc", 0)],
+    "display_regular": [("/System/Library/Fonts/Supplemental/Impact.ttf", 0)],
+}
+
+#: (family class, weight, italic) -> token. The renderer never sees a path.
+_TOKEN_FOR: dict[tuple[str, str, bool], FontToken] = {
+    ("serif", "regular", False): "serif_editorial_regular",
+    ("serif", "regular", True): "serif_editorial_italic",
+    ("serif", "bold", False): "serif_editorial_bold",
+    ("serif", "bold", True): "serif_editorial_italic",
+    ("slab", "regular", False): "slab_regular",
+    ("slab", "bold", False): "slab_regular",
+    ("grotesque", "regular", False): "grotesque_regular",
+    ("grotesque", "bold", False): "grotesque_bold",
+    ("geometric-sans", "regular", False): "geometric_sans_regular",
+    ("geometric-sans", "bold", False): "geometric_sans_bold",
+    ("condensed-sans", "regular", False): "condensed_display_regular",
+    ("condensed-sans", "bold", False): "condensed_display_bold",
+    ("script", "regular", False): "script_regular",
+    ("display", "regular", False): "display_regular",
+    ("display", "bold", False): "display_regular",
 }
 
 # Named colour roles resolved to RGB. The extractor reports role names rather
@@ -160,36 +187,64 @@ def resolve_colour(role: str) -> tuple[int, int, int]:
     return _COLOUR_ROLES.get(role, _COLOUR_ROLES["near-black"])
 
 
-def resolve_face(family: FamilyClass, weight: str = "regular", italic: bool = False):
+def token_for(family: FamilyClass, weight: str = "regular", italic: bool = False) -> FontToken:
     """
-    The nearest available face for a family class.
+    The logical token for a style. Degrades within the family (a bold serif
+    with no bold face falls back to the regular serif), never across it.
+    """
+    for candidate in (
+        (str(family), weight, italic),
+        (str(family), weight, False),
+        (str(family), "regular", italic),
+        (str(family), "regular", False),
+    ):
+        token = _TOKEN_FOR.get(candidate)
+        if token:
+            return token
+    raise UnmappedFontToken(
+        f"no logical font token maps {family}/{weight}{'/italic' if italic else ''}"
+    )
 
-    Returns `(path, index)`. Never silently falls back to the caption face:
-    if a family has no entry the request degrades within the same broad
-    category, and only an entirely unknown family reaches the grotesque
-    default. Callers can therefore trust that asking for a serif yields a
-    serif.
+
+def resolve_token(token: FontToken) -> tuple[str, int]:
     """
-    if italic:
-        for path, index in _VARIANTS.get((family, "italic"), []):
-            if Path(path).exists():
-                return path, index
-    if weight == "bold":
-        for path, index in _VARIANTS.get((family, "bold"), []):
-            if Path(path).exists():
-                return path, index
-    for path, index in _FACES.get(family, []):
+    A token to a concrete face on this machine.
+
+    Raises rather than substituting. There is no fallback to the caption
+    face: a serif silently rendered in bold Helvetica is the exact defect
+    this subsystem exists to remove, and a loud failure is recoverable
+    where a silent one is not.
+    """
+    for path, index in FONT_TOKENS.get(token, []):
         if Path(path).exists():
             return path, index
-    for path, index in _FACES[FamilyClass.GROTESQUE]:
-        if Path(path).exists():
-            return path, index
-    raise RuntimeError("no usable system typeface found")
+    raise UnavailableFontToken(
+        f"font token {token!r} has no available face on this host. "
+        f"Candidates: {[p for p, _ in FONT_TOKENS.get(token, [])]}. "
+        "See FONT_PORTABILITY.md - packaged assets are required for deployment."
+    )
+
+
+def resolve_face(family: FamilyClass, weight: str = "regular", italic: bool = False):
+    """Convenience: style attributes straight through to a concrete face."""
+    return resolve_token(token_for(family, weight, italic))
+
+
+def font_availability() -> dict[FontToken, bool]:
+    """Which tokens resolve on this host - for diagnostics and startup checks."""
+    return {
+        token: any(Path(path).exists() for path, _ in candidates)
+        for token, candidates in FONT_TOKENS.items()
+    }
 
 
 def available_families() -> dict[FamilyClass, bool]:
-    """Which family classes actually resolve on this machine - for diagnostics."""
+    """Which family classes resolve on this host, via their tokens."""
     result = {}
     for family in FamilyClass:
-        result[family] = any(Path(path).exists() for path, _ in _FACES.get(family, []))
+        try:
+            resolve_face(family)
+            result[family] = True
+        except (UnmappedFontToken, UnavailableFontToken):
+            result[family] = False
     return result

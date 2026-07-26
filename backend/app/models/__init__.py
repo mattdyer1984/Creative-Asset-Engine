@@ -93,6 +93,7 @@ training signal. GenerationAttempt.generation_log_id (nullable,
 additive) links attempts back to the call that produced them.
 """
 
+from app.models.creative_project_profile import CreativeProjectProfile
 from app.models.analysis_run import AnalysisRun
 from app.models.app_setting import AppSetting
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
@@ -127,6 +128,7 @@ from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 
 __all__ = [
+    "CreativeProjectProfile",
     "Project",
     "ProviderCall",
     "ProjectProduct",

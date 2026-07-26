@@ -471,7 +471,24 @@ guesses.
 - **Validation** Case 4 renders a red numeral, black serif headline, red italic subhead, red-bulleted list and correct rule, scored against the original. **This is the programme gate (§17).**
 - **Rollback** Revert; previous renderer intact. **Complexity** L. **Dependencies** WP-1.2, WP-1.3.
 
-#### WP-1.5 Text-zone reservation and fallback hierarchy
+#### WP-1.5A Live typography pipeline integration
+- **Purpose** Wire the proven renderer into generation. Split from zone
+  reservation deliberately: we must be able to prove the renderer is
+  correctly wired before debugging whether the provider leaves clean zones.
+- **Data model** `final_outputs.render_manifest_json`, `typography_system_id`.
+- **Pipeline** Load the current profile; route designed typography to the L1
+  renderer; keep platform captions on the caption path; leave product-native
+  and environmental text with the image; persist the render manifest; assert
+  no block is owned twice.
+- **UI** Render manifest inspectable.
+- **Migration** Additive nullable.
+- **Benchmarks** Case 4 end to end.
+- **Validation** Case 4 renders with its own typography through the live
+  pipeline; no text appears twice; the manifest accounts for every block.
+- **Rollback** Revert; previous renderer intact behind the flag.
+- **Complexity** M. **Dependencies** WP-1.1, WP-1.4.
+
+#### WP-1.5B Text-zone reservation and fallback hierarchy
 - **Purpose** Clean zones for deterministic typography.
 - **Data model** None (proper zones arrive in WP-2.2; interim uses OCR boxes).
 - **Pipeline** Compiler emits explicit empty-zone geometry; fallback order per §11.
@@ -479,7 +496,7 @@ guesses.
 - **Migration** None.
 - **Benchmarks** 4, 6, 7.
 - **Validation** Reserved-zone occupancy below threshold across three runs per case; fallback ladder exercised in order, with level 4 reached only when 1–3 fail.
-- **Rollback** Revert. **Complexity** M. **Dependencies** WP-1.4.
+- **Rollback** Revert. **Complexity** M. **Dependencies** WP-1.5A.
 
 #### WP-1.6 Overlay controls
 - **Purpose** Overlay text belongs to the user.
@@ -598,8 +615,15 @@ Status moves **Proposed → Accepted** only when all four pass:
 3. ✅ **PASSED** — deterministic L1 typography reaches benchmark quality on
    case 4. Visual proof:
    `backend/tests/benchmarks/case04_posture/typography_gate.jpg`.
-4. ⏳ **PENDING** — no schema change has been made yet. WP-1.1 introduces the
-   first (`creative_project_profiles`); this gate is assessed then.
+4. ✅ **PASSED** — `creative_project_profiles` migration (`15f13187c820`)
+   round-tripped on a copy of the 3.7 MB development database (45 slideshows,
+   120 slides, 638 analysis runs, 94 generated images, 367 provider calls).
+   Upgrade 634 ms, downgrade 424 ms, re-upgrade 425 ms. `integrity_check` ok
+   at every step; row counts unchanged; the 9 pre-existing FK orphans neither
+   grew nor shrank. The application was exercised against the downgraded
+   schema — ORM reads, timing report and three API endpoints all normal.
+
+**All four gates pass. This ADR is ready to move to Accepted.**
 
 Gate 3 is the programme's premise. If deterministic L1 typography does not look
 right on case 4, Phase 1's foundation is wrong and the roadmap must be revised
@@ -633,7 +657,7 @@ before further investment.
 | Deterministic typography looks wrong despite correct extraction | WP-1.4 | Prototype case 4 end-to-end before building 1.5/1.6 — this is gate 3 |
 | Character drift across slides | WP-3.5 | Multiple reference angles; degrade honestly rather than fail |
 | Model will not leave zones clean | WP-1.5 | Measured occupancy; strict fallback ladder (§11) |
-| Font licensing | WP-1.3 | Licence check per face before adoption |
+| Font licensing and host dependency | WP-1.3 | See `docs/FONT_PORTABILITY.md` — logical tokens are in place; vendored open-licence faces required before deployment |
 | Profile becomes a large analysis layer that does not move quality | WP-3.1 | Phase 0 harness proves value per package |
 | Project-level analysis cost at volume | WP-3.1 | Profile is one slideshow-scoped call; measure against the existing spend cap |
 
