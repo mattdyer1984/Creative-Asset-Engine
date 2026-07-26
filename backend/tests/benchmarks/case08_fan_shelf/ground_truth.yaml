@@ -74,34 +74,3 @@ human_rationale: >
   retail context is required, the specific shop is not.
 
 known_ambiguity: null
-
-# Product annotation (suite v2). Governed human-assisted review:
-# reviewer=Matt Dyer (via Claude, reviewed against evidence overlays)
-# date=2026-07-26  provenance=0 region(s) from measured candidates, 1 drawn by the reviewer against the overlay
-# evidence=docs/benchmark_review/annotations/case08_fan_shelf_annotation.png
-product:
-  name: "boxed 16in pedestal fan"
-  appearance_bounds: [0.226, 0.115, 0.843, 0.798]
-  instance_count: 1
-  regions:
-    - id: front-package
-      bounds: [0.226, 0.115, 0.843, 0.798]
-      method: reviewer_drawn
-  expected_lock_fields:
-    - product_category
-    - product_type
-    - packaging
-    - colors
-  immutable_characteristics:
-    - "boxed pedestal fan, front-facing retail packaging"
-    - "cream upper panel with a green lower panel and a fan illustration"
-  reference_crops:
-    - id: primary
-      bounds: [0.226, 0.115, 0.843, 0.798]
-  generation_expectations:
-    product_native_text_owner: "image"
-    product_native_text_strategy: "product_lock"
-    scene_text_not_product_locked:
-      - "\u00a330"
-      - "when ur paying \u00a330"
-      - "for this..."

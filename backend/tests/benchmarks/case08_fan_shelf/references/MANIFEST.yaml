@@ -1,6 +1,0 @@
-# Canonical Product References for case08_fan_shelf.
-# See ../../REFERENCES.md for the acceptance criteria and manifest format.
-#
-# EMPTY: no asset has been sourced yet. Every entry needs a real checksum and
-# a stateable licence before it may be committed.
-assets: []

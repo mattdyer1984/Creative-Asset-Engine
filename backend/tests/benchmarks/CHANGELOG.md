@@ -56,3 +56,53 @@ reviewer, date and evidence overlays are in
 | case08_fan_shelf | 1 | 1 drawn (segmentation merged it with the shelf and neighbours) |
 
 The two disputes in Benchmark Review 001 remain **open and unchanged**.
+
+---
+
+## v3 — 2026-07-26
+
+**Canonical Product References introduced, and one product case withdrawn.**
+
+### case08_fan_shelf: product block REMOVED
+
+The owner confirmed the pedestal fan is incidental scene context - *"it
+wasn't the product in question, it was irrelevant, it could have been
+replaced with anything"*. The v2 annotation was wrong: it treated a prop as
+the product. case08 becomes a negative control, joining case01, case04,
+case05 and case07.
+
+This is a **correction**, not a relaxation. Product Isolation must not find a
+product here, and that is now the expectation.
+
+### case02_books: five canonical references added
+
+The books are the actual products in the creative's listing. Covers sourced
+from the Open Library covers API, checksummed and manifested.
+
+| Asset | Edition |
+|---|---|
+| book-atomic-habits | **matches** the creative |
+| book-psychology-of-money | **matches** the creative |
+| book-dont-believe | **matches** the creative (2022 edition, white cover) |
+| book-courage-disliked | mismatch - creative shows the red brush-circle edition; Open Library has no English cover |
+| book-let-them-theory | mismatch - the record is tagged English but serves Greek cover art |
+
+Two are different editions, recorded as `edition_mismatch`. A different cover
+is a different visual identity, so those two exercise the reference pipeline
+**without** validating identity preservation for their titles. Three do both.
+
+Both mismatches are Open Library coverage gaps rather than sourcing errors -
+the correct covers are readily findable elsewhere, so these two are worth
+replacing when convenient.
+
+### Not supplied
+
+- **case03_mini_ac** - the product is out of stock and no clean imagery could
+  be obtained. No reference assets; generation remains unvalidated for it.
+- **case06_meal_prep** - not attempted.
+
+### Comparability
+
+v1 and v2 analysis metrics are unaffected: no analysis expectation changed.
+case08's product metrics from v2 are **withdrawn**, not restated - they
+measured an annotation now known to be wrong.

@@ -236,7 +236,10 @@ def test_the_changelog_covers_the_current_version():
 
 # --- product annotation (suite v2) ----------------------------------------
 
-PRODUCT_CASES = {"case02_books", "case03_mini_ac", "case06_meal_prep", "case08_fan_shelf"}
+#: case08 was removed in v3: the owner confirmed the pedestal fan is
+#: incidental scene context - "it could have been replaced with anything" -
+#: so it is a negative control, not a product case.
+PRODUCT_CASES = {"case02_books", "case03_mini_ac", "case06_meal_prep"}
 ANNOTATION_METHODS = {"candidate_selection", "reviewer_drawn"}
 
 

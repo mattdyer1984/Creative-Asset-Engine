@@ -1,6 +1,63 @@
 # Canonical Product References for case02_books.
-# See ../../REFERENCES.md for the acceptance criteria and manifest format.
+# See ../../REFERENCES.md for acceptance criteria.
 #
-# EMPTY: no asset has been sourced yet. Every entry needs a real checksum and
-# a stateable licence before it may be committed.
-assets: []
+# The books ARE the products in this creative's listing. Three covers
+# match the editions shown; two are different editions and are marked
+# edition_mismatch. A different cover is a different visual identity, so
+# those two exercise the reference pipeline WITHOUT validating identity
+# preservation for their titles.
+assets:
+- file: book-atomic-habits.jpg
+  role: product
+  sha256: dd5f09952fcb228f224f00fd73a3c022cf31a4653f02e07d4a70953f7224b752
+  source: Open Library covers API, cover id 12539702
+  licence: publisher cover art, used for identification in a personal non-commercial
+    test benchmark
+  licence_url: https://openlibrary.org/developers/api
+  added_in_suite_version: 3
+  edition_match: edition_match
+  notes: cream cover, gradient dot lettering - matches the creative
+- file: book-courage-disliked.jpg
+  role: product
+  sha256: c9b7e9d26180da633ef794182761af99ccb95eb38fa1cc1327ef3283e1de3d11
+  source: Open Library covers API, cover id 10873626
+  licence: publisher cover art, used for identification in a personal non-commercial
+    test benchmark
+  licence_url: https://openlibrary.org/developers/api
+  added_in_suite_version: 3
+  edition_match: edition_mismatch
+  notes: white/blue cover with trees; the creative shows the red and black brush-circle
+    edition. Open Library has no English cover for this title, so identity preservation
+    is NOT validated for it
+- file: book-dont-believe.jpg
+  role: product
+  sha256: fc2ed29eab13eed3057f9b5b441fbdd59221984e99fdfab04713baa72760a908
+  source: Open Library covers API, cover id 14833784
+  licence: publisher cover art, used for identification in a personal non-commercial
+    test benchmark
+  licence_url: https://openlibrary.org/developers/api
+  added_in_suite_version: 3
+  edition_match: edition_match
+  notes: white cover, single-line head illustration - matches the creative
+- file: book-let-them-theory.jpg
+  role: product
+  sha256: a6eb7cfcd4cd123608efef828280d7aef42e1e547bfcf0f55469602c40f4a9d6
+  source: Open Library covers API, cover id 15165806
+  licence: publisher cover art, used for identification in a personal non-commercial
+    test benchmark
+  licence_url: https://openlibrary.org/developers/api
+  added_in_suite_version: 3
+  edition_match: edition_mismatch
+  notes: Greek edition; the creative shows the English green cover. The Open Library
+    record is tagged English but serves the Greek cover art, so identity preservation
+    is NOT validated for it
+- file: book-psychology-of-money.jpg
+  role: product
+  sha256: 3e675b44d8f51234dbc2fc27d575faa0a26c6a712a4e32628c7b2a73570634bc
+  source: Open Library covers API, cover id 10389354
+  licence: publisher cover art, used for identification in a personal non-commercial
+    test benchmark
+  licence_url: https://openlibrary.org/developers/api
+  added_in_suite_version: 3
+  edition_match: edition_match
+  notes: white cover, brain illustration - matches the creative
