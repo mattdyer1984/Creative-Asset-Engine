@@ -80,6 +80,7 @@ from sqlalchemy.orm import Session
 
 from app import storage
 from app.ai_providers.config import get_image_generation_concurrency
+from app.ai_providers.failover import generate_with_failover
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
@@ -284,23 +285,21 @@ def _generate_candidates(
     ]
 
     fallback_provider = default_registry.image_generation_fallback()
+    high_quality_provider = default_registry.image_generation_high_quality()
 
     def _generate(_candidate_index: int):
         start = time.perf_counter()
-        try:
-            result = image_provider.generate_image(request)
-        except Exception:
-            if fallback_provider is None:
-                raise
-            logger.warning(
-                "Image generation failed on primary provider %s, retrying with fallback %s",
-                image_provider.provider,
-                fallback_provider.provider,
-                exc_info=True,
-            )
-            result = fallback_provider.generate_image(request)
+        # Exhaust the primary path before reaching for another provider. The
+        # previous version fell back on ANY exception with no retry, which
+        # made GPT Image the effective default after one transient 503 - and
+        # hid genuine integration defects behind a successful image.
+        result, failover = generate_with_failover(
+            request, image_provider,
+            fallback=fallback_provider,
+            high_quality=high_quality_provider,
+        )
         provider_call_ms = (time.perf_counter() - start) * 1000
-        return result, provider_call_ms
+        return result, provider_call_ms, failover
 
     call_results = run_concurrently(
         list(range(candidate_count)), _generate, max_workers=get_image_generation_concurrency()
@@ -312,7 +311,11 @@ def _generate_candidates(
         if isinstance(outcome, Exception):
             mark_failed(db, analysis_run, outcome, rollback=True)
             continue
-        result, provider_call_ms = outcome
+        result, provider_call_ms, failover = outcome
+        if failover.used_fallback or failover.attempts > 1:
+            logger.info(
+                "candidate %d provider path: %s", candidate_index, failover.as_dict()
+            )
 
         try:
             generated_image = GeneratedImage(

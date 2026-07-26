@@ -494,6 +494,15 @@ class FakeAIProviderRegistry:
         """Mirrors AIProviderRegistry.image_generation_fallback's real signature - see MIGRATION_PLAN.md."""
         return self._image_generation_fallback_provider
 
+    def image_generation_high_quality(self) -> FakeImageGenerationProvider | None:
+        """
+        Mirrors the real registry's escalation step. None by default: the
+        provider-routing audit made escalation-within-the-primary-provider a
+        real rung on the ladder, and a fake that always offered one would
+        hide the fallback path these tests exist to exercise.
+        """
+        return getattr(self, "_image_generation_high_quality_provider", None)
+
 
 def patch_pipeline_registries(monkeypatch, **per_module):
     """

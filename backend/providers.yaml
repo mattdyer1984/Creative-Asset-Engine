@@ -10,6 +10,30 @@
 # (get_api_key) for how credentials are resolved (macOS Keychain, with an
 # environment variable fallback for local development).
 
+# ---------------------------------------------------------------------------
+# ROLE-BASED ROUTING (provider-routing audit).
+#
+# The capability map below says which adapter serves each technical
+# capability. This section says WHY - the role each provider plays - so the
+# intended architecture is stated in one place rather than inferred from
+# which call sites happen to pass an override.
+#
+# Roles are resolved by app/ai_providers/routing.py, which fails loudly on an
+# unknown provider or role rather than silently substituting a default.
+routing:
+  # Multimodal analysis and visual understanding. Cheaper, and adequate.
+  visual_analysis_provider: gemini
+  # Strict structured output, adjudication, reconciliation, compilation.
+  structured_reasoning_provider: openai
+  # Image generation.
+  primary_image_provider: nano_banana
+  high_quality_image_provider: nano_banana
+  fallback_image_provider: openai
+  # Post-generation visual checks.
+  visual_validation_provider: gemini
+  # Final policy adjudication, alongside local deterministic rules.
+  policy_validation_provider: openai
+
 providers:
   # Real-world-driven cost/quality change (see MIGRATION_PLAN.md): OCR,
   # Product Lock Profile, and Creative Fingerprint moved to Gemini -

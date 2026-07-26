@@ -124,6 +124,9 @@ class AIProviderRegistry:
         )
         self._models_config = models_config
         self._image_generation_fallback_name = providers_config.image_generation_fallback
+        self._image_generation_high_quality_model = getattr(
+            providers_config, "image_generation_high_quality_model", None
+        )
         self._ocr_fallback_name = providers_config.ocr_fallback
 
     @staticmethod
@@ -183,6 +186,22 @@ class AIProviderRegistry:
         if provider_name == self._vision.provider:
             return None
         return self._vision
+
+    def image_generation_high_quality(self):
+        """
+        The higher-quality model of the PRIMARY image provider, or None.
+
+        Escalating within the primary provider before leaving it is what
+        keeps the emergency fallback emergency-only. Configured as
+        `image_generation_high_quality_model` in providers.yaml; None means
+        no escalation step exists and the ladder goes straight from retries
+        to the fallback provider.
+        """
+        model = self._image_generation_high_quality_model
+        if not model or model == self._image_generation.model:
+            return None
+        provider_name = self._image_generation.provider
+        return IMAGE_GENERATION_ADAPTERS[provider_name](model=model, provider=provider_name)
 
     def text_generation(self) -> TextGenerationProvider:
         return self._text_generation
