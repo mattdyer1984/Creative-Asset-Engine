@@ -232,3 +232,106 @@ def test_the_changelog_covers_the_current_version():
     assert f"## v{version}" in changelog, (
         f"suite v{version} has no CHANGELOG entry - see docs/BENCHMARK_GOVERNANCE.md"
     )
+
+
+# --- product annotation (suite v2) ----------------------------------------
+
+PRODUCT_CASES = {"case02_books", "case03_mini_ac", "case06_meal_prep", "case08_fan_shelf"}
+ANNOTATION_METHODS = {"candidate_selection", "reviewer_drawn"}
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_only_the_four_product_cases_declare_a_product(case):
+    """
+    The absence is an expectation. Product Isolation inventing a product in a
+    weather-TV scene or a posture diagram is a real failure, and these four
+    cases are the negative control that catches it.
+    """
+    has_product = "product" in _load(case)
+    assert has_product == (case.name in PRODUCT_CASES), (
+        f"{case.name}: product block presence does not match the approved set"
+    )
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_the_product_block_is_fully_specified(case):
+    product = _load(BENCHMARKS / case)["product"]
+    assert product["name"].strip()
+
+    bounds = product["appearance_bounds"]
+    assert len(bounds) == 4
+    assert all(0.0 <= v <= 1.0 for v in bounds), "bounds are normalised"
+    assert bounds[0] < bounds[2] and bounds[1] < bounds[3]
+
+    assert product["instance_count"] >= 1
+    assert len(product["regions"]) == product["instance_count"], (
+        "instance_count must be supported by a region per instance - the field "
+        "exists to catch isolation finding one of five books and calling it "
+        "the product"
+    )
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_every_region_records_how_it_was_obtained(case):
+    """
+    Provenance is what makes the annotation governed. A mixed-provenance
+    block must be visible rather than implied.
+    """
+    for region in _load(BENCHMARKS / case)["product"]["regions"]:
+        assert region["method"] in ANNOTATION_METHODS, region
+        rb = region["bounds"]
+        assert rb[0] < rb[2] and rb[1] < rb[3]
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_appearance_bounds_enclose_every_region(case):
+    product = _load(BENCHMARKS / case)["product"]
+    x0, y0, x1, y1 = product["appearance_bounds"]
+    for region in product["regions"]:
+        rx0, ry0, rx1, ry1 = region["bounds"]
+        assert x0 <= rx0 and y0 <= ry0 and x1 >= rx1 and y1 >= ry1, (
+            f"{region['id']} falls outside appearance_bounds"
+        )
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_generation_expectations_use_the_real_vocabularies(case):
+    from app.services.text_ownership import ImageStrategy, Owner
+
+    expectations = _load(BENCHMARKS / case)["product"]["generation_expectations"]
+    assert expectations["product_native_text_owner"] in {str(o) for o in Owner}
+    assert expectations["product_native_text_strategy"] in {str(s) for s in ImageStrategy}
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_scene_text_cross_checks_against_the_text_blocks(case):
+    """
+    A scene-text entry that no text block mentions would let the two
+    annotations drift apart silently.
+    """
+    data = _load(BENCHMARKS / case)
+    blocks = " ".join(b["text"].lower() for b in data["text_blocks"])
+    for text in data["product"]["generation_expectations"]["scene_text_not_product_locked"]:
+        # Substring match on the whole phrase: OCR splits and re-joins lines,
+        # and a per-word test with a length filter silently passes short
+        # entries like "vs" that it never actually checked.
+        assert text.lower() in blocks, f"{case}: {text!r} appears in no text block"
+
+
+@pytest.mark.parametrize("case", sorted(PRODUCT_CASES))
+def test_expected_lock_fields_are_real_profile_fields(case):
+    """
+    Lock Profile fields live inside `structured_json`, not as columns, so
+    they are checked against the schema the stage actually requests. A
+    fixture naming a field the stage never produces would assert something
+    unachievable.
+    """
+    from app.slideshow_stages.product_lock_profile_stage import (
+        PRODUCT_LOCK_PROFILE_SCHEMA,
+    )
+
+    known = set(PRODUCT_LOCK_PROFILE_SCHEMA["properties"])
+    for field in _load(BENCHMARKS / case)["product"]["expected_lock_fields"]:
+        assert field in known, (
+            f"{field!r} is not produced by the Product Lock Profile stage"
+        )

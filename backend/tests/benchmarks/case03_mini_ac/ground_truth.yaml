@@ -73,3 +73,31 @@ human_rationale: >
   product's position, scale and eye-level framing identical.
 
 known_ambiguity: null
+
+# Product annotation (suite v2). Governed human-assisted review:
+# reviewer=Matt Dyer (via Claude, reviewed against evidence overlays)
+# date=2026-07-26  provenance=1 region(s) from measured candidates, 0 drawn by the reviewer against the overlay
+# evidence=docs/benchmark_review/annotations/case03_mini_ac_annotation.png
+product:
+  name: "portable mini air-conditioning unit"
+  appearance_bounds: [0.616, 0.389, 0.791, 0.67]
+  instance_count: 1
+  regions:
+    - id: ac-unit
+      bounds: [0.616, 0.389, 0.791, 0.67]
+      method: candidate_selection
+  expected_lock_fields:
+    - product_category
+    - product_type
+    - colors
+  immutable_characteristics:
+    - "upright tower air-conditioning unit"
+    - "white body with a black display panel showing a numeric readout"
+  reference_crops:
+    - id: primary
+      bounds: [0.616, 0.389, 0.791, 0.67]
+  generation_expectations:
+    product_native_text_owner: "image"
+    product_native_text_strategy: "product_lock"
+    scene_text_not_product_locked:
+      []

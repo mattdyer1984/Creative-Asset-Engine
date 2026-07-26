@@ -90,3 +90,36 @@ known_ambiguity: >
   The original pairs "japanese meal prep" with a South Korean flag and the
   recreation with a Chinese flag. Whether the flag is meaningful or incidental
   cannot be inferred, so it is not recorded as an invariant.
+
+# Product annotation (suite v2). Governed human-assisted review:
+# reviewer=Matt Dyer (via Claude, reviewed against evidence overlays)
+# date=2026-07-26  provenance=0 region(s) from measured candidates, 2 drawn by the reviewer against the overlay
+# evidence=docs/benchmark_review/annotations/case06_meal_prep_annotation.png
+product:
+  name: "two stacks of meal-prep containers"
+  appearance_bounds: [0.07, 0.355, 0.926, 0.856]
+  instance_count: 2
+  regions:
+    - id: left-stack
+      bounds: [0.07, 0.355, 0.47, 0.856]
+      method: reviewer_drawn
+    - id: right-stack
+      bounds: [0.505, 0.362, 0.926, 0.845]
+      method: reviewer_drawn
+  expected_lock_fields:
+    - product_category
+    - product_type
+    - materials
+  immutable_characteristics:
+    - "four stacked rectangular food containers per side"
+    - "left stack translucent plastic with clip lids; right stack glass with black clips"
+  reference_crops:
+    - id: primary
+      bounds: [0.07, 0.355, 0.926, 0.856]
+  generation_expectations:
+    product_native_text_owner: "image"
+    product_native_text_strategy: "product_lock"
+    scene_text_not_product_locked:
+      - "british meal prep"
+      - "japanese meal prep"
+      - "vs"

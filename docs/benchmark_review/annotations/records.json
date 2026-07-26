@@ -1,0 +1,249 @@
+{
+  "case03_mini_ac": {
+    "reviewer": "Matt Dyer (via Claude, reviewed against evidence overlays)",
+    "review_date": "2026-07-26",
+    "benchmark_version_at_review": 1,
+    "evidence_overlay": "docs/benchmark_review/annotations/case03_mini_ac_annotation.png",
+    "candidate_evidence": "docs/benchmark_review/segmentation/case03_mini_ac_overlay.png",
+    "name": "portable mini air-conditioning unit",
+    "appearance_bounds": [
+      0.616,
+      0.389,
+      0.791,
+      0.67
+    ],
+    "instance_count": 1,
+    "regions": [
+      {
+        "id": "ac-unit",
+        "bounds": [
+          0.616,
+          0.389,
+          0.791,
+          0.67
+        ],
+        "method": "candidate_selection",
+        "source": "segment_products candidate #0",
+        "note": "encloses the unit from the display panel to the base"
+      }
+    ],
+    "rejected_candidates": {
+      "#1": "subtitle caption",
+      "#2": "decorative cushion"
+    },
+    "provenance": "1 region(s) from measured candidates, 0 drawn by the reviewer against the overlay",
+    "expected_lock_fields": [
+      "product_category",
+      "product_type",
+      "colors"
+    ],
+    "immutable_characteristics": [
+      "upright tower air-conditioning unit",
+      "white body with a black display panel showing a numeric readout"
+    ],
+    "scene_text_not_product_locked": [],
+    "review_status": "approved"
+  },
+  "case02_books": {
+    "reviewer": "Matt Dyer (via Claude, reviewed against evidence overlays)",
+    "review_date": "2026-07-26",
+    "benchmark_version_at_review": 1,
+    "evidence_overlay": "docs/benchmark_review/annotations/case02_books_annotation.png",
+    "candidate_evidence": "docs/benchmark_review/segmentation/case02_books_overlay.png",
+    "name": "five paperback books",
+    "appearance_bounds": [
+      0.188,
+      0.298,
+      0.878,
+      0.808
+    ],
+    "instance_count": 5,
+    "regions": [
+      {
+        "id": "atomic-habits",
+        "bounds": [
+          0.188,
+          0.331,
+          0.388,
+          0.528
+        ],
+        "method": "candidate_selection",
+        "source": "candidate #2"
+      },
+      {
+        "id": "psychology-of-money",
+        "bounds": [
+          0.459,
+          0.31,
+          0.6,
+          0.477
+        ],
+        "method": "candidate_selection",
+        "source": "candidate #4"
+      },
+      {
+        "id": "let-them-theory",
+        "bounds": [
+          0.666,
+          0.298,
+          0.878,
+          0.526
+        ],
+        "method": "candidate_selection",
+        "source": "candidate #3"
+      },
+      {
+        "id": "courage-to-be-disliked",
+        "bounds": [
+          0.459,
+          0.54,
+          0.753,
+          0.728
+        ],
+        "method": "candidate_selection",
+        "source": "candidate #1"
+      },
+      {
+        "id": "dont-believe-everything",
+        "bounds": [
+          0.272,
+          0.545,
+          0.47,
+          0.808
+        ],
+        "method": "reviewer_drawn",
+        "note": "white cover on bright marble; no candidate survived Otsu and local-contrast normalisation returned the search region. Drawn against the overlay to the cover's visible edges"
+      }
+    ],
+    "rejected_candidates": {
+      "#0": "caption plate"
+    },
+    "provenance": "4 region(s) from measured candidates, 1 drawn by the reviewer against the overlay",
+    "expected_lock_fields": [
+      "product_category",
+      "product_type",
+      "labels_and_text"
+    ],
+    "immutable_characteristics": [
+      "five paperback books laid flat, three above and two below",
+      "cover titles and author names legible on each"
+    ],
+    "scene_text_not_product_locked": [
+      "All 5 books for the price of 1 right now"
+    ],
+    "review_status": "approved"
+  },
+  "case06_meal_prep": {
+    "reviewer": "Matt Dyer (via Claude, reviewed against evidence overlays)",
+    "review_date": "2026-07-26",
+    "benchmark_version_at_review": 1,
+    "evidence_overlay": "docs/benchmark_review/annotations/case06_meal_prep_annotation.png",
+    "candidate_evidence": "docs/benchmark_review/segmentation/case06_meal_prep_overlay.png",
+    "name": "two stacks of meal-prep containers",
+    "appearance_bounds": [
+      0.07,
+      0.355,
+      0.926,
+      0.856
+    ],
+    "instance_count": 2,
+    "regions": [
+      {
+        "id": "left-stack",
+        "bounds": [
+          0.07,
+          0.355,
+          0.47,
+          0.856
+        ],
+        "method": "reviewer_drawn",
+        "note": "translucent walls produce almost no gradient; segmentation found only the food inside. Drawn to the outer edges of the four stacked containers"
+      },
+      {
+        "id": "right-stack",
+        "bounds": [
+          0.505,
+          0.362,
+          0.926,
+          0.845
+        ],
+        "method": "reviewer_drawn",
+        "note": "as above; candidate #0 covered only the top two containers"
+      }
+    ],
+    "rejected_candidates": {
+      "#1": "kitchen background",
+      "#3": "window",
+      "#5": "window",
+      "#2": "food inside a container, not the container",
+      "#4": "food inside a container, not the container"
+    },
+    "provenance": "0 region(s) from measured candidates, 2 drawn by the reviewer against the overlay",
+    "expected_lock_fields": [
+      "product_category",
+      "product_type",
+      "materials"
+    ],
+    "immutable_characteristics": [
+      "four stacked rectangular food containers per side",
+      "left stack translucent plastic with clip lids; right stack glass with black clips"
+    ],
+    "scene_text_not_product_locked": [
+      "british meal prep",
+      "japanese meal prep",
+      "vs"
+    ],
+    "review_status": "approved"
+  },
+  "case08_fan_shelf": {
+    "reviewer": "Matt Dyer (via Claude, reviewed against evidence overlays)",
+    "review_date": "2026-07-26",
+    "benchmark_version_at_review": 1,
+    "evidence_overlay": "docs/benchmark_review/annotations/case08_fan_shelf_annotation.png",
+    "candidate_evidence": "docs/benchmark_review/segmentation/case08_fan_shelf_overlay.png",
+    "name": "boxed 16in pedestal fan",
+    "appearance_bounds": [
+      0.226,
+      0.115,
+      0.843,
+      0.798
+    ],
+    "instance_count": 1,
+    "regions": [
+      {
+        "id": "front-package",
+        "bounds": [
+          0.226,
+          0.115,
+          0.843,
+          0.798
+        ],
+        "method": "reviewer_drawn",
+        "note": "region growing stopped at the package's own cream/green colour band, yielding only its upper half; the merged candidate #0 included the shelf and two neighbouring boxes. Drawn to the front package's own edges, excluding both"
+      }
+    ],
+    "rejected_candidates": {
+      "#0": "front package merged with the shelf and neighbouring boxes",
+      "#1": "shelf edge",
+      "#2": "caption text",
+      "#3": "packaging text, part of the product but not its extent"
+    },
+    "provenance": "0 region(s) from measured candidates, 1 drawn by the reviewer against the overlay",
+    "expected_lock_fields": [
+      "product_category",
+      "product_type",
+      "packaging",
+      "colors"
+    ],
+    "immutable_characteristics": [
+      "boxed pedestal fan, front-facing retail packaging",
+      "cream upper panel with a green lower panel and a fan illustration"
+    ],
+    "scene_text_not_product_locked": [
+      "\u00a330",
+      "when ur paying \u00a330",
+      "for this..."
+    ],
+    "review_status": "approved"
+  }
+}

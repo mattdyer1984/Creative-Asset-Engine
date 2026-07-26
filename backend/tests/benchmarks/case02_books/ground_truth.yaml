@@ -86,3 +86,43 @@ human_rationale: >
   a deliberate uplift in production value, not incidental variation.
 
 known_ambiguity: null
+
+# Product annotation (suite v2). Governed human-assisted review:
+# reviewer=Matt Dyer (via Claude, reviewed against evidence overlays)
+# date=2026-07-26  provenance=4 region(s) from measured candidates, 1 drawn by the reviewer against the overlay
+# evidence=docs/benchmark_review/annotations/case02_books_annotation.png
+product:
+  name: "five paperback books"
+  appearance_bounds: [0.188, 0.298, 0.878, 0.808]
+  instance_count: 5
+  regions:
+    - id: atomic-habits
+      bounds: [0.188, 0.331, 0.388, 0.528]
+      method: candidate_selection
+    - id: psychology-of-money
+      bounds: [0.459, 0.31, 0.6, 0.477]
+      method: candidate_selection
+    - id: let-them-theory
+      bounds: [0.666, 0.298, 0.878, 0.526]
+      method: candidate_selection
+    - id: courage-to-be-disliked
+      bounds: [0.459, 0.54, 0.753, 0.728]
+      method: candidate_selection
+    - id: dont-believe-everything
+      bounds: [0.272, 0.545, 0.47, 0.808]
+      method: reviewer_drawn
+  expected_lock_fields:
+    - product_category
+    - product_type
+    - labels_and_text
+  immutable_characteristics:
+    - "five paperback books laid flat, three above and two below"
+    - "cover titles and author names legible on each"
+  reference_crops:
+    - id: primary
+      bounds: [0.188, 0.298, 0.878, 0.808]
+  generation_expectations:
+    product_native_text_owner: "image"
+    product_native_text_strategy: "product_lock"
+    scene_text_not_product_locked:
+      - "All 5 books for the price of 1 right now"
