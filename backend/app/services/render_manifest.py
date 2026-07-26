@@ -17,7 +17,12 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.services.profile_schema import SCHEMA_VERSION
-from app.services.graphic_ownership import CleanupAction, OwnershipAttempt, ZoneOccupancy
+from app.services.graphic_ownership import (
+    CleanupAction,
+    OwnershipAttempt,
+    RenderZone,
+    ZoneOccupancy,
+)
 from app.services.text_ownership import OwnershipPlan, TextOwnership
 
 #: Bumped when the renderer's output would change for identical input.
@@ -76,8 +81,12 @@ class RenderManifest(BaseModel):
     #: The policies in force at render time, already resolved.
     effective_policies: dict[str, str] = Field(default_factory=dict)
 
-    #: WP-1.5B. The ladder's working, so the manifest debugs rather than
-    #: merely records: every rung records why the previous one failed.
+    #: WP-1.5B/Package D. The ladder's working, so the manifest debugs rather
+    #: than merely records: every rung records why the previous one failed,
+    #: what it produced, how that was validated, and what it cost.
+    #: The zones an owner claimed, and where each claim came from - a
+    #: contract zone or, where the contract was silent, an OCR box.
+    render_zones: list[RenderZone] = Field(default_factory=list)
     zone_occupancy: list[ZoneOccupancy] = Field(default_factory=list)
     ownership_attempts: list[OwnershipAttempt] = Field(default_factory=list)
     cleanup_actions: list[CleanupAction] = Field(default_factory=list)

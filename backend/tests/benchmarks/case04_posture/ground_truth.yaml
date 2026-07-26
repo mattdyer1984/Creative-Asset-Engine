@@ -36,7 +36,7 @@ composition_contract:
       bounds: [0.075, 0.115, 0.20, 0.225]
     - id: numeral-rule
       role: graphic
-      bounds: [0.075, 0.228, 0.205, 0.248]
+      bounds: [0.075, 0.230, 0.212, 0.247]
     - id: headline
       role: text
       bounds: [0.075, 0.250, 0.61, 0.370]

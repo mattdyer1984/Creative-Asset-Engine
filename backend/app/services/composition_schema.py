@@ -139,13 +139,20 @@ class CompositionContract(BaseModel):
 
         Used by ownership to answer questions OCR cannot: is this text inside
         a screen, attached to a product, or part of the designed text column?
+
+        The MOST SPECIFIC containing zone wins, not the first one found.
+        Zones nest legitimately - a label sits inside a product, a product
+        sits inside a shelf - and both contain the text completely, so raw
+        overlap cannot separate them. Taking the smallest is what makes
+        "which product is this price attached to?" answerable at all; taking
+        the first would let a full-canvas subject zone swallow everything.
         """
-        best, best_overlap = None, minimum
-        for zone in self.zones:
-            overlap = zone.overlap_fraction(bounds)
-            if overlap > best_overlap:
-                best, best_overlap = zone, overlap
-        return best
+        candidates = [
+            zone for zone in self.zones if zone.overlap_fraction(bounds) > minimum
+        ]
+        if not candidates:
+            return None
+        return min(candidates, key=lambda z: (z.bounds[2] - z.bounds[0]) * (z.bounds[3] - z.bounds[1]))
 
     def related(self, subject: str, relation: Relation) -> list[str]:
         return [e.object for e in self.relations if e.subject == subject and e.relation is relation]

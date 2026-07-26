@@ -104,6 +104,7 @@ def apply_typography(
     profile_id: str | None = None,
     effective_policies: dict[str, str] | None = None,
     enforce_clean_zones: bool = True,
+    contract=None,
 ) -> tuple[bytes, RenderManifest]:
     """
     Draw every deterministic-typography block, and account for every other.
@@ -155,21 +156,22 @@ def apply_typography(
     renderer_system = to_renderer_system(system)
     from io import BytesIO
 
-    # WP-1.5B: every owner gets clean, uncontested space before it renders.
+    # Every owner gets clean, uncontested space before it renders. Zones come
+    # from the Composition Contract where there is one: an owner's region is
+    # not the same as its OCR box, and a rule has no OCR box at all.
     if enforce_clean_zones:
         from app.services.graphic_ownership import enforce
 
-        zones = [(d.block_id, d.bounds) for d in typography_blocks if d.bounds]
-        if zones:
-            image_bytes, enforcement = enforce(image_bytes, zones)
-            manifest.zone_occupancy = enforcement.occupancy
-            manifest.ownership_attempts = enforcement.attempts
-            manifest.cleanup_actions = enforcement.cleanup_actions
-            for block_id in enforcement.unresolved:
-                manifest.warnings.append(
-                    f"{block_id}: no ladder rung produced clean space - rendered anyway, "
-                    "review the result"
-                )
+        image_bytes, enforcement = enforce(image_bytes, plan, contract)
+        manifest.render_zones = enforcement.render_zones
+        manifest.zone_occupancy = enforcement.occupancy
+        manifest.ownership_attempts = enforcement.attempts
+        manifest.cleanup_actions = enforcement.cleanup_actions
+        for block_id in enforcement.unresolved:
+            manifest.warnings.append(
+                f"{block_id}: no ladder rung produced clean space - rendered anyway, "
+                "review the result"
+            )
 
     image = Image.open(BytesIO(image_bytes))
     to_draw: list[TextBlock] = []
