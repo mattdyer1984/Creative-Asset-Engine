@@ -434,6 +434,21 @@ def decide_ownership(
     return OwnershipPlan(decisions=decisions)
 
 
+def _same_instance(first: TextOwnership, second: TextOwnership) -> bool:
+    """
+    Do these two decisions describe the same piece of text on the page?
+
+    Without bounds we cannot tell them apart, so they are treated as the same
+    instance - the conservative reading, since the cost of a false alarm is a
+    refused slide and the cost of a miss is text rendered twice.
+    """
+    if first.bounds is None or second.bounds is None:
+        return True
+    ax0, ay0, ax1, ay1 = first.bounds
+    bx0, by0, bx1, by1 = second.bounds
+    return not (ax1 <= bx0 or bx1 <= ax0 or ay1 <= by0 or by1 <= ay0)
+
+
 class DuplicateOwnership(RuntimeError):
     """A block routed to more than one owner - the defect this model prevents."""
 
@@ -456,13 +471,31 @@ def assert_single_ownership(plan: OwnershipPlan) -> None:
             )
         seen[decision.block_id] = str(decision.owner)
 
-    by_text: dict[str, list[str]] = {}
+    # Identical wording in two PLACES is two instances, not duplication.
+    #
+    # P1 found this on case 8: a retail package prints "3 speed settings" in
+    # its feature list and again under its feature icons. Both are real, both
+    # are on the product, and they can legitimately be owned differently -
+    # yet the check refused the whole slide. Retail packaging repeats itself
+    # constantly, so this would have blocked the product path generally.
+    #
+    # The defect this guards against is one INSTANCE of text produced twice:
+    # the model draws it and a renderer composites it on top. That requires
+    # the two decisions to occupy the same place, so overlap is the test.
+    by_text: dict[str, list[TextOwnership]] = {}
     for decision in plan.decisions:
         if decision.text.strip():
-            by_text.setdefault(decision.text.strip().lower(), []).append(str(decision.owner))
-    for text, owners in by_text.items():
-        distinct = set(owners)
-        if len(distinct) > 1 and distinct & {str(o) for o in RENDERER_OWNED}:
-            raise DuplicateOwnership(
-                f"text {text[:40]!r} is claimed by multiple owners: {sorted(distinct)}"
-            )
+            by_text.setdefault(decision.text.strip().lower(), []).append(decision)
+
+    for text, decisions in by_text.items():
+        for index, first in enumerate(decisions):
+            for second in decisions[index + 1:]:
+                owners = {str(first.owner), str(second.owner)}
+                if len(owners) < 2 or not owners & {str(o) for o in RENDERER_OWNED}:
+                    continue
+                if not _same_instance(first, second):
+                    continue
+                raise DuplicateOwnership(
+                    f"text {text[:40]!r} at the same position is claimed by "
+                    f"{sorted(owners)}"
+                )

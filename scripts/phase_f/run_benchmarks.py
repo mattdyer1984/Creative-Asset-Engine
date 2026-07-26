@@ -202,7 +202,35 @@ def _select_stages(names: tuple[str, ...] | None):
     return chosen
 
 
-def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None) -> dict:
+def _attach_product(db, slideshow, slide, case: pathlib.Path):
+    """
+    Create the Product the fixture describes and attach it to the slide.
+
+    The product stages hard-fail without a ProductAppearance. The fixture's
+    `product.name` is what a user would type when creating it, so nothing is
+    invented here that the annotation does not already state.
+    """
+    import yaml
+
+    from app.models.product import Product
+    from app.models.product_appearance import ProductAppearance
+
+    truth = yaml.safe_load((case / "ground_truth.yaml").read_text())
+    product_spec = truth.get("product")
+    if not product_spec:
+        return None
+
+    product = Product(display_name=product_spec["name"])
+    db.add(product)
+    db.flush()
+    appearance = ProductAppearance(slide_id=slide.id, product_id=product.id)
+    db.add(appearance)
+    db.commit()
+    return product.id
+
+
+def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None,
+             *, with_product: bool = False, generate: bool = False) -> dict:
     from app import storage
     from app.db import SessionLocal
     from app.models.slide import Slide
@@ -230,6 +258,9 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None) -> dict:
 
         record["slideshow_id"] = slideshow.id
         record["slide_id"] = slide.id
+        if with_product:
+            record["product_id"] = _attach_product(db, slideshow, slide, case)
+            db.refresh(slideshow)
 
         started = time.perf_counter()
         orchestrator = (
@@ -241,6 +272,9 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None) -> dict:
         record["pipeline_succeeded"] = result.succeeded
         record["failed_stage"] = failed_stage
         record["pipeline_error"] = result.error
+
+        if generate and result.succeeded:
+            record["generation"] = _generate(db, slideshow, slide)
 
         db.expire_all()
         slide = db.get(Slide, slide.id)
@@ -255,6 +289,52 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None) -> dict:
     return record
 
 
+def _generate(db, slideshow, slide) -> dict:
+    """
+    Run the real generation loop and record what it produced.
+
+    Every failure mode is captured rather than raised: P1 exists to observe
+    the generation path, and a harness that aborts on the first failure would
+    hide everything after it.
+    """
+    from app.services.generate_with_retry import generate_with_retry
+
+    started = time.perf_counter()
+    out: dict = {}
+    try:
+        outcome = generate_with_retry(
+            db, slideshow, quality_mode="fast", slide=slide,
+        )
+        out["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 2)
+        out["succeeded"] = getattr(outcome, "succeeded", None)
+        out["error"] = getattr(outcome, "error", None)
+        attempts = getattr(outcome, "attempts", None)
+        if attempts is not None:
+            out["attempts"] = len(attempts)
+    except Exception as exc:  # noqa: BLE001 - observe, do not abort
+        out["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 2)
+        out["succeeded"] = False
+        out["error"] = f"{type(exc).__name__}: {exc}"
+
+    from app.models.final_output import FinalOutput
+    from app.models.generated_image import GeneratedImage
+
+    images = db.query(GeneratedImage).filter(GeneratedImage.slide_id == slide.id).all()
+    out["generated_images"] = [
+        {"id": i.id, "file_path": i.file_path, "status": getattr(i, "status", None)}
+        for i in images
+    ]
+    finals = db.query(FinalOutput).filter(
+        FinalOutput.generated_image_id.in_([i.id for i in images])
+    ).all() if images else []
+    out["final_outputs"] = [
+        {"id": f.id, "file_path": f.file_path,
+         "has_render_manifest": f.render_manifest_json is not None}
+        for f in finals
+    ]
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", required=True,
@@ -264,6 +344,12 @@ def main() -> int:
     parser.add_argument("--creative-analysis-only", action="store_true",
                         help="skip the three product stages, which hard-fail "
                              "without an assigned Product (see the module docstring)")
+    parser.add_argument("--with-product", action="store_true",
+                        help="attach the Product the fixture describes, so the "
+                             "product stages can run")
+    parser.add_argument("--include-generation", action="store_true",
+                        help="run the real generation loop - EXPENSIVE and the "
+                             "image model is unpriced")
     parser.add_argument("--fresh", action="store_true",
                         help="delete the data dir first")
     parser.add_argument("--i-understand-this-spends-money", action="store_true",
@@ -290,7 +376,9 @@ def main() -> int:
 
     for case in _cases(args.only):
         print(f"--- {case.name}", flush=True)
-        record = run_case(case, data_dir, stages)
+        record = run_case(case, data_dir, stages,
+                          with_product=args.with_product,
+                          generate=args.include_generation)
         status = (
             "harness error" if "harness_error" in record
             else "ok" if record.get("pipeline_succeeded")

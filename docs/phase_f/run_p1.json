@@ -1,0 +1,4174 @@
+{
+  "run_id": "ad34c8ec-da8f-4300-97aa-96e9c032bb83",
+  "data_dir": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/p1gen/data",
+  "cases": [
+    {
+      "case": "case02_books",
+      "started_at": 1785078601.2477078,
+      "slideshow_id": "4846cb2a-9d64-41b4-8dfd-0e285b9d5761",
+      "slide_id": "762f57e7-724f-40f8-acee-1738f330b3d8",
+      "product_id": "e46c5b60-0a46-4fc4-ab76-60530e512af8",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 69179.08,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "generation": {
+        "elapsed_ms": 2.9,
+        "succeeded": false,
+        "error": "No Generation Reference Set available - the product's Canonical Reference Library is empty. Run Reference Scoring first (POST /api/products/{id}/score-references).",
+        "generated_images": [],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "aa2736b6-a974-465f-ad92-5958dce2b3fc",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 49.425999999999995,
+          "provider_call_ms": 5252.2492909338325,
+          "deterministic_ms": -5202.82,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 6677,
+              "completion_tokens": 270,
+              "image_count": null,
+              "provider_latency_ms": 5252.2492909338325,
+              "estimated_cost_usd": 0.041484999999999994,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "e68ad7d7-d65b-4eee-87ca-775ffa9f81a7",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5.144,
+          "provider_call_ms": 12339.19299999252,
+          "deterministic_ms": -12334.05,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 6736,
+              "completion_tokens": 824,
+              "image_count": null,
+              "provider_latency_ms": 12339.19299999252,
+              "estimated_cost_usd": 0.0584,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "00872a61-08f0-4ac8-9578-235b15a82589",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.4190000000000005,
+          "provider_call_ms": 16948.365874937735,
+          "deterministic_ms": -16941.95,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 7198,
+              "completion_tokens": 1098,
+              "image_count": null,
+              "provider_latency_ms": 16948.365874937735,
+              "estimated_cost_usd": 0.06893,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "58b621ad-744e-4c4a-bb23-7e55f2249f6d",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 3.965,
+          "provider_call_ms": 25643.583375029266,
+          "deterministic_ms": -25639.62,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 2655,
+              "image_count": null,
+              "provider_latency_ms": 25643.583375029266,
+              "estimated_cost_usd": 0.021793499999999997,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d18d9c29-be42-40c4-b218-67facd6e48c1",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2370.0739999999996,
+          "provider_call_ms": 2363.7135000899434,
+          "deterministic_ms": 6.36,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 443,
+              "completion_tokens": 79,
+              "image_count": null,
+              "provider_latency_ms": 2363.7135000899434,
+              "estimated_cost_usd": 0.0045850000000000005,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "7b85c224-2bb3-43d2-ac83-616e98351971",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 5.122,
+          "provider_call_ms": 18360.30862503685,
+          "deterministic_ms": -18355.19,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1438,
+              "completion_tokens": 532,
+              "image_count": null,
+              "provider_latency_ms": 18360.30862503685,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d781d952-01c4-4d98-bad5-5a1f65bb2f9e",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.137,
+          "provider_call_ms": 21548.489166074432,
+          "deterministic_ms": -21545.35,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1244,
+              "completion_tokens": 1703,
+              "image_count": null,
+              "provider_latency_ms": 21548.489166074432,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "9ab69efb-8f4c-45c7-9892-4f3315a17974",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6707.5560000000005,
+          "provider_call_ms": 6695.021542022005,
+          "deterministic_ms": 12.53,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 590,
+              "completion_tokens": 337,
+              "image_count": null,
+              "provider_latency_ms": 6695.021542022005,
+              "estimated_cost_usd": 0.01306,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "82ca05b1-7d77-4357-a4e7-f611cea32327",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 4.093,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "ec4ce136-c0bd-4fef-a77a-e1de80e768c1",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 7.97,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "c5360165-f914-4f9b-a1bc-691af0f21cda",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.999,
+          "provider_call_ms": 15169.646166963503,
+          "deterministic_ms": -15164.65,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2018,
+              "completion_tokens": 852,
+              "image_count": null,
+              "provider_latency_ms": 15169.646166963503,
+              "estimated_cost_usd": 0.03565,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "scene-with-caption",
+          "device_confidence": 0.9,
+          "zones": [
+            {
+              "zone_id": "upper-marble-space",
+              "role": "negative-space",
+              "bounds": [
+                0.0,
+                0.0,
+                1.0,
+                0.17
+              ]
+            },
+            {
+              "zone_id": "headline-caption",
+              "role": "caption",
+              "bounds": [
+                0.16,
+                0.176,
+                0.84,
+                0.316
+              ]
+            },
+            {
+              "zone_id": "top-left-book",
+              "role": "product",
+              "bounds": [
+                0.184,
+                0.396,
+                0.386,
+                0.704
+              ]
+            },
+            {
+              "zone_id": "top-center-book",
+              "role": "product",
+              "bounds": [
+                0.435,
+                0.38,
+                0.624,
+                0.684
+              ]
+            },
+            {
+              "zone_id": "top-right-book",
+              "role": "product",
+              "bounds": [
+                0.669,
+                0.392,
+                0.862,
+                0.686
+              ]
+            },
+            {
+              "zone_id": "bottom-left-book",
+              "role": "product",
+              "bounds": [
+                0.263,
+                0.735,
+                0.456,
+                0.914
+              ]
+            },
+            {
+              "zone_id": "bottom-right-book",
+              "role": "product",
+              "bounds": [
+                0.556,
+                0.708,
+                0.756,
+                0.905
+              ]
+            },
+            {
+              "zone_id": "arrow-emoji-row",
+              "role": "graphic",
+              "bounds": [
+                0.11,
+                0.918,
+                0.286,
+                0.968
+              ]
+            },
+            {
+              "zone_id": "lower-marble-space",
+              "role": "negative-space",
+              "bounds": [
+                0.0,
+                0.905,
+                1.0,
+                1.0
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "headline-caption",
+              "relation": "above",
+              "object": "top-left-book"
+            },
+            {
+              "subject": "headline-caption",
+              "relation": "above",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "headline-caption",
+              "relation": "above",
+              "object": "top-right-book"
+            },
+            {
+              "subject": "top-center-book",
+              "relation": "right-of",
+              "object": "top-left-book"
+            },
+            {
+              "subject": "top-right-book",
+              "relation": "right-of",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "top-left-book",
+              "relation": "above",
+              "object": "bottom-left-book"
+            },
+            {
+              "subject": "top-center-book",
+              "relation": "above",
+              "object": "bottom-right-book"
+            },
+            {
+              "subject": "bottom-right-book",
+              "relation": "right-of",
+              "object": "bottom-left-book"
+            },
+            {
+              "subject": "arrow-emoji-row",
+              "relation": "contains",
+              "object": "lower-marble-space"
+            },
+            {
+              "subject": "upper-marble-space",
+              "relation": "above",
+              "object": "headline-caption"
+            }
+          ],
+          "emphasis": [
+            "headline-caption",
+            "top-left-book",
+            "top-center-book",
+            "top-right-book",
+            "bottom-left-book",
+            "bottom-right-book",
+            "arrow-emoji-row",
+            "upper-marble-space",
+            "lower-marble-space"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "platform_caption",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "All 5 books for the price of 1 right now",
+                "text_class": "platform_caption",
+                "confidence": 0.625,
+                "reasons": [
+                  "caption: spoken phrasing",
+                  "caption: sentence-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE INTERNATIONAL BESTSELLER",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Tiny Changes, Remarkable Results",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Atomic Habits",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "OVER 15 MILLION COPIES SOLD",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "James Clear",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE INTERNATIONAL BESTSELLER",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "The Psychology of Money",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "MORGAN HOUSEL",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\"One of the best and most original finance books in years.\"\n-JASON ZWEIG Wall Street Journal",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE LET THEM THEORY",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Mel Robbins",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "New York Times Bestselling Author",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "DON'T BELIEVE EVERYTHING YOU THINK",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "JOSEPH NGUYEN",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE COURAGE TO BE DISLIKED",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "How to free yourself, change your life and achieve real happiness",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "ICHIRO KISHIMI and FUMITAKE KOGA",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "0 block(s) read as designed typography, 1 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": null,
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "d76a5d70-4bb1-4b62-8db8-5376d32d7c6a",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "All 5 books for the price of 1 right now",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "project_default",
+              "confidence": 0.625,
+              "reason": "caption: spoken phrasing; caption: sentence-length copy",
+              "evidence": [
+                "caption: spoken phrasing",
+                "caption: sentence-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.161,
+                0.136,
+                0.843,
+                0.246
+              ],
+              "composition_zone_id": "headline-caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "top-center-book",
+                "top-left-book",
+                "top-right-book",
+                "upper-marble-space"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "THE INTERNATIONAL BESTSELLER",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.207,
+                0.323,
+                0.367,
+                0.329
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "Tiny Changes, Remarkable Results",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.222,
+                0.336,
+                0.351,
+                0.358
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "Atomic Habits",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.198,
+                0.379,
+                0.373,
+                0.453
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.222,
+                0.461,
+                0.331,
+                0.487
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-5",
+              "source_ocr_block_id": "ocr-5",
+              "text": "OVER 15 MILLION COPIES SOLD",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.337,
+                0.461,
+                0.367,
+                0.488
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-6",
+              "source_ocr_block_id": "ocr-6",
+              "text": "James Clear",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.207,
+                0.495,
+                0.35,
+                0.51
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-7",
+              "source_ocr_block_id": "ocr-7",
+              "text": "THE INTERNATIONAL BESTSELLER",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'headline-caption' caption zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'headline-caption' caption zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.456,
+                0.301,
+                0.605,
+                0.308
+              ],
+              "composition_zone_id": "headline-caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "top-center-book",
+                "top-left-book",
+                "top-right-book",
+                "upper-marble-space"
+              ]
+            },
+            {
+              "block_id": "block-8",
+              "source_ocr_block_id": "ocr-8",
+              "text": "The Psychology of Money",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.459,
+                0.312,
+                0.602,
+                0.384
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-9",
+              "source_ocr_block_id": "ocr-9",
+              "text": "TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.453,
+                0.448,
+                0.61,
+                0.456
+              ],
+              "composition_zone_id": "top-center-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-right-book",
+                "headline-caption",
+                "top-left-book",
+                "top-right-book"
+              ]
+            },
+            {
+              "block_id": "block-10",
+              "source_ocr_block_id": "ocr-10",
+              "text": "MORGAN HOUSEL",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.463,
+                0.466,
+                0.598,
+                0.476
+              ],
+              "composition_zone_id": "top-center-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-right-book",
+                "headline-caption",
+                "top-left-book",
+                "top-right-book"
+              ]
+            },
+            {
+              "block_id": "block-11",
+              "source_ocr_block_id": "ocr-11",
+              "text": "\"One of the best and most original finance books in years.\"\n-JASON ZWEIG Wall Street Journal",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.459,
+                0.482,
+                0.612,
+                0.496
+              ],
+              "composition_zone_id": "top-center-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-right-book",
+                "headline-caption",
+                "top-left-book",
+                "top-right-book"
+              ]
+            },
+            {
+              "block_id": "block-12",
+              "source_ocr_block_id": "ocr-12",
+              "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.684,
+                0.319,
+                0.852,
+                0.335
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-13",
+              "source_ocr_block_id": "ocr-13",
+              "text": "THE LET THEM THEORY",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.681,
+                0.347,
+                0.86,
+                0.473
+              ],
+              "composition_zone_id": "top-right-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-14",
+              "source_ocr_block_id": "ocr-14",
+              "text": "Mel Robbins",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.693,
+                0.484,
+                0.855,
+                0.501
+              ],
+              "composition_zone_id": "top-right-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-15",
+              "source_ocr_block_id": "ocr-15",
+              "text": "New York Times Bestselling Author",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.709,
+                0.503,
+                0.842,
+                0.51
+              ],
+              "composition_zone_id": "top-right-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-16",
+              "source_ocr_block_id": "ocr-16",
+              "text": "DON'T BELIEVE EVERYTHING YOU THINK",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.308,
+                0.565,
+                0.44,
+                0.601
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "headline-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-17",
+              "source_ocr_block_id": "ocr-17",
+              "text": "WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.309,
+                0.727,
+                0.422,
+                0.738
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-18",
+              "source_ocr_block_id": "ocr-18",
+              "text": "JOSEPH NGUYEN",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.336,
+                0.756,
+                0.395,
+                0.762
+              ],
+              "composition_zone_id": "bottom-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-right-book",
+                "top-left-book"
+              ]
+            },
+            {
+              "block_id": "block-19",
+              "source_ocr_block_id": "ocr-19",
+              "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.575,
+                0.549,
+                0.727,
+                0.556
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-20",
+              "source_ocr_block_id": "ocr-20",
+              "text": "THE COURAGE TO BE DISLIKED",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.614,
+                0.614,
+                0.706,
+                0.648
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-21",
+              "source_ocr_block_id": "ocr-21",
+              "text": "How to free yourself, change your life and achieve real happiness",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.617,
+                0.651,
+                0.697,
+                0.672
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-22",
+              "source_ocr_block_id": "ocr-22",
+              "text": "ICHIRO KISHIMI and FUMITAKE KOGA",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.573,
+                0.742,
+                0.741,
+                0.75
+              ],
+              "composition_zone_id": "bottom-right-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "top-center-book"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "All 5 books for the price of 1 right now\nTHE INTERNATIONAL BESTSELLER\nTiny Changes, Remarkable Results\nAtomic Habits\nAn Easy & Proven Way to Build Good Habits & Break Bad Ones\nOVER 15 MILLION COPIES SOLD\nJames Clear\nTHE INTERNATIONAL BESTSELLER\nThe Psychology of Money\nTIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS\nMORGAN HOUSEL\n\"One of the best and most original finance books in years.\"\n-JASON ZWEIG Wall Street Journal\nA Life-Changing Tool That Millions of People Can't Stop Talking About\nTHE LET THEM THEORY\nMel Robbins\nNew York Times Bestselling Author\nDON'T BELIEVE EVERYTHING YOU THINK\nWHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING\nJOSEPH NGUYEN\nOVER THREE MILLION COPIES SOLD WORLDWIDE\nTHE COURAGE TO BE DISLIKED\nHow to free yourself, change your life and achieve real happiness\nICHIRO KISHIMI and FUMITAKE KOGA",
+          "blocks": [
+            {
+              "text": "All 5 books for the price of 1 right now",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.161,
+                "y_min": 0.136,
+                "x_max": 0.843,
+                "y_max": 0.246
+              }
+            },
+            {
+              "text": "THE INTERNATIONAL BESTSELLER",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.207,
+                "y_min": 0.323,
+                "x_max": 0.367,
+                "y_max": 0.329
+              }
+            },
+            {
+              "text": "Tiny Changes, Remarkable Results",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.222,
+                "y_min": 0.336,
+                "x_max": 0.351,
+                "y_max": 0.358
+              }
+            },
+            {
+              "text": "Atomic Habits",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.198,
+                "y_min": 0.379,
+                "x_max": 0.373,
+                "y_max": 0.453
+              }
+            },
+            {
+              "text": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.222,
+                "y_min": 0.461,
+                "x_max": 0.331,
+                "y_max": 0.487
+              }
+            },
+            {
+              "text": "OVER 15 MILLION COPIES SOLD",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.337,
+                "y_min": 0.461,
+                "x_max": 0.367,
+                "y_max": 0.488
+              }
+            },
+            {
+              "text": "James Clear",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.207,
+                "y_min": 0.495,
+                "x_max": 0.35,
+                "y_max": 0.51
+              }
+            },
+            {
+              "text": "THE INTERNATIONAL BESTSELLER",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.456,
+                "y_min": 0.301,
+                "x_max": 0.605,
+                "y_max": 0.308
+              }
+            },
+            {
+              "text": "The Psychology of Money",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.459,
+                "y_min": 0.312,
+                "x_max": 0.602,
+                "y_max": 0.384
+              }
+            },
+            {
+              "text": "TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.453,
+                "y_min": 0.448,
+                "x_max": 0.61,
+                "y_max": 0.456
+              }
+            },
+            {
+              "text": "MORGAN HOUSEL",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.463,
+                "y_min": 0.466,
+                "x_max": 0.598,
+                "y_max": 0.476
+              }
+            },
+            {
+              "text": "\"One of the best and most original finance books in years.\"\n-JASON ZWEIG Wall Street Journal",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.459,
+                "y_min": 0.482,
+                "x_max": 0.612,
+                "y_max": 0.496
+              }
+            },
+            {
+              "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.684,
+                "y_min": 0.319,
+                "x_max": 0.852,
+                "y_max": 0.335
+              }
+            },
+            {
+              "text": "THE LET THEM THEORY",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.681,
+                "y_min": 0.347,
+                "x_max": 0.86,
+                "y_max": 0.473
+              }
+            },
+            {
+              "text": "Mel Robbins",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.693,
+                "y_min": 0.484,
+                "x_max": 0.855,
+                "y_max": 0.501
+              }
+            },
+            {
+              "text": "New York Times Bestselling Author",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.709,
+                "y_min": 0.503,
+                "x_max": 0.842,
+                "y_max": 0.51
+              }
+            },
+            {
+              "text": "DON'T BELIEVE EVERYTHING YOU THINK",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.308,
+                "y_min": 0.565,
+                "x_max": 0.44,
+                "y_max": 0.601
+              }
+            },
+            {
+              "text": "WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.309,
+                "y_min": 0.727,
+                "x_max": 0.422,
+                "y_max": 0.738
+              }
+            },
+            {
+              "text": "JOSEPH NGUYEN",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.336,
+                "y_min": 0.756,
+                "x_max": 0.395,
+                "y_max": 0.762
+              }
+            },
+            {
+              "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.575,
+                "y_min": 0.549,
+                "x_max": 0.727,
+                "y_max": 0.556
+              }
+            },
+            {
+              "text": "THE COURAGE TO BE DISLIKED",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.614,
+                "y_min": 0.614,
+                "x_max": 0.706,
+                "y_max": 0.648
+              }
+            },
+            {
+              "text": "How to free yourself, change your life and achieve real happiness",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.617,
+                "y_min": 0.651,
+                "x_max": 0.697,
+                "y_max": 0.672
+              }
+            },
+            {
+              "text": "ICHIRO KISHIMI and FUMITAKE KOGA",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.573,
+                "y_min": 0.742,
+                "x_max": 0.741,
+                "y_max": 0.75
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Candid, user-generated content (UGC) style flat lay.",
+          "marketing_objective": "Drive immediate sales through a highly compelling bundle offer.",
+          "emotional_appeal": [
+            "Excitement",
+            "Value-seeking",
+            "Self-improvement",
+            "Urgency"
+          ],
+          "target_audience": "Readers interested in self-help, personal development, psychology, and finance.",
+          "color_palette": [
+            "White (background and book covers)",
+            "Black (text)",
+            "Green (book cover)",
+            "Red (book cover)"
+          ],
+          "typography_style": "Bold, sans-serif font for the overlay text; varied book cover typography.",
+          "layout_and_composition": "Top-down view (flat lay) of five books arranged in two rows on a tiled surface, with prominent text overlay at the top.",
+          "background_environment": "White marble-patterned tile floor or countertop.",
+          "lighting_style": "Bright, somewhat harsh overhead lighting, typical of indoor home lighting.",
+          "graphic_style": "Minimalist overlay; rounded white rectangle with black text.",
+          "product_prominence": "High; the five books occupy the majority of the frame and are clearly identifiable.",
+          "marketing_angle": "Unbeatable value proposition: getting a bundle of top-selling books for the price of a single book.",
+          "visual_hierarchy": "1. Offer text ('All 5 books for the price of 1 right now'); 2. The five book covers; 3. Pointing hand emojis directing attention downwards.",
+          "trust_elements": [
+            "Recognizable bestselling titles ('Atomic Habits', 'The Psychology of Money')",
+            "Implicit social proof from book popularity"
+          ],
+          "promotional_devices": [
+            "Massive discount ('All 5... for the price of 1')",
+            "Urgency ('right now')"
+          ],
+          "object_placement": "Three books in the top row, two in the bottom row, centrally aligned beneath the top text banner.",
+          "emotional_trigger": "Desire for a 'steal' or unbeatable bargain combined with the aspiration for self-improvement.",
+          "extensions": "The use of pointing emojis at the bottom suggests a link or button is likely positioned just below the image in the actual ad format."
+        }
+      },
+      "finished_at": 1785078670.516808
+    },
+    {
+      "case": "case03_mini_ac",
+      "started_at": 1785078670.5181818,
+      "slideshow_id": "9ca40176-68d9-4589-a802-6f86d041edbc",
+      "slide_id": "74197de1-976e-4230-ab07-ba2a9d6a0c21",
+      "product_id": "0d3846c8-d47b-4bda-887d-db56cf6af8ad",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 50167.81,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "generation": {
+        "elapsed_ms": 1.18,
+        "succeeded": false,
+        "error": "No Generation Reference Set available - the product's Canonical Reference Library is empty. Run Reference Scoring first (POST /api/products/{id}/score-references).",
+        "generated_images": [],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "71b0b0ba-6944-4f91-b653-27a3d002afa1",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 7.645,
+          "provider_call_ms": 2826.1819999897853,
+          "deterministic_ms": -2818.54,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1433,
+              "completion_tokens": 72,
+              "image_count": null,
+              "provider_latency_ms": 2826.1819999897853,
+              "estimated_cost_usd": 0.009325,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "bd0e9d97-47bf-46b4-870d-0723f4ebd14d",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 1.321,
+          "provider_call_ms": 8833.493417012505,
+          "deterministic_ms": -8832.17,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1292,
+              "completion_tokens": 238,
+              "image_count": null,
+              "provider_latency_ms": 8833.493417012505,
+              "estimated_cost_usd": 0.0037229999999999997,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "464bf732-46d8-4c77-bdd7-b570684588e8",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3.136,
+          "provider_call_ms": 12625.32650004141,
+          "deterministic_ms": -12622.19,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1492,
+              "completion_tokens": 873,
+              "image_count": null,
+              "provider_latency_ms": 12625.32650004141,
+              "estimated_cost_usd": 0.03365,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d0596f09-7e04-442e-9d48-4fc7816979dc",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3.4160000000000004,
+          "provider_call_ms": 14807.062249979936,
+          "deterministic_ms": -14803.65,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1954,
+              "completion_tokens": 823,
+              "image_count": null,
+              "provider_latency_ms": 14807.062249979936,
+              "estimated_cost_usd": 0.03446,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "e6444e05-e6ed-422a-8bb9-09250415f70e",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3102.1130000000003,
+          "provider_call_ms": 3099.63970805984,
+          "deterministic_ms": 2.47,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 254,
+              "completion_tokens": 140,
+              "image_count": null,
+              "provider_latency_ms": 3099.63970805984,
+              "estimated_cost_usd": 0.005470000000000001,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "735e743a-ea98-44e4-806f-2bba2d9fef4c",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 2.564,
+          "provider_call_ms": 7431.735040969215,
+          "deterministic_ms": -7429.17,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1283,
+              "completion_tokens": 579,
+              "image_count": null,
+              "provider_latency_ms": 7431.735040969215,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "da14d5ad-1865-4db5-a0ed-f7bd7b6ee379",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 1.462,
+          "provider_call_ms": 10936.50704191532,
+          "deterministic_ms": -10935.05,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1282,
+              "completion_tokens": 591,
+              "image_count": null,
+              "provider_latency_ms": 10936.50704191532,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "70845849-fafb-4cfb-84cb-c60204e203ad",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6820.2,
+          "provider_call_ms": 6816.150167025626,
+          "deterministic_ms": 4.05,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 709,
+              "completion_tokens": 340,
+              "image_count": null,
+              "provider_latency_ms": 6816.150167025626,
+              "estimated_cost_usd": 0.013745,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "9da6cbb2-3b0e-4bae-8e43-88eb3167d8d4",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 2.851,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "5802f9dd-ad9d-4792-bb33-86dfcd54e9c6",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 3.142,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "36104e6f-7cf3-42ab-a3de-ff6bdd1cea58",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.647,
+          "provider_call_ms": 17507.215499994345,
+          "deterministic_ms": -17500.57,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1322,
+              "completion_tokens": 976,
+              "image_count": null,
+              "provider_latency_ms": 17507.215499994345,
+              "estimated_cost_usd": 0.03589,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "scene-with-caption",
+          "device_confidence": 0.94,
+          "zones": [
+            {
+              "zone_id": "photo-scene",
+              "role": "subject",
+              "bounds": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "headline-panel",
+              "role": "graphic",
+              "bounds": [
+                0.17,
+                0.11,
+                0.85,
+                0.26
+              ]
+            },
+            {
+              "zone_id": "headline",
+              "role": "text",
+              "bounds": [
+                0.22,
+                0.12,
+                0.82,
+                0.25
+              ]
+            },
+            {
+              "zone_id": "product",
+              "role": "product",
+              "bounds": [
+                0.62,
+                0.38,
+                0.79,
+                0.67
+              ]
+            },
+            {
+              "zone_id": "bottom-caption",
+              "role": "caption",
+              "bounds": [
+                0.19,
+                0.8,
+                0.82,
+                0.85
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "headline",
+              "relation": "contains",
+              "object": "headline-panel"
+            },
+            {
+              "subject": "product",
+              "relation": "contains",
+              "object": "photo-scene"
+            },
+            {
+              "subject": "headline",
+              "relation": "below",
+              "object": "product"
+            },
+            {
+              "subject": "bottom-caption",
+              "relation": "below",
+              "object": "product"
+            },
+            {
+              "subject": "bottom-caption",
+              "relation": "above",
+              "object": "headline"
+            },
+            {
+              "subject": "headline-panel",
+              "relation": "attached-to",
+              "object": "photo-scene"
+            }
+          ],
+          "emphasis": [
+            "headline",
+            "product",
+            "bottom-caption",
+            "photo-scene",
+            "headline-panel"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "platform_caption",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "When this mini AC costs a fraction of them prices and does a job better...",
+                "text_class": "platform_caption",
+                "confidence": 0.769,
+                "reasons": [
+                  "caption: trails off with an ellipsis",
+                  "caption: 'when \u2026' caption opener",
+                  "caption: sentence-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "88",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "(Just add water & plug it in \u2705)",
+                "text_class": "platform_caption",
+                "confidence": 0.625,
+                "reasons": [
+                  "caption: parenthetical aside",
+                  "caption: contains emoji"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "0 block(s) read as designed typography, 2 as platform caption",
+              "source style photographic (photographic), confidence 0.00"
+            ]
+          }
+        },
+        "typography_system": null,
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "f82be6c3-e8f6-4355-bdd5-65e221cedfcc",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "When this mini AC costs a fraction of them prices and does a job better...",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "block_override",
+              "confidence": 0.769,
+              "reason": "caption: trails off with an ellipsis; caption: 'when \u2026' caption opener; caption: sentence-length copy",
+              "evidence": [
+                "caption: trails off with an ellipsis",
+                "caption: 'when \u2026' caption opener",
+                "caption: sentence-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.166,
+                0.111,
+                0.85,
+                0.264
+              ],
+              "composition_zone_id": "headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "bottom-caption",
+                "headline-panel",
+                "product"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "88",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.665,
+                0.421,
+                0.686,
+                0.435
+              ],
+              "composition_zone_id": "product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-caption",
+                "headline",
+                "photo-scene"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "(Just add water & plug it in \u2705)",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "project_default",
+              "confidence": 0.625,
+              "reason": "caption: parenthetical aside; caption: contains emoji",
+              "evidence": [
+                "caption: parenthetical aside",
+                "caption: contains emoji"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.187,
+                0.806,
+                0.814,
+                0.846
+              ],
+              "composition_zone_id": "bottom-caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "headline",
+                "product"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "When this mini AC costs a fraction of them prices and does a job better...\n88\n(Just add water & plug it in \u2705)",
+          "blocks": [
+            {
+              "text": "When this mini AC costs a fraction of them prices and does a job better...",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.166,
+                "y_min": 0.111,
+                "x_max": 0.85,
+                "y_max": 0.264
+              }
+            },
+            {
+              "text": "88",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.665,
+                "y_min": 0.421,
+                "x_max": 0.686,
+                "y_max": 0.435
+              }
+            },
+            {
+              "text": "(Just add water & plug it in \u2705)",
+              "role": "subheadline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.187,
+                "y_min": 0.806,
+                "x_max": 0.814,
+                "y_max": 0.846
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Realism/Lifestyle",
+          "marketing_objective": "Product Awareness & Value Proposition",
+          "emotional_appeal": [
+            "Cost-saving",
+            "Convenience",
+            "Comfort",
+            "Relief"
+          ],
+          "target_audience": "Homeowners or renters seeking affordable, easy-to-use cooling solutions.",
+          "color_palette": [
+            "Neutral tones (beige, cream, grey)",
+            "Warm wood browns",
+            "Deep blue",
+            "White",
+            "Black",
+            "Green (checkmark)"
+          ],
+          "typography_style": "Sans-serif, bold, highly legible, white text on black background for the main headline, white text with black outline/shadow for the subtext.",
+          "layout_and_composition": "The image is framed as a bedroom scene with a bed on the left and a nightstand on the right. The product is placed prominently on the nightstand, off-center to the right, balancing the composition with the bed and window. The main text overlay is positioned at the top center, and the secondary text is at the bottom center.",
+          "background_environment": "A cozy, well-lit bedroom with a made bed, textured pillows, a window showing a daytime street view, a framed picture on the wall, and a lamp on a wooden nightstand.",
+          "lighting_style": "Natural, soft daylight coming from the window on the left, casting gentle shadows and creating a warm, inviting atmosphere.",
+          "graphic_style": "Text overlay with rounded rectangular backing for the main headline, simple text for the sub-headline with an emoji.",
+          "product_prominence": "High. The mini AC is centrally located in the right third of the image, clearly visible against the neutral background, and is the focal point alongside the text.",
+          "marketing_angle": "Affordability and superior performance compared to traditional options, combined with extreme ease of use.",
+          "visual_hierarchy": "1. Main headline text at the top. 2. The mini AC unit on the nightstand. 3. Subtext at the bottom. 4. The surrounding bedroom environment.",
+          "trust_elements": [],
+          "promotional_devices": [
+            "Value proposition ('fraction of them prices', 'does a job better')"
+          ],
+          "object_placement": "The mini AC is placed on a wooden nightstand to the right of a bed, indicating its intended use case (personal cooling while sleeping/resting). The bed occupies the left and center space, while the window on the far left provides natural context.",
+          "emotional_trigger": "Desire for a practical, budget-friendly solution to discomfort (heat), appealing to the desire for an 'easy win' (just add water & plug it in).",
+          "extensions": "The use of casual language ('them prices') suggests a conversational, relatable brand tone, likely aimed at a social media audience."
+        }
+      },
+      "finished_at": 1785078720.6990669
+    },
+    {
+      "case": "case06_meal_prep",
+      "started_at": 1785078720.7014039,
+      "slideshow_id": "09851ef7-bc7b-45b0-9916-f3879a69a5db",
+      "slide_id": "8514f6ea-c5ba-460f-af63-830eefc41844",
+      "product_id": "989598e7-f52c-48f5-bf3f-8bdb31e1310c",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 66734.99,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "generation": {
+        "elapsed_ms": 1.29,
+        "succeeded": false,
+        "error": "No Generation Reference Set available - the product's Canonical Reference Library is empty. Run Reference Scoring first (POST /api/products/{id}/score-references).",
+        "generated_images": [],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "ea2f3063-809a-4492-be67-ef04fe07ef47",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 19.092000000000002,
+          "provider_call_ms": 3024.34883301612,
+          "deterministic_ms": -3005.26,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2103,
+              "completion_tokens": 140,
+              "image_count": null,
+              "provider_latency_ms": 3024.34883301612,
+              "estimated_cost_usd": 0.014715000000000002,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d640b291-07df-4c01-a3ba-af924ea3d9ba",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 0.755,
+          "provider_call_ms": 9683.791166986339,
+          "deterministic_ms": -9683.04,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1292,
+              "completion_tokens": 319,
+              "image_count": null,
+              "provider_latency_ms": 9683.791166986339,
+              "estimated_cost_usd": 0.0043305,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "1067f9bd-700d-47a5-a2f9-f46d507bc004",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3.908,
+          "provider_call_ms": 13649.833959061652,
+          "deterministic_ms": -13645.93,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2162,
+              "completion_tokens": 983,
+              "image_count": null,
+              "provider_latency_ms": 13649.833959061652,
+              "estimated_cost_usd": 0.0403,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "2d6a31bb-5ae0-4d75-b6bb-fb3f54180869",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3.678,
+          "provider_call_ms": 14785.211666952819,
+          "deterministic_ms": -14781.53,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2624,
+              "completion_tokens": 941,
+              "image_count": null,
+              "provider_latency_ms": 14785.211666952819,
+              "estimated_cost_usd": 0.04135,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "bb304ecd-dc2d-4537-bed8-62abdce2a606",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2114.382,
+          "provider_call_ms": 2111.396541004069,
+          "deterministic_ms": 2.99,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 230,
+              "completion_tokens": 84,
+              "image_count": null,
+              "provider_latency_ms": 2111.396541004069,
+              "estimated_cost_usd": 0.00367,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "6541b891-c460-464d-a6e5-5ad50a9c7bfd",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.0140000000000002,
+          "provider_call_ms": 7158.295958070084,
+          "deterministic_ms": -7155.28,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1260,
+              "completion_tokens": 462,
+              "image_count": null,
+              "provider_latency_ms": 7158.295958070084,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "613b3ab9-d019-41bd-862e-c5fb76c467ff",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 2.447,
+          "provider_call_ms": 24984.993042075075,
+          "deterministic_ms": -24982.55,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1282,
+              "completion_tokens": 377,
+              "image_count": null,
+              "provider_latency_ms": 24984.993042075075,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "3f556465-2872-44d1-b34a-8f4762c9e998",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 12866.099999999999,
+          "provider_call_ms": 12862.927332986146,
+          "deterministic_ms": 3.17,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.typography_system",
+              "prompt_version": "2.0",
+              "prompt_tokens": 2587,
+              "completion_tokens": 718,
+              "image_count": null,
+              "provider_latency_ms": 12862.927332986146,
+              "estimated_cost_usd": 0.034475,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "34d7cb7e-8e1a-444a-8505-d6b398a1bc36",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6268.375,
+          "provider_call_ms": 6263.419541995972,
+          "deterministic_ms": 4.96,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 591,
+              "completion_tokens": 278,
+              "image_count": null,
+              "provider_latency_ms": 6263.419541995972,
+              "estimated_cost_usd": 0.011295,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "ebe6dcee-52fc-4192-9aa1-a1ed6e65882d",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 4.073,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "7ab9325f-72ba-4043-a373-db75e1cc9904",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.529,
+          "provider_call_ms": 14005.95112494193,
+          "deterministic_ms": -13999.42,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1009,
+              "completion_tokens": 688,
+              "image_count": null,
+              "provider_latency_ms": 14005.95112494193,
+              "estimated_cost_usd": 0.025685,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "side-by-side-comparison",
+          "device_confidence": 0.93,
+          "zones": [
+            {
+              "zone_id": "left-stack",
+              "role": "product",
+              "bounds": [
+                0.05,
+                0.37,
+                0.49,
+                0.83
+              ]
+            },
+            {
+              "zone_id": "right-stack",
+              "role": "product",
+              "bounds": [
+                0.52,
+                0.37,
+                0.95,
+                0.83
+              ]
+            },
+            {
+              "zone_id": "left-heading",
+              "role": "text",
+              "bounds": [
+                0.13,
+                0.23,
+                0.34,
+                0.32
+              ]
+            },
+            {
+              "zone_id": "right-heading",
+              "role": "text",
+              "bounds": [
+                0.66,
+                0.23,
+                0.9,
+                0.32
+              ]
+            },
+            {
+              "zone_id": "vs-text",
+              "role": "text",
+              "bounds": [
+                0.48,
+                0.25,
+                0.54,
+                0.29
+              ]
+            },
+            {
+              "zone_id": "left-flag",
+              "role": "graphic",
+              "bounds": [
+                0.21,
+                0.16,
+                0.3,
+                0.22
+              ]
+            },
+            {
+              "zone_id": "right-flag",
+              "role": "graphic",
+              "bounds": [
+                0.7,
+                0.17,
+                0.78,
+                0.23
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "left-stack",
+              "relation": "left-of",
+              "object": "right-stack"
+            },
+            {
+              "subject": "left-heading",
+              "relation": "above",
+              "object": "left-stack"
+            },
+            {
+              "subject": "right-heading",
+              "relation": "above",
+              "object": "right-stack"
+            },
+            {
+              "subject": "vs-text",
+              "relation": "left-of",
+              "object": "right-heading"
+            },
+            {
+              "subject": "vs-text",
+              "relation": "right-of",
+              "object": "left-heading"
+            },
+            {
+              "subject": "left-flag",
+              "relation": "above",
+              "object": "left-heading"
+            },
+            {
+              "subject": "right-flag",
+              "relation": "above",
+              "object": "right-heading"
+            }
+          ],
+          "emphasis": [
+            "left-stack",
+            "right-stack",
+            "left-heading",
+            "right-heading",
+            "vs-text",
+            "left-flag",
+            "right-flag"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "designed_typography",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "british meal prep",
+                "text_class": "designed_typography",
+                "confidence": 0.4,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": true
+              },
+              {
+                "text": "vs",
+                "text_class": "designed_typography",
+                "confidence": 0.727,
+                "reasons": [
+                  "editorial: comparison connective",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "japanese meal prep",
+                "text_class": "designed_typography",
+                "confidence": 0.4,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": true
+              }
+            ],
+            "project_mode_reasons": [
+              "3 block(s) read as designed typography, 0 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": {
+          "schema_version": "1.0",
+          "primary_family_class": "grotesque",
+          "secondary_family_class": null,
+          "capability_level": "L1",
+          "base_size_ratio": 0.045,
+          "colour_roles": {
+            "primary-text": "white"
+          },
+          "text_roles": {
+            "comparison_label": {
+              "family_class": "grotesque",
+              "weight": "bold",
+              "italic": true,
+              "case": "lower",
+              "colour_role": "primary-text",
+              "alignment": "centre",
+              "size_ratio": 1.0,
+              "tracking": -0.02,
+              "line_height": 0.9
+            },
+            "versus_marker": {
+              "family_class": "grotesque",
+              "weight": "bold",
+              "italic": true,
+              "case": "lower",
+              "colour_role": "primary-text",
+              "alignment": "centre",
+              "size_ratio": 0.74,
+              "tracking": -0.02,
+              "line_height": 1.0
+            }
+          },
+          "marker_roles": {},
+          "rule_roles": {},
+          "divider_roles": {},
+          "italic_roles": {},
+          "stroke_roles": {},
+          "shadow_roles": {},
+          "container_roles": {},
+          "size_scale": {
+            "comparison_label_to_versus": 1.35,
+            "comparison_label_to_body": 1.0,
+            "versus_to_body": 0.74
+          },
+          "case_rules": [],
+          "weight_hierarchy": []
+        },
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "4f65fa1c-bdd7-4529-847c-b7fe813d3872",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "british meal prep",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "project_default",
+              "confidence": 0.4,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.125,
+                0.235,
+                0.38,
+                0.325
+              ],
+              "composition_zone_id": "left-heading",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "left-flag",
+                "left-stack",
+                "vs-text"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "vs",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 0.727,
+              "reason": "editorial: comparison connective; editorial: label-length copy",
+              "evidence": [
+                "editorial: comparison connective",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.472,
+                0.262,
+                0.52,
+                0.29
+              ],
+              "composition_zone_id": "vs-text",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "left-heading",
+                "right-heading"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "japanese meal prep",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "project_default",
+              "confidence": 0.4,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.625,
+                0.235,
+                0.885,
+                0.325
+              ],
+              "composition_zone_id": "right-heading",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "right-flag",
+                "right-stack",
+                "vs-text"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "british meal prep vs japanese meal prep",
+          "blocks": [
+            {
+              "text": "british meal prep",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.125,
+                "y_min": 0.235,
+                "x_max": 0.38,
+                "y_max": 0.325
+              }
+            },
+            {
+              "text": "vs",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.472,
+                "y_min": 0.262,
+                "x_max": 0.52,
+                "y_max": 0.29
+              }
+            },
+            {
+              "text": "japanese meal prep",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.625,
+                "y_min": 0.235,
+                "x_max": 0.885,
+                "y_max": 0.325
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Comparative, clear, lifestyle-oriented",
+          "marketing_objective": "Highlight product superiority or aesthetic appeal through comparison",
+          "emotional_appeal": [
+            "Curiosity",
+            "Desire for aesthetic/quality",
+            "Humor (based on the flag error)"
+          ],
+          "target_audience": "Meal preppers, health-conscious individuals, organizers",
+          "color_palette": [
+            "Wood tones (brown)",
+            "Black",
+            "White",
+            "Food colors (yellows, oranges, greens)",
+            "Clear glass/plastic"
+          ],
+          "typography_style": "Bold, sans-serif, white with drop shadow for readability",
+          "layout_and_composition": "Split-screen style comparison without a physical line; two distinct stacks of meal prep containers centered on a wooden table, text positioned directly above each stack.",
+          "background_environment": "A modern, tidy domestic setting, appearing to be an open-plan kitchen and living area, slightly blurred to keep focus on the foreground.",
+          "lighting_style": "Natural, soft lighting, likely from a window on the left, casting gentle shadows and highlighting the food and containers.",
+          "graphic_style": "Photographic with text overlays and emojis (flags).",
+          "product_prominence": "Very high; the meal prep containers are the central focus of the image.",
+          "marketing_angle": "Product comparison implying one style (Japanese/glass) is sleeker or higher quality than the other (British/plastic).",
+          "visual_hierarchy": "1. The two stacks of containers. 2. The text 'british meal prep' and 'japanese meal prep'. 3. The 'vs' text. 4. The background.",
+          "trust_elements": [],
+          "promotional_devices": [
+            "Comparative advertising ('vs')"
+          ],
+          "object_placement": "Two vertical stacks of four rectangular meal prep containers placed side-by-side on a wooden surface in the foreground.",
+          "emotional_trigger": "Desire for an upgraded lifestyle or aesthetic; appealing to the satisfaction of organized, high-quality meal prep.",
+          "extensions": "Note the error in the image: the 'Japanese' text is paired with a South Korean flag emoji. This might be intentional for engagement (rage bait/comments) or an accidental error."
+        }
+      },
+      "finished_at": 1785078787.45814
+    },
+    {
+      "case": "case08_fan_shelf",
+      "started_at": 1785078787.459976,
+      "slideshow_id": "44c475a3-86ee-4f05-8dda-79fc7d65a1cc",
+      "slide_id": "c15db853-12c6-4c82-a723-3ff2f80f56f1",
+      "product_id": "1cee45a5-10ea-4d8e-b1b5-fd66b2a872ab",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 63584.02,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "generation": {
+        "elapsed_ms": 1.25,
+        "succeeded": false,
+        "error": "No Generation Reference Set available - the product's Canonical Reference Library is empty. Run Reference Scoring first (POST /api/products/{id}/score-references).",
+        "generated_images": [],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "70b6932e-1be6-475c-bcad-e604499a7d74",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2.979,
+          "provider_call_ms": 11428.189791971818,
+          "deterministic_ms": -11425.21,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1492,
+              "completion_tokens": 797,
+              "image_count": null,
+              "provider_latency_ms": 11428.189791971818,
+              "estimated_cost_usd": 0.03137,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d92a1775-33d1-4dca-8292-98a5eaa07a9c",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 9.824,
+          "provider_call_ms": 12963.341167080216,
+          "deterministic_ms": -12953.52,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1433,
+              "completion_tokens": 586,
+              "image_count": null,
+              "provider_latency_ms": 12963.341167080216,
+              "estimated_cost_usd": 0.024745,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "485928ce-7726-42d9-8412-5691d425517d",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 0.784,
+          "provider_call_ms": 18923.833334003575,
+          "deterministic_ms": -18923.05,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1292,
+              "completion_tokens": 1582,
+              "image_count": null,
+              "provider_latency_ms": 18923.833334003575,
+              "estimated_cost_usd": 0.013803000000000001,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "ff7346ef-13da-431a-9cbb-fc5b2313efb7",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2.321,
+          "provider_call_ms": 27093.397874967195,
+          "deterministic_ms": -27091.08,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1954,
+              "completion_tokens": 1628,
+              "image_count": null,
+              "provider_latency_ms": 27093.397874967195,
+              "estimated_cost_usd": 0.058609999999999995,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "ef3426c4-ae61-4a45-b661-3e81a5edf3b6",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3473.539,
+          "provider_call_ms": 3470.082958927378,
+          "deterministic_ms": 3.46,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 289,
+              "completion_tokens": 137,
+              "image_count": null,
+              "provider_latency_ms": 3470.082958927378,
+              "estimated_cost_usd": 0.005555,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "078592a9-0d44-47ba-b9aa-d6652ebb15f1",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.0170000000000003,
+          "provider_call_ms": 9104.975000023842,
+          "deterministic_ms": -9101.96,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1326,
+              "completion_tokens": 616,
+              "image_count": null,
+              "provider_latency_ms": 9104.975000023842,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "a9457c5c-4b92-4848-ae9c-14e91b796273",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.2239999999999998,
+          "provider_call_ms": 12999.173666001298,
+          "deterministic_ms": -12995.95,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1282,
+              "completion_tokens": 853,
+              "image_count": null,
+              "provider_latency_ms": 12999.173666001298,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "bd3271fb-3b86-4a43-8400-dc8afcd94554",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 1.495,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "8a126e36-fc28-44b9-b3c7-11430e4448ec",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6321.849,
+          "provider_call_ms": 6315.13287499547,
+          "deterministic_ms": 6.72,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 683,
+              "completion_tokens": 251,
+              "image_count": null,
+              "provider_latency_ms": 6315.13287499547,
+              "estimated_cost_usd": 0.010945,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "e5e542fc-118c-4463-9d28-7dd3bb76ef70",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 2.4290000000000003,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "87dc950c-0c5a-4404-8fa2-c5f1fbe4d185",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.265,
+          "provider_call_ms": 17086.10050007701,
+          "deterministic_ms": -17079.84,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1467,
+              "completion_tokens": 878,
+              "image_count": null,
+              "provider_latency_ms": 17086.10050007701,
+              "estimated_cost_usd": 0.033675,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "shelf-snapshot",
+          "device_confidence": 0.96,
+          "zones": [
+            {
+              "zone_id": "central-box",
+              "role": "product",
+              "bounds": [
+                0.24,
+                0.13,
+                0.88,
+                0.71
+              ]
+            },
+            {
+              "zone_id": "right-box",
+              "role": "product",
+              "bounds": [
+                0.86,
+                0.13,
+                1.0,
+                0.71
+              ]
+            },
+            {
+              "zone_id": "lower-box",
+              "role": "product",
+              "bounds": [
+                0.33,
+                0.81,
+                0.91,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "overlay-caption",
+              "role": "caption",
+              "bounds": [
+                0.28,
+                0.47,
+                0.78,
+                0.57
+              ]
+            },
+            {
+              "zone_id": "package-title",
+              "role": "text",
+              "bounds": [
+                0.3,
+                0.18,
+                0.58,
+                0.31
+              ]
+            },
+            {
+              "zone_id": "green-arc",
+              "role": "graphic",
+              "bounds": [
+                0.28,
+                0.39,
+                0.86,
+                0.69
+              ]
+            },
+            {
+              "zone_id": "icon-row",
+              "role": "graphic",
+              "bounds": [
+                0.32,
+                0.59,
+                0.61,
+                0.66
+              ]
+            },
+            {
+              "zone_id": "shelf-price",
+              "role": "price",
+              "bounds": [
+                0.34,
+                0.7,
+                0.58,
+                0.78
+              ]
+            },
+            {
+              "zone_id": "shelf-rail",
+              "role": "graphic",
+              "bounds": [
+                0.25,
+                0.69,
+                1.0,
+                0.8
+              ]
+            },
+            {
+              "zone_id": "store-aisle",
+              "role": "subject",
+              "bounds": [
+                0.0,
+                0.0,
+                0.25,
+                0.71
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "overlay-caption",
+              "relation": "attached-to",
+              "object": "central-box"
+            },
+            {
+              "subject": "shelf-price",
+              "relation": "below",
+              "object": "central-box"
+            },
+            {
+              "subject": "shelf-price",
+              "relation": "contains",
+              "object": "shelf-rail"
+            },
+            {
+              "subject": "shelf-rail",
+              "relation": "below",
+              "object": "central-box"
+            },
+            {
+              "subject": "package-title",
+              "relation": "contains",
+              "object": "central-box"
+            },
+            {
+              "subject": "green-arc",
+              "relation": "contains",
+              "object": "central-box"
+            },
+            {
+              "subject": "icon-row",
+              "relation": "contains",
+              "object": "green-arc"
+            },
+            {
+              "subject": "right-box",
+              "relation": "right-of",
+              "object": "central-box"
+            },
+            {
+              "subject": "store-aisle",
+              "relation": "left-of",
+              "object": "central-box"
+            },
+            {
+              "subject": "lower-box",
+              "relation": "below",
+              "object": "shelf-rail"
+            }
+          ],
+          "emphasis": [
+            "central-box",
+            "overlay-caption",
+            "shelf-price",
+            "package-title",
+            "green-arc",
+            "icon-row",
+            "right-box",
+            "store-aisle",
+            "shelf-rail",
+            "lower-box"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "platform_caption",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "HOME",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\"",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Pedestal Fan",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "3 speed settings Adjustable height Oscillating function",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\"",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Pedestal Fan",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "when ur paying \u00a330",
+                "text_class": "platform_caption",
+                "confidence": 0.75,
+                "reasons": [
+                  "caption: text-speak",
+                  "caption: 'when \u2026' caption opener"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "for this...",
+                "text_class": "platform_caption",
+                "confidence": 0.444,
+                "reasons": [
+                  "caption: trails off with an ellipsis",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": true
+              },
+              {
+                "text": "3 Speed Settings",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Adjustable Height",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Oscillating Function",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "3 Speed Settings",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\" Pedestal Fan",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\u00a330",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "5063022512467 A05",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "0 block(s) read as designed typography, 2 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": null,
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "cd9d21f3-6487-4229-bb07-c007f826eef7",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "HOME",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.013,
+                0.258,
+                0.077,
+                0.291
+              ],
+              "composition_zone_id": "store-aisle",
+              "composition_zone_role": "subject",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "16\"",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.301,
+                0.207,
+                0.37,
+                0.237
+              ],
+              "composition_zone_id": "package-title",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "Pedestal Fan",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.306,
+                0.256,
+                0.514,
+                0.281
+              ],
+              "composition_zone_id": "package-title",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "3 speed settings Adjustable height Oscillating function",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.308,
+                0.312,
+                0.435,
+                0.36
+              ],
+              "composition_zone_id": "central-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "green-arc",
+                "overlay-caption",
+                "package-title",
+                "right-box",
+                "shelf-price",
+                "shelf-rail",
+                "store-aisle"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "16\"",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.929,
+                0.231,
+                0.985,
+                0.258
+              ],
+              "composition_zone_id": "right-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-5",
+              "source_ocr_block_id": "ocr-5",
+              "text": "Pedestal Fan",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.928,
+                0.279,
+                0.998,
+                0.301
+              ],
+              "composition_zone_id": "right-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-6",
+              "source_ocr_block_id": "ocr-6",
+              "text": "when ur paying \u00a330",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "block_override",
+              "confidence": 0.75,
+              "reason": "caption: text-speak; caption: 'when \u2026' caption opener",
+              "evidence": [
+                "caption: text-speak",
+                "caption: 'when \u2026' caption opener"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.279,
+                0.528,
+                0.793,
+                0.579
+              ],
+              "composition_zone_id": "overlay-caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "central-box"
+              ]
+            },
+            {
+              "block_id": "block-7",
+              "source_ocr_block_id": "ocr-7",
+              "text": "for this...",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "project_default",
+              "confidence": 0.444,
+              "reason": "composition: block sits in the 'icon-row' graphic zone; caption: trails off with an ellipsis; editorial: label-length copy",
+              "evidence": [
+                "composition: block sits in the 'icon-row' graphic zone",
+                "caption: trails off with an ellipsis",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.433,
+                0.59,
+                0.665,
+                0.628
+              ],
+              "composition_zone_id": "icon-row",
+              "composition_zone_role": "graphic",
+              "associated_zone_ids": [
+                "green-arc"
+              ]
+            },
+            {
+              "block_id": "block-8",
+              "source_ocr_block_id": "ocr-8",
+              "text": "3 Speed Settings",
+              "text_class": "environmental",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'shelf-price' price zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'shelf-price' price zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.323,
+                0.72,
+                0.373,
+                0.742
+              ],
+              "composition_zone_id": "shelf-price",
+              "composition_zone_role": "price",
+              "associated_zone_ids": [
+                "central-box",
+                "shelf-rail"
+              ]
+            },
+            {
+              "block_id": "block-9",
+              "source_ocr_block_id": "ocr-9",
+              "text": "Adjustable Height",
+              "text_class": "environmental",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'shelf-price' price zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'shelf-price' price zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.41,
+                0.72,
+                0.47,
+                0.742
+              ],
+              "composition_zone_id": "shelf-price",
+              "composition_zone_role": "price",
+              "associated_zone_ids": [
+                "central-box",
+                "shelf-rail"
+              ]
+            },
+            {
+              "block_id": "block-10",
+              "source_ocr_block_id": "ocr-10",
+              "text": "Oscillating Function",
+              "text_class": "environmental",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'shelf-price' price zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'shelf-price' price zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.5,
+                0.719,
+                0.56,
+                0.741
+              ],
+              "composition_zone_id": "shelf-price",
+              "composition_zone_role": "price",
+              "associated_zone_ids": [
+                "central-box",
+                "shelf-rail"
+              ]
+            },
+            {
+              "block_id": "block-11",
+              "source_ocr_block_id": "ocr-11",
+              "text": "3 Speed Settings",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'shelf-rail' graphic zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'shelf-rail' graphic zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.899,
+                0.709,
+                0.943,
+                0.73
+              ],
+              "composition_zone_id": "shelf-rail",
+              "composition_zone_role": "graphic",
+              "associated_zone_ids": [
+                "central-box",
+                "lower-box",
+                "shelf-price"
+              ]
+            },
+            {
+              "block_id": "block-12",
+              "source_ocr_block_id": "ocr-12",
+              "text": "16\" Pedestal Fan",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.364,
+                0.814,
+                0.503,
+                0.825
+              ],
+              "composition_zone_id": "lower-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "shelf-rail"
+              ]
+            },
+            {
+              "block_id": "block-13",
+              "source_ocr_block_id": "ocr-13",
+              "text": "\u00a330",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.392,
+                0.832,
+                0.493,
+                0.868
+              ],
+              "composition_zone_id": "lower-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "shelf-rail"
+              ]
+            },
+            {
+              "block_id": "block-14",
+              "source_ocr_block_id": "ocr-14",
+              "text": "5063022512467 A05",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.475,
+                0.875,
+                0.563,
+                0.884
+              ],
+              "composition_zone_id": "lower-box",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "shelf-rail"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "HOME 16\" Pedestal Fan 3 speed settings Adjustable height Oscillating function 16\" Pedestal Fan when ur paying \u00a330 for this... 3 Speed Settings Adjustable Height Oscillating Function 3 Speed Settings 16\" Pedestal Fan \u00a330 5063022512467 A05",
+          "blocks": [
+            {
+              "text": "HOME",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.013,
+                "y_min": 0.258,
+                "x_max": 0.077,
+                "y_max": 0.291
+              }
+            },
+            {
+              "text": "16\"",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.301,
+                "y_min": 0.207,
+                "x_max": 0.37,
+                "y_max": 0.237
+              }
+            },
+            {
+              "text": "Pedestal Fan",
+              "role": "product_name",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.306,
+                "y_min": 0.256,
+                "x_max": 0.514,
+                "y_max": 0.281
+              }
+            },
+            {
+              "text": "3 speed settings Adjustable height Oscillating function",
+              "role": "description",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.308,
+                "y_min": 0.312,
+                "x_max": 0.435,
+                "y_max": 0.36
+              }
+            },
+            {
+              "text": "16\"",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.929,
+                "y_min": 0.231,
+                "x_max": 0.985,
+                "y_max": 0.258
+              }
+            },
+            {
+              "text": "Pedestal Fan",
+              "role": "product_name",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.928,
+                "y_min": 0.279,
+                "x_max": 0.998,
+                "y_max": 0.301
+              }
+            },
+            {
+              "text": "when ur paying \u00a330",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.279,
+                "y_min": 0.528,
+                "x_max": 0.793,
+                "y_max": 0.579
+              }
+            },
+            {
+              "text": "for this...",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.433,
+                "y_min": 0.59,
+                "x_max": 0.665,
+                "y_max": 0.628
+              }
+            },
+            {
+              "text": "3 Speed Settings",
+              "role": "description",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.323,
+                "y_min": 0.72,
+                "x_max": 0.373,
+                "y_max": 0.742
+              }
+            },
+            {
+              "text": "Adjustable Height",
+              "role": "description",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.41,
+                "y_min": 0.72,
+                "x_max": 0.47,
+                "y_max": 0.742
+              }
+            },
+            {
+              "text": "Oscillating Function",
+              "role": "description",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.5,
+                "y_min": 0.719,
+                "x_max": 0.56,
+                "y_max": 0.741
+              }
+            },
+            {
+              "text": "3 Speed Settings",
+              "role": "description",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.899,
+                "y_min": 0.709,
+                "x_max": 0.943,
+                "y_max": 0.73
+              }
+            },
+            {
+              "text": "16\" Pedestal Fan",
+              "role": "product_name",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.364,
+                "y_min": 0.814,
+                "x_max": 0.503,
+                "y_max": 0.825
+              }
+            },
+            {
+              "text": "\u00a330",
+              "role": "price",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.392,
+                "y_min": 0.832,
+                "x_max": 0.493,
+                "y_max": 0.868
+              }
+            },
+            {
+              "text": "5063022512467 A05",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.475,
+                "y_min": 0.875,
+                "x_max": 0.563,
+                "y_max": 0.884
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Candid, user-generated content (UGC), observational",
+          "marketing_objective": "Express disbelief or frustration regarding the price of a basic household item, likely intended to drive engagement through relatability",
+          "emotional_appeal": [
+            "Frustration",
+            "Relatability",
+            "Humor (deadpan)"
+          ],
+          "target_audience": "General consumers, particularly those feeling the impact of inflation or high prices on basic goods",
+          "color_palette": [
+            "Beige (box background)",
+            "White (fan image, text)",
+            "Pale green (box accent)",
+            "Black (text shadow)",
+            "Various muted colors (store background)"
+          ],
+          "typography_style": "Sans-serif on the packaging; bold, white sans-serif with a heavy black outline for the overlaid meme-style text",
+          "layout_and_composition": "First-person perspective snapshot. The product box dominates the right two-thirds of the frame, with the store aisle blurred in the left third. Overlaid text is centered over the main product image.",
+          "background_environment": "A retail store aisle, likely a supermarket or homeware section, showing shelves stocked with various items and a wooden floor.",
+          "lighting_style": "Bright, even fluorescent indoor retail lighting.",
+          "graphic_style": "Unedited photo with simple, native social media text overlay.",
+          "product_prominence": "Very high; the product box and its price tag are the central focus of the image.",
+          "marketing_angle": "Focuses on the high price point (\u00a330) for a seemingly basic or unexceptional item (a standard pedestal fan).",
+          "visual_hierarchy": "1. Overlaid text ('when ur paying \u00a330 for this...')\n2. Product image on the box\n3. Price tag on the shelf edge\n4. Background store aisle",
+          "trust_elements": [
+            "None explicitly shown, though the setting in an established retail environment implies standard consumer protections."
+          ],
+          "promotional_devices": [
+            "None. The image acts as an anti-promotion, criticizing the price."
+          ],
+          "object_placement": "The main box is positioned centrally and slightly to the right, sitting on a store shelf. The price tag is directly below it on the shelf edge. The overlaid text sits dead center, covering part of the product image.",
+          "emotional_trigger": "Shared exasperation over the rising cost of living and the perceived lack of value for money in everyday purchases.",
+          "extensions": "The image uses a classic meme format (text overlaid on a real-world photo) to communicate a widely felt sentiment, making it highly shareable on platforms like TikTok or Instagram."
+        }
+      },
+      "finished_at": 1785078851.059049
+    }
+  ],
+  "stages": [
+    "ocr",
+    "product_isolation",
+    "product_lock_profile",
+    "creative_fingerprint",
+    "scene_intelligence",
+    "composition_contract",
+    "creative_profile",
+    "text_ownership",
+    "marketing_analysis",
+    "narrative_structure",
+    "creative_specification"
+  ]
+}

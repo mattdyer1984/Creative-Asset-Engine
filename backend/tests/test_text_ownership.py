@@ -16,6 +16,7 @@ from app.services.profile_schema import OverlayPolicy, TextMode
 from app.services.text_ownership import (
     DuplicateOwnership,
     HandlingPolicy,
+    OwnershipPlan,
     Owner,
     assert_single_ownership,
     decide_ownership,
@@ -156,3 +157,59 @@ def test_duplicate_ownership_is_detected():
     )
     with pytest.raises(DuplicateOwnership):
         assert_single_ownership(duplicated)
+
+
+# --- same wording, different places (P1) ----------------------------------
+
+
+def _owned(text, owner, bounds, block_id):
+    from app.services.text_ownership import DecisionSource, HandlingPolicy, TextOwnership
+    from app.services.text_classification import TextClass
+
+    return TextOwnership(
+        block_id=block_id, text=text, text_class=TextClass.PRODUCT_NATIVE,
+        owner=owner, handling_policy=HandlingPolicy.PRESERVE_VISUAL_ROLE,
+        source=DecisionSource.PROJECT_DEFAULT, confidence=1.0, reason="test",
+        bounds=bounds,
+    )
+
+
+def test_identical_wording_in_two_places_is_two_instances():
+    """
+    P1 found this on case 8: a retail package prints "3 speed settings" in
+    its feature list and again under its feature icons. Both are real, both
+    are on the product, and they may be owned differently. Refusing the slide
+    would have blocked the product path generally, because packaging repeats
+    itself constantly.
+    """
+    plan = OwnershipPlan(decisions=[
+        _owned("3 speed settings", Owner.IMAGE, (0.31, 0.30, 0.42, 0.32), "block-0"),
+        _owned("3 Speed Settings", Owner.TYPOGRAPHY, (0.32, 0.72, 0.38, 0.74), "block-1"),
+    ])
+    assert_single_ownership(plan)
+
+
+def test_identical_wording_in_the_same_place_is_still_refused():
+    """
+    The defect this guards against: one instance of text produced twice - the
+    model draws it and a renderer composites it on top.
+    """
+    plan = OwnershipPlan(decisions=[
+        _owned("3 speed settings", Owner.IMAGE, (0.31, 0.30, 0.42, 0.32), "block-0"),
+        _owned("3 speed settings", Owner.TYPOGRAPHY, (0.32, 0.30, 0.43, 0.33), "block-1"),
+    ])
+    with pytest.raises(DuplicateOwnership, match="same position"):
+        assert_single_ownership(plan)
+
+
+def test_without_bounds_the_conservative_reading_applies():
+    """
+    Cannot tell two instances apart, so treat them as one: a false alarm
+    costs a refused slide, a miss costs text rendered twice.
+    """
+    plan = OwnershipPlan(decisions=[
+        _owned("same words", Owner.IMAGE, None, "block-0"),
+        _owned("same words", Owner.TYPOGRAPHY, None, "block-1"),
+    ])
+    with pytest.raises(DuplicateOwnership):
+        assert_single_ownership(plan)
