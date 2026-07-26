@@ -55,6 +55,21 @@ MULTI_PRODUCT_THRESHOLD = 2
 DENSE_TEXT_THRESHOLD = 3
 
 
+def _get(obj, key: str, default=None):
+    """
+    Read `key` from an ORM object or a plain dict.
+
+    Both artifacts that feed this module persist as JSON (`blocks_json`,
+    `contract_json`), so by the time a decision reaches the router it is
+    usually a dict, while the analysis stages hold typed objects. Supporting
+    only one shape would mean the router silently saw no evidence in
+    production and routed everything to FAST.
+    """
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
 @dataclass
 class RoutingDecision:
     tier: ImageTier
@@ -98,8 +113,8 @@ def choose_image_tier(
 
     embedded = [
         d for d in (ownership_decisions or [])
-        if str(getattr(d, "text_class", "")) in _EMBEDDED_TEXT_CLASSES
-        and str(getattr(d, "text", "")).strip()
+        if str(_get(d, "text_class", "")) in _EMBEDDED_TEXT_CLASSES
+        and str(_get(d, "text", "")).strip()
     ]
     if embedded:
         reasons.append(
@@ -115,7 +130,8 @@ def choose_image_tier(
         )
 
     if contract is not None:
-        roles = {str(zone.role) for zone in getattr(contract, "zones", [])}
+        zones = _get(contract, "zones", []) or []
+        roles = {str(_get(zone, "role", "")) for zone in zones}
         critical = sorted(roles & _TEXT_CRITICAL_ROLES)
         if critical:
             reasons.append(f"composition declares {critical} zone(s)")

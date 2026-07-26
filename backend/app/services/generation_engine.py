@@ -81,6 +81,7 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_providers.config import get_image_generation_concurrency
 from app.ai_providers.failover import generate_with_failover
+from app.ai_providers.image_routing import choose_image_tier, provider_for_tier
 from app.ai_providers.registry import default_registry
 from app.models.analysis_run import ANALYSIS_TYPE_GENERATED_IMAGE
 from app.models.bundle_composition import BundleComposition, BundleCompositionMember
@@ -209,6 +210,94 @@ def _enriched_creative_specification(
 class GenerationAttemptResult:
     attempt: GenerationAttempt
     candidates: list[GeneratedImage]
+
+
+def _route_image_provider(db: Session, slide: Slide, plan, *, is_draft: bool = False):
+    """
+    Pick the image tier from what analysis already established, BEFORE
+    generating - never from a technical failure after the fact.
+
+    **Tier is a MODEL choice, not a provider choice.** Both tiers are
+    `nano_banana`; only the model differs. An earlier version of this guard
+    bypassed routing whenever `plan.provider` was set - but
+    `decision_engine` populates it unconditionally from
+    `default_registry.image_generation()`, so it is never empty and the
+    routing was completely inert. A live Case 2 run generated on the Lite
+    tier with 22 `product_native` text blocks present, which is exactly the
+    creative the routing exists to protect.
+
+    So the override test is whether the plan names a DIFFERENT provider than
+    the configured primary. That is a real operator decision and outranks
+    this routing. Naming the primary is just the default being echoed back,
+    and must not disable tier selection within it.
+
+    Returns `(provider, decision)`. Missing artifacts are not an error - a
+    slide analysed before this existed simply routes on whatever evidence is
+    present, and the decision records what it saw.
+    """
+    from app.models.composition_contract import CompositionContractArtifact as CompositionContract
+    from app.models.text_ownership_artifact import TextOwnershipArtifact
+
+    requested = plan is not None and getattr(plan, "provider", None)
+    if requested and requested != default_registry.image_generation().provider:
+        logger.info(
+            "honouring the plan's explicit provider %s - skipping tier routing",
+            requested,
+        )
+        return default_registry.image_generation(requested), None
+
+    ownership = db.scalars(
+        select(TextOwnershipArtifact)
+        .where(TextOwnershipArtifact.slide_id == slide.id,
+               TextOwnershipArtifact.is_current.is_(True))
+    ).first()
+    contract = db.scalars(
+        select(CompositionContract)
+        .where(CompositionContract.slide_id == slide.id,
+               CompositionContract.is_current.is_(True))
+    ).first()
+
+    decision = choose_image_tier(
+        ownership_decisions=(ownership.blocks_json if ownership else None),
+        contract=(contract.contract_json if contract else None),
+        product_instance_count=_product_instance_count(db, slide),
+        is_draft=is_draft,
+    )
+    # `is_final_output` is deliberately NOT passed. It is a genuine escalation
+    # signal, but this engine cannot tell a final render from an exploratory
+    # one - every attempt looks the same from here. Setting it from
+    # `not is_draft` made every non-draft high quality and collapsed routing
+    # into "always expensive", which is the same failure as "always cheap"
+    # with the bill reversed. Tier is decided on the creative's demands.
+    provider, _demoted_from = provider_for_tier(default_registry, decision)
+    logger.info(
+        "image tier %s for slide %s -> %s/%s (%s)",
+        decision.tier, slide.id, provider.provider, provider.model,
+        "; ".join(decision.reasons) or "no evidence",
+    )
+    return provider, decision
+
+
+def _product_instance_count(db: Session, slide: Slide) -> int:
+    """
+    How many distinct product identities this slide must preserve.
+
+    Counted from the contract's product zones rather than the slide's single
+    assigned Product: a five-book bundle is one Product row but five
+    identities the model has to keep straight, and it is the identities that
+    make the stronger tier worth its cost.
+    """
+    from app.models.composition_contract import CompositionContractArtifact as CompositionContract
+
+    contract = db.scalars(
+        select(CompositionContract)
+        .where(CompositionContract.slide_id == slide.id,
+               CompositionContract.is_current.is_(True))
+    ).first()
+    if contract is None or not contract.contract_json:
+        return 0
+    zones = contract.contract_json.get("zones") or []
+    return sum(1 for z in zones if str(z.get("role", "")) == "product")
 
 
 def _generate_candidates(
@@ -406,7 +495,7 @@ def run_generation_attempt(
             error="Product referenced by the Slide's current appearance no longer exists.",
         )
 
-    image_provider = default_registry.image_generation(plan.provider)
+    image_provider, tier_decision = _route_image_provider(db, slide, plan)
 
     generation_reference_set = select_reference_images(
         db, product.id, creative_specification.structured_json, image_provider.capabilities
@@ -524,7 +613,7 @@ def run_story_generation_attempt(
     mode exists here the way it does for run_generation_attempt) -
     there's nothing to be missing.
     """
-    image_provider = default_registry.image_generation(plan.provider)
+    image_provider, tier_decision = _route_image_provider(db, slide, plan)
 
     suppress_overlay_text = plan.text_strategy is not None
     request = compile_generation_request(
@@ -590,7 +679,7 @@ def run_bundle_generation_attempt(
     if not plan.bundle_members:
         return StageResult(succeeded=False, error="Bundle Composition requires at least one member product.")
 
-    image_provider = default_registry.image_generation(plan.provider)
+    image_provider, tier_decision = _route_image_provider(db, slide, plan)
 
     bundle_composition = BundleComposition(
         slide_id=slide.id, creative_specification_id=creative_specification.id

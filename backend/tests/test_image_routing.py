@@ -158,3 +158,60 @@ def test_the_shipped_config_routes_case02_to_the_preview_tier():
     provider, _ = provider_for_tier(default_registry, decision)
     assert provider.provider == "nano_banana"
     assert "preview" in provider.model, "text-heavy work should use the stronger tier"
+
+
+# ---------------------------------------------------------------------------
+# Persisted (dict) shapes.
+#
+# Both artifacts that feed the router store JSON - TextOwnershipArtifact.
+# blocks_json and CompositionContractArtifact.contract_json - so in production
+# the router is handed dicts, never the typed objects the tests above use.
+# Reading them with getattr alone returned the default every time, which meant
+# the router saw NO evidence and sent every creative to the fast tier while
+# every test above still passed.
+# ---------------------------------------------------------------------------
+
+
+def test_persisted_ownership_blocks_are_read_as_dicts():
+    decision = choose_image_tier(ownership_decisions=[
+        {"text": "Atomic Habits", "text_class": "product_native"},
+    ])
+    assert decision.is_high_quality
+    assert any("printed on the product" in r for r in decision.reasons)
+
+
+def test_persisted_contract_zones_are_read_as_dicts():
+    decision = choose_image_tier(contract={"zones": [{"role": "product"}]})
+    assert decision.is_high_quality
+    assert any("product" in r for r in decision.reasons)
+
+
+def test_case02_persisted_shape_routes_to_high_quality():
+    """The dict equivalent of test_case02_routes_to_high_quality."""
+    titles = [
+        "The Let Them Theory", "Atomic Habits", "The Psychology of Money",
+        "Don't Believe Everything You Think", "The Courage to be Disliked",
+    ]
+    decision = choose_image_tier(
+        ownership_decisions=[
+            {"text": t, "text_class": "product_native"} for t in titles
+        ],
+        contract={"zones": [{"role": "product"}] * 5},
+        product_instance_count=5,
+    )
+    assert decision.is_high_quality
+    assert any("dense embedded text" in r for r in decision.reasons)
+
+
+def test_an_empty_persisted_contract_does_not_crash():
+    """A slide analysed before contracts existed has no zones at all."""
+    assert choose_image_tier(contract={}).tier is ImageTier.FAST
+    assert choose_image_tier(contract={"zones": None}).tier is ImageTier.FAST
+
+
+def test_a_blank_persisted_text_block_is_not_evidence():
+    """An empty string is a block that carries no lettering to preserve."""
+    decision = choose_image_tier(ownership_decisions=[
+        {"text": "   ", "text_class": "product_native"},
+    ])
+    assert decision.tier is ImageTier.FAST
