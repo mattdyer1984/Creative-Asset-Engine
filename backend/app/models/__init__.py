@@ -126,9 +126,11 @@ from app.models.quality_assessment import QualityAssessment
 from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
+from app.models.text_ownership_artifact import TextOwnershipArtifact
 
 __all__ = [
     "CreativeProjectProfile",
+    "TextOwnershipArtifact",
     "Project",
     "ProviderCall",
     "ProjectProduct",

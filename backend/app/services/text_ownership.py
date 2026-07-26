@@ -105,6 +105,9 @@ class TextOwnership(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     block_id: str
+    #: The OCR block this decision came from, so a persisted artifact can be
+    #: traced back to the recognition that produced it.
+    source_ocr_block_id: str | None = None
     text: str
     text_class: TextClass
     owner: Owner
@@ -112,6 +115,8 @@ class TextOwnership(BaseModel):
     source: DecisionSource
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str
+    #: The classifier's working, kept for review rather than summarised away.
+    evidence: list[str] = Field(default_factory=list)
     #: How the image will produce it. Only set when owner is IMAGE.
     image_strategy: ImageStrategy | None = None
     #: Normalised [x_min, y_min, x_max, y_max], when OCR gave us one.
@@ -219,8 +224,10 @@ def decide_ownership(
         ):
             decisions.append(
                 TextOwnership(
-                    block_id=f"block-{index}", text=text, text_class=text_class,
-                    owner=Owner.REVIEW,
+                    block_id=f"block-{index}",
+                    source_ocr_block_id=block.get("id") or f"ocr-{index}",
+                    text=text, text_class=text_class, owner=Owner.REVIEW,
+                    evidence=list(classification.reasons),
                     handling_policy=HandlingPolicy.REVIEW_REQUIRED,
                     source=DecisionSource.PROJECT_DEFAULT,
                     confidence=classification.confidence,
@@ -259,7 +266,10 @@ def decide_ownership(
 
         decisions.append(
             TextOwnership(
-                block_id=f"block-{index}", text=text, text_class=text_class, owner=owner,
+                block_id=f"block-{index}",
+                source_ocr_block_id=block.get("id") or f"ocr-{index}",
+                text=text, text_class=text_class, owner=owner,
+                evidence=list(classification.reasons),
                 image_strategy=image_strategy, handling_policy=policy, source=source,
                 confidence=classification.confidence,
                 reason=(
