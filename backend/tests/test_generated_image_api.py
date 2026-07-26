@@ -13,7 +13,12 @@ from sqlalchemy import select
 from app.db import get_db
 from app.main import app
 from app.models.product_reference_image import ProductReferenceImage
-from tests.fakes import FakeAIProviderRegistry, FakeTextGenerationProvider, FakeVisionAnalysisProvider
+from tests.fakes import (
+    FakeAIProviderRegistry,
+    FakeTextGenerationProvider,
+    FakeVisionAnalysisProvider,
+    patch_pipeline_registries,
+)
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 
 
@@ -53,41 +58,16 @@ def _import_slideshow_with_product(client) -> tuple[str, str, str]:
 
 
 def _run_full_pipeline_through_creative_specification(client, slideshow_id, monkeypatch, db_session):
-    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
-    )
-    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
-    # vision call between Creative Fingerprint and Marketing Analysis in
-    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
-    # building Phase 12: this helper's own docstring/module docstring
-    # both claimed "no real OpenAI call, FakeAIProviderRegistry
-    # throughout," but every caller of this helper was silently making a
-    # real, paid vision call for this one stage until now.
-    monkeypatch.setattr(
-        "app.slideshow_stages.scene_intelligence_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.narrative_structure_stage.default_registry",
-        FakeAIProviderRegistry(
+    patch_pipeline_registries(
+        monkeypatch,
+        creative_fingerprint_stage=FakeAIProviderRegistry(
+            vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
+        ),
+        narrative_structure_stage=FakeAIProviderRegistry(
             text_generation_provider=FakeTextGenerationProvider(
                 result={"slides": [{"slide_index": 0, "beat": "hook"}], "arc_summary": "A short arc."}
             )
         ),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
     )
     client.post(f"/api/slideshows/{slideshow_id}/analyze")
 

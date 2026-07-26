@@ -63,6 +63,16 @@ _CONVERSATIONAL = [
     # Elongation is a spoken-emphasis device ("AGAINNN", "soooo"). Designed
     # typography does not stretch its own words.
     (re.compile(r"([A-Za-z])\1{2,}"), 2.0, "elongated spelling"),
+    # Platform furniture. These are the least ambiguous signals there are:
+    # a hashtag or an @mention is addressed to the feed, not to the reader
+    # of the creative, and no designed editorial layout contains one. They
+    # are weighted to decide on their own, unlike emoji - a designer may use
+    # a flag emoji as part of a comparison, but not `#fyp`.
+    (re.compile(r"(?:^|\s)#\w"), 3.5, "hashtag - addressed to the platform"),
+    (re.compile(r"(?:^|\s)@\w"), 3.0, "@mention"),
+    (re.compile(r"^\s*(pov|povs)\s*:", re.I), 3.5, "'pov:' caption opener"),
+    (re.compile(r"^\s*(me|him|her|them|us)\s+when\b", re.I), 3.0, "'me when' caption opener"),
+    (re.compile(r"\b(no because|not me|the way)\b", re.I), 2.0, "caption idiom"),
 ]
 
 # Signals that this is typeset as part of the design.

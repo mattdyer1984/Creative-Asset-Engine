@@ -19,7 +19,12 @@ from app.main import app
 from app.models.analysis_run import ANALYSIS_TYPE_PRODUCT_LOCK_PROFILE
 from app.models.product_lock_profile import ProductLockProfile
 from app.stages.execution import start_analysis_run
-from tests.fakes import FakeAIProviderRegistry, FakeTextGenerationProvider, FakeVisionAnalysisProvider
+from tests.fakes import (
+    FakeAIProviderRegistry,
+    FakeTextGenerationProvider,
+    FakeVisionAnalysisProvider,
+    patch_pipeline_registries,
+)
 from tests.test_slide_creative_fingerprint_stage import FINGERPRINT_RESULT
 
 
@@ -373,42 +378,16 @@ def test_failure_info_survives_a_separate_later_get_not_just_the_triggering_resp
 def test_blueprint_reflects_full_pipeline_results(client, monkeypatch):
     slideshow_id, _, _ = _import_slideshow_with_product(client)
 
-    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
-    )
-    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
-    # vision call between Creative Fingerprint and Marketing Analysis in
-    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
-    # building Phase 12: this test never patched it, so it was silently
-    # making a real, paid vision call.
-    monkeypatch.setattr(
-        "app.slideshow_stages.scene_intelligence_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
-    )
-    # Narrative Structure (Phase 7.2) shares TextGenerationProvider with
-    # Marketing Analysis but expects a different response shape - its own
-    # fake registry, not the shared-shape one above.
-    monkeypatch.setattr(
-        "app.slideshow_stages.narrative_structure_stage.default_registry",
-        FakeAIProviderRegistry(
+    patch_pipeline_registries(
+        monkeypatch,
+        creative_fingerprint_stage=FakeAIProviderRegistry(
+            vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
+        ),
+        narrative_structure_stage=FakeAIProviderRegistry(
             text_generation_provider=FakeTextGenerationProvider(
                 result={"slides": [{"slide_index": 0, "beat": "hook"}], "arc_summary": "A short arc."}
             )
         ),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
     )
 
     response = client.post(f"/api/slideshows/{slideshow_id}/analyze")
@@ -450,39 +429,16 @@ def test_blueprint_reflects_staleness_after_an_upstream_rerun(client, monkeypatc
     """
     slideshow_id, _, _ = _import_slideshow_with_product(client)
 
-    monkeypatch.setattr("app.slideshow_stages.ocr_stage.default_registry", FakeAIProviderRegistry())
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.product_lock_profile_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_fingerprint_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)),
-    )
-    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
-    # vision call between Creative Fingerprint and Marketing Analysis in
-    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
-    # building Phase 12: this test never patched it, so it was silently
-    # making a real, paid vision call.
-    monkeypatch.setattr(
-        "app.slideshow_stages.scene_intelligence_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.marketing_analysis_stage.default_registry", FakeAIProviderRegistry()
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.narrative_structure_stage.default_registry",
-        FakeAIProviderRegistry(
+    patch_pipeline_registries(
+        monkeypatch,
+        creative_fingerprint_stage=FakeAIProviderRegistry(
+            vision_provider=FakeVisionAnalysisProvider(result=FINGERPRINT_RESULT)
+        ),
+        narrative_structure_stage=FakeAIProviderRegistry(
             text_generation_provider=FakeTextGenerationProvider(
                 result={"slides": [{"slide_index": 0, "beat": "hook"}], "arc_summary": "A short arc."}
             )
         ),
-    )
-    monkeypatch.setattr(
-        "app.slideshow_stages.creative_specification_stage.default_registry", FakeAIProviderRegistry()
     )
 
     client.post(f"/api/slideshows/{slideshow_id}/analyze")

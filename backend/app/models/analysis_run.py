@@ -41,6 +41,10 @@ ANALYSIS_TYPE_SCENE_INTELLIGENCE = "scene_intelligence"
 # pass producing the layout contract that spatial ownership (Package C) and
 # graphic ownership enforcement (Package D) both read.
 ANALYSIS_TYPE_COMPOSITION_CONTRACT = "composition_contract"
+# ADR 0001 §14, Package E. Slideshow-scoped. Mostly deterministic - it only
+# makes a provider call for projects that actually have designed typography
+# to read, so many of its runs legitimately have no ProviderCall at all.
+ANALYSIS_TYPE_CREATIVE_PROFILE = "creative_profile"
 # Phase 8.3 of the Generation -> Validation proof of loop (see
 # MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
 # see app.slideshow_stages.image_generation_stage's docstring for why.

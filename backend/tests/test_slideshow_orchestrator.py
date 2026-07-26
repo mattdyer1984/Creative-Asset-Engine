@@ -3,6 +3,8 @@ Integration tests for SlideshowOrchestrator (new pipeline, Phase 2.4e) -
 mirrors tests/test_orchestrator.py's coverage of AnalysisOrchestrator.
 """
 
+import importlib
+
 from sqlalchemy import select
 
 from app.models.marketing_analysis import MarketingAnalysis
@@ -11,11 +13,11 @@ from app.models.slideshow import STATUS_FAILED, STATUS_READY
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.ocr_stage import SlideOCRStage
 from app.slideshow_stages.orchestrator import SlideshowOrchestrator
+from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
 from tests.fakes import (
     FakeAIProviderRegistry,
     FakeOCRProvider,
     FakeTextGenerationProvider,
-    FakeVisionAnalysisProvider,
 )
 
 
@@ -195,39 +197,30 @@ def test_rerunning_upstream_stage_alone_does_not_touch_downstream_artifacts(
     assert untouched_marketing_analysis.is_current is True
 
 
-def test_default_pipeline_runs_all_seven_stages(db_session, slideshow_with_product, monkeypatch):
+def test_default_pipeline_runs_every_stage(db_session, slideshow_with_product, monkeypatch):
     """
     Integration test against the REAL default SLIDESHOW_STAGE_PIPELINE
     (not an explicit stages=[...] override), using slideshow_with_product
     so Product Isolation and Product Lock Profile's prerequisite (a
-    current ProductAppearance) is met. Seven stages as of Phase 7.2
-    (Narrative Structure, see MIGRATION_PLAN.md) - was six.
+    current ProductAppearance) is met. Ten stages as of Package E
+    (Composition Contract and Creative Project Profile, ADR 0001) - was
+    seven at Phase 7.2, six before that.
 
     Unlike the old test's blueprint.current_product_lock_profile_id
     assertion, this checks for a current ProductLockProfile row directly -
     there is deliberately no such pointer on Slide/Slideshow (see Phase
     2.4b's docstring on why).
     """
-    for module in (
-        "app.slideshow_stages.ocr_stage",
-        "app.slideshow_stages.product_isolation_stage",
-        "app.slideshow_stages.product_lock_profile_stage",
-        "app.slideshow_stages.creative_fingerprint_stage",
-        "app.slideshow_stages.marketing_analysis_stage",
-        "app.slideshow_stages.creative_specification_stage",
-    ):
-        monkeypatch.setattr(f"{module}.default_registry", FakeAIProviderRegistry())
-    # Phase 10.4 (Scene Intelligence, see MIGRATION_PLAN.md) added a real
-    # vision call between Creative Fingerprint and Marketing Analysis in
-    # SLIDESHOW_STAGE_PIPELINE - a real, pre-existing gap found while
-    # building Phase 12: this test never patched it, so it was silently
-    # making a real, paid vision call. Needs its own fake registry (not
-    # the shared-shape one above) since its schema requires a "regions"
-    # key the generic FakeVisionAnalysisProvider default doesn't return.
-    monkeypatch.setattr(
-        "app.slideshow_stages.scene_intelligence_stage.default_registry",
-        FakeAIProviderRegistry(vision_provider=FakeVisionAnalysisProvider(result={"regions": []})),
-    )
+    # Patched from the PIPELINE, not from a hand-written list. The list was
+    # a standing hazard: Scene Intelligence was added to the pipeline and
+    # never added here, so this test silently made a real, paid vision call
+    # until somebody noticed. A stage added tomorrow is patched by
+    # construction, and a stage that needs a specific shape gets it from
+    # FakeVisionAnalysisProvider's schema-keyed defaults.
+    for stage in SLIDESHOW_STAGE_PIPELINE:
+        module = type(stage).__module__
+        if hasattr(importlib.import_module(module), "default_registry"):
+            monkeypatch.setattr(f"{module}.default_registry", FakeAIProviderRegistry())
     # Narrative Structure (Phase 7.2) shares TextGenerationProvider with
     # Marketing Analysis but expects a different response shape - its own
     # fake registry, not the shared-shape one above.

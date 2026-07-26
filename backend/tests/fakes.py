@@ -137,6 +137,40 @@ def _assert_matches_product_lock_profile_shape(result: dict) -> None:
     )
 
 
+#: Canned answers keyed by schema_name, used when a caller has not supplied
+#: its own. Stages that share `analyze_creative` but expect different shapes
+#: would otherwise each have to be patched individually in every integration
+#: test that runs the whole pipeline - and a stage nobody remembered to patch
+#: makes a real, paid call from the test suite. That has happened before (see
+#: Scene Intelligence, Phase 10.4), so new stages get a default here.
+_CANNED_BY_SCHEMA: dict[str, dict] = {
+    "scene_intelligence": {"regions": []},
+    "composition_contract": {
+        "device": "product-hero",
+        "device_confidence": 0.8,
+        "zones": [
+            {"id": "caption", "role": "text",
+             "x_min": 0.1, "y_min": 0.05, "x_max": 0.9, "y_max": 0.2},
+            {"id": "hero", "role": "product",
+             "x_min": 0.1, "y_min": 0.25, "x_max": 0.9, "y_max": 0.85},
+        ],
+        "relations": [{"subject": "caption", "relation": "above", "object": "hero"}],
+        "emphasis": ["caption", "hero"],
+    },
+    "typography_system": {
+        "primary_family_class": "grotesque",
+        "secondary_family_class": None,
+        "capability_level": "L1",
+        "colour_roles": {"body": "near-black"},
+        "text_roles": {
+            "headline": {"family_class": "grotesque", "weight": "bold",
+                         "colour_role": "body", "size_ratio": 2.0},
+        },
+        "size_scale": {"headline_to_body": 2.0},
+    },
+}
+
+
 class FakeVisionAnalysisProvider:
     """Returns a canned Product Lock Profile dict, or raises."""
 
@@ -161,6 +195,10 @@ class FakeVisionAnalysisProvider:
         unaffected.
         """
         self._results_by_schema_name = results_by_schema_name
+        # Whether the caller chose this result. An explicit one always wins
+        # over the schema-keyed defaults below - a test that says what it
+        # wants back must get it.
+        self._result_is_explicit = result is not None
         self._result = result if result is not None else {
             "product_category": "beverage",
             "product_type": "juice bottle",
@@ -212,10 +250,16 @@ class FakeVisionAnalysisProvider:
         if usage_sink is not None:
             usage_sink["prompt_tokens"] = 100
             usage_sink["completion_tokens"] = 50
+        schema_name = prompt_spec.get("schema_name")
         if self._results_by_schema_name is not None:
-            schema_name = prompt_spec.get("schema_name")
             if schema_name in self._results_by_schema_name:
                 return self._results_by_schema_name[schema_name]
+        # A stage whose shape this fake knows gets that shape, but only when
+        # the caller did not name one. Returning a product-lock dict to the
+        # contract stage would exercise its rejection path, not its success
+        # path, in every test that never meant to test either.
+        if not self._result_is_explicit and schema_name in _CANNED_BY_SCHEMA:
+            return _CANNED_BY_SCHEMA[schema_name]
         return self._result
 
 
@@ -449,3 +493,33 @@ class FakeAIProviderRegistry:
     def image_generation_fallback(self) -> FakeImageGenerationProvider | None:
         """Mirrors AIProviderRegistry.image_generation_fallback's real signature - see MIGRATION_PLAN.md."""
         return self._image_generation_fallback_provider
+
+
+def patch_pipeline_registries(monkeypatch, **per_module):
+    """
+    Point every SLIDESHOW_STAGE_PIPELINE stage at a fake provider registry.
+
+    Derived from the pipeline, not from a hand-written list. The list was a
+    standing hazard: Scene Intelligence was added to the pipeline and never
+    added to the several copies of that list scattered across the suite, so
+    tests documented as "no real provider call" were silently making a real,
+    paid vision call for one stage. A stage added tomorrow is covered by
+    construction.
+
+    `per_module` overrides a specific stage module by its short module name,
+    e.g. `narrative_structure_stage=FakeAIProviderRegistry(...)`, for the few
+    stages that need a differently-shaped canned response than
+    FakeVisionAnalysisProvider's schema-keyed defaults provide.
+    """
+    import importlib
+
+    from app.slideshow_stages.pipeline import SLIDESHOW_STAGE_PIPELINE
+
+    for stage in SLIDESHOW_STAGE_PIPELINE:
+        path = type(stage).__module__
+        if not hasattr(importlib.import_module(path), "default_registry"):
+            continue
+        override = per_module.get(path.rsplit(".", 1)[-1])
+        monkeypatch.setattr(
+            f"{path}.default_registry", override or FakeAIProviderRegistry()
+        )

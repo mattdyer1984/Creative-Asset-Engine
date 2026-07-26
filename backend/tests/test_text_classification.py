@@ -153,3 +153,54 @@ def test_designed_typography_is_still_protected_after_the_new_signals():
     """The new caption signals must not start eating designed typography."""
     for text in ("HOW TO BE A", "BAD GUT HEALTH", "3 SIGNS OF", "feels rounded"):
         assert classify_block({"text": text, "surface": "overlay"}).is_baked_in
+
+
+# --- platform furniture (Package E) ---------------------------------------
+#
+# Found by the profile stage: `#fyp` and `pov:` scored as designed typography,
+# which would have routed a TikTok caption to the deterministic renderer and
+# typeset it into the creative as if the designer had put it there.
+
+
+@pytest.mark.parametrize("text", [
+    "pov: you finally found the one",
+    "run don't walk #fyp",
+    "this thing #tiktokmademebuyit",
+    "@sarah you need this",
+    "me when the delivery finally arrives",
+    "no because why is this so good",
+])
+def test_platform_furniture_is_a_caption(text):
+    assert classify_block({"text": text, "surface": "overlay"}).text_class is (
+        TextClass.PLATFORM_CAPTION
+    )
+
+
+@pytest.mark.parametrize("text", [
+    "Your upper back",       # case 4 headline
+    "feels rounded",         # case 4 accent line
+    "british meal prep 🇬🇧",  # case 6 - emoji in DESIGNED typography
+    "BEFORE",                # case 7 comparison label
+    "vs",                    # case 6 connective
+    "1.",                    # case 4 numeral
+    "5 signs you need this",
+])
+def test_designed_typography_is_not_pulled_across_by_the_new_signals(text):
+    """
+    The controls. A caption signal that also fires on designed type would
+    hand the creative's own headline to the caption renderer - the exact
+    failure in the other direction.
+    """
+    assert classify_block({"text": text, "surface": "overlay"}).text_class is (
+        TextClass.DESIGNED_TYPOGRAPHY
+    )
+
+
+def test_a_hashtag_decides_on_its_own_unlike_an_emoji():
+    """
+    Deliberately stronger than the emoji rule. A designer may use a flag
+    emoji as part of a comparison (benchmark 6) but does not typeset `#fyp`
+    into an editorial layout.
+    """
+    short_with_hashtag = classify_block({"text": "so good #fyp", "surface": "overlay"})
+    assert short_with_hashtag.text_class is TextClass.PLATFORM_CAPTION

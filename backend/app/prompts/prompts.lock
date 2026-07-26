@@ -27,6 +27,10 @@
     "content_hash": "51ae78938b88dd19",
     "version": "1.0"
   },
+  "analysis.typography_system": {
+    "content_hash": "9126b3a5ffbc1ba2",
+    "version": "1.0"
+  },
   "generation.compiler": {
     "content_hash": "d3b3f0d8a9491444",
     "version": "5.0"

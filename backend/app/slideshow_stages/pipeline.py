@@ -28,6 +28,7 @@ own placement above.
 
 from app.slideshow_stages.base import SlideshowAnalysisStage
 from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerprintStage
+from app.slideshow_stages.creative_profile_stage import SlideshowCreativeProfileStage
 from app.slideshow_stages.composition_contract_stage import SlideCompositionContractStage
 from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
 from app.slideshow_stages.marketing_analysis_stage import SlideshowMarketingAnalysisStage
@@ -44,6 +45,7 @@ SLIDESHOW_STAGE_PIPELINE: list[SlideshowAnalysisStage] = [
     SlideCreativeFingerprintStage(),
     SceneIntelligenceStage(),
     SlideCompositionContractStage(),
+    SlideshowCreativeProfileStage(),
     SlideshowMarketingAnalysisStage(),
     SlideshowNarrativeStructureStage(),
     SlideCreativeSpecificationStage(),
