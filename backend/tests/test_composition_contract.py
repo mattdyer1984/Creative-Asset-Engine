@@ -1,9 +1,6 @@
 """Composition Contract (ADR 0001 §9, Package B)."""
 
-import pathlib
-
 import pytest
-import yaml
 
 from app.models.analysis_run import AnalysisRun
 from app.models.slide import Slide
@@ -15,31 +12,13 @@ from app.services.composition_contract import (
     unknown_contract,
 )
 from app.services.composition_schema import (
-    CompositionContract,
     Device,
     Relation,
     RelationEdge,
     Zone,
     ZoneRole,
 )
-
-BENCHMARKS = pathlib.Path(__file__).parent / "benchmarks"
-CASES = sorted(p for p in BENCHMARKS.iterdir() if p.is_dir())
-
-
-def _contract_from_fixture(case: pathlib.Path) -> CompositionContract:
-    c = yaml.safe_load((case / "ground_truth.yaml").read_text())["composition_contract"]
-    return CompositionContract(
-        device=Device(c["device"]),
-        device_confidence=1.0,
-        zones=[
-            Zone(zone_id=f"{z['role']}-{i}", role=ZoneRole(z["role"]), bounds=tuple(z["bounds"]))
-            for i, z in enumerate(c["zones"])
-        ],
-        relations=[RelationEdge(subject=r[0], relation=Relation(r[1]), object=r[2])
-                   for r in c["relations"]],
-        emphasis=list(c["emphasis"]),
-    )
+from tests.benchmark_loader import CASES, load_contract, zone
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
@@ -49,7 +28,7 @@ def test_every_benchmark_is_expressible(case):
     general graph was rejected precisely because it would express anything -
     including things we cannot check.
     """
-    contract = _contract_from_fixture(case)
+    contract = load_contract(case)
     assert contract.device is not Device.UNKNOWN
     assert contract.zones and contract.relations and contract.emphasis
 
@@ -75,20 +54,44 @@ def test_an_unknown_device_stays_honest():
 
 def test_zone_lookup_finds_the_containing_region():
     """The question OCR cannot answer: which region is this text in?"""
-    contract = _contract_from_fixture(BENCHMARKS / "case04_posture")
-    text_zone = contract.zones_with_role(ZoneRole.TEXT)[0]
-    inside = (0.08, 0.25, 0.30, 0.31)
-    assert contract.zone_for(inside) is text_zone
+    contract = load_contract("case04_posture")
+    inside_the_headline = (0.08, 0.26, 0.30, 0.32)
+    assert contract.zone_for(inside_the_headline) is zone(contract, "headline")
+    assert contract.zone_for((0.08, 0.13, 0.18, 0.21)) is zone(contract, "numeral")
 
 
 def test_a_region_outside_every_zone_returns_none():
-    contract = _contract_from_fixture(BENCHMARKS / "case04_posture")
+    contract = load_contract("case04_posture")
     assert contract.zone_for((0.90, 0.02, 0.99, 0.05)) is None
 
 
 def test_relations_are_queryable():
-    contract = _contract_from_fixture(BENCHMARKS / "case08_fan_shelf")
+    contract = load_contract("case08_fan_shelf")
     assert "product" in contract.related("price-label", Relation.BELOW)
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_every_relation_resolves_to_a_declared_zone(case):
+    """
+    A contract is a graph over its OWN zones, not prose in a structured suit.
+
+    The first revision of these fixtures related things like `shelf` and
+    `presenter` that were never declared, so the edges read as structure but
+    no stage could act on them. Endpoints must resolve or the annotation is
+    not a contract.
+    """
+    contract = load_contract(case)
+    assert contract.unresolved_relations() == []
+    ids = {z.zone_id for z in contract.zones}
+    assert set(contract.emphasis) <= ids, "emphasis must rank declared zones"
+    assert len(ids) == len(contract.zones), "zone ids must be unique"
+
+
+def test_association_is_readable_from_either_end():
+    """`price-label below product` and `product above price-label` are one fact."""
+    contract = load_contract("case08_fan_shelf")
+    assert "product" in contract.neighbours("price-label")
+    assert "price-label" in contract.neighbours("product")
 
 
 @pytest.fixture
@@ -109,7 +112,7 @@ def test_contract_round_trips_and_supersedes(db_session, slide):
     db_session.add(run)
     db_session.flush()
 
-    original = _contract_from_fixture(BENCHMARKS / "case04_posture")
+    original = load_contract("case04_posture")
     first = record_contract(db_session, slide_id=slide.id, analysis_run_id=run.id,
                             contract=original)
     assert contract_of(first) == original

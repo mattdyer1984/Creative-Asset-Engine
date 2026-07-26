@@ -122,6 +122,16 @@ class TextOwnership(BaseModel):
     #: Normalised [x_min, y_min, x_max, y_max], when OCR gave us one.
     bounds: tuple[float, float, float, float] | None = None
 
+    #: Package C. The composition zone this block sits in, and what that zone
+    #: is related to. Recorded even when it did not change the decision, so a
+    #: reviewer can see what the geometry said as well as what routing did.
+    composition_zone_id: str | None = None
+    composition_zone_role: str | None = None
+    #: Zones this block's zone is related to (`price attached-to product`).
+    #: This is what makes "the price belongs to THAT product" durable rather
+    #: than an inference redone differently by every later stage.
+    associated_zone_ids: list[str] = Field(default_factory=list)
+
     @property
     def is_image_owned(self) -> bool:
         return self.owner is Owner.IMAGE
@@ -173,11 +183,76 @@ def _bounds_of(block: dict) -> tuple[float, float, float, float] | None:
         return None
 
 
+#: Zone roles that establish what a block is ATTACHED TO, which the wording
+#: cannot. A price under a product is environmental scene text, not the
+#: product's own packaging; text inside a screen belongs to the screen.
+_SPATIAL_CLASS: dict[str, TextClass] = {
+    "product": TextClass.PRODUCT_NATIVE,
+    "screen": TextClass.ENVIRONMENTAL,
+    "price": TextClass.ENVIRONMENTAL,
+    "caption": TextClass.PLATFORM_CAPTION,
+    "graphic": TextClass.DESIGNED_TYPOGRAPHY,
+}
+
+#: Roles that declare what a block is PART OF, which outranks how it reads.
+#: A block inside a product or a screen is attached to it whatever it says,
+#: and a rule under a heading has no wording for the classifier to read at
+#: all - position is the only evidence there is.
+#:
+#: `text` and `caption` zones are deliberately absent: designed copy and
+#: platform captions genuinely share regions, so there the wording still
+#: gets to speak and a disagreement is a real contest, not noise.
+_SPATIAL_OVERRIDES_WORDING = frozenset({"product", "screen", "price", "graphic"})
+
+
+class SpatialEvidence(BaseModel):
+    """What the Composition Contract says about one block's position."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    zone_id: str | None = None
+    zone_role: str | None = None
+    text_class: TextClass | None = None
+    associated_zone_ids: list[str] = Field(default_factory=list)
+
+    @property
+    def overrides_wording(self) -> bool:
+        return self.zone_role in _SPATIAL_OVERRIDES_WORDING
+
+
+def _spatial_evidence(contract, bounds) -> SpatialEvidence:
+    """
+    What the composition says this block is attached to.
+
+    This is the capability WP-1.5A lacked. You cannot determine *this text
+    belongs to this product* from wording, and a shelf price reads like
+    neither a caption nor packaging - it is scene text that happens to be
+    about a product, and only its position says so.
+
+    Relations are carried through as well as the zone: knowing the price is
+    `attached-to` a specific product zone is what lets a later stage keep them
+    together, instead of each stage re-guessing the association from geometry.
+    """
+    if contract is None or bounds is None:
+        return SpatialEvidence()
+    zone = contract.zone_for(bounds)
+    if zone is None:
+        return SpatialEvidence()
+    role = str(zone.role)
+    return SpatialEvidence(
+        zone_id=zone.zone_id,
+        zone_role=role,
+        text_class=_SPATIAL_CLASS.get(role),
+        associated_zone_ids=contract.neighbours(zone.zone_id),
+    )
+
+
 def decide_ownership(
     blocks: list[dict] | None,
     *,
     overlay_policy: OverlayPolicy = OverlayPolicy.KEEP,
     project_text_mode: TextMode | None = None,
+    contract=None,
 ) -> OwnershipPlan:
     """
     Route every OCR block to exactly one owner.
@@ -208,9 +283,23 @@ def decide_ownership(
             for reason in classification.reasons
         )
 
+        # Composition first, where it speaks. Spatial attachment is stronger
+        # evidence than wording for the roles that establish it: a block
+        # inside a product zone IS product text, whatever it says.
+        spatial = _spatial_evidence(contract, _bounds_of(block))
+        spatial_applied = False
+        if spatial.text_class is not None and (spatial.overrides_wording or not contested):
+            if spatial.text_class is not text_class:
+                classification.reasons.insert(
+                    0, f"composition: block sits in the {spatial.zone_id!r} "
+                       f"{spatial.zone_role} zone"
+                )
+            text_class = spatial.text_class
+            spatial_applied = True
+
         # No signals at all: take the project's default interpretation. This
         # is a documented fallback, not an uncertain judgement.
-        if not contested and text_class is not TextClass.PRODUCT_NATIVE:
+        if not contested and not spatial_applied and text_class is not TextClass.PRODUCT_NATIVE:
             if project_text_mode is TextMode.PLATFORM_CAPTION:
                 text_class = TextClass.PLATFORM_CAPTION
             elif project_text_mode is TextMode.DESIGNED_TYPOGRAPHY:
@@ -219,6 +308,7 @@ def decide_ownership(
         # Contested blocks are preserved and surfaced, never silently routed.
         if (
             contested
+            and not spatial_applied
             and classification.confidence < REVIEW_CONFIDENCE
             and text_class is not TextClass.PRODUCT_NATIVE
         ):
@@ -236,6 +326,9 @@ def decide_ownership(
                         f"({'; '.join(classification.reasons[:2]) or 'no signals'})"
                     ),
                     bounds=_bounds_of(block),
+                    composition_zone_id=spatial.zone_id,
+                    composition_zone_role=spatial.zone_role,
+                    associated_zone_ids=spatial.associated_zone_ids,
                 )
             )
             continue
@@ -277,6 +370,9 @@ def decide_ownership(
                     or f"no block signals - project default ({project_text_mode})"
                 ),
                 bounds=_bounds_of(block),
+                composition_zone_id=spatial.zone_id,
+                composition_zone_role=spatial.zone_role,
+                associated_zone_ids=spatial.associated_zone_ids,
             )
         )
 

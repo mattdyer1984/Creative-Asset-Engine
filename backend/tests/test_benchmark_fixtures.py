@@ -86,15 +86,27 @@ def test_closed_vocabularies_are_respected(case):
 
     contract = data["composition_contract"]
     assert contract["device"] in DEVICES
+
+    zone_ids = set()
     for zone in contract["zones"]:
         assert zone["role"] in ZONE_ROLES
+        assert zone["id"] not in zone_ids, f"duplicate zone id {zone['id']!r}"
+        zone_ids.add(zone["id"])
         bounds = zone["bounds"]
         assert len(bounds) == 4
         assert all(0.0 <= value <= 1.0 for value in bounds), "zones are normalised"
         assert bounds[0] < bounds[2] and bounds[1] < bounds[3], "zones must be non-empty"
+
+    # Endpoints must name declared zones. Free-text endpoints were the last
+    # escape hatch in an otherwise closed vocabulary: they look like structure
+    # and resolve to nothing, so no stage can act on them.
     for subject, relation, obj in contract["relations"]:
         assert relation in RELATIONS, f"{relation!r} is not in the relation vocabulary"
-        assert subject and obj
+        assert subject in zone_ids, f"relation subject {subject!r} is not a declared zone"
+        assert obj in zone_ids, f"relation object {obj!r} is not a declared zone"
+        assert subject != obj, "a zone cannot be related to itself"
+    for ranked in contract["emphasis"]:
+        assert ranked in zone_ids, f"emphasis {ranked!r} is not a declared zone"
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)

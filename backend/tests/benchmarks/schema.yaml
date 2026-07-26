@@ -66,19 +66,28 @@ composition_contract:             # ADR §9
     - shelf-snapshot
     - diagram-with-callout
     - screen-in-scene
-  zones:                          # normalised [x_min, y_min, x_max, y_max]
-    - role:
-        - text-zone
-        - subject-zone
-        - product-zone
+  zones:
+    - id: str                     # unique WITHIN this case; relations and
+                                  #   emphasis reference zones by this id
+      role:
+        - text                    # copy the design places
+        - caption                 # platform caption furniture
+        - subject                 # the person or scene
+        - product                 # the thing being sold
+        - callout                 # an annotation pointing INTO the subject
+        - price                   # a shelf or tag price, attached to a product
+        - screen                  # a device display; text inside belongs to it
+        - graphic                 # a rule, divider or design mark
         - negative-space
-        - callout-zone
-      bounds: [float, float, float, float]
+      bounds: [float, float, float, float]   # normalised [x0, y0, x1, y1]
   relations:                      # subject / relation / object
-    - [str, relation, str]        # relation ∈ above | below | left-of |
+    - [zone_id, relation, zone_id]   # BOTH endpoints must be declared zone ids.
+                                  #   Free-text endpoints are narration: they
+                                  #   read as structure and resolve to nothing.
+                                  # relation ∈ above | below | left-of |
                                   #   right-of | attached-to | points-to |
                                   #   splits | flanks | contains
-  emphasis: [str]                 # ordered: what the eye reaches 1st, 2nd, 3rd
+  emphasis: [zone_id]             # ordered: what the eye reaches 1st, 2nd, 3rd
 
 typography_system:                # ADR §10; null for ugc_photographic projects
   primary_family:                 # family CLASS, never a specific face

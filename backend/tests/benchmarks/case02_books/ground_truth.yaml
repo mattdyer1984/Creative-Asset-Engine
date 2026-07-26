@@ -39,16 +39,18 @@ creative_intent: aspiration
 composition_contract:
   device: product-hero
   zones:
-    - role: text
+    - id: caption
+      role: text
       bounds: [0.14, 0.14, 0.86, 0.28]
-    - role: product
+    - id: books
+      role: product
       bounds: [0.08, 0.30, 0.92, 0.82]
-    - role: text
+    - id: emoji-row
+      role: text
       bounds: [0.20, 0.82, 0.55, 0.90]
   relations:
     - [caption, above, books]
     - [emoji-row, below, books]
-    - [books, contains, cover-text]
   emphasis: [caption, books, emoji-row]
 
 typography_system: null

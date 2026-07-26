@@ -32,8 +32,12 @@ class TextOwnershipArtifact(Base, AnalysisArtifactMixin):
     #: at read time - re-analysis must not rewrite the explanation of a past run.
     project_profile_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
-    #: Which composition contract informed the spatial decisions (Package C).
+    #: Which composition contract informed the spatial decisions (Package C),
+    #: and the schema it was written under. The version is stamped rather than
+    #: joined: a contract can be superseded, and a past run must stay readable
+    #: in its own terms without chasing a row that has since moved on.
     composition_contract_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    composition_contract_version: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     #: Bumped when routing logic would produce different owners for identical
     #: input, so a change in decisions is attributable.

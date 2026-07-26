@@ -18,12 +18,17 @@ many-to-many join.
 Additive as of Phase 2.1 - nothing reads or writes this table yet.
 """
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import JSON, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.models._shared import new_uuid
 
+if TYPE_CHECKING:  # pragma: no cover - resolves ORM forward refs
+    from app.models.product_appearance import ProductAppearance
+    from app.models.slideshow import Slideshow
 
 class Slide(Base):
     __tablename__ = "slides"

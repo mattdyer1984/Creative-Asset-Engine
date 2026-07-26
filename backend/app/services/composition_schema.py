@@ -96,7 +96,15 @@ class Zone(BaseModel):
 
 
 class RelationEdge(BaseModel):
-    """subject -> relation -> object, over zone ids or element names."""
+    """
+    subject -> relation -> object, over ZONE IDS.
+
+    Endpoints must name declared zones. An earlier revision allowed free
+    element names, which quietly reopened the escape hatch the closed
+    vocabularies were meant to shut: `[shelf, contains, product]` reads as
+    structure but nothing can resolve `shelf`, so no stage could act on it.
+    A relation whose endpoints are not zones is narration, not a contract.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -141,3 +149,24 @@ class CompositionContract(BaseModel):
 
     def related(self, subject: str, relation: Relation) -> list[str]:
         return [e.object for e in self.relations if e.subject == subject and e.relation is relation]
+
+    def neighbours(self, zone_id: str) -> list[str]:
+        """
+        Every zone this one is related to, in either direction.
+
+        Relations are recorded from whichever end read most naturally to the
+        annotator - `price-label below product` and `product above price-label`
+        are the same fact. Callers asking "what is this associated with?" must
+        not have to know which way round it was written.
+        """
+        found = {
+            e.object if e.subject == zone_id else e.subject
+            for e in self.relations
+            if zone_id in (e.subject, e.object)
+        }
+        return sorted(found - {zone_id})
+
+    def unresolved_relations(self) -> list[RelationEdge]:
+        """Edges naming something that is not a declared zone."""
+        ids = {z.zone_id for z in self.zones}
+        return [e for e in self.relations if e.subject not in ids or e.object not in ids]

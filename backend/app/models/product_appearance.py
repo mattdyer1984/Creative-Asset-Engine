@@ -20,12 +20,17 @@ which slide.
 
 from datetime import datetime
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Boolean, Float, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.models._shared import new_uuid, utcnow
 
+if TYPE_CHECKING:  # pragma: no cover - resolves ORM forward refs
+    from app.models.product import Product
+    from app.models.slide import Slide
 
 class ProductAppearance(Base):
     __tablename__ = "product_appearances"

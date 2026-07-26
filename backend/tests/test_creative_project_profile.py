@@ -197,7 +197,7 @@ def test_defaults_apply_when_no_human_has_decided(db_session, slideshow):
 def test_the_complete_typography_system_round_trips(db_session, slideshow):
     """Every independent role must survive the database unchanged."""
     original = _case04_system()
-    profile = record_analysis(
+    record_analysis(
         db_session, slideshow_id=slideshow.id, analysis_run_id=_run(db_session),
         typography_system=original,
     )

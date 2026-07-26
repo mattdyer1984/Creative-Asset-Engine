@@ -19,21 +19,29 @@ creative_intent: aspiration
 composition_contract:
   device: grid-collage
   zones:
-    - role: subject
+    - id: panel-top-left
+      role: subject
       bounds: [0.00, 0.00, 0.50, 0.50]
-    - role: subject
+    - id: panel-top-right
+      role: subject
       bounds: [0.50, 0.00, 1.00, 0.50]
-    - role: subject
+    - id: panel-bottom-left
+      role: subject
       bounds: [0.00, 0.50, 0.50, 1.00]
-    - role: subject
+    - id: panel-bottom-right
+      role: subject
       bounds: [0.50, 0.50, 1.00, 1.00]
-    - role: text
+    - id: centre-text
+      role: text
       bounds: [0.05, 0.40, 0.95, 0.60]
   relations:
-    - [headline, above, subheadline]
-    - [text-zone, splits, grid]
-    - [grid, contains, archetype-panels]
-  emphasis: [subheadline, headline, archetype-panels]
+    - [centre-text, splits, panel-top-left]
+    - [centre-text, splits, panel-top-right]
+    - [centre-text, splits, panel-bottom-left]
+    - [centre-text, splits, panel-bottom-right]
+    - [panel-top-left, left-of, panel-top-right]
+    - [panel-bottom-left, left-of, panel-bottom-right]
+  emphasis: [centre-text, panel-top-left, panel-top-right, panel-bottom-left, panel-bottom-right]
 
 typography_system:
   primary_family: condensed-sans

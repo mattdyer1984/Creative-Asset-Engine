@@ -27,19 +27,20 @@ creative_intent: discovery
 composition_contract:
   device: shelf-snapshot
   zones:
-    - role: product
+    - id: product
+      role: product
       bounds: [0.18, 0.12, 0.82, 0.70]
-    - role: text
+    - id: caption
+      role: text
       bounds: [0.12, 0.50, 0.88, 0.64]
-    - role: callout
+    - id: price-label
+      role: price
       bounds: [0.20, 0.72, 0.60, 0.82]
   relations:
     - [caption, above, price-label]
     - [price-label, below, product]
-    - [product, contains, packaging-text]
-    - [product, contains, feature-icons]
-    - [shelf, contains, product]
-  emphasis: [caption, product, price-label, aisle]
+    - [price-label, attached-to, product]
+  emphasis: [caption, product, price-label]
 
 typography_system: null
 

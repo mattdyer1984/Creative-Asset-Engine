@@ -103,3 +103,73 @@ def test_evidence_is_retained_for_review(db_session, slide):
                                 analysis_run_id=_run(db_session), plan=_plan())
     numeral = artifact.blocks_json[0]
     assert numeral["evidence"], "the classifier's working must survive persistence"
+
+
+# --- Package C: the contract that informed the decisions ------------------
+
+
+def _contract_artifact(db_session, slide):
+    from app.services.composition_contract import record_contract
+    from tests.benchmark_loader import load_contract
+
+    return record_contract(
+        db_session, slide_id=slide.id, analysis_run_id=_run(db_session),
+        contract=load_contract("case08_fan_shelf"),
+    )
+
+
+def test_spatial_decisions_record_the_contract_that_produced_them(db_session, slide):
+    """
+    A zone id in a decision is only reviewable if the artifact says which
+    contract that zone came from - and which schema it was written under,
+    since the contract row itself can be superseded later.
+    """
+    from tests.benchmark_loader import load_contract
+
+    contract_row = _contract_artifact(db_session, slide)
+    plan = decide_ownership(
+        [{"text": "£30", "surface": "physical",
+          "bounding_box": {"x_min": 0.22, "y_min": 0.73, "x_max": 0.40, "y_max": 0.80}}],
+        project_text_mode=TextMode.PLATFORM_CAPTION,
+        contract=load_contract("case08_fan_shelf"),
+    )
+    artifact = record_ownership(
+        db_session, slide_id=slide.id, analysis_run_id=_run(db_session),
+        plan=plan, contract_artifact=contract_row,
+    )
+
+    assert artifact.composition_contract_id == contract_row.id
+    assert artifact.composition_contract_version == contract_row.schema_version
+
+    restored = decisions_of(artifact)[0]
+    assert restored.composition_zone_id == "price-label"
+    assert restored.composition_zone_role == "price"
+    assert restored.associated_zone_ids == ["caption", "product"]
+
+
+def test_citing_a_zone_without_supplying_the_contract_is_refused(db_session, slide):
+    """
+    Recording *what* the geometry decided while losing *which* geometry
+    decided it produces an artifact that cannot be checked - which is worse
+    than one that admits it has no spatial input.
+    """
+    from tests.benchmark_loader import load_contract
+
+    plan = decide_ownership(
+        [{"text": "£30", "surface": "physical",
+          "bounding_box": {"x_min": 0.22, "y_min": 0.73, "x_max": 0.40, "y_max": 0.80}}],
+        project_text_mode=TextMode.PLATFORM_CAPTION,
+        contract=load_contract("case08_fan_shelf"),
+    )
+    with pytest.raises(OwnershipIntegrityError, match="cite composition zones"):
+        record_ownership(db_session, slide_id=slide.id,
+                         analysis_run_id=_run(db_session), plan=plan)
+
+
+def test_a_contract_free_run_is_still_valid(db_session, slide):
+    """Package C is additive - WP-1.5A behaviour must persist unchanged."""
+    artifact = record_ownership(db_session, slide_id=slide.id,
+                                analysis_run_id=_run(db_session), plan=_plan())
+    assert artifact.composition_contract_id is None
+    assert artifact.composition_contract_version is None
+    assert all(d.composition_zone_id is None for d in decisions_of(artifact))

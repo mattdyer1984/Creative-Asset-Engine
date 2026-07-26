@@ -7,6 +7,8 @@ and Import Provider registration are introduced in M1/M2 — this file will
 grow to load those, but nothing about its shape needs to change to do so.
 """
 
+import os
+from collections.abc import Mapping
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -58,4 +60,37 @@ class Settings(BaseSettings):
         self.generation_logs_dir.mkdir(parents=True, exist_ok=True)
 
 
+class UnknownSetting(RuntimeError):
+    """A `CAE_` variable was set that this build does not understand."""
+
+
+def reject_unknown_env_overrides(environ: Mapping[str, str] | None = None) -> None:
+    """
+    Fail on a `CAE_` variable that no field would read.
+
+    pydantic-settings only ever looks up the fields it declares, so an
+    unrecognised `CAE_` variable is silently discarded. That is dangerous
+    rather than merely untidy: `CAE_DATABASE_URL` looks like it redirects the
+    database - `database_url` is a real attribute - but it is a derived
+    property, so the override does nothing and the caller carries on believing
+    they are pointed at a scratch copy. That mistake has already migrated the
+    real development database once.
+
+    An override that silently does nothing is worse than one that fails.
+    """
+    environ = os.environ if environ is None else environ
+    known = {f"CAE_{name.upper()}" for name in Settings.model_fields}
+    unknown = sorted(
+        name for name in environ
+        if name.startswith("CAE_") and name.upper() not in known
+    )
+    if unknown:
+        raise UnknownSetting(
+            f"unrecognised setting(s): {', '.join(unknown)}. "
+            f"This build reads: {', '.join(sorted(known))}. "
+            "To point the application at a different database, set CAE_DATA_DIR."
+        )
+
+
+reject_unknown_env_overrides()
 settings = Settings()

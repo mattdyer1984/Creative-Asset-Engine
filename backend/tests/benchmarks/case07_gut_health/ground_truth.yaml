@@ -31,21 +31,29 @@ creative_intent: education
 composition_contract:
   device: split-comparison
   zones:
-    - role: text
+    - id: headline
+      role: text
       bounds: [0.08, 0.06, 0.92, 0.27]
-    - role: text
+    - id: bad-label
+      role: text
       bounds: [0.10, 0.28, 0.45, 0.36]
-    - role: text
+    - id: good-label
+      role: text
       bounds: [0.55, 0.28, 0.90, 0.36]
-    - role: subject
+    - id: divider
+      role: graphic
+      bounds: [0.485, 0.36, 0.515, 1.00]
+    - id: face
+      role: subject
       bounds: [0.10, 0.36, 0.90, 1.00]
   relations:
-    - [headline, above, comparison-labels]
+    - [headline, above, bad-label]
+    - [headline, above, good-label]
     - [divider, splits, face]
-    - [bad-label, left-of, divider]
-    - [good-label, right-of, divider]
-    - [comparison-labels, above, face]
-  emphasis: [headline, comparison-labels, divider, face]
+    - [bad-label, left-of, good-label]
+    - [bad-label, above, face]
+    - [good-label, above, face]
+  emphasis: [headline, bad-label, good-label, divider, face]
 
 typography_system:
   primary_family: grotesque

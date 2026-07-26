@@ -17,12 +17,16 @@ primary entity, read and written on every analysis run.
 
 from datetime import datetime
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.models._shared import new_uuid, utcnow
 
+if TYPE_CHECKING:  # pragma: no cover - resolves ORM forward refs
+    from app.models.slide import Slide
 # Same lifecycle vocabulary as the old CreativeBlueprint.status (plan
 # §6), carried over unchanged: imported -> queued -> analyzing -> ready|failed.
 STATUS_IMPORTED = "imported"

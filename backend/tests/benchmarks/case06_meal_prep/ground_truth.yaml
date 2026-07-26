@@ -23,21 +23,24 @@ creative_intent: comparison
 composition_contract:
   device: side-by-side-comparison
   zones:
-    - role: text
+    - id: left-label
+      role: text
       bounds: [0.06, 0.24, 0.46, 0.36]
-    - role: text
+    - id: right-label
+      role: text
       bounds: [0.54, 0.24, 0.94, 0.36]
-    - role: product
+    - id: left-stack
+      role: product
       bounds: [0.04, 0.36, 0.48, 0.86]
-    - role: product
+    - id: right-stack
+      role: product
       bounds: [0.52, 0.36, 0.96, 0.86]
   relations:
     - [left-label, above, left-stack]
     - [right-label, above, right-stack]
-    - [connective, flanks, left-label]
-    - [connective, flanks, right-label]
+    - [left-label, left-of, right-label]
     - [left-stack, left-of, right-stack]
-  emphasis: [labels, left-stack, right-stack, setting]
+  emphasis: [left-label, right-label, left-stack, right-stack]
 
 typography_system:
   primary_family: serif

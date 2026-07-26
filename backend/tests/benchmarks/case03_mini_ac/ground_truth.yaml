@@ -23,21 +23,23 @@ creative_intent: demonstration
 composition_contract:
   device: scene-with-caption
   zones:
-    - role: text
+    - id: caption
+      role: text
       bounds: [0.14, 0.09, 0.86, 0.24]
-    - role: product
+    - id: ac-unit
+      role: product
       bounds: [0.52, 0.30, 0.80, 0.72]
-    - role: subject
+    - id: bed
+      role: subject
       bounds: [0.00, 0.28, 0.55, 0.85]
-    - role: text
+    - id: subtitle
+      role: text
       bounds: [0.12, 0.84, 0.88, 0.92]
   relations:
-    - [caption, above, product]
-    - [subtitle, below, product]
-    - [product, contains, display-readout]
-    - [product, right-of, bed]
-    - [lamp, right-of, product]
-  emphasis: [caption, product, bed, subtitle]
+    - [caption, above, ac-unit]
+    - [subtitle, below, ac-unit]
+    - [ac-unit, right-of, bed]
+  emphasis: [caption, ac-unit, bed, subtitle]
 
 typography_system: null
 

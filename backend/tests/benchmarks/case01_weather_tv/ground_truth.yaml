@@ -31,21 +31,23 @@ creative_intent: humour
 composition_contract:
   device: screen-in-scene
   zones:
-    - role: text
+    - id: caption
+      role: text
       bounds: [0.10, 0.09, 0.90, 0.15]
-    - role: subject
+    - id: tv-screen
+      role: screen
       bounds: [0.08, 0.15, 0.92, 0.36]
-    - role: text
+    - id: subtitle
+      role: text
       bounds: [0.10, 0.36, 0.90, 0.46]
-    - role: negative-space
+    - id: room
+      role: negative-space
       bounds: [0.00, 0.46, 1.00, 1.00]
   relations:
-    - [caption, above, television]
-    - [subtitle, below, television]
-    - [television, contains, weather-graphic]
-    - [television, above, media-console]
-    - [presenter, left-of, weather-map]
-  emphasis: [caption, weather-graphic, subtitle, room]
+    - [caption, above, tv-screen]
+    - [subtitle, below, tv-screen]
+    - [tv-screen, above, room]
+  emphasis: [caption, tv-screen, subtitle, room]
 
 typography_system: null
 
