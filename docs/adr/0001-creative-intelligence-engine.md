@@ -716,6 +716,11 @@ before further investment.
 | D10 | Character continuity by reference conditioning | Prose cannot hold a face across seven slides |
 | D11 | `CreativeProjectProfile` introduced minimal in Phase 1 | Avoids a disposable table and migration; `AnalysisArtifactMixin` already fits |
 | D12 | Strict zone-fallback ordering | Prevents casual regression to unreliable model lettering |
+| D13 | `Owner` and `ImageStrategy` are separate | Both "product lock" and "image generation" mean *the image carries this text*; keeping them as separate owners would need a new owner per production method |
+| D14 | Composition Contract relations are a graph over declared zones | Free-text endpoints (`[shelf, contains, product]`) read as structure and resolve to nothing, so no stage can act on them — the last escape hatch in an otherwise closed vocabulary |
+| D15 | `zone_for` returns the most specific containing zone | Zones nest legitimately (a label inside a product inside a shelf); taking the first over threshold lets a full-canvas subject swallow everything |
+| D16 | A zone is a render footprint only for `text`, `caption` and `graphic` roles | A block in a `subject` zone is *located* there, not drawn across it; adopting it would have enforcement reconstruct a face to clear space for a label |
+| D17 | Renderer-owned `graphic` zones are reserved with no text block | Rules and dividers carry no text, so OCR never reports them — the contract is the only thing that can declare them |
 
 ---
 
@@ -725,18 +730,20 @@ before further investment.
 |---|---|---|
 | Deterministic typography looks wrong despite correct extraction | WP-1.4 | Prototype case 4 end-to-end before building 1.5/1.6 — this is gate 3 |
 | Character drift across slides | WP-3.5 | Multiple reference angles; degrade honestly rather than fail |
-| Model will not leave zones clean | WP-1.5 | Measured occupancy; strict fallback ladder (§11) |
+| Model will not leave zones clean | WP-1.5 | **Closed (Package D).** Occupancy measured on a 4×6 grid, worst tile wins, zones from the contract; case 4's residue detected at 0.0985 vs a 0.02 threshold and cleared to 0.0000 |
+| Ownership cannot express *how well* a renderer must render | Package E | L1/L2/L3 capability does not yet reach `Owner`, so case 5's integrated typography routes to L1 and would be rendered flat (§10.3) |
 | Font licensing and host dependency | WP-1.3 | See `docs/FONT_PORTABILITY.md` — logical tokens are in place; vendored open-licence faces required before deployment |
 | Profile becomes a large analysis layer that does not move quality | WP-3.1 | Phase 0 harness proves value per package |
 | Project-level analysis cost at volume | WP-3.1 | Profile is one slideshow-scoped call; measure against the existing spend cap |
 
 **Unresolved questions**
 
-1. Can L1 deterministic typography reach benchmark quality on case 4? *(Gate 3.)*
+1. ~~Can L1 deterministic typography reach benchmark quality on case 4?~~ **Answered (gate 3, passed).** L1 reproduces case 4's hierarchy; the remaining gap was zone residue, closed in Package D.
 2. How many character reference angles are needed to hold identity across
    front, three-quarter and profile views?
 3. Does zone reservation hold reliably enough that fallback levels 1–3 cover
-   the majority of cases?
+   the majority of cases? *(Partially answered: on case 4, rungs 1–2 resolved
+   both zones. Not yet exercised against live generation — Package E.)*
 4. What is the acceptable per-project cost ceiling for project-level analysis?
 5. Should `preserve_meaning` copy policy ever be a default for any project type,
    or does it remain opt-in only?
