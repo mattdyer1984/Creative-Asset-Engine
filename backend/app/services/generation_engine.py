@@ -94,6 +94,7 @@ from app.models.scene_analysis import SceneAnalysis
 from app.models.slide import Slide
 from app.models.ocr_result import OCRResult
 from app.services.reference_masking import masked_reference_path
+from app.services.text_classification import carries_platform_caption
 from pathlib import Path
 from app.services.cost_estimation import estimate_image_cost_usd
 from app.services.creative_intelligence import optimize_scene_description
@@ -454,21 +455,29 @@ def run_generation_attempt(
 
 def _story_reference_path(db: Session, slide: Slide, suppress_overlay_text: bool) -> str:
     """
-    The reference image for a story slide, with its overlay caption
-    painted out when the app is going to composite text itself.
+    The reference image for a story slide.
 
-    On a story slide the reference IS the original slide, and the prompt
-    asks the model to recreate its scene and composition. The original
-    has the caption burned in, so the model reproduced it - same serif,
-    same red/black split, same position - despite an emphatic "do not
-    render ANY text". The Rendering Engine then composited its own
-    overlay on top and the delivered image carried two overlapping sets
-    of captions, which every automated check passed because none of them
-    look for duplicated text.
+    **TRANSITIONAL - see ADR 0001 WP-0.4.** Masking the reference removes
+    text before the model can copy it, which fixed a real defect: the
+    delivered image used to carry two overlapping sets of captions,
+    because the reference had the caption burned in and the Rendering
+    Engine composited its own on top.
 
-    Masking only applies when we are actually going to supply the text
-    ourselves; with text_strategy=None the original caption is the
-    intended output and must stay.
+    But it removes ALL digitally-added text, and on a designed editorial
+    creative that text IS the design - a red numeral, a serif headline, a
+    red italic subhead, red-bulleted lists. Stripping it and compositing
+    the generic bold-white-with-black-stroke caption style in its place
+    produced output far below the source.
+
+    Until the style-aware renderer exists (WP-1.4) there is no mechanism
+    that can reconstruct designed typography, so masking is restricted to
+    creatives that genuinely carry a platform caption. Everything else
+    keeps its typography in the reference and the model reproduces it.
+
+    Model-retained typography is a SAFETY MEASURE, not the target
+    architecture. ADR 0001 §10 assigns designed typography to
+    deterministic rendering; this function should lose its masking branch
+    entirely once WP-1.1 classifies text and WP-1.4 can render it.
     """
     if not suppress_overlay_text:
         return slide.stored_file_path
@@ -479,6 +488,11 @@ def _story_reference_path(db: Session, slide: Slide, suppress_overlay_text: bool
         else None
     )
     if ocr_result is None or not ocr_result.structured_blocks_json:
+        return slide.stored_file_path
+
+    if not carries_platform_caption(ocr_result.structured_blocks_json):
+        # Designed typography, or nothing we can classify with confidence.
+        # Preserving it is the recoverable failure; stripping it is not.
         return slide.stored_file_path
 
     return masked_reference_path(
