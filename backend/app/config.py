@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     # only a code path.
     sequential_stages: bool = False
 
+    # P2. Where bundled font faces are read from. None means the repository's
+    # own `backend/assets/fonts`. Set it to supply licensed brand faces
+    # without a code change.
+    font_root: Path | None = None
+
     @property
     def database_path(self) -> Path:
         return self.data_dir / "creative_asset_engine.db"

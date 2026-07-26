@@ -1,6 +1,11 @@
 # Font portability
 
-**Status: open work item. Blocks deployment, not development.**
+**Status: mechanism complete (P2). Font assets not yet installed.**
+
+The resolution mechanism, the configurable font root, the deployment gate and
+the pinned-checksum installer are all in place and tested. What remains is
+acquiring the twelve redistributable files, which needs network access this
+environment does not have.
 
 The typographic renderer (ADR 0001 WP-1.4) resolves a **logical token**, never
 a host font by name. `Georgia` existing is an accident of this machine;
@@ -8,7 +13,46 @@ a host font by name. `Georgia` existing is an accident of this machine;
 a container. That indirection is already in place — this document records what
 the tokens currently bind to, and what has to happen before deployment.
 
-## Current bindings (development only)
+## How resolution works now
+
+`resolve_token` tries, in order:
+
+1. **The bundled face** — `font_root() / VENDORED_FACES[token]`.
+   `font_root()` is `backend/assets/fonts` unless `CAE_FONT_ROOT` overrides
+   it, so a deployment can supply licensed brand faces without a code change.
+2. **A host face** — the macOS candidates below, a development convenience
+   only.
+3. **Failure**, naming the token, the bundled filename it looked for, the
+   directory, the host candidates tried, and what to run.
+
+The order is deliberate. If host fonts won, a developer's Mac would silently
+produce different output from production — the portability problem restated
+rather than solved.
+
+`assert_fonts_are_portable()` is the deployment gate: it **refuses to start**
+if any token resolves only to a host face, because output that depends on
+which machine drew it makes benchmark scores incomparable across machines.
+`font_source(token)` reports `vendored` / `host` / `missing` per token.
+
+## Installing the faces
+
+    python scripts/fetch_fonts.py            # install
+    python scripts/fetch_fonts.py --verify   # check what is present
+    python scripts/fetch_fonts.py --record   # print digests to pin
+
+Every face is pinned by SHA-256. **A font with a blank pin is refused, not
+installed** — a font fetched without a checksum is an unverified binary being
+loaded into the renderer. A test asserts nothing is committed unpinned.
+
+The twelve mapped faces are SIL OFL 1.1 or Apache-2.0: Source Serif 4
+(regular/italic/bold), Inter (regular/bold), Poppins (regular/bold), Oswald
+(regular/bold), Roboto Slab, Dancing Script, Anton.
+
+**Remaining work:** run the installer somewhere with network access, record
+the digests, and commit the pins. Until then `assert_fonts_are_portable()`
+correctly refuses, and rendering still works on macOS via host fonts.
+
+## Current host bindings (development only)
 
 Every one of these is a macOS system face. **None of them exists on a stock
 Linux container**, so today's renderer would fail there — loudly, which is the

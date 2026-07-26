@@ -224,23 +224,111 @@ def token_for(family: FamilyClass, weight: str = "regular", italic: bool = False
     )
 
 
+#: P2. Redistributable faces bundled with the application, resolved BEFORE
+#: any host font. This is what makes rendering reproducible: a benchmark
+#: scored against whatever faces a machine happens to have is not a
+#: benchmark, and the host paths below are all macOS-only.
+#:
+#: Filenames only - the directory is `font_root()`, so a deployment can
+#: point at its own licensed copies without a code change.
+VENDORED_FACES: dict[FontToken, str] = {
+    "serif_editorial_regular": "SourceSerif4-Regular.ttf",
+    "serif_editorial_italic": "SourceSerif4-Italic.ttf",
+    "serif_editorial_bold": "SourceSerif4-Bold.ttf",
+    "grotesque_regular": "Inter-Regular.ttf",
+    "grotesque_bold": "Inter-Bold.ttf",
+    "geometric_sans_regular": "Poppins-Regular.ttf",
+    "geometric_sans_bold": "Poppins-Bold.ttf",
+    "condensed_display_regular": "Oswald-Regular.ttf",
+    "condensed_display_bold": "Oswald-Bold.ttf",
+    "slab_regular": "RobotoSlab-Regular.ttf",
+    "script_regular": "DancingScript-Regular.ttf",
+    "display_regular": "Anton-Regular.ttf",
+}
+
+
+def font_root() -> Path:
+    """
+    Where bundled faces live. `CAE_FONT_ROOT` overrides, so a deployment can
+    supply licensed brand faces without changing code.
+    """
+    from app.config import settings
+
+    return settings.font_root or (Path(__file__).resolve().parents[2] / "assets" / "fonts")
+
+
+def vendored_path(token: FontToken) -> Path | None:
+    name = VENDORED_FACES.get(token)
+    return (font_root() / name) if name else None
+
+
 def resolve_token(token: FontToken) -> tuple[str, int]:
     """
-    A token to a concrete face on this machine.
+    A token to a concrete face, preferring the bundled asset.
+
+    Order is deliberate: vendored first, host fonts only as a development
+    convenience. Reversing it would let a developer's machine silently
+    produce different output from production, which is the portability
+    problem restated rather than solved.
 
     Raises rather than substituting. There is no fallback to the caption
     face: a serif silently rendered in bold Helvetica is the exact defect
     this subsystem exists to remove, and a loud failure is recoverable
     where a silent one is not.
     """
+    bundled = vendored_path(token)
+    if bundled is not None and bundled.exists():
+        return str(bundled), 0
+
     for path, index in FONT_TOKENS.get(token, []):
         if Path(path).exists():
             return path, index
+
     raise UnavailableFontToken(
-        f"font token {token!r} has no available face on this host. "
-        f"Candidates: {[p for p, _ in FONT_TOKENS.get(token, [])]}. "
-        "See FONT_PORTABILITY.md - packaged assets are required for deployment."
+        f"font token {token!r} has no available face. Looked for the bundled "
+        f"{VENDORED_FACES.get(token, '(none mapped)')!r} in {font_root()}, then host "
+        f"candidates {[p for p, _ in FONT_TOKENS.get(token, [])]}. "
+        "Run scripts/fetch_fonts.py to install the redistributable set - see "
+        "docs/FONT_PORTABILITY.md."
     )
+
+
+def font_source(token: FontToken) -> str:
+    """`vendored`, `host` or `missing` - what a startup check reports."""
+    bundled = vendored_path(token)
+    if bundled is not None and bundled.exists():
+        return "vendored"
+    if any(Path(p).exists() for p, _ in FONT_TOKENS.get(token, [])):
+        return "host"
+    return "missing"
+
+
+def assert_fonts_are_portable() -> None:
+    """
+    Refuse to start a deployment that would render from host fonts.
+
+    Host fonts are fine on a developer's Mac and are not fine in production:
+    output would depend on which machine drew it, and benchmark scores from
+    two machines would not be comparable.
+    """
+    by_source: dict[str, list[str]] = {}
+    for token in FONT_TOKENS:
+        by_source.setdefault(font_source(token), []).append(token)
+
+    problems = []
+    if by_source.get("missing"):
+        problems.append(f"no face at all for {sorted(by_source['missing'])}")
+    if by_source.get("host"):
+        problems.append(
+            f"only a HOST face for {sorted(by_source['host'])} - output would "
+            "depend on the machine that drew it"
+        )
+    if problems:
+        raise UnavailableFontToken(
+            "fonts are not deployment-ready: " + "; ".join(problems)
+            + f". Bundled faces are read from {font_root()}; run "
+            "scripts/fetch_fonts.py. See docs/FONT_PORTABILITY.md."
+        )
 
 
 def resolve_face(family: FamilyClass, weight: str = "regular", italic: bool = False):
