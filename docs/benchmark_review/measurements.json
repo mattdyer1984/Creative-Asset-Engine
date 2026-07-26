@@ -1,0 +1,46 @@
+{
+  "case01_weather_tv": {
+    "image_size": [
+      1206,
+      1604
+    ],
+    "measured": {
+      "tv-screen": [
+        0.192,
+        0.239,
+        0.879,
+        0.559
+      ],
+      "caption": [
+        0.1,
+        0.136,
+        0.9,
+        0.2
+      ],
+      "subtitle": [
+        0.14,
+        0.607,
+        0.87,
+        0.676
+      ]
+    },
+    "method": {
+      "tv-screen": "blue-dominant pixels (b>90, b-r>45, b-g>25)",
+      "caption": "near-white rows (min channel >225) with >150 hits across x 0.10-0.90",
+      "subtitle": "near-white rows (min channel >235) in the lower half"
+    }
+  },
+  "case06_meal_prep": {
+    "image_size": [
+      1080,
+      1436
+    ],
+    "crop_bounds": [
+      0.14,
+      0.22,
+      0.42,
+      0.32
+    ],
+    "method": "3x enlargement of the 'british meal prep' headline for visual adjudication"
+  }
+}
