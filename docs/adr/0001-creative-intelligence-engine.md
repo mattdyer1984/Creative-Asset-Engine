@@ -721,6 +721,12 @@ before further investment.
 | D15 | `zone_for` returns the most specific containing zone | Zones nest legitimately (a label inside a product inside a shelf); taking the first over threshold lets a full-canvas subject swallow everything |
 | D16 | A zone is a render footprint only for `text`, `caption` and `graphic` roles | A block in a `subject` zone is *located* there, not drawn across it; adopting it would have enforcement reconstruct a face to clear space for a label |
 | D17 | Renderer-owned `graphic` zones are reserved with no text block | Rules and dividers carry no text, so OCR never reports them — the contract is the only thing that can declare them |
+| D18 | Inferred contracts are validated, not trusted | A bad answer *looks* authoritative because a contract is structure; endpoints must resolve, bounds are dropped rather than clamped, and below 50% zone survival the device is withdrawn to `unknown` |
+| D19 | Text mode is derived deterministically; only typography needs vision | Ownership routing depends on text mode, so it must not break when a provider is down — and a caption project has no design typography to pay to read |
+| D20 | An unreadable capability level is treated as L3, not L1 | L1 is the optimistic answer and the dangerous one: claiming it for integrated typography produces a flat recreation |
+| D21 | Type is fitted to its zone; `size_ratio` is a request, not a command | Honouring the ratio unconditionally drew a 124px headline into an 81px box, overflowing onto its neighbour and destroying both |
+| D22 | A graphic zone is only enforced when an owner will redraw it | Clearing a zone nobody draws into deletes the element rather than cleaning it — the live gate lost case 4's rule that way |
+| D23 | Deterministic stages emit no `ProviderCall` row | Cost reporting reads that table exclusively; a zero-cost row for unpaid work puts a call in the ledger that never happened |
 
 ---
 
@@ -731,7 +737,9 @@ before further investment.
 | Deterministic typography looks wrong despite correct extraction | WP-1.4 | Prototype case 4 end-to-end before building 1.5/1.6 — this is gate 3 |
 | Character drift across slides | WP-3.5 | Multiple reference angles; degrade honestly rather than fail |
 | Model will not leave zones clean | WP-1.5 | **Closed (Package D).** Occupancy measured on a 4×6 grid, worst tile wins, zones from the contract; case 4's residue detected at 0.0985 vs a 0.02 threshold and cleared to 0.0000 |
-| Ownership cannot express *how well* a renderer must render | Package E | L1/L2/L3 capability does not yet reach `Owner`, so case 5's integrated typography routes to L1 and would be rendered flat (§10.3) |
+| ~~Ownership cannot express *how well* a renderer must render~~ | Package E | **Closed (E4).** Capability level reaches `Owner`; designed typography above `RENDERER_CAPABILITY` routes to the image rather than being drawn flat |
+| Inferred contracts have never met a real model | Next | The validator is thoroughly tested; what a vision model actually returns for the eight benchmark images is unknown. The single largest open risk |
+| Cost and latency of the two new paid stages are unmeasured | Next | Nothing in Package E has spent money — one live analysis run against the spend cap is the first thing to do |
 | Font licensing and host dependency | WP-1.3 | See `docs/FONT_PORTABILITY.md` — logical tokens are in place; vendored open-licence faces required before deployment |
 | Profile becomes a large analysis layer that does not move quality | WP-3.1 | Phase 0 harness proves value per package |
 | Project-level analysis cost at volume | WP-3.1 | Profile is one slideshow-scoped call; measure against the existing spend cap |
@@ -741,6 +749,9 @@ before further investment.
 1. ~~Can L1 deterministic typography reach benchmark quality on case 4?~~ **Answered (gate 3, passed).** L1 reproduces case 4's hierarchy; the remaining gap was zone residue, closed in Package D.
 2. How many character reference angles are needed to hold identity across
    front, three-quarter and profile views?
+2a. What does a real vision model return for a Composition Contract, and how
+   close is it to the hand annotations? *(Package E's validator is ready; the
+   comparison has not been run.)*
 3. Does zone reservation hold reliably enough that fallback levels 1–3 cover
    the majority of cases? *(Partially answered: on case 4, rungs 1–2 resolved
    both zones. Not yet exercised against live generation — Package E.)*
