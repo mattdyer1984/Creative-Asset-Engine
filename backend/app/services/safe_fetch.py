@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import ipaddress
 import logging
+import re
 import os
 import socket
 from dataclasses import dataclass
@@ -81,6 +82,15 @@ TIKTOK_ALLOWED_HOSTS = frozenset(
         "www.tiktok.com",  # observed: slides, listings, product_source_imports
         "tiktok.com",      # bare-domain form of the above
         "shop.tiktok.com",  # observed: product_source_imports (product pages)
+        # Observed: the `listings` table already holds a vm.tiktok.com row,
+        # and it is what the TikTok app's own "Copy link" produces - so it
+        # is what a user actually pastes. Evidenced, not pre-emptive.
+        #
+        # `vt.tiktok.com` is the known sibling short domain and is
+        # deliberately NOT listed: it has not been observed here, and per
+        # the agreed discipline an unevidenced host fails closed with a
+        # clear message rather than being allowed in advance.
+        "vm.tiktok.com",   # observed: listings.source_url, user-pasted share links
     }
 )
 # Domain suffixes. TikTok serves slide images from numbered CDN hosts
@@ -109,6 +119,33 @@ class FetchResult:
 
 def _allow_loopback() -> bool:
     return os.environ.get("SAFE_FETCH_ALLOW_LOOPBACK") == "1"
+
+
+def normalise_pasted_url(url: str) -> str:
+    """
+    Make a hand-pasted URL well-formed, without weakening anything.
+
+    People paste `tiktok.com/@someone/photo/123` - browsers accept that, and
+    so should we. The importer did not: the missing scheme reached
+    `validate_tiktok_url`, which refused it, and the refusal surfaced as an
+    unexplained HTTP 500.
+
+    Only two things happen here, both safe:
+      - surrounding whitespace is stripped (pasting picks up newlines)
+      - a missing scheme becomes `https://`, never `http://`
+
+    An explicit `http://` is left exactly as it is, so the validators still
+    reject it. This function makes a URL *parseable*; it never makes an
+    unsafe URL acceptable - every caller still validates afterwards.
+    """
+    cleaned = url.strip()
+    if not cleaned:
+        return cleaned
+    if "//" in cleaned.split("?", 1)[0][:10] or cleaned.startswith("//"):
+        return cleaned
+    if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", cleaned):
+        return cleaned
+    return f"https://{cleaned}"
 
 
 def _parse(url: str) -> tuple[str, str | None]:

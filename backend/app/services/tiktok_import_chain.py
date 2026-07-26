@@ -49,6 +49,7 @@ from sqlalchemy.orm import Session
 from app.domain import EvidencePackage
 from app.importers import get_importer
 from app.importers.downie import DownieImportError
+from app.services.safe_fetch import normalise_pasted_url
 from app.importers.playwright_tiktok import (
     TikTokImportUnsupportedContentError,
     _creator_from_item,
@@ -121,6 +122,13 @@ def import_tiktok_url(
     to pin one deliberately. All three run the same integrity gate;
     forced modes just don't fall back to the other on failure.
     """
+    # Normalise ONCE, here, before anything downstream sees it. The Downie
+    # importer validates the raw string it is handed, so a pasted
+    # `tiktok.com/@someone/photo/123` - no scheme, exactly what a browser
+    # address bar gives you - reached validate_tiktok_url and was refused,
+    # surfacing as an unexplained HTTP 500.
+    url = normalise_pasted_url(url)
+
     content = detect_tiktok_content(url)
     if content.content_type == "video":
         raise TikTokImportUnsupportedContentError(

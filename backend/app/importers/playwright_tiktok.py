@@ -128,6 +128,60 @@ def _normalize_post_url(url: str) -> str:
     return normalized
 
 
+#: The share form. `https://vm.tiktok.com/<token>/` is what the TikTok app's
+#: own "Copy link" button produces, so it is what people actually paste - and
+#: it carries no handle or post id, so `_POST_URL_RE` can never match it.
+#: Rejecting it read as "the app won't accept my link".
+_SHORT_URL_RE = re.compile(r"^https://vm\.tiktok\.com/[A-Za-z0-9_-]+/?$")
+
+
+def is_short_post_url(url: str) -> bool:
+    return _SHORT_URL_RE.match(url.strip()) is not None
+
+
+def _resolve_short_url(browser: Browser, url: str) -> str:
+    """
+    Follow a share link to the canonical post URL.
+
+    Resolved by navigating in the browser we already have, rather than by
+    adding another HTTP path: TikTok answers short links with a redirect
+    plus its own bot checks, and this browser is already configured to get
+    through them.
+
+    **The security guarantee is unchanged.** The input host is validated
+    against the strict TikTok allowlist before navigating, and whatever the
+    redirect lands on is handed straight to `_normalize_post_url`, which
+    rebuilds a literal `https://www.tiktok.com/@handle/video/id` from a
+    regex match. A redirect to somewhere unexpected therefore cannot become
+    a fetched URL - it fails the rebuild.
+    """
+    validate_tiktok_url(url)
+
+    page = browser.new_page(user_agent=USER_AGENT)
+    page.add_init_script(_WEBDRIVER_OVERRIDE_SCRIPT)
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+        resolved = page.url
+    finally:
+        page.close()
+
+    if _POST_URL_RE.search(resolved) is None:
+        raise TikTokImportNotFoundError(
+            f"{url} did not resolve to a TikTok post - it went to {resolved}. "
+            "Share links for products or profiles are not post URLs; open the "
+            "slideshow itself and copy its link."
+        )
+    return resolved
+
+
+def _canonical_post_url(browser: Browser, url: str) -> str:
+    """Accept either a canonical post URL or a share link."""
+    url = url.strip()
+    if is_short_post_url(url):
+        return _normalize_post_url(_resolve_short_url(browser, url))
+    return _normalize_post_url(url)
+
+
 def _is_blocked(body_text: str) -> bool:
     return "puzzle" in body_text.lower()
 
@@ -168,11 +222,13 @@ def detect_tiktok_content(url: str) -> TikTokContentInfo:
     `import_source` itself uses, so this is real, live-verified TikTok
     scraping, not a lighter-weight approximation of it.
     """
-    normalized_url = _normalize_post_url(url)
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True, args=STEALTH_ARGS)
         try:
-            item = _fetch_item_struct(browser, normalized_url)
+            # Inside the browser context: a share link can only be resolved
+            # by following it, and the browser is what gets past TikTok's
+            # bot checks.
+            item = _fetch_item_struct(browser, _canonical_post_url(browser, url))
         finally:
             browser.close()
 
@@ -310,12 +366,12 @@ class PlaywrightTikTokImporter:
     """source_config shape: {"url": "<a TikTok post URL>"}."""
 
     def import_source(self, source_config: dict) -> EvidencePackage:
-        url = _normalize_post_url(source_config["url"])
         now = datetime.now(timezone.utc)
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, args=STEALTH_ARGS)
             try:
+                url = _canonical_post_url(browser, source_config["url"])
                 item = _fetch_item_struct(browser, url)
                 media_assets, downloaded_count, failed_assets = _download_images(browser, item, now)
             finally:

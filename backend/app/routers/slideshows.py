@@ -74,6 +74,7 @@ from app.services.project_product import ensure_project_product_membership
 from app.services.slideshow_blueprint import assemble_slideshow_blueprint
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
 from app.services.slideshow_import import import_slideshows
+from app.services.safe_fetch import UnsafeURLError
 from app.services.tiktok_import_chain import ImportIncompleteError, import_tiktok_url
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.image_generation_stage import SlideImageGenerationStage
@@ -216,6 +217,12 @@ def import_from_url(payload: SlideshowUrlImportRequest, db: Session = Depends(ge
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except DownieImportError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except UnsafeURLError as exc:
+        # A rejected URL is the caller's problem to fix, not a server fault.
+        # This was previously unhandled, so pasting a URL the allowlist did
+        # not accept produced a bare 500 - the UI showed "Request failed
+        # (500)" and there was no way to tell what was wrong with the link.
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 def _with_slide_relationships(stmt):
