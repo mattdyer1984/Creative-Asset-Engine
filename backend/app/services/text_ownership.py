@@ -301,9 +301,29 @@ def decide_ownership(
         text = (block.get("text") or "").strip()
         text_class = classification.text_class
 
-        contested = bool(classification.reasons) and not any(
+        # Three distinct questions, which one predicate used to answer badly.
+        #
+        # O3's recalibration made the distinction load-bearing. Confidence now
+        # carries evidence WEIGHT, so a block with one unanimous signal scores
+        # below the review band legitimately - and under the old predicate
+        # that sent case 4's headline and case 6's comparison labels, the core
+        # designed typography of the benchmark, to human review.
+        #
+        #   spoke_for_itself  any signal fired at all
+        #   convincing        strong enough to overrule the project default
+        #                     (ADR §12.2's auto-override band)
+        #   contested         signals fired on BOTH sides and disagreed
+        #
+        # Falling through to a documented project default is not the same as
+        # being uncertain (ADR D7), and only a genuine contest is review-worthy.
+        spoke_for_itself = bool(classification.reasons) and not any(
             "preserving by default" in reason or "no distinguishing" in reason
             for reason in classification.reasons
+        )
+        sides = {reason.split(":", 1)[0] for reason in classification.reasons if ":" in reason}
+        contested = {"caption", "editorial"} <= sides
+        convincing = (
+            spoke_for_itself and classification.confidence >= AUTO_OVERRIDE_CONFIDENCE
         )
 
         # Composition first, where it speaks. Spatial attachment is stronger
@@ -322,7 +342,7 @@ def decide_ownership(
 
         # No signals at all: take the project's default interpretation. This
         # is a documented fallback, not an uncertain judgement.
-        if not contested and not spatial_applied and text_class is not TextClass.PRODUCT_NATIVE:
+        if not convincing and not spatial_applied and text_class is not TextClass.PRODUCT_NATIVE:
             if project_text_mode is TextMode.PLATFORM_CAPTION:
                 text_class = TextClass.PLATFORM_CAPTION
             elif project_text_mode is TextMode.DESIGNED_TYPOGRAPHY:
@@ -389,11 +409,7 @@ def decide_ownership(
             policy = HandlingPolicy.PRESERVE_VISUAL_ROLE
 
         source = (
-            DecisionSource.PROJECT_DEFAULT
-            if not contested
-            else DecisionSource.BLOCK_OVERRIDE
-            if classification.confidence >= AUTO_OVERRIDE_CONFIDENCE
-            else DecisionSource.PROJECT_DEFAULT
+            DecisionSource.BLOCK_OVERRIDE if convincing else DecisionSource.PROJECT_DEFAULT
         )
 
         decisions.append(

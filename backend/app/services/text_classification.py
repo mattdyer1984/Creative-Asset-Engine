@@ -44,7 +44,18 @@ BAKED_IN_CLASSES = frozenset(
 )
 
 # Confidence bands, ADR 0001 §12.2.
-AUTO_OVERRIDE_CONFIDENCE = 0.80
+#
+# O3 re-scaled these. Confidence used to saturate at exactly 1.0 whenever
+# signals fired on only one side, which is almost every block, so 0.80 was
+# reachable by a single weak match. Now that confidence carries evidence
+# WEIGHT as well as agreement, the same numbers mean different things:
+# one strong signal (3.5) scores 0.70, two moderate ones 0.77, a lone weak
+# one 0.40. The bands are moved so behaviour is preserved rather than
+# silently tightened by a change of scale.
+#
+# Derived from the signal table, not chosen: 0.65 is just below one strong
+# signal, so an unambiguous `#fyp` still auto-overrides the project default.
+AUTO_OVERRIDE_CONFIDENCE = 0.65
 REVIEW_CONFIDENCE = 0.55
 
 _EMOJI = re.compile(
@@ -84,6 +95,43 @@ _EDITORIAL = [
     (re.compile(r"^(bad|good|before|after|pros?|cons?)$", re.I), 2.5, "comparison label"),
     (re.compile(r"^\d+\s+(signs?|ways?|reasons?|steps?|tips?)\b", re.I), 2.5, "listicle headline"),
 ]
+
+
+#: Evidence weight at which the strength term reaches 0.5. Set from the
+#: signal table itself: the weakest single signal is 1.0 and the strongest
+#: is 3.5, so a lone weak signal lands near 0.4 and a strong one near 0.6 -
+#: which is the honest reading of each.
+_EVIDENCE_MIDPOINT = 1.5
+
+
+def _confidence(winning_score: float, total_score: float) -> float:
+    """
+    How much to trust this classification, as agreement AND weight.
+
+    O3. Phase F measured 76 of 79 decisions at exactly 1.0 and the medium
+    band empty, so confidence discriminated nothing. The cause was
+    mechanical: confidence was `winner / (winner + loser)`, and because
+    signals from only one side fire in almost every real block, the loser was
+    0 and the ratio was exactly 1.
+
+    That number answered "did anything contradict this?" - not "how sure are
+    we?". A block matching one weak pattern with nothing against it is not
+    the same as one matching four strong patterns, and the old formula
+    scored both 1.0.
+
+    Two independent terms, multiplied because both must hold:
+
+      agreement  the winner's share of all fired signal weight
+      strength   how much evidence fired at all, saturating
+
+    Neither alone is enough: agreement alone saturates (the old bug), and
+    strength alone would call a strongly contested block confident.
+    """
+    if total_score <= 0:
+        return 0.0
+    agreement = winning_score / total_score
+    strength = total_score / (total_score + _EVIDENCE_MIDPOINT)
+    return round(agreement * strength, 3)
 
 
 @dataclass(frozen=True)
@@ -176,13 +224,12 @@ def classify_block(block: dict) -> BlockClassification:
             TextClass.DESIGNED_TYPOGRAPHY, 0.0, ["no distinguishing signals - preserving by default"]
         )
 
-    if caption_score > editorial_score:
-        return BlockClassification(
-            TextClass.PLATFORM_CAPTION, round(caption_score / total, 3), reasons
-        )
-    return BlockClassification(
-        TextClass.DESIGNED_TYPOGRAPHY, round(editorial_score / total, 3), reasons
+    winner, score = (
+        (TextClass.PLATFORM_CAPTION, caption_score)
+        if caption_score > editorial_score
+        else (TextClass.DESIGNED_TYPOGRAPHY, editorial_score)
     )
+    return BlockClassification(winner, _confidence(score, total), reasons)
 
 
 def classify_blocks(blocks: list[dict] | None) -> list[BlockClassification]:
