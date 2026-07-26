@@ -60,6 +60,9 @@ _CONVERSATIONAL = [
     (re.compile(r"^\(.*\)$"), 1.5, "parenthetical aside"),
     (re.compile(r"\b(i|me|my|we|our)\b", re.I), 1.0, "first person"),
     (re.compile(r"\bright now\b|\bso please\b|\bdon'?t be\b", re.I), 1.5, "spoken phrasing"),
+    # Elongation is a spoken-emphasis device ("AGAINNN", "soooo"). Designed
+    # typography does not stretch its own words.
+    (re.compile(r"([A-Za-z])\1{2,}"), 2.0, "elongated spelling"),
 ]
 
 # Signals that this is typeset as part of the design.
@@ -128,6 +131,16 @@ def classify_block(block: dict) -> BlockClassification:
     # emoji and would have masked the design away. Emoji therefore only
     # count once some other caption signal has already fired.
     has_emoji = bool(_EMOJI.search(text))
+
+    # A block that is ONLY emoji is never designed typography - a row of
+    # pointing hands is a caption gesture. This is the one case where emoji
+    # decide on their own, and it is safe precisely because there is no
+    # typography to destroy.
+    if has_emoji and not _EMOJI.sub("", text).strip():
+        return BlockClassification(
+            TextClass.PLATFORM_CAPTION, 1.0, ["caption: emoji-only block"]
+        )
+
     if has_emoji and caption_score > 0:
         caption_score += 1.0
         reasons.append("caption: contains emoji")

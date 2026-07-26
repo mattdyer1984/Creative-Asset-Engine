@@ -1,0 +1,434 @@
+[
+  {
+    "case_id": "case01_weather_tv",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "5/5 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case02_books",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "7/7 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case03_mini_ac",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "3/3 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case04_posture",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "5/5 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case05_ten_out_of_ten",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "2/2 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case06_meal_prep",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "3/3 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case07_gut_health",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "5/5 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  },
+  {
+    "case_id": "case08_fan_shelf",
+    "stages": [
+      {
+        "detail": "CreativeProjectProfile lands in WP-1.1/WP-3.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_analysis",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "TransformationPlan lands in WP-3.6",
+        "failures": [],
+        "score": null,
+        "stage": "transformation_planning",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "structured sectioned compiler lands in WP-2.4",
+        "failures": [],
+        "score": null,
+        "stage": "prompt_compilation",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "4/4 blocks classified on the baked-in/overlay axis",
+        "failures": [],
+        "score": 1.0,
+        "stage": "text_handling",
+        "status": "scored"
+      },
+      {
+        "detail": "needs --with-generation (real provider calls)",
+        "failures": [],
+        "score": null,
+        "stage": "generation",
+        "status": "skipped"
+      },
+      {
+        "detail": "set-coherence validation lands in WP-4.1",
+        "failures": [],
+        "score": null,
+        "stage": "project_consistency",
+        "status": "not_implemented"
+      },
+      {
+        "detail": "requires a captured human rating",
+        "failures": [],
+        "score": null,
+        "stage": "human_quality",
+        "status": "not_implemented"
+      }
+    ]
+  }
+]
