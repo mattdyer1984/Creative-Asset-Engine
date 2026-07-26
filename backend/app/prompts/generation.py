@@ -14,6 +14,9 @@ changed no wording.
 """
 
 from app.prompts.core import register
+from app.services.platform_affordances import (
+    placement_instruction as platform_placement_instruction,
+)
 
 CREATIVE_INTELLIGENCE = register(
     id="generation.creative_intelligence",
@@ -314,6 +317,14 @@ def compile_creative_intent(
     parts.append(fragments["transformation_policy"])
     parts.append(_rendering_instruction(source_style))
 
+    # Where the platform's own buy button is. Not derivable from the source
+    # creative - the contract records that case02's pointing emoji sit at
+    # x=0.20 but not that they sit there because TikTok's buy box is bottom
+    # left, so both recreations of it drifted (one centred the arrows, one
+    # put the CTA bottom right). A faithful-looking image that points at
+    # empty chrome does not work.
+    parts.append(platform_placement_instruction())
+
     # Deliberately LAST. Buried mid-prompt this was outvoted by the
     # composition and palette lines above it, which describe a "large red
     # numeral", a "serif headline" and "bullet points" - the model dutifully
@@ -370,7 +381,10 @@ GENERATION_COMPILER = register(
     # 5.0: names the exact copy deterministic typography will place, so the
     #      model is told what NOT to render rather than only that text is
     #      banned in general (ADR 0001 WP-1.5A).
-    version="5.0",
+    # 6.0: states where the platform's buy button is, so a bottom CTA points
+    #      at it. The first instruction here that comes from the destination
+    #      platform rather than the source creative.
+    version="6.0",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."

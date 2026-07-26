@@ -14,3 +14,4 @@ TRANSFORMATION POLICY - what to keep and what to make new:
 - MAKE NEW: the background environment, furniture, props and decorative objects - keep each one's functional role in the scene, but design original ones rather than copying.
 The result should read as the same creative concept, not as the same person or the same room.
 Match the visual medium and level of stylisation of the source creative exactly as described above - do not shift it toward a different medium.
+PLATFORM LAYOUT: this image is for TIKTOK, whose buy button sits in the bottom-left of the screen. Any pointing emoji, arrow, or 'tap below' call-to-action at the bottom of the image MUST be positioned in the bottom left and aligned to the left edge, so it points at the buy button. Do not centre it and do not place it on the opposite side - it would direct attention at empty interface.
