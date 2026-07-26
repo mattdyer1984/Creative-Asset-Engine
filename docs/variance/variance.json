@@ -1,0 +1,139 @@
+{
+  "candidates": [
+    {
+      "candidate": 1,
+      "status": "generated",
+      "latency_ms": 106917.5,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 855761,
+      "file": "candidate_01.png"
+    },
+    {
+      "candidate": 2,
+      "status": "generated",
+      "latency_ms": 130833.7,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 880950,
+      "file": "candidate_02.png"
+    },
+    {
+      "candidate": 3,
+      "status": "generated",
+      "latency_ms": 13573.6,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 843694,
+      "file": "candidate_03.png"
+    },
+    {
+      "candidate": 4,
+      "status": "generated",
+      "latency_ms": 76673.6,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 768096,
+      "file": "candidate_04.png"
+    },
+    {
+      "candidate": 5,
+      "status": "generated",
+      "latency_ms": 106411.0,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 784146,
+      "file": "candidate_05.png"
+    },
+    {
+      "candidate": 6,
+      "status": "generated",
+      "latency_ms": 15848.0,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 813887,
+      "file": "candidate_06.png"
+    },
+    {
+      "candidate": 7,
+      "status": "generated",
+      "latency_ms": 84323.8,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 764423,
+      "file": "candidate_07.png"
+    },
+    {
+      "candidate": 8,
+      "status": "generated",
+      "latency_ms": 125269.8,
+      "provider": "nano_banana",
+      "model": "gemini-3.1-flash-image-preview",
+      "attempts": 1,
+      "transient_errors": [],
+      "escalated": null,
+      "fell_back_to": null,
+      "bytes": 862807,
+      "file": "candidate_08.png"
+    }
+  ],
+  "frozen": {
+    "commit": "482862fa00451d75c92cffc98d04bf124991c2a3",
+    "provider": "nano_banana",
+    "model": "gemini-3.1-flash-image-preview",
+    "tier": "high_quality",
+    "tier_reasons": [
+      "5 text block(s) printed on the product itself - exact lettering must survive generation",
+      "dense embedded text (5 blocks)",
+      "5 distinct product identities to preserve",
+      "composition declares ['graphic', 'product'] zone(s)"
+    ],
+    "prompt_sha256": "6b5ad69b9beb31a0e4ae63c3b678e3d693622d32737b1c54f7af474b0093ede8",
+    "prompt_chars": 3745,
+    "aspect_ratio": "3:4",
+    "reference_count": 10,
+    "reference_sha256": [
+      "dd5f09952fcb228f224f00fd73a3c022cf31a4653f02e07d4a70953f7224b752",
+      "3eb19c47f5b097820f3c7551ce34eed29ff0e681882b5c4ddd982179848dcceb",
+      "3e675b44d8f51234dbc2fc27d575faa0a26c6a712a4e32628c7b2a73570634bc",
+      "eafac6d9d0a4600e3aa0c26728407dfc7755da395da0628245c661ddf58e57aa",
+      "e8eafaa48e6dfd3e8cff58fb67bf686079d1b9a2c0fa9a90a11f5e4faed42f6a",
+      "e577c8bdb8283f10e37873ed27de4dd082ea849d270f63568f2966ef125bcf02",
+      "68521ced9bfe8b128a29ebceea9f940907e6d6b1bf1110242c065dd03fe57472",
+      "fc2ed29eab13eed3057f9b5b441fbdd59221984e99fdfab04713baa72760a908",
+      "cb5fcb5db8917552a9c3ece66212515a0e88a2f49e5f13435dd243c0d60d3518",
+      "99146f2655892f4b7aaa82d1cab7ca5c541af9796d95c9a439844dff27387411"
+    ],
+    "escalation": "DISABLED",
+    "fallback": "DISABLED",
+    "seed": "NOT SUPPORTED by this model's SDK surface"
+  }
+}
