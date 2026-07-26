@@ -1,0 +1,6136 @@
+{
+  "parameters": {
+    "working_width": 320,
+    "close_radius": 3,
+    "min_area_fraction": 0.004,
+    "max_area_fraction": 0.6,
+    "min_extent": 0.25,
+    "min_thickness": 0.02
+  },
+  "cases": {
+    "case02_books": {
+      "candidates": [
+        {
+          "bbox": [
+            0.159,
+            0.134,
+            0.844,
+            0.246
+          ],
+          "area_fraction": 0.0611,
+          "extent": 0.773,
+          "thickness": 0.153,
+          "candidate": 0
+        },
+        {
+          "bbox": [
+            0.459,
+            0.54,
+            0.753,
+            0.728
+          ],
+          "area_fraction": 0.0276,
+          "extent": 0.488,
+          "thickness": 0.253,
+          "candidate": 1
+        },
+        {
+          "bbox": [
+            0.188,
+            0.331,
+            0.388,
+            0.528
+          ],
+          "area_fraction": 0.0194,
+          "extent": 0.48,
+          "thickness": 0.203,
+          "candidate": 2
+        },
+        {
+          "bbox": [
+            0.666,
+            0.298,
+            0.878,
+            0.526
+          ],
+          "area_fraction": 0.0143,
+          "extent": 0.287,
+          "thickness": 0.216,
+          "candidate": 3
+        },
+        {
+          "bbox": [
+            0.459,
+            0.31,
+            0.6,
+            0.477
+          ],
+          "area_fraction": 0.0136,
+          "extent": 0.561,
+          "thickness": 0.144,
+          "candidate": 4
+        }
+      ],
+      "rejected": [
+        {
+          "bbox": [
+            0.116,
+            0.085,
+            0.316,
+            0.12
+          ],
+          "area_fraction": 0.0008,
+          "extent": 0.109,
+          "thickness": 0.05,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.328,
+            0.085,
+            0.466,
+            0.087
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.611,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.478,
+            0.085,
+            0.613,
+            0.096
+          ],
+          "area_fraction": 0.0005,
+          "extent": 0.258,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.622,
+            0.087,
+            0.644,
+            0.087
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.65,
+            0.087,
+            0.834,
+            0.087
+          ],
+          "area_fraction": 0.0004,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.866,
+            0.087,
+            0.897,
+            0.087
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.906,
+            0.087,
+            0.922,
+            0.087
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.844,
+            0.089,
+            0.853,
+            0.089
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.934,
+            0.089,
+            0.938,
+            0.089
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.947,
+            0.089,
+            0.95,
+            0.089
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.959,
+            0.089,
+            0.988,
+            0.089
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.503,
+            0.099,
+            0.503,
+            0.099
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.141,
+            0.249,
+            0.144,
+            0.249
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.231,
+            0.286,
+            0.231,
+            0.286
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.731,
+            0.286,
+            0.731,
+            0.286
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.75,
+            0.289,
+            0.75,
+            0.291
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.372,
+            0.298,
+            0.375,
+            0.298
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.619,
+            0.303,
+            0.619,
+            0.303
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.305,
+            0.331,
+            0.312
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.444,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.312,
+            0.326,
+            0.312,
+            0.326
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.359,
+            0.326,
+            0.362,
+            0.326
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.216,
+            0.331,
+            0.35,
+            0.359
+          ],
+          "area_fraction": 0.0027,
+          "extent": 0.643,
+          "thickness": 0.041,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.087,
+            0.333,
+            0.091,
+            0.338
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.087,
+            0.35,
+            0.087,
+            0.352
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.9,
+            0.359,
+            0.9,
+            0.359
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.084,
+            0.366,
+            0.091,
+            0.383
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.875,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.903,
+            0.378,
+            0.903,
+            0.383
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.669,
+            0.387,
+            0.669,
+            0.392
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.081,
+            0.394,
+            0.087,
+            0.413
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.852,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.078,
+            0.423,
+            0.084,
+            0.441
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.815,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.625,
+            0.423,
+            0.625,
+            0.427
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.062,
+            0.446,
+            0.081,
+            0.58
+          ],
+          "area_fraction": 0.0012,
+          "extent": 0.419,
+          "thickness": 0.022,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.591,
+            0.448,
+            0.594,
+            0.448
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.466,
+            0.453,
+            0.469,
+            0.453
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.591,
+            0.453,
+            0.594,
+            0.453
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.809,
+            0.46,
+            0.809,
+            0.46
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.812,
+            0.462,
+            0.812,
+            0.462
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.479,
+            0.016,
+            0.486
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.65,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.978,
+            0.484,
+            0.978,
+            0.484
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.972,
+            0.486,
+            0.972,
+            0.486
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.438,
+            0.488,
+            0.625,
+            0.514
+          ],
+          "area_fraction": 0.0016,
+          "extent": 0.298,
+          "thickness": 0.037,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.912,
+            0.495,
+            0.919,
+            0.505
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.867,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.505,
+            0.003,
+            0.505
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.922,
+            0.521,
+            0.922,
+            0.528
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.6,
+            0.531,
+            0.6,
+            0.535
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.919,
+            0.54,
+            0.925,
+            0.556
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.833,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.634,
+            0.549,
+            0.634,
+            0.549
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.653,
+            0.549,
+            0.656,
+            0.549
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.278,
+            0.552,
+            0.278,
+            0.568
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.7,
+            0.552,
+            0.7,
+            0.552
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.713,
+            0.552,
+            0.722,
+            0.556
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.563,
+            0.434,
+            0.601
+          ],
+          "area_fraction": 0.0039,
+          "extent": 0.751,
+          "thickness": 0.053,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.922,
+            0.563,
+            0.928,
+            0.575
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.066,
+            0.587,
+            0.066,
+            0.592
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.925,
+            0.592,
+            0.931,
+            0.608
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.875,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.928,
+            0.615,
+            0.956,
+            0.815
+          ],
+          "area_fraction": 0.0023,
+          "extent": 0.363,
+          "thickness": 0.031,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.62,
+            0.275,
+            0.998
+          ],
+          "area_fraction": 0.0059,
+          "extent": 0.056,
+          "thickness": 0.278,
+          "reason": "too sparse for its bounding box - an outline, not a mass"
+        },
+        {
+          "bbox": [
+            0.891,
+            0.622,
+            0.897,
+            0.622
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.362,
+            0.631,
+            0.378,
+            0.631
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.344,
+            0.634,
+            0.375,
+            0.657
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.264,
+          "thickness": 0.034,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.384,
+            0.648,
+            0.391,
+            0.655
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.5,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.334,
+            0.669,
+            0.334,
+            0.669
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.331,
+            0.674,
+            0.331,
+            0.674
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.356,
+            0.685,
+            0.356,
+            0.685
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.456,
+            0.692,
+            0.456,
+            0.695
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.397,
+            0.702,
+            0.397,
+            0.702
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.266,
+            0.702,
+            0.466,
+            0.775
+          ],
+          "area_fraction": 0.0012,
+          "extent": 0.081,
+          "thickness": 0.1,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.309,
+            0.725,
+            0.35,
+            0.737
+          ],
+          "area_fraction": 0.0005,
+          "extent": 0.738,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.359,
+            0.725,
+            0.419,
+            0.737
+          ],
+          "area_fraction": 0.0007,
+          "extent": 0.758,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.559,
+            0.735,
+            0.75,
+            0.765
+          ],
+          "area_fraction": 0.0029,
+          "extent": 0.452,
+          "thickness": 0.044,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.706,
+            0.744,
+            0.713,
+            0.749
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.722,
+            0.744,
+            0.734,
+            0.751
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.55,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.366,
+            0.756,
+            0.366,
+            0.756
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.388,
+            0.756,
+            0.391,
+            0.756
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.344,
+            0.761,
+            0.347,
+            0.761
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.366,
+            0.761,
+            0.366,
+            0.761
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.616,
+            0.8,
+            0.625,
+            0.808
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.562,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.616,
+            0.808,
+            0.616,
+            0.808
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.613,
+            0.81,
+            0.613,
+            0.81
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.609,
+            0.812,
+            0.609,
+            0.812
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.953,
+            0.817,
+            0.959,
+            0.84
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.879,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.956,
+            0.847,
+            0.966,
+            0.897
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.682,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.613,
+            0.892,
+            0.613,
+            0.897
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.963,
+            0.904,
+            0.969,
+            0.923
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.815,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.631,
+            0.925,
+            0.631,
+            0.925
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.634,
+            0.927,
+            0.634,
+            0.927
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.631,
+            0.93,
+            0.631,
+            0.93
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.637,
+            0.93,
+            0.637,
+            0.93
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.966,
+            0.934,
+            0.972,
+            0.946
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.833,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.662,
+            0.955,
+            0.662,
+            0.955
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.666,
+            0.96,
+            0.666,
+            0.96
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.969,
+            0.965,
+            0.975,
+            0.972
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.75,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.672,
+            0.974,
+            0.672,
+            0.974
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.681,
+            0.991,
+            0.681,
+            0.993
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.684,
+            0.995,
+            0.684,
+            0.995
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        }
+      ],
+      "otsu_threshold": 248.61,
+      "work_size": [
+        320,
+        426
+      ],
+      "bounds": null,
+      "review_status": "candidates only - no selection declared yet"
+    },
+    "case03_mini_ac": {
+      "candidates": [
+        {
+          "bbox": [
+            0.616,
+            0.389,
+            0.791,
+            0.67
+          ],
+          "area_fraction": 0.0254,
+          "extent": 0.505,
+          "thickness": 0.178,
+          "candidate": 0
+        },
+        {
+          "bbox": [
+            0.188,
+            0.804,
+            0.812,
+            0.842
+          ],
+          "area_fraction": 0.0151,
+          "extent": 0.601,
+          "thickness": 0.053,
+          "candidate": 1
+        },
+        {
+          "bbox": [
+            0.0,
+            0.495,
+            0.222,
+            0.634
+          ],
+          "area_fraction": 0.0128,
+          "extent": 0.402,
+          "thickness": 0.188,
+          "candidate": 2
+        }
+      ],
+      "rejected": [
+        {
+          "bbox": [
+            0.0,
+            0.0,
+            0.009,
+            0.002
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.062,
+            0.0,
+            0.091,
+            0.002
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.8,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.0,
+            0.85,
+            0.358
+          ],
+          "area_fraction": 0.0611,
+          "extent": 0.225,
+          "thickness": 0.478,
+          "reason": "too sparse for its bounding box - an outline, not a mass"
+        },
+        {
+          "bbox": [
+            0.463,
+            0.0,
+            0.766,
+            0.002
+          ],
+          "area_fraction": 0.0013,
+          "extent": 0.893,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.844,
+            0.0,
+            0.859,
+            0.113
+          ],
+          "area_fraction": 0.0005,
+          "extent": 0.214,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.994,
+            0.0,
+            0.997,
+            0.41
+          ],
+          "area_fraction": 0.0026,
+          "extent": 0.989,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.061,
+            0.0,
+            0.097
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.575,
+            0.078,
+            0.575,
+            0.078
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.101,
+            0.0,
+            0.101
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.125,
+            0.0,
+            0.153
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.205,
+            0.0,
+            0.219
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.031,
+            0.231,
+            0.053,
+            0.236
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.458,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.238,
+            0.1,
+            0.238
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.103,
+            0.241,
+            0.113,
+            0.243
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.625,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.803,
+            0.245,
+            0.812,
+            0.245
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.791,
+            0.248,
+            0.791,
+            0.248
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.037,
+            0.25,
+            0.041,
+            0.25
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.047,
+            0.252,
+            0.05,
+            0.252
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.106,
+            0.257,
+            0.106,
+            0.264
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.741,
+            0.257,
+            0.741,
+            0.257
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.738,
+            0.259,
+            0.738,
+            0.259
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.056,
+            0.262,
+            0.056,
+            0.262
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.059,
+            0.264,
+            0.059,
+            0.264
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.062,
+            0.267,
+            0.062,
+            0.267
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.841,
+            0.274,
+            0.847,
+            0.274
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.772,
+            0.281,
+            0.772,
+            0.281
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.288,
+            0.022,
+            0.288
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.025,
+            0.29,
+            0.041,
+            0.29
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.05,
+            0.292,
+            0.069,
+            0.292
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.075,
+            0.295,
+            0.094,
+            0.3
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.429,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.113,
+            0.297,
+            0.113,
+            0.297
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.131,
+            0.3,
+            0.131,
+            0.3
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.066,
+            0.34,
+            0.094,
+            0.356
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.487,
+          "thickness": 0.025,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.163,
+            0.366,
+            0.166,
+            0.368
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.009,
+            0.368,
+            0.009,
+            0.368
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.934,
+            0.368,
+            0.947,
+            0.38
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.567,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.091,
+            0.38,
+            0.097,
+            0.384
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.556,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.109,
+            0.38,
+            0.134,
+            0.382
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.611,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.141,
+            0.38,
+            0.141,
+            0.38
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.106,
+            0.382,
+            0.106,
+            0.382
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.037,
+            0.384,
+            0.062,
+            0.408
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.475,
+          "thickness": 0.028,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.863,
+            0.384,
+            0.866,
+            0.389
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.022,
+            0.387,
+            0.022,
+            0.387
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.153,
+            0.387,
+            0.259,
+            0.455
+          ],
+          "area_fraction": 0.0012,
+          "extent": 0.152,
+          "thickness": 0.094,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.859,
+            0.394,
+            0.859,
+            0.401
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.856,
+            0.403,
+            0.856,
+            0.413
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.069,
+            0.406,
+            0.069,
+            0.406
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.041,
+            0.408,
+            0.041,
+            0.408
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.263,
+            0.408,
+            0.388,
+            0.415
+          ],
+          "area_fraction": 0.0005,
+          "extent": 0.384,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.431,
+            0.408,
+            0.431,
+            0.408
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.419,
+            0.41,
+            0.428,
+            0.413
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.394,
+            0.413,
+            0.406,
+            0.413
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.481,
+            0.413,
+            0.487,
+            0.413
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.494,
+            0.415,
+            0.5,
+            0.415
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.853,
+            0.415,
+            0.853,
+            0.425
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.512,
+            0.417,
+            0.516,
+            0.417
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.069,
+            0.42,
+            0.069,
+            0.42
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.428,
+            0.422,
+            0.428,
+            0.427
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.844,
+            0.427,
+            0.85,
+            0.46
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.378,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.429,
+            0.066,
+            0.439
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.436,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.422,
+            0.429,
+            0.559,
+            0.469
+          ],
+          "area_fraction": 0.0009,
+          "extent": 0.143,
+          "thickness": 0.056,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.784,
+            0.429,
+            0.787,
+            0.634
+          ],
+          "area_fraction": 0.0009,
+          "extent": 0.693,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.434,
+            0.369,
+            0.446
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.302,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.303,
+            0.448,
+            0.303,
+            0.448
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.378,
+            0.448,
+            0.384,
+            0.448
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.3,
+            0.45,
+            0.3,
+            0.45
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.291,
+            0.46,
+            0.291,
+            0.46
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.287,
+            0.462,
+            0.287,
+            0.462
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.284,
+            0.465,
+            0.284,
+            0.467
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.841,
+            0.465,
+            0.841,
+            0.469
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.472,
+            0.009,
+            0.476
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.75,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.544,
+            0.472,
+            0.544,
+            0.472
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.031,
+            0.474,
+            0.059,
+            0.474
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.141,
+            0.474,
+            0.15,
+            0.481
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.562,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.483,
+            0.1,
+            0.483
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.097,
+            0.486,
+            0.097,
+            0.486
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.144,
+            0.486,
+            0.153,
+            0.493
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.438,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.269,
+            0.486,
+            0.303,
+            0.505
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.546,
+          "thickness": 0.028,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.091,
+            0.488,
+            0.094,
+            0.488
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.141,
+            0.488,
+            0.141,
+            0.488
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.159,
+            0.491,
+            0.159,
+            0.491
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.203,
+            0.491,
+            0.203,
+            0.491
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.163,
+            0.493,
+            0.163,
+            0.493
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.219,
+            0.493,
+            0.25,
+            0.505
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.515,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.838,
+            0.493,
+            0.838,
+            0.493
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.841,
+            0.495,
+            0.856,
+            0.495
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.859,
+            0.498,
+            0.872,
+            0.498
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.928,
+            0.505,
+            0.928,
+            0.507
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.941,
+            0.505,
+            0.944,
+            0.509
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.125,
+            0.509,
+            0.138,
+            0.514
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.6,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.994,
+            0.512,
+            0.997,
+            0.533
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.9,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.05,
+            0.517,
+            0.05,
+            0.517
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.128,
+            0.517,
+            0.128,
+            0.517
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.231,
+            0.517,
+            0.234,
+            0.519
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.053,
+            0.519,
+            0.053,
+            0.519
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.125,
+            0.519,
+            0.125,
+            0.519
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.963,
+            0.519,
+            0.963,
+            0.521
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.056,
+            0.521,
+            0.056,
+            0.521
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.144,
+            0.526,
+            0.144,
+            0.526
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.212,
+            0.531,
+            0.212,
+            0.531
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.234,
+            0.533,
+            0.234,
+            0.533
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.978,
+            0.538,
+            0.978,
+            0.538
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.994,
+            0.538,
+            0.997,
+            0.542
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.2,
+            0.545,
+            0.2,
+            0.545
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.203,
+            0.547,
+            0.203,
+            0.547
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.557,
+            0.0,
+            0.557
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.15,
+            0.58,
+            0.153,
+            0.585
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.147,
+            0.587,
+            0.147,
+            0.587
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.144,
+            0.59,
+            0.144,
+            0.59
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.604,
+            0.172,
+            0.604
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.963,
+            0.608,
+            0.972,
+            0.608
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.553,
+            0.618,
+            0.559,
+            0.618
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.281,
+            0.623,
+            0.447,
+            0.646
+          ],
+          "area_fraction": 0.0007,
+          "extent": 0.16,
+          "thickness": 0.034,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.578,
+            0.623,
+            0.578,
+            0.623
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.203,
+            0.632,
+            0.216,
+            0.632
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.787,
+            0.637,
+            0.787,
+            0.637
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.791,
+            0.639,
+            0.791,
+            0.639
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.794,
+            0.644,
+            0.794,
+            0.651
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.646,
+            0.028,
+            0.656
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.3,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.031,
+            0.658,
+            0.066,
+            0.667
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.283,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.072,
+            0.67,
+            0.081,
+            0.672
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.084,
+            0.675,
+            0.163,
+            0.715
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.103,
+          "thickness": 0.056,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.166,
+            0.717,
+            0.169,
+            0.722
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.724,
+            0.172,
+            0.724
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.175,
+            0.726,
+            0.175,
+            0.726
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.022,
+            0.729,
+            0.022,
+            0.729
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        }
+      ],
+      "otsu_threshold": 339.23,
+      "work_size": [
+        320,
+        424
+      ],
+      "bounds": null,
+      "review_status": "candidates only - no selection declared yet"
+    },
+    "case06_meal_prep": {
+      "candidates": [
+        {
+          "bbox": [
+            0.512,
+            0.367,
+            0.922,
+            0.631
+          ],
+          "area_fraction": 0.0485,
+          "extent": 0.442,
+          "thickness": 0.353,
+          "candidate": 0
+        },
+        {
+          "bbox": [
+            0.559,
+            0.078,
+            0.997,
+            0.32
+          ],
+          "area_fraction": 0.0361,
+          "extent": 0.335,
+          "thickness": 0.325,
+          "candidate": 1
+        },
+        {
+          "bbox": [
+            0.125,
+            0.428,
+            0.438,
+            0.499
+          ],
+          "area_fraction": 0.0158,
+          "extent": 0.684,
+          "thickness": 0.097,
+          "candidate": 2
+        },
+        {
+          "bbox": [
+            0.0,
+            0.0,
+            0.181,
+            0.132
+          ],
+          "area_fraction": 0.0127,
+          "extent": 0.513,
+          "thickness": 0.178,
+          "candidate": 3
+        },
+        {
+          "bbox": [
+            0.125,
+            0.548,
+            0.434,
+            0.605
+          ],
+          "area_fraction": 0.0115,
+          "extent": 0.626,
+          "thickness": 0.078,
+          "candidate": 4
+        },
+        {
+          "bbox": [
+            0.0,
+            0.146,
+            0.087,
+            0.271
+          ],
+          "area_fraction": 0.0041,
+          "extent": 0.353,
+          "thickness": 0.091,
+          "candidate": 5
+        }
+      ],
+      "rejected": [
+        {
+          "bbox": [
+            0.9,
+            0.0,
+            0.944,
+            0.108
+          ],
+          "area_fraction": 0.0032,
+          "extent": 0.613,
+          "thickness": 0.047,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.147,
+            0.002,
+            0.15,
+            0.002
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.412,
+            0.021,
+            0.412,
+            0.021
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.403,
+            0.024,
+            0.403,
+            0.024
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.956,
+            0.024,
+            0.956,
+            0.024
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.026,
+            0.394,
+            0.365
+          ],
+          "area_fraction": 0.0286,
+          "extent": 0.211,
+          "thickness": 0.397,
+          "reason": "too sparse for its bounding box - an outline, not a mass"
+        },
+        {
+          "bbox": [
+            0.963,
+            0.026,
+            0.963,
+            0.026
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.031,
+            0.175,
+            0.031
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.894,
+            0.031,
+            0.894,
+            0.031
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.697,
+            0.045,
+            0.713,
+            0.054
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.867,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.956,
+            0.047,
+            0.981,
+            0.101
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.282,
+          "thickness": 0.028,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.584,
+            0.073,
+            0.6,
+            0.075
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.583,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.878,
+            0.096,
+            0.891,
+            0.106
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.48,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.95,
+            0.104,
+            0.953,
+            0.104
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.202,
+            0.0,
+            0.202
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.205,
+            0.003,
+            0.205
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.85,
+            0.228,
+            0.856,
+            0.235
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.833,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.691,
+            0.233,
+            0.691,
+            0.233
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.006,
+            0.238,
+            0.006,
+            0.238
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.245,
+            0.125,
+            0.261
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.333,
+          "thickness": 0.025,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.131,
+            0.247,
+            0.141,
+            0.247
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.469,
+            0.264,
+            0.519,
+            0.289
+          ],
+          "area_fraction": 0.0012,
+          "extent": 0.828,
+          "thickness": 0.037,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.147,
+            0.271,
+            0.147,
+            0.271
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.028,
+            0.299,
+            0.028,
+            0.299
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.304,
+            0.013,
+            0.306
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.7,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.253,
+            0.322,
+            0.253,
+            0.322
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.25,
+            0.325,
+            0.25,
+            0.325
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.247,
+            0.327,
+            0.247,
+            0.327
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.244,
+            0.336,
+            0.244,
+            0.336
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.863,
+            0.336,
+            0.863,
+            0.344
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.025,
+            0.348,
+            0.025,
+            0.348
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.441,
+            0.351,
+            0.444,
+            0.353
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.863,
+            0.351,
+            0.866,
+            0.355
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.05,
+            0.355,
+            0.516,
+            0.475
+          ],
+          "area_fraction": 0.0066,
+          "extent": 0.115,
+          "thickness": 0.163,
+          "reason": "too sparse for its bounding box - an outline, not a mass"
+        },
+        {
+          "bbox": [
+            0.047,
+            0.369,
+            0.047,
+            0.372
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.163,
+            0.379,
+            0.163,
+            0.379
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.103,
+            0.412,
+            0.103,
+            0.412
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.109,
+            0.414,
+            0.125,
+            0.414
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.369,
+            0.414,
+            0.388,
+            0.416
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.571,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.403,
+            0.414,
+            0.406,
+            0.414
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.356,
+            0.416,
+            0.356,
+            0.416
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.512,
+            0.421,
+            0.512,
+            0.424
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.781,
+            0.454,
+            0.781,
+            0.454
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.784,
+            0.456,
+            0.784,
+            0.456
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.412,
+            0.466,
+            0.416,
+            0.471
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.447,
+            0.466,
+            0.447,
+            0.466
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.45,
+            0.471,
+            0.45,
+            0.473
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.473,
+            0.047,
+            0.485
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.333,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.534,
+            0.473,
+            0.534,
+            0.473
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.084,
+            0.475,
+            0.097,
+            0.482
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.4,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.537,
+            0.475,
+            0.537,
+            0.475
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.541,
+            0.478,
+            0.541,
+            0.482
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.831,
+            0.478,
+            0.834,
+            0.48
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.072,
+            0.485,
+            0.081,
+            0.492
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.438,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.509,
+            0.487,
+            0.547,
+            0.532
+          ],
+          "area_fraction": 0.001,
+          "extent": 0.531,
+          "thickness": 0.041,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.556,
+            0.501,
+            0.572,
+            0.522
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.5,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.066,
+            0.504,
+            0.066,
+            0.508
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.816,
+            0.506,
+            0.816,
+            0.508
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.52,
+            0.091,
+            0.56
+          ],
+          "area_fraction": 0.0011,
+          "extent": 0.283,
+          "thickness": 0.056,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.45,
+            0.522,
+            0.45,
+            0.522
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.928,
+            0.522,
+            0.941,
+            0.522
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.103,
+            0.527,
+            0.109,
+            0.527
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.362,
+            0.527,
+            0.428,
+            0.532
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.379,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.347,
+            0.529,
+            0.353,
+            0.536
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.194,
+            0.532,
+            0.216,
+            0.532
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.532,
+            0.306,
+            0.532
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.388,
+            0.546,
+            0.388,
+            0.546
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.878,
+            0.546,
+            0.878,
+            0.546
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.175,
+            0.548,
+            0.188,
+            0.555
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.55,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.838,
+            0.548,
+            0.869,
+            0.56
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.348,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.875,
+            0.548,
+            0.875,
+            0.548
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.281,
+            0.551,
+            0.297,
+            0.555
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.551,
+            0.309,
+            0.551
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.872,
+            0.551,
+            0.872,
+            0.551
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.087,
+            0.553,
+            0.087,
+            0.553
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.128,
+            0.553,
+            0.128,
+            0.553
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.091,
+            0.555,
+            0.091,
+            0.56
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.125,
+            0.555,
+            0.125,
+            0.555
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.422,
+            0.555,
+            0.422,
+            0.555
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.178,
+            0.558,
+            0.178,
+            0.558
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.428,
+            0.558,
+            0.428,
+            0.558
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.291,
+            0.56,
+            0.291,
+            0.562
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.519,
+            0.567,
+            0.525,
+            0.574
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.583,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.094,
+            0.569,
+            0.094,
+            0.569
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.875,
+            0.574,
+            0.878,
+            0.579
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.881,
+            0.574,
+            0.881,
+            0.574
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.097,
+            0.579,
+            0.097,
+            0.584
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.516,
+            0.588,
+            0.516,
+            0.593
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.9,
+            0.593,
+            0.9,
+            0.593
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.094,
+            0.598,
+            0.094,
+            0.598
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.109,
+            0.598,
+            0.109,
+            0.6
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.512,
+            0.602,
+            0.634,
+            0.68
+          ],
+          "area_fraction": 0.0025,
+          "extent": 0.248,
+          "thickness": 0.106,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.659,
+            0.614,
+            0.659,
+            0.614
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.812,
+            0.614,
+            0.812,
+            0.638
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.444,
+            0.628,
+            0.447,
+            0.628
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.344,
+            0.631,
+            0.441,
+            0.647
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.219,
+          "thickness": 0.025,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.891,
+            0.631,
+            0.903,
+            0.642
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.533,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.087,
+            0.635,
+            0.087,
+            0.635
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.116,
+            0.635,
+            0.116,
+            0.635
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.141,
+            0.635,
+            0.166,
+            0.645
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.422,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.197,
+            0.638,
+            0.197,
+            0.638
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.206,
+            0.638,
+            0.216,
+            0.642
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.583,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.284,
+            0.64,
+            0.334,
+            0.682
+          ],
+          "area_fraction": 0.0008,
+          "extent": 0.347,
+          "thickness": 0.053,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.091,
+            0.647,
+            0.091,
+            0.654
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.169,
+            0.647,
+            0.169,
+            0.647
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.649,
+            0.172,
+            0.649
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.338,
+            0.649,
+            0.344,
+            0.654
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.556,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.652,
+            0.266,
+            0.687
+          ],
+          "area_fraction": 0.0007,
+          "extent": 0.204,
+          "thickness": 0.05,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.138,
+            0.654,
+            0.141,
+            0.654
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.147,
+            0.654,
+            0.15,
+            0.654
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.659,
+            0.091,
+            0.694
+          ],
+          "area_fraction": 0.0007,
+          "extent": 0.188,
+          "thickness": 0.05,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.447,
+            0.659,
+            0.447,
+            0.661
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.644,
+            0.659,
+            0.691,
+            0.673
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.348,
+          "thickness": 0.022,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.772,
+            0.661,
+            0.803,
+            0.671
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.309,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.381,
+            0.664,
+            0.384,
+            0.668
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.578,
+            0.664,
+            0.584,
+            0.671
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.256,
+            0.668,
+            0.256,
+            0.668
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.091,
+            0.673,
+            0.091,
+            0.673
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.559,
+            0.673,
+            0.559,
+            0.673
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.875,
+            0.673,
+            0.881,
+            0.678
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.094,
+            0.675,
+            0.094,
+            0.675
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.166,
+            0.675,
+            0.181,
+            0.694
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.296,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.338,
+            0.675,
+            0.341,
+            0.678
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.556,
+            0.675,
+            0.556,
+            0.675
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.097,
+            0.678,
+            0.097,
+            0.68
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.709,
+            0.678,
+            0.709,
+            0.678
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.184,
+            0.68,
+            0.184,
+            0.68
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.197,
+            0.68,
+            0.2,
+            0.682
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.553,
+            0.68,
+            0.553,
+            0.685
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.7,
+            0.68,
+            0.713,
+            0.701
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.46,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.706,
+            0.68,
+            0.706,
+            0.68
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.203,
+            0.682,
+            0.203,
+            0.682
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.581,
+            0.685,
+            0.581,
+            0.685
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.775,
+            0.685,
+            0.775,
+            0.685
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.328,
+            0.687,
+            0.328,
+            0.687
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.556,
+            0.687,
+            0.559,
+            0.692
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.578,
+            0.687,
+            0.578,
+            0.687
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.6,
+            0.687,
+            0.609,
+            0.701
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.429,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.231,
+            0.689,
+            0.231,
+            0.692
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.569,
+            0.689,
+            0.575,
+            0.692
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.228,
+            0.694,
+            0.228,
+            0.694
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.766,
+            0.694,
+            0.766,
+            0.694
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.653,
+            0.696,
+            0.653,
+            0.699
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.762,
+            0.696,
+            0.762,
+            0.696
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.128,
+            0.699,
+            0.128,
+            0.699
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.131,
+            0.701,
+            0.131,
+            0.701
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.697,
+            0.701,
+            0.697,
+            0.701
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.131,
+            0.704,
+            0.428,
+            0.711
+          ],
+          "area_fraction": 0.0014,
+          "extent": 0.51,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.431,
+            0.704,
+            0.431,
+            0.704
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.666,
+            0.704,
+            0.672,
+            0.704
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.694,
+            0.704,
+            0.694,
+            0.704
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.681,
+            0.706,
+            0.691,
+            0.706
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.519,
+            0.711,
+            0.675,
+            0.781
+          ],
+          "area_fraction": 0.0015,
+          "extent": 0.132,
+          "thickness": 0.097,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.838,
+            0.711,
+            0.838,
+            0.711
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.844,
+            0.711,
+            0.853,
+            0.715
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.5,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.469,
+            0.713,
+            0.469,
+            0.713
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.891,
+            0.715,
+            0.891,
+            0.715
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.894,
+            0.718,
+            0.894,
+            0.718
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.828,
+            0.72,
+            0.897,
+            0.736
+          ],
+          "area_fraction": 0.0006,
+          "extent": 0.44,
+          "thickness": 0.025,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.656,
+            0.725,
+            0.762,
+            0.741
+          ],
+          "area_fraction": 0.0019,
+          "extent": 0.918,
+          "thickness": 0.025,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.806,
+            0.725,
+            0.812,
+            0.736
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.667,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.45,
+            0.727,
+            0.459,
+            0.732
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.5,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.469,
+            0.727,
+            0.469,
+            0.729
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.113,
+            0.741,
+            0.119,
+            0.741
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.347,
+            0.741,
+            0.353,
+            0.753
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.556,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.359,
+            0.741,
+            0.362,
+            0.741
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.375,
+            0.741,
+            0.381,
+            0.741
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.806,
+            0.741,
+            0.806,
+            0.746
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.166,
+            0.744,
+            0.169,
+            0.744
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.356,
+            0.744,
+            0.356,
+            0.744
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.344,
+            0.755,
+            0.344,
+            0.755
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.275,
+            0.758,
+            0.341,
+            0.767
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.345,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.206,
+            0.762,
+            0.216,
+            0.765
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.625,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.225,
+            0.762,
+            0.241,
+            0.769
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.458,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.253,
+            0.762,
+            0.266,
+            0.767
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.6,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.803,
+            0.765,
+            0.803,
+            0.765
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.172,
+            0.767,
+            0.172,
+            0.767
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.797,
+            0.767,
+            0.8,
+            0.769
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.175,
+            0.769,
+            0.175,
+            0.769
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.678,
+            0.769,
+            0.794,
+            0.798
+          ],
+          "area_fraction": 0.0008,
+          "extent": 0.215,
+          "thickness": 0.041,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.184,
+            0.772,
+            0.188,
+            0.772
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.256,
+            0.772,
+            0.256,
+            0.772
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.191,
+            0.774,
+            0.194,
+            0.774
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.588,
+            0.774,
+            0.594,
+            0.776
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.278,
+            0.776,
+            0.284,
+            0.779
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.6,
+            0.776,
+            0.6,
+            0.776
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.206,
+            0.779,
+            0.209,
+            0.779
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.206,
+            0.784,
+            0.209,
+            0.786
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.75,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.619,
+            0.784,
+            0.619,
+            0.784
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.259,
+            0.786,
+            0.269,
+            0.788
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.625,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.303,
+            0.786,
+            0.303,
+            0.786
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.772,
+            0.786,
+            0.772,
+            0.786
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.272,
+            0.788,
+            0.278,
+            0.791
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.667,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.306,
+            0.788,
+            0.306,
+            0.788
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.588,
+            0.788,
+            0.588,
+            0.788
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.769,
+            0.788,
+            0.769,
+            0.788
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.231,
+            0.793,
+            0.231,
+            0.793
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.244,
+            0.793,
+            0.247,
+            0.793
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.281,
+            0.793,
+            0.281,
+            0.793
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.694,
+            0.793,
+            0.744,
+            0.831
+          ],
+          "area_fraction": 0.0006,
+          "extent": 0.294,
+          "thickness": 0.053,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.228,
+            0.795,
+            0.228,
+            0.795
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.794,
+            0.795,
+            0.797,
+            0.795
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.291,
+            0.798,
+            0.294,
+            0.798
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.622,
+            0.8,
+            0.622,
+            0.8
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.606,
+            0.802,
+            0.609,
+            0.802
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.422,
+            0.814,
+            0.422,
+            0.814
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.653,
+            0.814,
+            0.653,
+            0.814
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.694,
+            0.814,
+            0.694,
+            0.814
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.125,
+            0.816,
+            0.128,
+            0.816
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.656,
+            0.816,
+            0.669,
+            0.821
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.533,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.819,
+            0.163,
+            0.819
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.847,
+            0.826,
+            0.85,
+            0.826
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.831,
+            0.828,
+            0.844,
+            0.831
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.6,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        }
+      ],
+      "otsu_threshold": 205.13,
+      "work_size": [
+        320,
+        425
+      ],
+      "bounds": null,
+      "review_status": "candidates only - no selection declared yet"
+    },
+    "case08_fan_shelf": {
+      "candidates": [
+        {
+          "bbox": [
+            0.225,
+            0.106,
+            0.997,
+            0.998
+          ],
+          "area_fraction": 0.1775,
+          "extent": 0.256,
+          "thickness": 0.775,
+          "candidate": 0
+        },
+        {
+          "bbox": [
+            0.163,
+            0.0,
+            0.997,
+            0.092
+          ],
+          "area_fraction": 0.0347,
+          "extent": 0.439,
+          "thickness": 0.125,
+          "candidate": 1
+        },
+        {
+          "bbox": [
+            0.431,
+            0.585,
+            0.662,
+            0.632
+          ],
+          "area_fraction": 0.0077,
+          "extent": 0.667,
+          "thickness": 0.066,
+          "candidate": 2
+        },
+        {
+          "bbox": [
+            0.306,
+            0.255,
+            0.512,
+            0.278
+          ],
+          "area_fraction": 0.004,
+          "extent": 0.744,
+          "thickness": 0.034,
+          "candidate": 3
+        }
+      ],
+      "rejected": [
+        {
+          "bbox": [
+            0.0,
+            0.0,
+            0.15,
+            0.002
+          ],
+          "area_fraction": 0.0007,
+          "extent": 0.929,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.006,
+            0.061,
+            0.006,
+            0.061
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.013,
+            0.064,
+            0.013,
+            0.064
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.016,
+            0.066,
+            0.016,
+            0.066
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.025,
+            0.071,
+            0.025,
+            0.071
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.275,
+            0.092,
+            0.291,
+            0.113
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.583,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.312,
+            0.094,
+            0.312,
+            0.094
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.316,
+            0.097,
+            0.316,
+            0.097
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.319,
+            0.099,
+            0.325,
+            0.106
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.5,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.272,
+            0.108,
+            0.272,
+            0.108
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.328,
+            0.108,
+            0.328,
+            0.111
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.331,
+            0.113,
+            0.331,
+            0.113
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.13,
+            0.003,
+            0.13
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.041,
+            0.153,
+            0.216,
+            0.167
+          ],
+          "area_fraction": 0.0021,
+          "extent": 0.702,
+          "thickness": 0.022,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.228,
+            0.153,
+            0.228,
+            0.153
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.16,
+            0.0,
+            0.16
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.209,
+            0.17,
+            0.209,
+            0.17
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.212,
+            0.172,
+            0.212,
+            0.186
+          ],
+          "area_fraction": 0.0001,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.184,
+            0.05,
+            0.203
+          ],
+          "area_fraction": 0.0006,
+          "extent": 0.536,
+          "thickness": 0.028,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.253,
+            0.196,
+            0.259,
+            0.248
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.884,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.053,
+            0.203,
+            0.053,
+            0.203
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.203,
+            0.794,
+            0.604
+          ],
+          "area_fraction": 0.0709,
+          "extent": 0.22,
+          "thickness": 0.534,
+          "reason": "too sparse for its bounding box - an outline, not a mass"
+        },
+        {
+          "bbox": [
+            0.303,
+            0.205,
+            0.366,
+            0.236
+          ],
+          "area_fraction": 0.0013,
+          "extent": 0.599,
+          "thickness": 0.044,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.256,
+            0.255,
+            0.263,
+            0.288
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.556,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.031,
+            0.262,
+            0.044,
+            0.276
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.514,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.05,
+            0.264,
+            0.05,
+            0.267
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.062,
+            0.267,
+            0.069,
+            0.271
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.889,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.056,
+            0.276,
+            0.075,
+            0.292
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.482,
+          "thickness": 0.022,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.031,
+            0.281,
+            0.041,
+            0.285
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.583,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.263,
+            0.292,
+            0.263,
+            0.304
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.391,
+            0.333,
+            0.394,
+            0.333
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.391,
+            0.337,
+            0.394,
+            0.337
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.392,
+            0.006,
+            0.396
+          ],
+          "area_fraction": 0.0,
+          "extent": 0.556,
+          "thickness": 0.009,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.415,
+            0.025,
+            0.427
+          ],
+          "area_fraction": 0.0003,
+          "extent": 0.667,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.241,
+            0.467,
+            0.241,
+            0.467
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.244,
+            0.469,
+            0.244,
+            0.469
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.247,
+            0.491,
+            0.256,
+            0.498
+          ],
+          "area_fraction": 0.0001,
+          "extent": 0.625,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.713,
+            0.495,
+            0.713,
+            0.502
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.713,
+            0.507,
+            0.713,
+            0.519
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.138,
+            0.512,
+            0.138,
+            0.512
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.131,
+            0.514,
+            0.131,
+            0.514
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.125,
+            0.517,
+            0.128,
+            0.517
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.019,
+            0.519,
+            0.122,
+            0.528
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.3,
+          "thickness": 0.016,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.528,
+            0.006,
+            0.528
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.237,
+            0.535,
+            0.237,
+            0.54
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.237,
+            0.545,
+            0.241,
+            0.578
+          ],
+          "area_fraction": 0.0002,
+          "extent": 0.7,
+          "thickness": 0.006,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.35,
+            0.684,
+            0.35,
+            0.684
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.003,
+            0.7,
+            0.003,
+            0.7
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.0,
+            0.703,
+            0.0,
+            0.703
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.338,
+            0.908,
+            0.338,
+            0.913
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.981,
+            0.917,
+            0.997,
+            0.998
+          ],
+          "area_fraction": 0.0006,
+          "extent": 0.405,
+          "thickness": 0.019,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.334,
+            0.92,
+            0.334,
+            0.922
+          ],
+          "area_fraction": 0.0,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.9,
+            0.936,
+            0.972,
+            0.936
+          ],
+          "area_fraction": 0.0002,
+          "extent": 1.0,
+          "thickness": 0.003,
+          "reason": "too small to be a product"
+        },
+        {
+          "bbox": [
+            0.369,
+            0.991,
+            0.425,
+            0.998
+          ],
+          "area_fraction": 0.0004,
+          "extent": 0.803,
+          "thickness": 0.013,
+          "reason": "too small to be a product"
+        }
+      ],
+      "otsu_threshold": 240.7,
+      "work_size": [
+        320,
+        424
+      ],
+      "bounds": null,
+      "review_status": "candidates only - no selection declared yet"
+    }
+  }
+}
