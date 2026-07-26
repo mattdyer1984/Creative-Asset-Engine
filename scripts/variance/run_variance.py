@@ -50,7 +50,6 @@ def main() -> int:
     os.environ["CAE_DATA_DIR"] = str(pathlib.Path(args.data_dir).resolve())
 
     from app.ai_providers.failover import generate_with_failover
-    from app.ai_providers.registry import default_registry
     from app.db import SessionLocal
     from app.models.creative_specification import CreativeSpecification
     from app.models.slide import Slide
