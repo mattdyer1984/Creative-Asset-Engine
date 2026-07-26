@@ -45,6 +45,10 @@ ANALYSIS_TYPE_COMPOSITION_CONTRACT = "composition_contract"
 # makes a provider call for projects that actually have designed typography
 # to read, so many of its runs legitimately have no ProviderCall at all.
 ANALYSIS_TYPE_CREATIVE_PROFILE = "creative_profile"
+# ADR 0001 §4/§6, Package E. Slide-scoped and entirely deterministic - it
+# reads OCR, the Composition Contract and the Creative Project Profile, and
+# makes no provider call, so it never has a ProviderCall row.
+ANALYSIS_TYPE_TEXT_OWNERSHIP = "text_ownership"
 # Phase 8.3 of the Generation -> Validation proof of loop (see
 # MIGRATION_PLAN.md) - deliberately not added to SLIDESHOW_STAGE_PIPELINE;
 # see app.slideshow_stages.image_generation_stage's docstring for why.

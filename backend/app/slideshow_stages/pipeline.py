@@ -13,8 +13,13 @@ narrative-adjacent; Narrative Structure depends on OCR, Marketing
 Analysis depends on Creative Fingerprint), grouped here for pipeline
 readability.
 
-Composition Contract (ADR 0001 §9, Package E) added after Scene
-Intelligence and before Creative Specification. It depends on nothing but
+Composition Contract, Creative Project Profile and Text Ownership (ADR
+0001, Package E) added after Scene Intelligence and before Creative
+Specification, in that order - ownership reads both of the other two, and
+the profile reads OCR and the fingerprint. Text Ownership is the only
+stage in the pipeline that makes no provider call at all.
+
+Composition Contract It depends on nothing but
 the slide's raw image, but it must precede any stage that reasons about
 spatial ownership - which is the point of it existing.
 
@@ -31,6 +36,7 @@ from app.slideshow_stages.creative_fingerprint_stage import SlideCreativeFingerp
 from app.slideshow_stages.creative_profile_stage import SlideshowCreativeProfileStage
 from app.slideshow_stages.composition_contract_stage import SlideCompositionContractStage
 from app.slideshow_stages.creative_specification_stage import SlideCreativeSpecificationStage
+from app.slideshow_stages.text_ownership_stage import SlideTextOwnershipStage
 from app.slideshow_stages.marketing_analysis_stage import SlideshowMarketingAnalysisStage
 from app.slideshow_stages.narrative_structure_stage import SlideshowNarrativeStructureStage
 from app.slideshow_stages.ocr_stage import SlideOCRStage
@@ -46,6 +52,7 @@ SLIDESHOW_STAGE_PIPELINE: list[SlideshowAnalysisStage] = [
     SceneIntelligenceStage(),
     SlideCompositionContractStage(),
     SlideshowCreativeProfileStage(),
+    SlideTextOwnershipStage(),
     SlideshowMarketingAnalysisStage(),
     SlideshowNarrativeStructureStage(),
     SlideCreativeSpecificationStage(),

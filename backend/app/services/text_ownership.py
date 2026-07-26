@@ -31,7 +31,12 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.services.profile_schema import SCHEMA_VERSION, OverlayPolicy, TextMode
+from app.services.profile_schema import (
+    SCHEMA_VERSION,
+    CapabilityLevel,
+    OverlayPolicy,
+    TextMode,
+)
 from app.services.text_classification import (
     AUTO_OVERRIDE_CONFIDENCE,
     REVIEW_CONFIDENCE,
@@ -247,12 +252,30 @@ def _spatial_evidence(contract, bounds) -> SpatialEvidence:
     )
 
 
+#: What the deterministic renderer can actually produce today. Designed
+#: typography above this level is routed to the image instead: the renderer
+#: would draw flat type where the source had it outlined, wrapped or occluded,
+#: and a flat recreation of integrated typography is worse than letting the
+#: model attempt it. Raise this as the renderer gains capability - the routing
+#: is then a configuration change, not a code change.
+RENDERER_CAPABILITY = CapabilityLevel.L1
+
+_CAPABILITY_ORDER = {CapabilityLevel.L1: 1, CapabilityLevel.L2: 2, CapabilityLevel.L3: 3}
+
+
+def exceeds_renderer(level: CapabilityLevel | None) -> bool:
+    if level is None:
+        return False
+    return _CAPABILITY_ORDER[level] > _CAPABILITY_ORDER[RENDERER_CAPABILITY]
+
+
 def decide_ownership(
     blocks: list[dict] | None,
     *,
     overlay_policy: OverlayPolicy = OverlayPolicy.KEEP,
     project_text_mode: TextMode | None = None,
     contract=None,
+    capability_level: CapabilityLevel | None = None,
 ) -> OwnershipPlan:
     """
     Route every OCR block to exactly one owner.
@@ -335,7 +358,23 @@ def decide_ownership(
 
         owner, image_strategy = _ROUTING[text_class]
 
-        if text_class is TextClass.PLATFORM_CAPTION:
+        # Capability gate. Designed typography the renderer cannot reproduce
+        # goes to the image rather than being drawn flat - ADR §10.3's L1/L2/L3
+        # split reaching ownership, which is where it has to act. Benchmark 5's
+        # "10/10 man" is the case: annotated designed typography, but treated
+        # as part of the artwork, so L1 would flatten it.
+        capability_note = ""
+        if text_class is TextClass.DESIGNED_TYPOGRAPHY and exceeds_renderer(capability_level):
+            owner, image_strategy = Owner.IMAGE, ImageStrategy.GENERATED
+            capability_note = (
+                f"typography is {capability_level} and the renderer is "
+                f"{RENDERER_CAPABILITY} - left to the image rather than drawn flat"
+            )
+            classification.reasons.insert(0, capability_note)
+
+        if capability_note:
+            policy = HandlingPolicy.PRESERVE_VISUAL_ROLE
+        elif text_class is TextClass.PLATFORM_CAPTION:
             policy = HandlingPolicy.OPTIONAL_OVERLAY
             if overlay_policy is OverlayPolicy.REPLACE:
                 policy = HandlingPolicy.USER_REPLACEMENT
