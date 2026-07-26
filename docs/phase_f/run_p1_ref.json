@@ -1,0 +1,1309 @@
+{
+  "run_id": "1780fe5f-bd14-493c-a92d-6f10136f6b3c",
+  "data_dir": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/p1ref/data",
+  "cases": [
+    {
+      "case": "case08_fan_shelf",
+      "started_at": 1785079278.243665,
+      "slideshow_id": "a4308b25-18e7-4c6a-a13a-1562ee622b20",
+      "slide_id": "e6c430ba-76a8-4af2-80d3-f40a29fc938b",
+      "product_id": "92239db0-d08c-4209-942d-1a4bb8c529ed",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 49536.5,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "reference_library": {
+        "elapsed_ms": 2645.82,
+        "succeeded": true,
+        "error": null,
+        "candidates": 1,
+        "by_library_status": {
+          "rejected": 1
+        }
+      },
+      "generation": {
+        "elapsed_ms": 1.89,
+        "succeeded": false,
+        "error": "No Generation Reference Set available - the product's Canonical Reference Library is empty. Run Reference Scoring first (POST /api/products/{id}/score-references).",
+        "generated_images": [],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "e6a21395-e3dc-4378-9aab-71ff9df549d7",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 12.38,
+          "provider_call_ms": 2642.9186249151826,
+          "deterministic_ms": -2630.54,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1433,
+              "completion_tokens": 67,
+              "image_count": null,
+              "provider_latency_ms": 2642.9186249151826,
+              "estimated_cost_usd": 0.009175,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "820ba28c-38e6-4413-b155-7e81d53ebd36",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3.93,
+          "provider_call_ms": 10027.74020889774,
+          "deterministic_ms": -10023.81,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1492,
+              "completion_tokens": 710,
+              "image_count": null,
+              "provider_latency_ms": 10027.74020889774,
+              "estimated_cost_usd": 0.02876,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "39a28af3-cc9d-4ef9-bb69-0af282e5326d",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.298,
+          "provider_call_ms": 13771.659833029844,
+          "deterministic_ms": -13767.36,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1954,
+              "completion_tokens": 863,
+              "image_count": null,
+              "provider_latency_ms": 13771.659833029844,
+              "estimated_cost_usd": 0.03566,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "d7885f4e-cfcc-4a36-a00c-e0a92daf3c08",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 2.438,
+          "provider_call_ms": 14870.8390831016,
+          "deterministic_ms": -14868.4,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1292,
+              "completion_tokens": 1771,
+              "image_count": null,
+              "provider_latency_ms": 14870.8390831016,
+              "estimated_cost_usd": 0.0152205,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "4853471e-9580-4a04-aa78-362d2e180973",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 3959.722,
+          "provider_call_ms": 3953.564124996774,
+          "deterministic_ms": 6.16,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 294,
+              "completion_tokens": 152,
+              "image_count": null,
+              "provider_latency_ms": 3953.564124996774,
+              "estimated_cost_usd": 0.00603,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "c177a35f-025f-4a30-85b8-b201d76816a9",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.942,
+          "provider_call_ms": 6637.402832973748,
+          "deterministic_ms": -6633.46,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1325,
+              "completion_tokens": 511,
+              "image_count": null,
+              "provider_latency_ms": 6637.402832973748,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "6a1b969a-e9e2-463d-88f8-890d3bfd0fb1",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 4.642,
+          "provider_call_ms": 12212.676249910146,
+          "deterministic_ms": -12208.03,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1282,
+              "completion_tokens": 834,
+              "image_count": null,
+              "provider_latency_ms": 12212.676249910146,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "2cbfdff1-e436-4d81-aee3-f5b93ae2cd63",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5247.9,
+          "provider_call_ms": 5238.006457919255,
+          "deterministic_ms": 9.89,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 586,
+              "completion_tokens": 255,
+              "image_count": null,
+              "provider_latency_ms": 5238.006457919255,
+              "estimated_cost_usd": 0.010579999999999999,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "b21ee22e-2e4b-4063-8d37-f6c778a58f97",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 3.636,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "3bd8a888-b6ab-488f-8701-abc92d947e0c",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 8.693,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "dbec1448-137c-4c1f-85d4-ad6dcb489f31",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5.562,
+          "provider_call_ms": 17090.55895905476,
+          "deterministic_ms": -17085.0,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1344,
+              "completion_tokens": 886,
+              "image_count": null,
+              "provider_latency_ms": 17090.55895905476,
+              "estimated_cost_usd": 0.033299999999999996,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "shelf-snapshot",
+          "device_confidence": 0.95,
+          "zones": [
+            {
+              "zone_id": "main-product",
+              "role": "product",
+              "bounds": [
+                0.24,
+                0.14,
+                0.87,
+                0.77
+              ]
+            },
+            {
+              "zone_id": "side-product",
+              "role": "product",
+              "bounds": [
+                0.86,
+                0.14,
+                1.0,
+                0.77
+              ]
+            },
+            {
+              "zone_id": "lower-product",
+              "role": "product",
+              "bounds": [
+                0.29,
+                0.9,
+                0.88,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "caption",
+              "role": "caption",
+              "bounds": [
+                0.27,
+                0.51,
+                0.82,
+                0.63
+              ]
+            },
+            {
+              "zone_id": "price-label",
+              "role": "price",
+              "bounds": [
+                0.34,
+                0.78,
+                0.58,
+                0.88
+              ]
+            },
+            {
+              "zone_id": "store-background",
+              "role": "subject",
+              "bounds": [
+                0.0,
+                0.0,
+                0.25,
+                0.89
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "price-label",
+              "relation": "below",
+              "object": "main-product"
+            },
+            {
+              "subject": "caption",
+              "relation": "attached-to",
+              "object": "main-product"
+            },
+            {
+              "subject": "side-product",
+              "relation": "right-of",
+              "object": "main-product"
+            },
+            {
+              "subject": "lower-product",
+              "relation": "below",
+              "object": "main-product"
+            },
+            {
+              "subject": "store-background",
+              "relation": "left-of",
+              "object": "main-product"
+            }
+          ],
+          "emphasis": [
+            "main-product",
+            "caption",
+            "price-label",
+            "side-product",
+            "store-background",
+            "lower-product"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "platform_caption",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "HOME",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\u201d",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Pedestal Fan",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "3 speed settings",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Adjustable height",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Oscillating function",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\u201d",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Pede",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "when ur paying \u00a330",
+                "text_class": "platform_caption",
+                "confidence": 0.75,
+                "reasons": [
+                  "caption: text-speak",
+                  "caption: 'when \u2026' caption opener"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "for this...",
+                "text_class": "platform_caption",
+                "confidence": 0.444,
+                "reasons": [
+                  "caption: trails off with an ellipsis",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": true
+              },
+              {
+                "text": "3 Speed Settings",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Adjustable Height",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Oscillating Function",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "3 Speed Settings",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "16\u201d Pedestal Fan",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\u00a330",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "5063022512467 A05",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "0 block(s) read as designed typography, 2 as platform caption",
+              "source style photographic (photographic), confidence 0.85"
+            ]
+          }
+        },
+        "typography_system": null,
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "54851dd1-7522-4305-85bd-a8195f4e1bc8",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "HOME",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.012,
+                0.257,
+                0.078,
+                0.296
+              ],
+              "composition_zone_id": "store-background",
+              "composition_zone_role": "subject",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "16\u201d",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.301,
+                0.21,
+                0.365,
+                0.237
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "Pedestal Fan",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.307,
+                0.254,
+                0.513,
+                0.281
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "3 speed settings",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.311,
+                0.31,
+                0.417,
+                0.321
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "Adjustable height",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.309,
+                0.33,
+                0.423,
+                0.341
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-5",
+              "source_ocr_block_id": "ocr-5",
+              "text": "Oscillating function",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.31,
+                0.35,
+                0.435,
+                0.362
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-6",
+              "source_ocr_block_id": "ocr-6",
+              "text": "16\u201d",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.928,
+                0.231,
+                0.992,
+                0.258
+              ],
+              "composition_zone_id": "side-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-7",
+              "source_ocr_block_id": "ocr-7",
+              "text": "Pede",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.928,
+                0.278,
+                0.996,
+                0.3
+              ],
+              "composition_zone_id": "side-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-8",
+              "source_ocr_block_id": "ocr-8",
+              "text": "when ur paying \u00a330",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "block_override",
+              "confidence": 0.75,
+              "reason": "caption: text-speak; caption: 'when \u2026' caption opener",
+              "evidence": [
+                "caption: text-speak",
+                "caption: 'when \u2026' caption opener"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.276,
+                0.531,
+                0.792,
+                0.578
+              ],
+              "composition_zone_id": "caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-9",
+              "source_ocr_block_id": "ocr-9",
+              "text": "for this...",
+              "text_class": "platform_caption",
+              "owner": "review",
+              "handling_policy": "review_required",
+              "source": "project_default",
+              "confidence": 0.444,
+              "reason": "confidence below the review band - preserved pending review (caption: trails off with an ellipsis; editorial: label-length copy)",
+              "evidence": [
+                "caption: trails off with an ellipsis",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.432,
+                0.592,
+                0.663,
+                0.63
+              ],
+              "composition_zone_id": "caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-10",
+              "source_ocr_block_id": "ocr-10",
+              "text": "3 Speed Settings",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.322,
+                0.72,
+                0.375,
+                0.745
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-11",
+              "source_ocr_block_id": "ocr-11",
+              "text": "Adjustable Height",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.41,
+                0.719,
+                0.471,
+                0.743
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-12",
+              "source_ocr_block_id": "ocr-12",
+              "text": "Oscillating Function",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.499,
+                0.719,
+                0.559,
+                0.741
+              ],
+              "composition_zone_id": "main-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "caption",
+                "lower-product",
+                "price-label",
+                "side-product",
+                "store-background"
+              ]
+            },
+            {
+              "block_id": "block-13",
+              "source_ocr_block_id": "ocr-13",
+              "text": "3 Speed Settings",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.901,
+                0.712,
+                0.946,
+                0.735
+              ],
+              "composition_zone_id": "side-product",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-14",
+              "source_ocr_block_id": "ocr-14",
+              "text": "16\u201d Pedestal Fan",
+              "text_class": "environmental",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'price-label' price zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'price-label' price zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.364,
+                0.814,
+                0.502,
+                0.826
+              ],
+              "composition_zone_id": "price-label",
+              "composition_zone_role": "price",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-15",
+              "source_ocr_block_id": "ocr-15",
+              "text": "\u00a330",
+              "text_class": "environmental",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'price-label' price zone; OCR reports the text is on a physical object",
+              "evidence": [
+                "composition: block sits in the 'price-label' price zone",
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.388,
+                0.831,
+                0.495,
+                0.868
+              ],
+              "composition_zone_id": "price-label",
+              "composition_zone_role": "price",
+              "associated_zone_ids": [
+                "main-product"
+              ]
+            },
+            {
+              "block_id": "block-16",
+              "source_ocr_block_id": "ocr-16",
+              "text": "5063022512467 A05",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.47,
+                0.877,
+                0.563,
+                0.884
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "HOME 16\u201d Pedestal Fan 3 speed settings Adjustable height Oscillating function 16\u201d Pede when ur paying \u00a330 for this... 3 Speed Settings Adjustable Height Oscillating Function 3 Speed Settings 16\u201d Pedestal Fan \u00a330 5063022512467 A05",
+          "blocks": [
+            {
+              "text": "HOME",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.012,
+                "y_min": 0.257,
+                "x_max": 0.078,
+                "y_max": 0.296
+              }
+            },
+            {
+              "text": "16\u201d",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.301,
+                "y_min": 0.21,
+                "x_max": 0.365,
+                "y_max": 0.237
+              }
+            },
+            {
+              "text": "Pedestal Fan",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.307,
+                "y_min": 0.254,
+                "x_max": 0.513,
+                "y_max": 0.281
+              }
+            },
+            {
+              "text": "3 speed settings",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.311,
+                "y_min": 0.31,
+                "x_max": 0.417,
+                "y_max": 0.321
+              }
+            },
+            {
+              "text": "Adjustable height",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.309,
+                "y_min": 0.33,
+                "x_max": 0.423,
+                "y_max": 0.341
+              }
+            },
+            {
+              "text": "Oscillating function",
+              "role": "subheadline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.31,
+                "y_min": 0.35,
+                "x_max": 0.435,
+                "y_max": 0.362
+              }
+            },
+            {
+              "text": "16\u201d",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.928,
+                "y_min": 0.231,
+                "x_max": 0.992,
+                "y_max": 0.258
+              }
+            },
+            {
+              "text": "Pede",
+              "role": "headline",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.928,
+                "y_min": 0.278,
+                "x_max": 0.996,
+                "y_max": 0.3
+              }
+            },
+            {
+              "text": "when ur paying \u00a330",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.276,
+                "y_min": 0.531,
+                "x_max": 0.792,
+                "y_max": 0.578
+              }
+            },
+            {
+              "text": "for this...",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.432,
+                "y_min": 0.592,
+                "x_max": 0.663,
+                "y_max": 0.63
+              }
+            },
+            {
+              "text": "3 Speed Settings",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.322,
+                "y_min": 0.72,
+                "x_max": 0.375,
+                "y_max": 0.745
+              }
+            },
+            {
+              "text": "Adjustable Height",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.41,
+                "y_min": 0.719,
+                "x_max": 0.471,
+                "y_max": 0.743
+              }
+            },
+            {
+              "text": "Oscillating Function",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.499,
+                "y_min": 0.719,
+                "x_max": 0.559,
+                "y_max": 0.741
+              }
+            },
+            {
+              "text": "3 Speed Settings",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.901,
+                "y_min": 0.712,
+                "x_max": 0.946,
+                "y_max": 0.735
+              }
+            },
+            {
+              "text": "16\u201d Pedestal Fan",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.364,
+                "y_min": 0.814,
+                "x_max": 0.502,
+                "y_max": 0.826
+              }
+            },
+            {
+              "text": "\u00a330",
+              "role": "price",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.388,
+                "y_min": 0.831,
+                "x_max": 0.495,
+                "y_max": 0.868
+              }
+            },
+            {
+              "text": "5063022512467 A05",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.47,
+                "y_min": 0.877,
+                "x_max": 0.563,
+                "y_max": 0.884
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Amateur, user-generated content (UGC), observational, candid.",
+          "marketing_objective": "To highlight a discrepancy between perceived value and price, potentially sparking debate or outrage.",
+          "emotional_appeal": [
+            "Humor",
+            "Frustration",
+            "Relatability"
+          ],
+          "target_audience": "General consumers, likely those sensitive to inflation or feeling the pinch of rising living costs.",
+          "color_palette": [
+            "Light beige",
+            "Mint green",
+            "White",
+            "Black (text overlay)"
+          ],
+          "typography_style": "Standard sans-serif font for the overlay text, simple and easily readable. The packaging uses a clean, modern sans-serif.",
+          "layout_and_composition": "The primary focus is on the fan box and the price tag. The image is taken from a slightly elevated angle, placing the viewer in the perspective of a shopper.",
+          "background_environment": "Retail store aisle, showing other products on shelves, implying a real-world shopping context.",
+          "lighting_style": "Fluorescent store lighting, flat and even, typical of retail environments.",
+          "graphic_style": "Minimalist graphic design on the product packaging, featuring simple icons. The overlay text is a common meme/social media style.",
+          "product_prominence": "The product box is central and occupies most of the frame, drawing immediate attention.",
+          "marketing_angle": "Price-focus, highlighting a perceived overpricing of a basic household item.",
+          "visual_hierarchy": "First, the eye is drawn to the large central text overlay ('when ur paying \u00a330 for this...'). Then, it moves down to the price tag ('\u00a330') and up to the product image on the box.",
+          "trust_elements": [],
+          "promotional_devices": [],
+          "object_placement": "The fan box is centered, sitting on a retail shelf. The price tag is prominently displayed below the box, attached to the shelf edge.",
+          "emotional_trigger": "Indignation or disbelief over the high cost of a seemingly basic, low-tech item.",
+          "extensions": "The use of lowercase and casual language ('ur') in the overlay text enhances the relatable, everyday tone of the image."
+        }
+      },
+      "finished_at": 1785079330.505126
+    }
+  ],
+  "stages": [
+    "ocr",
+    "product_isolation",
+    "product_lock_profile",
+    "creative_fingerprint",
+    "scene_intelligence",
+    "composition_contract",
+    "creative_profile",
+    "text_ownership",
+    "marketing_analysis",
+    "narrative_structure",
+    "creative_specification"
+  ]
+}

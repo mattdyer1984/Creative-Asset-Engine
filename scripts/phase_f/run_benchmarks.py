@@ -273,6 +273,10 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None,
         record["failed_stage"] = failed_stage
         record["pipeline_error"] = result.error
 
+        if generate and result.succeeded and record.get("product_id"):
+            record["reference_library"] = _build_reference_library(db, record["product_id"])
+            db.refresh(slideshow)
+            slide = db.get(Slide, slide.id)
         if generate and result.succeeded:
             record["generation"] = _generate(db, slideshow, slide)
 
@@ -287,6 +291,45 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None,
 
     record["finished_at"] = time.time()
     return record
+
+
+def _build_reference_library(db, product_id: str) -> dict:
+    """
+    Promote the isolated product crops into the Canonical Reference Library.
+
+    Uses `run_reference_scoring` - the SAME function the products API calls
+    via `run_reference_scoring_in_background`. Product Isolation already
+    created the ProductReferenceImage rows; scoring is what sets
+    `library_status`, and `select_reference_images` only ever considers rows
+    marked `included`.
+
+    Deliberately not a benchmark shortcut. Inserting rows with
+    `library_status="included"` directly would exercise a path production
+    never takes and would hide exactly the integration gap that stopped the
+    first P1 run.
+    """
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.services.reference_scoring_stage import run_reference_scoring
+
+    started = time.perf_counter()
+    result = run_reference_scoring(db, product_id)
+    db.commit()
+
+    rows = db.query(ProductReferenceImage).filter(
+        ProductReferenceImage.product_id == product_id
+    ).all()
+    by_status: dict[str, int] = {}
+    for row in rows:
+        by_status[row.library_status or "unscored"] = (
+            by_status.get(row.library_status or "unscored", 0) + 1
+        )
+    return {
+        "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+        "succeeded": result.succeeded,
+        "error": result.error,
+        "candidates": len(rows),
+        "by_library_status": by_status,
+    }
 
 
 def _generate(db, slideshow, slide) -> dict:
