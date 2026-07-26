@@ -1,0 +1,991 @@
+{
+  "run_id": "ce430d92-06d6-4b10-8c67-750da5d183bf",
+  "data_dir": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/p1case02/data",
+  "cases": [
+    {
+      "case": "case02_books",
+      "started_at": 1785081167.5320508,
+      "slideshow_id": "6d5dc72f-cc0e-4951-846d-d51924b4f26f",
+      "slide_id": "53983bca-065b-4603-b3b6-a7603b8f6fe7",
+      "product_id": "24fddbcb-b960-4f75-bdf9-58f98512b800",
+      "stages_requested": [
+        "ocr",
+        "product_isolation",
+        "product_lock_profile",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure",
+        "creative_specification"
+      ],
+      "end_to_end_ms": 71089.28,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "canonical_references": {
+        "supplied": 3,
+        "assets": [
+          {
+            "file": "book-atomic-habits.jpg",
+            "reference_image_id": "0c698510-d8a3-4102-8cfe-32122ecdada5"
+          },
+          {
+            "file": "book-dont-believe.jpg",
+            "reference_image_id": "c03fed49-954d-4b65-b125-57699a03b6fc"
+          },
+          {
+            "file": "book-psychology-of-money.jpg",
+            "reference_image_id": "29ca744b-d681-4af1-ae5e-55ad77558591"
+          }
+        ],
+        "excluded": [
+          {
+            "file": "book-courage-disliked.jpg",
+            "reason": "edition_mismatch",
+            "notes": "white/blue cover with trees; the creative shows the red and black brush-circle edition. Open Library has no English cover for this title, so identity preservation is NOT validated for it"
+          },
+          {
+            "file": "book-let-them-theory.jpg",
+            "reason": "edition_mismatch",
+            "notes": "Greek edition; the creative shows the English green cover. The Open Library record is tagged English but serves the Greek cover art, so identity preservation is NOT validated for it"
+          }
+        ]
+      },
+      "reference_library": {
+        "elapsed_ms": 71651.23,
+        "succeeded": true,
+        "error": null,
+        "candidates": 8,
+        "by_library_status": {
+          "included": 8
+        }
+      },
+      "generation": {
+        "elapsed_ms": 208848.08,
+        "succeeded": null,
+        "error": null,
+        "attempts": 2,
+        "generated_images": [
+          {
+            "id": "85fa5bb5-e3d8-43c6-a566-33064d544811",
+            "file_path": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/p1case02/data/storage/slides/53983bca-065b-4603-b3b6-a7603b8f6fe7/generated_85fa5bb5-e3d8-43c6-a566-33064d544811.png",
+            "status": null
+          },
+          {
+            "id": "d879af54-e9ad-4b14-85a4-1e9acdbd68e1",
+            "file_path": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/p1case02/data/storage/slides/53983bca-065b-4603-b3b6-a7603b8f6fe7/generated_d879af54-e9ad-4b14-85a4-1e9acdbd68e1.png",
+            "status": null
+          }
+        ],
+        "final_outputs": []
+      },
+      "stages": [
+        {
+          "analysis_run_id": "8525eda0-c47f-463e-ba88-8a360341f140",
+          "stage": "product_isolation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 45.031,
+          "provider_call_ms": 6416.379457921721,
+          "deterministic_ms": -6371.35,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "product_isolation",
+              "prompt_id": "analysis.product_isolation",
+              "prompt_version": "1.0",
+              "prompt_tokens": 6677,
+              "completion_tokens": 280,
+              "image_count": null,
+              "provider_latency_ms": 6416.379457921721,
+              "estimated_cost_usd": 0.041785,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "273eeccc-397c-4a03-9af7-bcfffbc33da2",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 1.397,
+          "provider_call_ms": 11861.015749978833,
+          "deterministic_ms": -11859.62,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 744,
+              "image_count": null,
+              "provider_latency_ms": 11861.015749978833,
+              "estimated_cost_usd": 0.007461,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "92af2b31-a8ed-4b8d-869d-d71d4321a069",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.545,
+          "provider_call_ms": 17821.384458919056,
+          "deterministic_ms": -17814.84,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 6736,
+              "completion_tokens": 900,
+              "image_count": null,
+              "provider_latency_ms": 17821.384458919056,
+              "estimated_cost_usd": 0.06068,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "a14fc2e8-c66c-47b6-9c28-0376029effaf",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 7.391,
+          "provider_call_ms": 33777.953166048974,
+          "deterministic_ms": -33770.56,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 7198,
+              "completion_tokens": 1601,
+              "image_count": null,
+              "provider_latency_ms": 33777.953166048974,
+              "estimated_cost_usd": 0.08402,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "4d06f110-9443-48bd-9f9d-ef8ce79554af",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2527.292,
+          "provider_call_ms": 2519.4131250027567,
+          "deterministic_ms": 7.88,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 419,
+              "completion_tokens": 82,
+              "image_count": null,
+              "provider_latency_ms": 2519.4131250027567,
+              "estimated_cost_usd": 0.004555,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "3f1fd8d3-d2e8-4478-bffb-eac1527f4a23",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.101,
+          "provider_call_ms": 8564.43154194858,
+          "deterministic_ms": -8561.33,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1415,
+              "completion_tokens": 687,
+              "image_count": null,
+              "provider_latency_ms": 8564.43154194858,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "bb3af412-d032-4843-a1d8-35eedc350db4",
+          "stage": "product_lock_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 4.067,
+          "provider_call_ms": 14706.104999990202,
+          "deterministic_ms": -14702.04,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.product_lock_profile",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1244,
+              "completion_tokens": 1729,
+              "image_count": null,
+              "provider_latency_ms": 14706.104999990202,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "3f3bdfd7-c694-49d8-b200-f1b4f2e7c90f",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5171.308,
+          "provider_call_ms": 5158.354375045747,
+          "deterministic_ms": 12.95,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 762,
+              "completion_tokens": 271,
+              "image_count": null,
+              "provider_latency_ms": 5158.354375045747,
+              "estimated_cost_usd": 0.01194,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "936a92d5-3ff5-4363-8b7e-e90c37342e1c",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 4.906,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "8350c815-6077-49ad-b57a-1ff92d0eb0aa",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 6.237,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        },
+        {
+          "analysis_run_id": "eb8a190b-0106-4c2f-bc37-5d4ac2a5c315",
+          "stage": "creative_specification",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 21.084,
+          "provider_call_ms": 17298.13024995383,
+          "deterministic_ms": -17277.05,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "prompt_generation",
+              "prompt_id": "generation.creative_specification",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2224,
+              "completion_tokens": 911,
+              "image_count": null,
+              "provider_latency_ms": 17298.13024995383,
+              "estimated_cost_usd": 0.03845,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "6f1ff0f5-d120-42ad-a3fb-7657a024796c",
+          "stage": "generated_image",
+          "status": "succeeded",
+          "error": null,
+          "provider": "nano_banana",
+          "model": "gemini-3.1-flash-image-preview",
+          "duration_ms": 139926.52300000002,
+          "provider_call_ms": 139887.61387497652,
+          "deterministic_ms": 38.91,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-image-1",
+              "capability": "image_generation",
+              "prompt_id": "generation.image_compilation",
+              "prompt_version": "1.0",
+              "prompt_tokens": null,
+              "completion_tokens": null,
+              "image_count": 1,
+              "provider_latency_ms": 139887.61387497652,
+              "estimated_cost_usd": 0.25,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "83e0d80f-b5bd-4813-b386-0edb80e9e137",
+          "stage": "image_validation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 21446.408000000003,
+          "provider_call_ms": 21426.077457959764,
+          "deterministic_ms": 20.33,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "validation.identity",
+              "prompt_version": "1.0",
+              "prompt_tokens": 4271,
+              "completion_tokens": 1061,
+              "image_count": null,
+              "provider_latency_ms": 21426.10991606489,
+              "estimated_cost_usd": 0.053184999999999996,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "853d511a-5c69-4bbc-8a29-eb548fb0d4b4",
+          "stage": "generated_image",
+          "status": "succeeded",
+          "error": null,
+          "provider": "nano_banana",
+          "model": "gemini-3.1-flash-image-preview",
+          "duration_ms": 24137.685,
+          "provider_call_ms": 24119.094250025228,
+          "deterministic_ms": 18.59,
+          "provider_calls": [
+            {
+              "provider": "nano_banana",
+              "model": "gemini-3.1-flash-image-preview",
+              "capability": "image_generation",
+              "prompt_id": "generation.image_compilation",
+              "prompt_version": "1.0",
+              "prompt_tokens": null,
+              "completion_tokens": null,
+              "image_count": 1,
+              "provider_latency_ms": 24119.094250025228,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "2819f7d3-356d-46c2-9de9-fbe49fc5d4ee",
+          "stage": "image_validation",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5969.951,
+          "provider_call_ms": 5952.049916028045,
+          "deterministic_ms": 17.9,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "validation.identity",
+              "prompt_version": "1.0",
+              "prompt_tokens": 3704,
+              "completion_tokens": 314,
+              "image_count": null,
+              "provider_latency_ms": 5952.057583024725,
+              "estimated_cost_usd": 0.02794,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "scene-with-caption",
+          "device_confidence": 0.9,
+          "zones": [
+            {
+              "zone_id": "main-caption",
+              "role": "caption",
+              "bounds": [
+                0.163,
+                0.177,
+                0.849,
+                0.318
+              ]
+            },
+            {
+              "zone_id": "top-left-book",
+              "role": "product",
+              "bounds": [
+                0.186,
+                0.409,
+                0.388,
+                0.694
+              ]
+            },
+            {
+              "zone_id": "top-center-book",
+              "role": "product",
+              "bounds": [
+                0.441,
+                0.389,
+                0.624,
+                0.683
+              ]
+            },
+            {
+              "zone_id": "top-right-book",
+              "role": "product",
+              "bounds": [
+                0.675,
+                0.401,
+                0.872,
+                0.706
+              ]
+            },
+            {
+              "zone_id": "bottom-left-book",
+              "role": "product",
+              "bounds": [
+                0.265,
+                0.727,
+                0.462,
+                0.932
+              ]
+            },
+            {
+              "zone_id": "bottom-right-book",
+              "role": "product",
+              "bounds": [
+                0.563,
+                0.721,
+                0.767,
+                0.938
+              ]
+            },
+            {
+              "zone_id": "pointing-emojis",
+              "role": "caption",
+              "bounds": [
+                0.112,
+                0.935,
+                0.292,
+                0.982
+              ]
+            },
+            {
+              "zone_id": "top-margin",
+              "role": "negative-space",
+              "bounds": [
+                0.0,
+                0.0,
+                1.0,
+                0.17
+              ]
+            },
+            {
+              "zone_id": "caption-product-gap",
+              "role": "negative-space",
+              "bounds": [
+                0.05,
+                0.325,
+                0.95,
+                0.385
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "main-caption",
+              "relation": "above",
+              "object": "top-left-book"
+            },
+            {
+              "subject": "main-caption",
+              "relation": "above",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "main-caption",
+              "relation": "above",
+              "object": "top-right-book"
+            },
+            {
+              "subject": "top-left-book",
+              "relation": "left-of",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "top-right-book",
+              "relation": "right-of",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "bottom-left-book",
+              "relation": "below",
+              "object": "top-left-book"
+            },
+            {
+              "subject": "bottom-right-book",
+              "relation": "below",
+              "object": "top-center-book"
+            },
+            {
+              "subject": "pointing-emojis",
+              "relation": "left-of",
+              "object": "bottom-left-book"
+            },
+            {
+              "subject": "top-margin",
+              "relation": "above",
+              "object": "main-caption"
+            },
+            {
+              "subject": "caption-product-gap",
+              "relation": "above",
+              "object": "top-center-book"
+            }
+          ],
+          "emphasis": [
+            "main-caption",
+            "top-right-book",
+            "top-left-book",
+            "top-center-book",
+            "bottom-right-book",
+            "bottom-left-book",
+            "pointing-emojis",
+            "top-margin",
+            "caption-product-gap"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "platform_caption",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "All 5 books for the price of 1 right now",
+                "text_class": "platform_caption",
+                "confidence": 0.625,
+                "reasons": [
+                  "caption: spoken phrasing",
+                  "caption: sentence-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE INTERNATIONAL BESTSELLER Tiny Changes, Remarkable Results Atomic Habits An Easy & Proven Way to Build Good Habits & ",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "THE INTERNATIONAL BESTSELLER The Psychology of Money TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS MORGAN HOUSEL \"One",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About THE LET THEM THEORY Mel Robbins New York Times Bes",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "DON'T BELIEVE EVERYTHING YOU THINK WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING JOSEPH NGUYEN",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE THE COURAGE TO BE DISLIKED How to free yourself, change your life and achieve r",
+                "text_class": "product_native",
+                "confidence": 1.0,
+                "reasons": [
+                  "OCR reports the text is on a physical object"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "0 block(s) read as designed typography, 1 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": null,
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "3abe3b60-a551-42a2-a7dc-ee3aea9b051e",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "All 5 books for the price of 1 right now",
+              "text_class": "platform_caption",
+              "owner": "caption",
+              "handling_policy": "optional_overlay",
+              "source": "project_default",
+              "confidence": 0.625,
+              "reason": "caption: spoken phrasing; caption: sentence-length copy",
+              "evidence": [
+                "caption: spoken phrasing",
+                "caption: sentence-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.161,
+                0.136,
+                0.843,
+                0.245
+              ],
+              "composition_zone_id": "main-caption",
+              "composition_zone_role": "caption",
+              "associated_zone_ids": [
+                "top-center-book",
+                "top-left-book",
+                "top-margin",
+                "top-right-book"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "THE INTERNATIONAL BESTSELLER Tiny Changes, Remarkable Results Atomic Habits An Easy & Proven Way to Build Good Habits & Break Bad Ones OVER 15 MILLION COPIES SOLD James Clear",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.185,
+                0.31,
+                0.386,
+                0.525
+              ],
+              "composition_zone_id": "top-left-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-left-book",
+                "main-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "THE INTERNATIONAL BESTSELLER The Psychology of Money TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS MORGAN HOUSEL \"One of the best and most original finance books in years.\" -JASON ZWEIG Wall Street Journal hh",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.436,
+                0.296,
+                0.63,
+                0.512
+              ],
+              "composition_zone_id": "top-center-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "bottom-right-book",
+                "caption-product-gap",
+                "main-caption",
+                "top-left-book",
+                "top-right-book"
+              ]
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About THE LET THEM THEORY Mel Robbins New York Times Bestselling Author",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.669,
+                0.306,
+                0.878,
+                0.526
+              ],
+              "composition_zone_id": "top-right-book",
+              "composition_zone_role": "product",
+              "associated_zone_ids": [
+                "main-caption",
+                "top-center-book"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "DON'T BELIEVE EVERYTHING YOU THINK WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING JOSEPH NGUYEN",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.263,
+                0.542,
+                0.462,
+                0.777
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-5",
+              "source_ocr_block_id": "ocr-5",
+              "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE THE COURAGE TO BE DISLIKED How to free yourself, change your life and achieve real happiness ICHIRO KISHIMI and FUMITAKE KOGA",
+              "text_class": "product_native",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "OCR reports the text is on a physical object",
+              "evidence": [
+                "OCR reports the text is on a physical object"
+              ],
+              "image_strategy": "product_lock",
+              "bounds": [
+                0.557,
+                0.542,
+                0.758,
+                0.767
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "All 5 books for the price of 1 right now THE INTERNATIONAL BESTSELLER Tiny Changes, Remarkable Results Atomic Habits An Easy & Proven Way to Build Good Habits & Break Bad Ones OVER 15 MILLION COPIES SOLD James Clear THE INTERNATIONAL BESTSELLER The Psychology of Money TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS MORGAN HOUSEL \"One of the best and most original finance books in years.\" -JASON ZWEIG Wall Street Journal hh A Life-Changing Tool That Millions of People Can't Stop Talking About THE LET THEM THEORY Mel Robbins New York Times Bestselling Author DON'T BELIEVE EVERYTHING YOU THINK WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING JOSEPH NGUYEN OVER THREE MILLION COPIES SOLD WORLDWIDE THE COURAGE TO BE DISLIKED How to free yourself, change your life and achieve real happiness ICHIRO KISHIMI and FUMITAKE KOGA",
+          "blocks": [
+            {
+              "text": "All 5 books for the price of 1 right now",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.161,
+                "y_min": 0.136,
+                "x_max": 0.843,
+                "y_max": 0.245
+              }
+            },
+            {
+              "text": "THE INTERNATIONAL BESTSELLER Tiny Changes, Remarkable Results Atomic Habits An Easy & Proven Way to Build Good Habits & Break Bad Ones OVER 15 MILLION COPIES SOLD James Clear",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.185,
+                "y_min": 0.31,
+                "x_max": 0.386,
+                "y_max": 0.525
+              }
+            },
+            {
+              "text": "THE INTERNATIONAL BESTSELLER The Psychology of Money TIMELESS LESSONS ON WEALTH, GREED, AND HAPPINESS MORGAN HOUSEL \"One of the best and most original finance books in years.\" -JASON ZWEIG Wall Street Journal hh",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.436,
+                "y_min": 0.296,
+                "x_max": 0.63,
+                "y_max": 0.512
+              }
+            },
+            {
+              "text": "A Life-Changing Tool That Millions of People Can't Stop Talking About THE LET THEM THEORY Mel Robbins New York Times Bestselling Author",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.669,
+                "y_min": 0.306,
+                "x_max": 0.878,
+                "y_max": 0.526
+              }
+            },
+            {
+              "text": "DON'T BELIEVE EVERYTHING YOU THINK WHY YOUR THINKING IS THE BEGINNING & END OF SUFFERING JOSEPH NGUYEN",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.263,
+                "y_min": 0.542,
+                "x_max": 0.462,
+                "y_max": 0.777
+              }
+            },
+            {
+              "text": "OVER THREE MILLION COPIES SOLD WORLDWIDE THE COURAGE TO BE DISLIKED How to free yourself, change your life and achieve real happiness ICHIRO KISHIMI and FUMITAKE KOGA",
+              "role": "other",
+              "surface": "physical",
+              "bounding_box": {
+                "x_min": 0.557,
+                "y_min": 0.542,
+                "x_max": 0.758,
+                "y_max": 0.767
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "User-generated content (UGC) style, casual and authentic photography",
+          "marketing_objective": "Drive immediate sales through a highly compelling bundle offer",
+          "emotional_appeal": [
+            "Value/Savings",
+            "Self-improvement",
+            "Urgency"
+          ],
+          "target_audience": "Readers interested in self-help, personal development, psychology, and finance; bargain hunters",
+          "color_palette": [
+            "White",
+            "Black",
+            "Grey",
+            "Green (book cover)",
+            "Red (book cover accents)"
+          ],
+          "typography_style": "Bold, sans-serif text overlay for the main offer, typical of social media stories/posts; varied typography on the book covers themselves.",
+          "layout_and_composition": "Top-down flat lay shot. A prominent text overlay sits at the top. Five books are arranged below in a roughly staggered 3-2 grid on a tiled surface. Pointing emojis are placed at the bottom left.",
+          "background_environment": "A bright, slightly glossy, white marble-patterned tiled floor or surface with visible grout lines.",
+          "lighting_style": "Overhead, somewhat harsh indoor lighting, creating distinct shadows and reflections on the glossy book covers and the tiled floor.",
+          "graphic_style": "Native social media text overlay with rounded white background; use of standard emojis (\ud83d\udc47\ud83d\udc47\ud83d\udc47).",
+          "product_prominence": "High. The books take up the majority of the central frame and are clearly the focus.",
+          "marketing_angle": "Unbeatable value proposition: a massive discount on highly popular, recognizable bestsellers.",
+          "visual_hierarchy": "1. The top text overlay ('All 5 books for the price of 1 right now') 2. The five book covers (especially 'Atomic Habits' and 'The Psychology of Money') 3. The pointing down emojis at the bottom.",
+          "trust_elements": [
+            "Recognizable bestselling titles ('Atomic Habits', 'The Psychology of Money')",
+            "Claims printed on books (e.g., 'OVER 15 MILLION COPIES SOLD', 'THE INTERNATIONAL BESTSELLER')",
+            "Author names known for credibility in their fields"
+          ],
+          "promotional_devices": [
+            "Extreme discount offer ('All 5 books for the price of 1')",
+            "Time scarcity/urgency ('right now')",
+            "Call to action/directional cue (pointing down emojis indicating where to click or look)"
+          ],
+          "object_placement": "The five books are laid flat on the surface, arranged in two rows (three on top, two on bottom). The text overlay is at the top center, and emojis are at the bottom left.",
+          "emotional_trigger": "Excitement over an unbelievably good deal combined with the fear of missing out on a fleeting opportunity to acquire high-value knowledge cheaply.",
+          "extensions": "The aesthetic is deliberately unpolished to look like a genuine post from a user or influencer rather than a slick brand advertisement, which can increase trust and engagement on social platforms."
+        }
+      },
+      "finished_at": 1785081519.220094
+    }
+  ],
+  "stages": [
+    "ocr",
+    "product_isolation",
+    "product_lock_profile",
+    "creative_fingerprint",
+    "scene_intelligence",
+    "composition_contract",
+    "creative_profile",
+    "text_ownership",
+    "marketing_analysis",
+    "narrative_structure",
+    "creative_specification"
+  ]
+}

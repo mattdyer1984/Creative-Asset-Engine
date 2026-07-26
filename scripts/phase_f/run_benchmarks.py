@@ -274,6 +274,9 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None,
         record["pipeline_error"] = result.error
 
         if generate and result.succeeded and record.get("product_id"):
+            record["canonical_references"] = _load_canonical_references(
+                db, record["product_id"], case
+            )
             record["reference_library"] = _build_reference_library(db, record["product_id"])
             db.refresh(slideshow)
             slide = db.get(Slide, slide.id)
@@ -291,6 +294,48 @@ def run_case(case: pathlib.Path, data_dir: pathlib.Path, stages=None,
 
     record["finished_at"] = time.time()
     return record
+
+
+def _load_canonical_references(db, product_id: str, case: pathlib.Path) -> dict:
+    """
+    Load the case's Canonical Product References through the PRODUCTION
+    upload path - the same one POST /api/products/{id}/reference-images uses.
+
+    Only assets marked `edition_match` are supplied. An `edition_mismatch` is
+    a different cover, and a different cover is a different visual identity;
+    conditioning generation on one would silently substitute the wrong
+    product while appearing to succeed. Excluding them is a decision about
+    what the BENCHMARK supplies, not a change to how production behaves -
+    production takes whatever references it is given.
+    """
+    import yaml
+
+    from app.models.product_reference_image import ProductReferenceImage
+    from app.storage import save_product_reference_image
+
+    manifest_path = case / "references" / "MANIFEST.yaml"
+    if not manifest_path.exists():
+        return {"supplied": 0, "excluded": [], "note": "no references directory"}
+
+    manifest = yaml.safe_load(manifest_path.read_text()) or {}
+    supplied, excluded = [], []
+    for asset in manifest.get("assets") or []:
+        if asset.get("edition_match") != "edition_match":
+            excluded.append({"file": asset["file"],
+                             "reason": asset.get("edition_match"),
+                             "notes": asset.get("notes")})
+            continue
+        content = (case / "references" / asset["file"]).read_bytes()
+        image = ProductReferenceImage(
+            product_id=product_id, analysis_run_id=None,
+            isolation_method="user_upload", file_path="",
+        )
+        db.add(image)
+        db.flush()
+        image.file_path = str(save_product_reference_image(product_id, image.id, content))
+        supplied.append({"file": asset["file"], "reference_image_id": image.id})
+    db.commit()
+    return {"supplied": len(supplied), "assets": supplied, "excluded": excluded}
 
 
 def _build_reference_library(db, product_id: str) -> dict:
