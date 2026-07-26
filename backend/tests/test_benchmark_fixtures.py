@@ -210,3 +210,25 @@ def test_production_value_matches_the_recorded_finding():
     strategies = [_load(case)["production_value_strategy"] for case in CASES]
     assert strategies.count("elevate") == 2
     assert strategies.count("refine") == 6
+
+
+# --- suite governance (O5) ------------------------------------------------
+
+
+def test_the_suite_declares_a_version():
+    """
+    A score without a suite version is not comparable to anything
+    (docs/BENCHMARK_GOVERNANCE.md §5).
+    """
+    version = (BENCHMARKS / "VERSION").read_text().strip()
+    assert version.isdigit(), "VERSION holds a single integer"
+    assert int(version) >= 1
+
+
+def test_the_changelog_covers_the_current_version():
+    """A version bump without a changelog entry loses the evidence trail."""
+    version = (BENCHMARKS / "VERSION").read_text().strip()
+    changelog = (BENCHMARKS / "CHANGELOG.md").read_text()
+    assert f"## v{version}" in changelog, (
+        f"suite v{version} has no CHANGELOG entry - see docs/BENCHMARK_GOVERNANCE.md"
+    )
