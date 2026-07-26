@@ -1,5 +1,10 @@
 """
-Style-aware typographic rendering (ADR 0001 WP-1.4, capability level L1).
+Editorial rendering (ADR 0001 WP-1.4/1.5B, capability level L1).
+
+Renamed from "typographic renderer": it draws markers, rules, dividers and
+containers as well as type, which is reconstructing a graphic design rather
+than setting text. Typography is one element of that, not the whole job.
+
 
 **This is the programme gate.** If flat structured typography cannot reach
 benchmark quality on case 4, Phase 1's premise is wrong.

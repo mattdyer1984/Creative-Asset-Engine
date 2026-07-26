@@ -19,7 +19,7 @@ from app.services.typography import (
     resolve_colour,
     resolve_face,
 )
-from app.services.typographic_renderer import TextBlock, render_typography
+from app.services.editorial_renderer import TextBlock, render_typography
 
 
 def test_every_family_class_resolves_on_this_machine():
@@ -129,7 +129,7 @@ def test_a_marker_in_the_ocr_text_is_not_doubled():
     the recognised text. Adding the style's marker on top rendered "• •",
     which the WP-1.5A end-to-end run showed plainly.
     """
-    from app.services.typographic_renderer import _strip_leading_marker
+    from app.services.editorial_renderer import _strip_leading_marker
 
     style = TextStyle(bullet="•")
     assert _strip_leading_marker("• You struggle to straighten up", style) == (

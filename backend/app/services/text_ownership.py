@@ -41,11 +41,36 @@ from app.services.text_classification import (
 
 
 class Owner(StrEnum):
-    IMAGE_GENERATION = "image_generation"
+    """
+    WHO is responsible for this text appearing.
+
+    Four owners, deliberately. An earlier version had `image_generation` and
+    `product_lock` as separate owners, which was a category error: both mean
+    "the image carries this text". Keeping them apart would have forced a new
+    owner for every future production method - reference_image, inpainting,
+    product_reference - when they are all one ownership domain answering to
+    one question. HOW the image comes to carry it is `ImageStrategy`.
+    """
+
+    IMAGE = "image"
+    TYPOGRAPHY = "typography"
+    CAPTION = "caption"
+    REVIEW = "review"
+
+
+class ImageStrategy(StrEnum):
+    """
+    HOW the image owner will produce the text. Only meaningful for Owner.IMAGE.
+
+    Separating this from ownership is what keeps the owner vocabulary stable
+    while production methods multiply.
+    """
+
+    REFERENCE_CONDITIONED = "reference_conditioned"
     PRODUCT_LOCK = "product_lock"
-    DETERMINISTIC_TYPOGRAPHY = "deterministic_typography"
-    CAPTION_RENDERER = "caption_renderer"
-    HUMAN_REVIEW = "human_review"
+    GENERATED = "generated"
+    INPAINTED = "inpainted"
+    HYBRID = "hybrid"
 
 
 class HandlingPolicy(StrEnum):
@@ -62,18 +87,15 @@ class DecisionSource(StrEnum):
     USER_DECISION = "user_decision"
 
 
-#: Owners that place text into the base image during generation. A block owned
-#: by one of these must NOT also be drawn by a renderer afterwards.
-IMAGE_OWNED = frozenset({Owner.IMAGE_GENERATION, Owner.PRODUCT_LOCK})
+#: Owners that draw text after generation, deterministically. A block owned
+#: by one of these must NOT also be produced by the image.
+RENDERER_OWNED = frozenset({Owner.TYPOGRAPHY, Owner.CAPTION})
 
-#: Owners that draw text after generation, deterministically.
-RENDERER_OWNED = frozenset({Owner.DETERMINISTIC_TYPOGRAPHY, Owner.CAPTION_RENDERER})
-
-_OWNER_FOR_CLASS = {
-    TextClass.DESIGNED_TYPOGRAPHY: Owner.DETERMINISTIC_TYPOGRAPHY,
-    TextClass.PLATFORM_CAPTION: Owner.CAPTION_RENDERER,
-    TextClass.PRODUCT_NATIVE: Owner.PRODUCT_LOCK,
-    TextClass.ENVIRONMENTAL: Owner.IMAGE_GENERATION,
+_ROUTING: dict[TextClass, tuple[Owner, "ImageStrategy | None"]] = {
+    TextClass.DESIGNED_TYPOGRAPHY: (Owner.TYPOGRAPHY, None),
+    TextClass.PLATFORM_CAPTION: (Owner.CAPTION, None),
+    TextClass.PRODUCT_NATIVE: (Owner.IMAGE, ImageStrategy.PRODUCT_LOCK),
+    TextClass.ENVIRONMENTAL: (Owner.IMAGE, ImageStrategy.GENERATED),
 }
 
 
@@ -90,12 +112,14 @@ class TextOwnership(BaseModel):
     source: DecisionSource
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str
+    #: How the image will produce it. Only set when owner is IMAGE.
+    image_strategy: ImageStrategy | None = None
     #: Normalised [x_min, y_min, x_max, y_max], when OCR gave us one.
     bounds: tuple[float, float, float, float] | None = None
 
     @property
     def is_image_owned(self) -> bool:
-        return self.owner in IMAGE_OWNED
+        return self.owner is Owner.IMAGE
 
     @property
     def is_renderer_owned(self) -> bool:
@@ -120,7 +144,7 @@ class OwnershipPlan(BaseModel):
 
     @property
     def needs_review(self) -> list[TextOwnership]:
-        return [d for d in self.decisions if d.owner is Owner.HUMAN_REVIEW]
+        return [d for d in self.decisions if d.owner is Owner.REVIEW]
 
     def texts_the_model_must_not_render(self) -> list[str]:
         """
@@ -196,7 +220,7 @@ def decide_ownership(
             decisions.append(
                 TextOwnership(
                     block_id=f"block-{index}", text=text, text_class=text_class,
-                    owner=Owner.HUMAN_REVIEW,
+                    owner=Owner.REVIEW,
                     handling_policy=HandlingPolicy.REVIEW_REQUIRED,
                     source=DecisionSource.PROJECT_DEFAULT,
                     confidence=classification.confidence,
@@ -209,14 +233,14 @@ def decide_ownership(
             )
             continue
 
-        owner = _OWNER_FOR_CLASS[text_class]
+        owner, image_strategy = _ROUTING[text_class]
 
         if text_class is TextClass.PLATFORM_CAPTION:
             policy = HandlingPolicy.OPTIONAL_OVERLAY
             if overlay_policy is OverlayPolicy.REPLACE:
                 policy = HandlingPolicy.USER_REPLACEMENT
             elif overlay_policy is OverlayPolicy.REVIEW_INDIVIDUALLY:
-                owner, policy = Owner.HUMAN_REVIEW, HandlingPolicy.REVIEW_REQUIRED
+                owner, policy = Owner.REVIEW, HandlingPolicy.REVIEW_REQUIRED
         elif text_class is TextClass.DESIGNED_TYPOGRAPHY:
             policy = HandlingPolicy.PRESERVE_VERBATIM
         else:
@@ -236,7 +260,7 @@ def decide_ownership(
         decisions.append(
             TextOwnership(
                 block_id=f"block-{index}", text=text, text_class=text_class, owner=owner,
-                handling_policy=policy, source=source,
+                image_strategy=image_strategy, handling_policy=policy, source=source,
                 confidence=classification.confidence,
                 reason=(
                     "; ".join(classification.reasons[:3])

@@ -240,6 +240,14 @@ Influences generation without dictating layout.
 
 ## 9. Composition Contract
 
+> **Required to complete ownership correctly — not merely the next stage.**
+> WP-1.5A proved this: the exact-owner gaps were never OCR problems, they were
+> spatial-relationship problems. You cannot determine *this text belongs to
+> this product* without understanding attachment, and WP-1.5B then found the
+> same limit from the other side - graphic residue sits outside every OCR box,
+> so the zone an owner needs cleaned is not the zone the text occupied.
+
+
 The intermediate abstraction between "preserve pixels" (too rigid) and
 "preserve the device" (too loose).
 
@@ -533,8 +541,8 @@ guesses.
 - **Rollback** Revert; previous renderer intact behind the flag.
 - **Complexity** M. **Dependencies** WP-1.1, WP-1.4.
 
-#### WP-1.5B Text-zone reservation and fallback hierarchy
-- **Purpose** Clean zones for deterministic typography.
+#### WP-1.5B Graphic Ownership Enforcement
+- **Purpose** **Every rendering owner receives clean, uncontested space before it renders.** Clean zones, occupancy detection, removal residue, retries, layout adaptation and the fallback ladder are all manifestations of that single requirement - "zone reservation" named only one of them.
 - **Data model** None (proper zones arrive in WP-2.2; interim uses OCR boxes).
 - **Pipeline** Compiler emits explicit empty-zone geometry; fallback order per §11.
 - **UI** Zone overlay on the candidate; review flag at fallback level 5.

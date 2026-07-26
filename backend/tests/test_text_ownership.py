@@ -26,12 +26,12 @@ MODE = {
     "designed_typography": TextMode.DESIGNED_TYPOGRAPHY,
     "platform_caption": TextMode.PLATFORM_CAPTION,
 }
-IMAGE_OWNED = {Owner.PRODUCT_LOCK, Owner.IMAGE_GENERATION}
+IMAGE_OWNED = {Owner.IMAGE}
 EXPECTED_OWNER = {
-    "deterministic_typography": Owner.DETERMINISTIC_TYPOGRAPHY,
-    "deterministic_overlay": Owner.CAPTION_RENDERER,
-    "product_lock": Owner.PRODUCT_LOCK,
-    "model_generated": Owner.IMAGE_GENERATION,
+    "deterministic_typography": Owner.TYPOGRAPHY,
+    "deterministic_overlay": Owner.CAPTION,
+    "product_lock": Owner.IMAGE,
+    "model_generated": Owner.IMAGE,
 }
 
 
@@ -78,14 +78,14 @@ def test_no_block_is_owned_twice(case):
 def test_designed_typography_never_reaches_the_caption_renderer():
     """The regression that produced generic white-stroke headlines."""
     _, plan = _plan_for("case04_posture")
-    assert all(d.owner is Owner.DETERMINISTIC_TYPOGRAPHY for d in plan.decisions)
-    assert not any(d.owner is Owner.CAPTION_RENDERER for d in plan.decisions)
+    assert all(d.owner is Owner.TYPOGRAPHY for d in plan.decisions)
+    assert not any(d.owner is Owner.CAPTION for d in plan.decisions)
 
 
 def test_product_native_text_is_never_stripped_or_re_typeset():
     """ADR §6: reconstructing branded packaging would fabricate it."""
     _, plan = _plan_for("case02_books")
-    covers = [d for d in plan.decisions if d.owner is Owner.PRODUCT_LOCK]
+    covers = [d for d in plan.decisions if d.owner is Owner.IMAGE]
     assert len(covers) == 5
     assert all(d.handling_policy is HandlingPolicy.PRESERVE_VISUAL_ROLE for d in covers)
     assert all(not d.is_renderer_owned for d in covers)
@@ -120,7 +120,7 @@ def test_overlay_policy_only_ever_touches_captions():
         overlay_policy=OverlayPolicy.REVIEW_INDIVIDUALLY,
         project_text_mode=TextMode.DESIGNED_TYPOGRAPHY,
     )
-    assert all(d.owner is Owner.DETERMINISTIC_TYPOGRAPHY for d in review.decisions)
+    assert all(d.owner is Owner.TYPOGRAPHY for d in review.decisions)
 
 
 def test_review_individually_routes_captions_to_a_human():
@@ -129,7 +129,7 @@ def test_review_individually_routes_captions_to_a_human():
         overlay_policy=OverlayPolicy.REVIEW_INDIVIDUALLY,
         project_text_mode=TextMode.PLATFORM_CAPTION,
     )
-    assert plan.decisions[0].owner is Owner.HUMAN_REVIEW
+    assert plan.decisions[0].owner is Owner.REVIEW
 
 
 def test_unsignalled_blocks_take_the_project_default_not_review():
@@ -142,7 +142,7 @@ def test_unsignalled_blocks_take_the_project_default_not_review():
         [{"text": "Shoulders keep falling forward", "surface": "overlay"}],
         project_text_mode=TextMode.DESIGNED_TYPOGRAPHY,
     )
-    assert plan.decisions[0].owner is Owner.DETERMINISTIC_TYPOGRAPHY
+    assert plan.decisions[0].owner is Owner.TYPOGRAPHY
     assert not plan.needs_review
 
 
@@ -152,7 +152,7 @@ def test_duplicate_ownership_is_detected():
     )
     duplicated = plan.model_copy(deep=True)
     duplicated.decisions.append(
-        plan.decisions[0].model_copy(update={"owner": Owner.DETERMINISTIC_TYPOGRAPHY})
+        plan.decisions[0].model_copy(update={"owner": Owner.TYPOGRAPHY})
     )
     with pytest.raises(DuplicateOwnership):
         assert_single_ownership(duplicated)

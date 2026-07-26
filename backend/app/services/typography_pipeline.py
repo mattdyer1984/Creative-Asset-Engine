@@ -23,7 +23,7 @@ from app.services.render_manifest import (
     start_manifest,
 )
 from app.services.text_ownership import Owner, OwnershipPlan
-from app.services.typographic_renderer import TextBlock, render_typography
+from app.services.editorial_renderer import TextBlock, render_typography
 from app.services.typography import (
     CapabilityLevel,
     FamilyClass,
@@ -103,6 +103,7 @@ def apply_typography(
     role_for_block: dict[str, str] | None = None,
     profile_id: str | None = None,
     effective_policies: dict[str, str] | None = None,
+    enforce_clean_zones: bool = True,
 ) -> tuple[bytes, RenderManifest]:
     """
     Draw every deterministic-typography block, and account for every other.
@@ -121,9 +122,9 @@ def apply_typography(
     roles = role_for_block or {}
 
     for decision in plan.decisions:
-        if decision.owner is Owner.CAPTION_RENDERER:
+        if decision.owner is Owner.CAPTION:
             manifest.caption_blocks.append(decision.block_id)
-        elif decision.owner is Owner.HUMAN_REVIEW:
+        elif decision.owner is Owner.REVIEW:
             manifest.skipped_blocks.append(
                 SkippedBlock(
                     block_id=decision.block_id, text=decision.text, owner=str(decision.owner),
@@ -132,7 +133,7 @@ def apply_typography(
             )
 
     typography_blocks = [
-        d for d in plan.decisions if d.owner is Owner.DETERMINISTIC_TYPOGRAPHY
+        d for d in plan.decisions if d.owner is Owner.TYPOGRAPHY
     ]
     if not typography_blocks:
         return image_bytes, manifest
@@ -153,6 +154,22 @@ def apply_typography(
 
     renderer_system = to_renderer_system(system)
     from io import BytesIO
+
+    # WP-1.5B: every owner gets clean, uncontested space before it renders.
+    if enforce_clean_zones:
+        from app.services.graphic_ownership import enforce
+
+        zones = [(d.block_id, d.bounds) for d in typography_blocks if d.bounds]
+        if zones:
+            image_bytes, enforcement = enforce(image_bytes, zones)
+            manifest.zone_occupancy = enforcement.occupancy
+            manifest.ownership_attempts = enforcement.attempts
+            manifest.cleanup_actions = enforcement.cleanup_actions
+            for block_id in enforcement.unresolved:
+                manifest.warnings.append(
+                    f"{block_id}: no ladder rung produced clean space - rendered anyway, "
+                    "review the result"
+                )
 
     image = Image.open(BytesIO(image_bytes))
     to_draw: list[TextBlock] = []
