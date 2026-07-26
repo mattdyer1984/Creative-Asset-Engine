@@ -1,0 +1,2853 @@
+{
+  "run_id": "aae32009-830b-4556-b5f4-353c23bfb470",
+  "data_dir": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/o2/data",
+  "cases": [
+    {
+      "case": "case04_posture",
+      "started_at": 1785072969.274349,
+      "slideshow_id": "8ce7823c-4f08-4f76-ba43-1068445d4b90",
+      "slide_id": "f2e53262-43e2-486b-ade6-5e94f4670dff",
+      "stages_requested": [
+        "ocr",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure"
+      ],
+      "end_to_end_ms": 45635.13,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "stages": [
+        {
+          "analysis_run_id": "8d7a4317-75f7-429c-84d3-41434331cbb6",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 1.871,
+          "provider_call_ms": 10167.541582952254,
+          "deterministic_ms": -10165.67,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 552,
+              "image_count": null,
+              "provider_latency_ms": 10167.541582952254,
+              "estimated_cost_usd": 0.006021,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "7a46d562-508d-490e-aece-a1315c545604",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 7.823999999999999,
+          "provider_call_ms": 14878.61254089512,
+          "deterministic_ms": -14870.79,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2180,
+              "completion_tokens": 748,
+              "image_count": null,
+              "provider_latency_ms": 14878.61254089512,
+              "estimated_cost_usd": 0.03334,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "47131ca9-0c1f-41fe-bad3-70b1fa0150a4",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 8.597000000000001,
+          "provider_call_ms": 18235.49829190597,
+          "deterministic_ms": -18226.9,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2642,
+              "completion_tokens": 1004,
+              "image_count": null,
+              "provider_latency_ms": 18235.49829190597,
+              "estimated_cost_usd": 0.043329999999999994,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "c4259554-ede3-4bc5-8fad-fcfc7ec82f2f",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2045.013,
+          "provider_call_ms": 2037.0034580118954,
+          "deterministic_ms": 8.01,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 247,
+              "completion_tokens": 62,
+              "image_count": null,
+              "provider_latency_ms": 2037.0034580118954,
+              "estimated_cost_usd": 0.0030949999999999997,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "8e077db0-bf01-4432-aa17-42bcd8c3b005",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 5.94,
+          "provider_call_ms": 12103.528041974641,
+          "deterministic_ms": -12097.59,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1235,
+              "completion_tokens": 464,
+              "image_count": null,
+              "provider_latency_ms": 12103.528041974641,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "74bf6f33-05f6-45f0-95ca-2ac1bddd5ad1",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 8227.107,
+          "provider_call_ms": 8218.985082930885,
+          "deterministic_ms": 8.12,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 620,
+              "completion_tokens": 334,
+              "image_count": null,
+              "provider_latency_ms": 8218.985082930885,
+              "estimated_cost_usd": 0.01312,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "819806b1-b548-4e69-b023-21caea29a838",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 15194.563,
+          "provider_call_ms": 15185.596374911256,
+          "deterministic_ms": 8.97,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.typography_system",
+              "prompt_version": "2.0",
+              "prompt_tokens": 2605,
+              "completion_tokens": 916,
+              "image_count": null,
+              "provider_latency_ms": 15185.596374911256,
+              "estimated_cost_usd": 0.040505,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "c706e616-8924-4864-a119-534493d220a7",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 9.125,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "scene-with-caption",
+          "device_confidence": 0.84,
+          "zones": [
+            {
+              "zone_id": "top-negative-space",
+              "role": "negative-space",
+              "bounds": [
+                0.0,
+                0.0,
+                0.98,
+                0.25
+              ]
+            },
+            {
+              "zone_id": "step-number",
+              "role": "text",
+              "bounds": [
+                0.08,
+                0.12,
+                0.18,
+                0.22
+              ]
+            },
+            {
+              "zone_id": "underline-rule",
+              "role": "graphic",
+              "bounds": [
+                0.08,
+                0.235,
+                0.2,
+                0.24
+              ]
+            },
+            {
+              "zone_id": "headline",
+              "role": "text",
+              "bounds": [
+                0.08,
+                0.255,
+                0.62,
+                0.38
+              ]
+            },
+            {
+              "zone_id": "bullet-list",
+              "role": "text",
+              "bounds": [
+                0.08,
+                0.42,
+                0.36,
+                0.58
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "step-number",
+              "relation": "above",
+              "object": "underline-rule"
+            },
+            {
+              "subject": "underline-rule",
+              "relation": "above",
+              "object": "headline"
+            },
+            {
+              "subject": "headline",
+              "relation": "above",
+              "object": "bullet-list"
+            },
+            {
+              "subject": "top-negative-space",
+              "relation": "above",
+              "object": "headline"
+            }
+          ],
+          "emphasis": [
+            "headline",
+            "bullet-list",
+            "step-number",
+            "underline-rule",
+            "top-negative-space"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "designed_typography",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "1.",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: standalone list numeral",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "Your upper back",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "feels rounded",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\u2022 You struggle to straighten up",
+                "text_class": "designed_typography",
+                "confidence": 0.0,
+                "reasons": [
+                  "no distinguishing signals - preserving by default"
+                ],
+                "needs_review": true
+              },
+              {
+                "text": "\u2022 Shoulders keep falling forward",
+                "text_class": "designed_typography",
+                "confidence": 0.0,
+                "reasons": [
+                  "no distinguishing signals - preserving by default"
+                ],
+                "needs_review": true
+              }
+            ],
+            "project_mode_reasons": [
+              "5 block(s) read as designed typography, 0 as platform caption",
+              "illustrated source agrees with designed typography",
+              "source style editorial_illustration (illustrated), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": {
+          "schema_version": "1.0",
+          "primary_family_class": "serif",
+          "secondary_family_class": null,
+          "capability_level": "L1",
+          "base_size_ratio": 0.045,
+          "colour_roles": {
+            "body": "near-black",
+            "accent": "dark-red"
+          },
+          "text_roles": {
+            "numeral": {
+              "family_class": "serif",
+              "weight": "regular",
+              "italic": false,
+              "case": "as-written",
+              "colour_role": "accent",
+              "alignment": "left",
+              "size_ratio": 3.6,
+              "tracking": 0.0,
+              "line_height": 0.9
+            },
+            "headline": {
+              "family_class": "serif",
+              "weight": "regular",
+              "italic": false,
+              "case": "as-written",
+              "colour_role": "body",
+              "alignment": "left",
+              "size_ratio": 2.25,
+              "tracking": -0.02,
+              "line_height": 1.05
+            },
+            "italic_headline_emphasis": {
+              "family_class": "serif",
+              "weight": "regular",
+              "italic": true,
+              "case": "as-written",
+              "colour_role": "accent",
+              "alignment": "left",
+              "size_ratio": 2.1,
+              "tracking": -0.03,
+              "line_height": 1.0
+            },
+            "body_bullet_text": {
+              "family_class": "serif",
+              "weight": "regular",
+              "italic": false,
+              "case": "as-written",
+              "colour_role": "body",
+              "alignment": "left",
+              "size_ratio": 1.0,
+              "tracking": -0.01,
+              "line_height": 1.25
+            },
+            "bullet_marker": {
+              "family_class": "serif",
+              "weight": "bold",
+              "italic": false,
+              "case": "as-written",
+              "colour_role": "accent",
+              "alignment": "left",
+              "size_ratio": 0.8,
+              "tracking": 0.0,
+              "line_height": 1.0
+            }
+          },
+          "marker_roles": {},
+          "rule_roles": {},
+          "divider_roles": {},
+          "italic_roles": {},
+          "stroke_roles": {},
+          "shadow_roles": {},
+          "container_roles": {},
+          "size_scale": {
+            "body": 1.0,
+            "headline_to_body": 2.25,
+            "italic_headline_to_body": 2.1,
+            "numeral_to_body": 3.6,
+            "bullet_marker_to_body": 0.8,
+            "divider_thickness_to_body": 0.055
+          },
+          "case_rules": [],
+          "weight_hierarchy": []
+        },
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "580f70b8-0968-4ad0-8a4b-5d7d80ea96f7",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "1.",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: standalone list numeral; editorial: label-length copy",
+              "evidence": [
+                "editorial: standalone list numeral",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.082,
+                0.125,
+                0.176,
+                0.218
+              ],
+              "composition_zone_id": "step-number",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "underline-rule"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "Your upper back",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.08,
+                0.254,
+                0.592,
+                0.306
+              ],
+              "composition_zone_id": "headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "bullet-list",
+                "top-negative-space",
+                "underline-rule"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "feels rounded",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.068,
+                0.316,
+                0.528,
+                0.38
+              ],
+              "composition_zone_id": "headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "bullet-list",
+                "top-negative-space",
+                "underline-rule"
+              ]
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "\u2022 You struggle to straighten up",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "project_default",
+              "confidence": 0.0,
+              "reason": "no distinguishing signals - preserving by default",
+              "evidence": [
+                "no distinguishing signals - preserving by default"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.083,
+                0.421,
+                0.318,
+                0.481
+              ],
+              "composition_zone_id": "bullet-list",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "headline"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "\u2022 Shoulders keep falling forward",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "project_default",
+              "confidence": 0.0,
+              "reason": "no distinguishing signals - preserving by default",
+              "evidence": [
+                "no distinguishing signals - preserving by default"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.083,
+                0.522,
+                0.322,
+                0.582
+              ],
+              "composition_zone_id": "bullet-list",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "headline"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "1. Your upper back feels rounded \u2022 You struggle to straighten up \u2022 Shoulders keep falling forward",
+          "blocks": [
+            {
+              "text": "1.",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.082,
+                "y_min": 0.125,
+                "x_max": 0.176,
+                "y_max": 0.218
+              }
+            },
+            {
+              "text": "Your upper back",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.08,
+                "y_min": 0.254,
+                "x_max": 0.592,
+                "y_max": 0.306
+              }
+            },
+            {
+              "text": "feels rounded",
+              "role": "subheadline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.068,
+                "y_min": 0.316,
+                "x_max": 0.528,
+                "y_max": 0.38
+              }
+            },
+            {
+              "text": "\u2022 You struggle to straighten up",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.083,
+                "y_min": 0.421,
+                "x_max": 0.318,
+                "y_max": 0.481
+              }
+            },
+            {
+              "text": "\u2022 Shoulders keep falling forward",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.083,
+                "y_min": 0.522,
+                "x_max": 0.322,
+                "y_max": 0.582
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Informational Illustration",
+          "marketing_objective": "Problem Identification and Awareness",
+          "emotional_appeal": [
+            "Concern",
+            "Relatability",
+            "Pain avoidance"
+          ],
+          "target_audience": "Office workers, gamers, students, and anyone experiencing poor posture or back pain.",
+          "color_palette": [
+            "Cream",
+            "Black",
+            "Red",
+            "Brown (wood tones)",
+            "Dark Grey"
+          ],
+          "typography_style": "Clean, serif for the main heading with italicized emphasis, and a readable serif for bullet points. The large number '1.' suggests a list format.",
+          "layout_and_composition": "Split layout. The left side is text-heavy, clearly stating the problem with bullet points. The right side features a large, detailed illustration of a person demonstrating the problem, creating a balanced and easy-to-read composition.",
+          "background_environment": "Plain, neutral cream background to ensure focus remains on the text and the subject. There is a suggestion of an environment with the desk, chair, laptop, and plant.",
+          "lighting_style": "Flat, even lighting typical of digital illustrations, with no harsh shadows, ensuring all details are clearly visible.",
+          "graphic_style": "Detailed, realistic 2D digital illustration with an anatomical overlay (the spine) to emphasize the physical issue.",
+          "product_prominence": "No specific product is shown; the focus is entirely on illustrating the problem (poor posture).",
+          "marketing_angle": "Educational and symptom-focused. It aims to resonate with the viewer by describing a common physical complaint they might be experiencing.",
+          "visual_hierarchy": "1. The large red '1.' and 'Your upper back feels rounded' (Problem statement). 2. The illustration of the man with the highlighted, rounded spine (Visual confirmation). 3. The bullet points detailing specific symptoms.",
+          "trust_elements": [],
+          "promotional_devices": [],
+          "object_placement": "The text is aligned to the left. The subject is positioned on the right, sitting at a desk facing right, filling the right half of the frame. The desk and chair are positioned to support the subject's pose.",
+          "emotional_trigger": "Recognition of a personal physical discomfort and the desire to correct an unhealthy habit.",
+          "extensions": "The use of the visible spine with a red glow effectively communicates the internal physical strain caused by the external posture."
+        }
+      },
+      "finished_at": 1785073014.9312499
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "started_at": 1785073014.932367,
+      "slideshow_id": "702b37e9-38e6-424b-ac02-a8b8d8e86b42",
+      "slide_id": "ef1b50bd-e751-479b-afd5-0e8451613da4",
+      "stages_requested": [
+        "ocr",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure"
+      ],
+      "end_to_end_ms": 41146.94,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "stages": [
+        {
+          "analysis_run_id": "bbea9a85-a89c-45e9-b68e-71ba4bbde4e4",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 0.9259999999999999,
+          "provider_call_ms": 4797.051541972905,
+          "deterministic_ms": -4796.13,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 143,
+              "image_count": null,
+              "provider_latency_ms": 4797.051541972905,
+              "estimated_cost_usd": 0.0029535,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "eb7427fa-7a09-4e32-a8f2-18775b169b5a",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.723,
+          "provider_call_ms": 15934.498999966308,
+          "deterministic_ms": -15929.78,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1154,
+              "completion_tokens": 1053,
+              "image_count": null,
+              "provider_latency_ms": 15934.498999966308,
+              "estimated_cost_usd": 0.03736,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "eb0571e2-6eb3-42cf-9d5a-e6d73778f0c2",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.784,
+          "provider_call_ms": 18194.098916021176,
+          "deterministic_ms": -18189.31,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1616,
+              "completion_tokens": 1113,
+              "image_count": null,
+              "provider_latency_ms": 18194.098916021176,
+              "estimated_cost_usd": 0.04146999999999999,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "9e931f7b-ef93-41b9-8774-3e8d5486e867",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2078.418,
+          "provider_call_ms": 2073.6037500901148,
+          "deterministic_ms": 4.81,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 231,
+              "completion_tokens": 60,
+              "image_count": null,
+              "provider_latency_ms": 2073.6037500901148,
+              "estimated_cost_usd": 0.002955,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "c0c60b58-7a62-41cd-b105-a0d4fa6ad1a1",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 3.364,
+          "provider_call_ms": 7560.849249945022,
+          "deterministic_ms": -7557.49,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1226,
+              "completion_tokens": 463,
+              "image_count": null,
+              "provider_latency_ms": 7560.849249945022,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "149fe0f7-bd76-467d-beee-c224f0bb2ebd",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 15318.062,
+          "provider_call_ms": 15313.405917026103,
+          "deterministic_ms": 4.66,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.typography_system",
+              "prompt_version": "2.0",
+              "prompt_tokens": 1579,
+              "completion_tokens": 733,
+              "image_count": null,
+              "provider_latency_ms": 15313.405917026103,
+              "estimated_cost_usd": 0.029885,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "239e2473-b2f3-460e-a02e-7493774c3c81",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 7145.018999999999,
+          "provider_call_ms": 7139.818790950812,
+          "deterministic_ms": 5.2,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 592,
+              "completion_tokens": 293,
+              "image_count": null,
+              "provider_latency_ms": 7139.818790950812,
+              "estimated_cost_usd": 0.01175,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "679d82f6-2638-49ad-b99e-b1a3bdb5c5f9",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 2.8089999999999997,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "grid-collage",
+          "device_confidence": 0.95,
+          "zones": [
+            {
+              "zone_id": "top-left-scene",
+              "role": "subject",
+              "bounds": [
+                0.0,
+                0.0,
+                0.5,
+                0.52
+              ]
+            },
+            {
+              "zone_id": "top-right-scene",
+              "role": "subject",
+              "bounds": [
+                0.5,
+                0.0,
+                1.0,
+                0.52
+              ]
+            },
+            {
+              "zone_id": "bottom-left-scene",
+              "role": "subject",
+              "bounds": [
+                0.0,
+                0.52,
+                0.5,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "bottom-right-scene",
+              "role": "subject",
+              "bounds": [
+                0.5,
+                0.52,
+                1.0,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "headline",
+              "role": "text",
+              "bounds": [
+                0.15,
+                0.41,
+                0.87,
+                0.48
+              ]
+            },
+            {
+              "zone_id": "red-subheadline",
+              "role": "text",
+              "bounds": [
+                0.13,
+                0.48,
+                0.86,
+                0.58
+              ]
+            },
+            {
+              "zone_id": "vertical-divider",
+              "role": "graphic",
+              "bounds": [
+                0.49,
+                0.0,
+                0.51,
+                1.0
+              ]
+            },
+            {
+              "zone_id": "horizontal-divider",
+              "role": "graphic",
+              "bounds": [
+                0.0,
+                0.51,
+                1.0,
+                0.53
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "top-left-scene",
+              "relation": "left-of",
+              "object": "top-right-scene"
+            },
+            {
+              "subject": "top-left-scene",
+              "relation": "above",
+              "object": "bottom-left-scene"
+            },
+            {
+              "subject": "top-right-scene",
+              "relation": "above",
+              "object": "bottom-right-scene"
+            },
+            {
+              "subject": "bottom-left-scene",
+              "relation": "left-of",
+              "object": "bottom-right-scene"
+            },
+            {
+              "subject": "headline",
+              "relation": "above",
+              "object": "red-subheadline"
+            },
+            {
+              "subject": "vertical-divider",
+              "relation": "splits",
+              "object": "top-left-scene"
+            },
+            {
+              "subject": "vertical-divider",
+              "relation": "splits",
+              "object": "top-right-scene"
+            },
+            {
+              "subject": "vertical-divider",
+              "relation": "splits",
+              "object": "bottom-left-scene"
+            },
+            {
+              "subject": "vertical-divider",
+              "relation": "splits",
+              "object": "bottom-right-scene"
+            },
+            {
+              "subject": "horizontal-divider",
+              "relation": "splits",
+              "object": "top-left-scene"
+            },
+            {
+              "subject": "horizontal-divider",
+              "relation": "splits",
+              "object": "bottom-left-scene"
+            },
+            {
+              "subject": "horizontal-divider",
+              "relation": "splits",
+              "object": "top-right-scene"
+            },
+            {
+              "subject": "horizontal-divider",
+              "relation": "splits",
+              "object": "bottom-right-scene"
+            }
+          ],
+          "emphasis": [
+            "headline",
+            "red-subheadline",
+            "top-right-scene",
+            "top-left-scene",
+            "bottom-right-scene",
+            "bottom-left-scene",
+            "vertical-divider",
+            "horizontal-divider"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "designed_typography",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "HOW TO BE A",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: all-caps display line"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "10/10 man",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "2 block(s) read as designed typography, 0 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": {
+          "schema_version": "1.0",
+          "primary_family_class": "grotesque",
+          "secondary_family_class": "serif",
+          "capability_level": "L1",
+          "base_size_ratio": 0.045,
+          "colour_roles": {
+            "headline_light": "near-white",
+            "accent": "dark-red"
+          },
+          "text_roles": {
+            "headline_light": {
+              "family_class": "grotesque",
+              "weight": "bold",
+              "italic": false,
+              "case": "upper",
+              "colour_role": "headline_light",
+              "alignment": "centre",
+              "size_ratio": 3.6,
+              "tracking": 0.02,
+              "line_height": 0.9
+            },
+            "headline_accent": {
+              "family_class": "serif",
+              "weight": "regular",
+              "italic": true,
+              "case": "as-written",
+              "colour_role": "accent",
+              "alignment": "centre",
+              "size_ratio": 4.8,
+              "tracking": -0.04,
+              "line_height": 0.85
+            }
+          },
+          "marker_roles": {},
+          "rule_roles": {},
+          "divider_roles": {},
+          "italic_roles": {},
+          "stroke_roles": {},
+          "shadow_roles": {},
+          "container_roles": {},
+          "size_scale": {
+            "headline_light_to_body": 3.6,
+            "headline_accent_to_body": 4.8,
+            "accent_to_light_headline": 1.33
+          },
+          "case_rules": [],
+          "weight_hierarchy": []
+        },
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "794f9fb5-c3cd-4a82-9caf-9fd464b8d913",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "HOW TO BE A",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: all-caps display line",
+              "evidence": [
+                "editorial: all-caps display line"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.156,
+                0.407,
+                0.858,
+                0.472
+              ],
+              "composition_zone_id": "headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "red-subheadline"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "10/10 man",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.147,
+                0.476,
+                0.85,
+                0.584
+              ],
+              "composition_zone_id": "red-subheadline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "headline"
+              ]
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "HOW TO BE A\n10/10 man",
+          "blocks": [
+            {
+              "text": "HOW TO BE A",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.156,
+                "y_min": 0.407,
+                "x_max": 0.858,
+                "y_max": 0.472
+              }
+            },
+            {
+              "text": "10/10 man",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.147,
+                "y_min": 0.476,
+                "x_max": 0.85,
+                "y_max": 0.584
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "High-contrast, dramatic, aspirational lifestyle imagery",
+          "marketing_objective": "To sell a self-improvement program, guide, or course",
+          "emotional_appeal": [
+            "Aspiration",
+            "Desire for Status",
+            "Self-Improvement",
+            "Confidence"
+          ],
+          "target_audience": "Men seeking self-improvement, physical fitness, professional success, and overall life enhancement",
+          "color_palette": [
+            "Dark brown",
+            "Black",
+            "Gold/Warm amber",
+            "White",
+            "Red"
+          ],
+          "typography_style": "Bold sans-serif for primary text, contrasting elegant script for emphasis",
+          "layout_and_composition": "A grid of four distinct images with bold text overlaid horizontally across the center",
+          "background_environment": "Multiple environments indicating success and discipline: a luxurious study/office, a gym, a focused workspace, and a scenic outdoor landscape at sunset",
+          "lighting_style": "Moody, high contrast, cinematic lighting with strong shadows (chiaroscuro) emphasizing physique and seriousness",
+          "graphic_style": "Photographic composite with text overlay",
+          "product_prominence": "The 'product' is the idealized lifestyle and self-image, prominently displayed through the models",
+          "marketing_angle": "Ultimate self-optimization and achieving peak male status across wealth, health, intellect, and freedom",
+          "visual_hierarchy": "Central red text ('10/10 man') immediately catches the eye, followed by the white 'HOW TO BE A', then the four surrounding lifestyle images",
+          "trust_elements": [],
+          "promotional_devices": [],
+          "object_placement": "Four images arranged in a 2x2 grid behind a central text banner. Top left: wealthy businessman. Top right: muscular man lifting weights. Bottom left: focused man studying/working. Bottom right: fit man looking at a sunset.",
+          "emotional_trigger": "Desire for ultimate self-mastery and societal validation as a 'top tier' individual",
+          "extensions": "The use of red for '10/10' emphasizes the extreme desirability and intensity of the goal. The four quadrants represent different pillars of traditional male success: wealth/status, physical strength, intellect/grind, and freedom/spirituality."
+        }
+      },
+      "finished_at": 1785073056.085093
+    },
+    {
+      "case": "case06_meal_prep",
+      "started_at": 1785073056.0857952,
+      "slideshow_id": "e8afb2e6-705a-4252-a007-d6e89c6a3d7b",
+      "slide_id": "7e433365-2baf-4e90-9932-edebb40c9226",
+      "stages_requested": [
+        "ocr",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure"
+      ],
+      "end_to_end_ms": 42488.23,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "stages": [
+        {
+          "analysis_run_id": "f1bbf025-f67a-495f-8477-f1597eb3b761",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 0.623,
+          "provider_call_ms": 11395.27037506923,
+          "deterministic_ms": -11394.65,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2259,
+              "completion_tokens": 353,
+              "image_count": null,
+              "provider_latency_ms": 11395.27037506923,
+              "estimated_cost_usd": 0.021884999999999998,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "a44ec66f-82b9-4f0e-9493-4ef3027daec4",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.346,
+          "provider_call_ms": 15828.27029202599,
+          "deterministic_ms": -15823.92,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2624,
+              "completion_tokens": 941,
+              "image_count": null,
+              "provider_latency_ms": 15828.27029202599,
+              "estimated_cost_usd": 0.04135,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "f085a13f-3975-4482-8c96-3e7571a85225",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.369,
+          "provider_call_ms": 17263.63375002984,
+          "deterministic_ms": -17259.26,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2162,
+              "completion_tokens": 1183,
+              "image_count": null,
+              "provider_latency_ms": 17263.63375002984,
+              "estimated_cost_usd": 0.0463,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "50cf7ba8-0ee4-43c5-a1f8-3d827e05454d",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2298.39,
+          "provider_call_ms": 2291.8879579519853,
+          "deterministic_ms": 6.5,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 266,
+              "completion_tokens": 66,
+              "image_count": null,
+              "provider_latency_ms": 2291.8879579519853,
+              "estimated_cost_usd": 0.00331,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "326355fb-2627-485f-8c0b-82625517336c",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-pro-latest",
+          "duration_ms": 5.014,
+          "provider_call_ms": 11963.65320798941,
+          "deterministic_ms": -11958.64,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-pro-latest",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1271,
+              "completion_tokens": 517,
+              "image_count": null,
+              "provider_latency_ms": 11963.65320798941,
+              "estimated_cost_usd": null,
+              "cost_status": "unknown",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "76785f23-6d4e-49f8-a795-dd1765330c2c",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6864.129,
+          "provider_call_ms": 6858.9608339825645,
+          "deterministic_ms": 5.17,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 593,
+              "completion_tokens": 288,
+              "image_count": null,
+              "provider_latency_ms": 6858.9608339825645,
+              "estimated_cost_usd": 0.011604999999999997,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "138c9c96-dcc4-42e4-a0a7-b18c95ccbef5",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 13182.648000000001,
+          "provider_call_ms": 13175.619957968593,
+          "deterministic_ms": 7.03,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.typography_system",
+              "prompt_version": "2.0",
+              "prompt_tokens": 2587,
+              "completion_tokens": 706,
+              "image_count": null,
+              "provider_latency_ms": 13175.619957968593,
+              "estimated_cost_usd": 0.034115,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "ffa1720b-1b93-4f3a-b0f7-5f3654d7d141",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 2.846,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "side-by-side-comparison",
+          "device_confidence": 0.93,
+          "zones": [
+            {
+              "zone_id": "left-stack",
+              "role": "product",
+              "bounds": [
+                0.05,
+                0.36,
+                0.49,
+                0.82
+              ]
+            },
+            {
+              "zone_id": "right-stack",
+              "role": "product",
+              "bounds": [
+                0.51,
+                0.36,
+                0.93,
+                0.82
+              ]
+            },
+            {
+              "zone_id": "left-label",
+              "role": "text",
+              "bounds": [
+                0.12,
+                0.23,
+                0.36,
+                0.32
+              ]
+            },
+            {
+              "zone_id": "right-label",
+              "role": "text",
+              "bounds": [
+                0.64,
+                0.23,
+                0.9,
+                0.32
+              ]
+            },
+            {
+              "zone_id": "vs-text",
+              "role": "text",
+              "bounds": [
+                0.47,
+                0.25,
+                0.53,
+                0.29
+              ]
+            },
+            {
+              "zone_id": "left-flag",
+              "role": "graphic",
+              "bounds": [
+                0.21,
+                0.17,
+                0.3,
+                0.22
+              ]
+            },
+            {
+              "zone_id": "right-flag",
+              "role": "graphic",
+              "bounds": [
+                0.69,
+                0.18,
+                0.8,
+                0.23
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "left-stack",
+              "relation": "left-of",
+              "object": "right-stack"
+            },
+            {
+              "subject": "left-label",
+              "relation": "above",
+              "object": "left-stack"
+            },
+            {
+              "subject": "right-label",
+              "relation": "above",
+              "object": "right-stack"
+            },
+            {
+              "subject": "left-flag",
+              "relation": "above",
+              "object": "left-label"
+            },
+            {
+              "subject": "right-flag",
+              "relation": "above",
+              "object": "right-label"
+            },
+            {
+              "subject": "vs-text",
+              "relation": "right-of",
+              "object": "left-label"
+            },
+            {
+              "subject": "vs-text",
+              "relation": "left-of",
+              "object": "right-label"
+            }
+          ],
+          "emphasis": [
+            "left-stack",
+            "right-stack",
+            "left-label",
+            "right-label",
+            "vs-text",
+            "left-flag",
+            "right-flag"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "designed_typography",
+          "text_mode_confidence": 0.714,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "\ud83c\uddec\ud83c\udde7",
+                "text_class": "platform_caption",
+                "confidence": 1.0,
+                "reasons": [
+                  "caption: emoji-only block"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "british",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "meal prep",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "vs",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: comparison connective",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\ud83c\uddf0\ud83c\uddf7",
+                "text_class": "platform_caption",
+                "confidence": 1.0,
+                "reasons": [
+                  "caption: emoji-only block"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "japanese",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "meal prep",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "5 block(s) read as designed typography, 2 as platform caption",
+              "source style photographic (photographic), confidence 1.00"
+            ]
+          }
+        },
+        "typography_system": {
+          "schema_version": "1.0",
+          "primary_family_class": "grotesque",
+          "secondary_family_class": null,
+          "capability_level": "L1",
+          "base_size_ratio": 0.045,
+          "colour_roles": {
+            "overlay_text": "white"
+          },
+          "text_roles": {
+            "comparison_label": {
+              "family_class": "grotesque",
+              "weight": "bold",
+              "italic": true,
+              "case": "lower",
+              "colour_role": "overlay_text",
+              "alignment": "centre",
+              "size_ratio": 2.6,
+              "tracking": -0.02,
+              "line_height": 0.92
+            },
+            "versus_marker": {
+              "family_class": "grotesque",
+              "weight": "bold",
+              "italic": false,
+              "case": "lower",
+              "colour_role": "overlay_text",
+              "alignment": "centre",
+              "size_ratio": 1.35,
+              "tracking": -0.01,
+              "line_height": 1.0
+            }
+          },
+          "marker_roles": {},
+          "rule_roles": {},
+          "divider_roles": {},
+          "italic_roles": {},
+          "stroke_roles": {},
+          "shadow_roles": {},
+          "container_roles": {},
+          "size_scale": {
+            "comparison_label_to_body": 2.6,
+            "versus_marker_to_body": 1.35,
+            "comparison_label_to_versus_marker": 1.9
+          },
+          "case_rules": [],
+          "weight_hierarchy": []
+        },
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "b4158efe-6db6-4450-869d-4f7295595669",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "\ud83c\uddec\ud83c\udde7",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'left-flag' graphic zone; caption: emoji-only block",
+              "evidence": [
+                "composition: block sits in the 'left-flag' graphic zone",
+                "caption: emoji-only block"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.211,
+                0.182,
+                0.296,
+                0.229
+              ],
+              "composition_zone_id": "left-flag",
+              "composition_zone_role": "graphic",
+              "associated_zone_ids": [
+                "left-label"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "british",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.169,
+                0.253,
+                0.336,
+                0.299
+              ],
+              "composition_zone_id": "left-label",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "left-flag",
+                "left-stack",
+                "vs-text"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "meal prep",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.13,
+                0.304,
+                0.38,
+                0.346
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "vs",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: comparison connective; editorial: label-length copy",
+              "evidence": [
+                "editorial: comparison connective",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.473,
+                0.262,
+                0.521,
+                0.302
+              ],
+              "composition_zone_id": "vs-text",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "left-label",
+                "right-label"
+              ]
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "\ud83c\uddf0\ud83c\uddf7",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "composition: block sits in the 'right-flag' graphic zone; caption: emoji-only block",
+              "evidence": [
+                "composition: block sits in the 'right-flag' graphic zone",
+                "caption: emoji-only block"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.693,
+                0.184,
+                0.775,
+                0.23
+              ],
+              "composition_zone_id": "right-flag",
+              "composition_zone_role": "graphic",
+              "associated_zone_ids": [
+                "right-label"
+              ]
+            },
+            {
+              "block_id": "block-5",
+              "source_ocr_block_id": "ocr-5",
+              "text": "japanese",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.648,
+                0.252,
+                0.876,
+                0.3
+              ],
+              "composition_zone_id": "right-label",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "right-flag",
+                "right-stack",
+                "vs-text"
+              ]
+            },
+            {
+              "block_id": "block-6",
+              "source_ocr_block_id": "ocr-6",
+              "text": "meal prep",
+              "text_class": "designed_typography",
+              "owner": "typography",
+              "handling_policy": "preserve_verbatim",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "editorial: label-length copy",
+              "evidence": [
+                "editorial: label-length copy"
+              ],
+              "image_strategy": null,
+              "bounds": [
+                0.63,
+                0.304,
+                0.87,
+                0.347
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "\ud83c\uddec\ud83c\udde7\nbritish\nmeal prep\nvs\n\ud83c\uddf0\ud83c\uddf7\njapanese\nmeal prep",
+          "blocks": [
+            {
+              "bounding_box": {
+                "x_max": 0.296,
+                "x_min": 0.211,
+                "y_max": 0.229,
+                "y_min": 0.182
+              },
+              "role": "other",
+              "surface": "overlay",
+              "text": "\ud83c\uddec\ud83c\udde7"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.336,
+                "x_min": 0.169,
+                "y_max": 0.299,
+                "y_min": 0.253
+              },
+              "role": "headline",
+              "surface": "overlay",
+              "text": "british"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.38,
+                "x_min": 0.13,
+                "y_max": 0.346,
+                "y_min": 0.304
+              },
+              "role": "headline",
+              "surface": "overlay",
+              "text": "meal prep"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.521,
+                "x_min": 0.473,
+                "y_max": 0.302,
+                "y_min": 0.262
+              },
+              "role": "other",
+              "surface": "overlay",
+              "text": "vs"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.775,
+                "x_min": 0.693,
+                "y_max": 0.23,
+                "y_min": 0.184
+              },
+              "role": "other",
+              "surface": "overlay",
+              "text": "\ud83c\uddf0\ud83c\uddf7"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.876,
+                "x_min": 0.648,
+                "y_max": 0.3,
+                "y_min": 0.252
+              },
+              "role": "headline",
+              "surface": "overlay",
+              "text": "japanese"
+            },
+            {
+              "bounding_box": {
+                "x_max": 0.87,
+                "x_min": 0.63,
+                "y_max": 0.347,
+                "y_min": 0.304
+              },
+              "role": "headline",
+              "surface": "overlay",
+              "text": "meal prep"
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "visual_style": "Comparison meme style, highly organized and aesthetic lifestyle photography.",
+          "marketing_objective": "Increase engagement through relatable, humorous, or intriguing culinary comparisons, likely to drive traffic or brand awareness for a meal prep or container brand.",
+          "emotional_appeal": [
+            "Curiosity",
+            "Humor",
+            "Relatability"
+          ],
+          "target_audience": "Meal preppers, fitness enthusiasts, people interested in cooking, cultural food trends.",
+          "color_palette": [
+            "Warm wood tones",
+            "Clear glass/plastic",
+            "Neutral background colors (beige, black)",
+            "Food colors (yellows, oranges, light greens)"
+          ],
+          "typography_style": "Bold, sans-serif, white text with slight drop shadow for readability.",
+          "layout_and_composition": "Side-by-side comparison. Two identical stacks of meal prep containers placed centrally on a wooden table, dominating the foreground. Background is a softly blurred modern kitchen/living space.",
+          "background_environment": "A warm, modern, tidy home interior featuring a kitchen and living area, softly out of focus to keep attention on the foreground.",
+          "lighting_style": "Natural, soft, diffused indoor lighting creating a cozy and appetizing atmosphere.",
+          "graphic_style": "Minimalist text overlays with emojis acting as flags.",
+          "product_prominence": "Very high. The meal containers and the food within them are the focal point.",
+          "marketing_angle": "Playful cultural comparison highlighting similarities or differences in meal prep styles to spark conversation.",
+          "visual_hierarchy": "First, the two stacks of food. Second, the text 'british meal prep' vs 'japanese meal prep'. Third, the background.",
+          "trust_elements": [],
+          "promotional_devices": [],
+          "object_placement": "Two vertical stacks of four rectangular meal prep containers are placed side-by-side in the center of the frame, resting on a wooden table.",
+          "emotional_trigger": "Desire for aesthetic organization combined with curiosity about cultural culinary habits.",
+          "extensions": "The image contains an error in the flag used for 'japanese meal prep', showing the South Korean flag instead. This might be an intentional mistake to drive engagement via comments (rage-baiting/correction) or an accidental error."
+        }
+      },
+      "finished_at": 1785073098.579934
+    },
+    {
+      "case": "case07_gut_health",
+      "started_at": 1785073098.5809972,
+      "slideshow_id": "70909f0e-669c-48f6-8c46-f9a6e0cecccd",
+      "slide_id": "50b9b1c8-399b-491c-96ff-cb55e0c3e839",
+      "stages_requested": [
+        "ocr",
+        "creative_fingerprint",
+        "scene_intelligence",
+        "composition_contract",
+        "creative_profile",
+        "text_ownership",
+        "marketing_analysis",
+        "narrative_structure"
+      ],
+      "end_to_end_ms": 72185.68,
+      "pipeline_succeeded": true,
+      "failed_stage": null,
+      "pipeline_error": null,
+      "stages": [
+        {
+          "analysis_run_id": "48fe8687-4d46-4d84-8575-7340c35f980b",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 0.964,
+          "provider_call_ms": 8322.442791890353,
+          "deterministic_ms": -8321.48,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 323,
+              "image_count": null,
+              "provider_latency_ms": 8322.442791890353,
+              "estimated_cost_usd": 0.0043035,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "78f513d9-8d63-4c9e-bd92-404ee57f83bb",
+          "stage": "scene_intelligence",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 5.071,
+          "provider_call_ms": 11295.517917023972,
+          "deterministic_ms": -11290.45,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.scene_intelligence",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2162,
+              "completion_tokens": 750,
+              "image_count": null,
+              "provider_latency_ms": 11295.517917023972,
+              "estimated_cost_usd": 0.03331,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "61471ebd-a8e7-4c8f-993b-f5704d97adf1",
+          "stage": "composition_contract",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 4.08,
+          "provider_call_ms": 16652.78187498916,
+          "deterministic_ms": -16648.7,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.composition_contract",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2624,
+              "completion_tokens": 1007,
+              "image_count": null,
+              "provider_latency_ms": 16652.78187498916,
+              "estimated_cost_usd": 0.04333,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "1a448bfc-b131-4e97-b644-fb130b1f09b8",
+          "stage": "narrative_structure",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 2136.2960000000003,
+          "provider_call_ms": 2130.2082499023527,
+          "deterministic_ms": 6.09,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.narrative_structure",
+              "prompt_version": "1.0",
+              "prompt_tokens": 245,
+              "completion_tokens": 73,
+              "image_count": null,
+              "provider_latency_ms": 2130.2082499023527,
+              "estimated_cost_usd": 0.0034149999999999996,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "30786eb2-a113-4e7c-ae2f-c6029a2a6f90",
+          "stage": "creative_fingerprint",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 6.278,
+          "provider_call_ms": 39508.64937494043,
+          "deterministic_ms": -39502.37,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "vision_analysis",
+              "prompt_id": "analysis.creative_fingerprint",
+              "prompt_version": "1.0",
+              "prompt_tokens": 2289,
+              "completion_tokens": 828,
+              "image_count": null,
+              "provider_latency_ms": 39508.64937494043,
+              "estimated_cost_usd": 0.036285,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "03b80364-3f8e-4194-bf6b-6e1e0cabe183",
+          "stage": "marketing_analysis",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 7870.445,
+          "provider_call_ms": 7864.933207980357,
+          "deterministic_ms": 5.51,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "text_generation",
+              "prompt_id": "analysis.marketing_analysis",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1085,
+              "completion_tokens": 369,
+              "image_count": null,
+              "provider_latency_ms": 7864.933207980357,
+              "estimated_cost_usd": 0.016495,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "715d1dfc-e1e8-4cc8-abf5-233176b4304f",
+          "stage": "creative_profile",
+          "status": "succeeded",
+          "error": null,
+          "provider": "openai",
+          "model": "gpt-5.5",
+          "duration_ms": 15943.718,
+          "provider_call_ms": 15937.414333107881,
+          "deterministic_ms": 6.3,
+          "provider_calls": [
+            {
+              "provider": "openai",
+              "model": "gpt-5.5",
+              "capability": "unknown",
+              "prompt_id": "analysis.typography_system",
+              "prompt_version": "2.0",
+              "prompt_tokens": 2587,
+              "completion_tokens": 964,
+              "image_count": null,
+              "provider_latency_ms": 15937.414333107881,
+              "estimated_cost_usd": 0.041855,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        },
+        {
+          "analysis_run_id": "75906264-41a2-46f2-bf0f-4ee1afe7e5e1",
+          "stage": "text_ownership",
+          "status": "succeeded",
+          "error": null,
+          "provider": "local",
+          "model": "deterministic",
+          "duration_ms": 2.979,
+          "provider_call_ms": null,
+          "deterministic_ms": null,
+          "provider_calls": []
+        }
+      ],
+      "artifacts": {
+        "composition_contract": {
+          "schema_version": "1.0",
+          "device": "split-comparison",
+          "device_confidence": 0.93,
+          "zones": [
+            {
+              "zone_id": "main-headline",
+              "role": "text",
+              "bounds": [
+                0.18,
+                0.08,
+                0.84,
+                0.27
+              ]
+            },
+            {
+              "zone_id": "subtitle",
+              "role": "text",
+              "bounds": [
+                0.29,
+                0.27,
+                0.74,
+                0.31
+              ]
+            },
+            {
+              "zone_id": "left-rule",
+              "role": "graphic",
+              "bounds": [
+                0.19,
+                0.296,
+                0.27,
+                0.305
+              ]
+            },
+            {
+              "zone_id": "right-rule",
+              "role": "graphic",
+              "bounds": [
+                0.75,
+                0.296,
+                0.83,
+                0.305
+              ]
+            },
+            {
+              "zone_id": "bad-label",
+              "role": "text",
+              "bounds": [
+                0.24,
+                0.36,
+                0.38,
+                0.44
+              ]
+            },
+            {
+              "zone_id": "good-label",
+              "role": "text",
+              "bounds": [
+                0.63,
+                0.36,
+                0.82,
+                0.44
+              ]
+            },
+            {
+              "zone_id": "vertical-divider",
+              "role": "graphic",
+              "bounds": [
+                0.496,
+                0.35,
+                0.504,
+                0.97
+              ]
+            },
+            {
+              "zone_id": "portrait",
+              "role": "subject",
+              "bounds": [
+                0.2,
+                0.47,
+                0.82,
+                1.0
+              ]
+            }
+          ],
+          "relations": [
+            {
+              "subject": "main-headline",
+              "relation": "above",
+              "object": "portrait"
+            },
+            {
+              "subject": "subtitle",
+              "relation": "above",
+              "object": "portrait"
+            },
+            {
+              "subject": "vertical-divider",
+              "relation": "splits",
+              "object": "portrait"
+            },
+            {
+              "subject": "bad-label",
+              "relation": "left-of",
+              "object": "good-label"
+            },
+            {
+              "subject": "bad-label",
+              "relation": "above",
+              "object": "portrait"
+            },
+            {
+              "subject": "good-label",
+              "relation": "above",
+              "object": "portrait"
+            },
+            {
+              "subject": "left-rule",
+              "relation": "left-of",
+              "object": "subtitle"
+            },
+            {
+              "subject": "right-rule",
+              "relation": "right-of",
+              "object": "subtitle"
+            },
+            {
+              "subject": "left-rule",
+              "relation": "flanks",
+              "object": "subtitle"
+            },
+            {
+              "subject": "right-rule",
+              "relation": "flanks",
+              "object": "subtitle"
+            }
+          ],
+          "emphasis": [
+            "main-headline",
+            "portrait",
+            "vertical-divider",
+            "bad-label",
+            "good-label",
+            "subtitle",
+            "left-rule",
+            "right-rule"
+          ]
+        },
+        "creative_project_profile": {
+          "primary_text_mode": "designed_typography",
+          "text_mode_confidence": 1.0,
+          "copy_policy": "preserve_verbatim",
+          "overlay_policy": "keep",
+          "production_value_strategy": "refine",
+          "classification_evidence": {
+            "schema_version": "1.0",
+            "blocks": [
+              {
+                "text": "3 SIGNS OF",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: listicle headline",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "BAD GUT HEALTH",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: all-caps display line",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "\u2014 AND HOW TO SUPPORT IT \u2014",
+                "text_class": "designed_typography",
+                "confidence": 0.0,
+                "reasons": [
+                  "no distinguishing signals - preserving by default"
+                ],
+                "needs_review": true
+              },
+              {
+                "text": "BAD",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: comparison label",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              },
+              {
+                "text": "GOOD",
+                "text_class": "designed_typography",
+                "confidence": 1.0,
+                "reasons": [
+                  "editorial: all-caps display line",
+                  "editorial: comparison label",
+                  "editorial: label-length copy"
+                ],
+                "needs_review": false
+              }
+            ],
+            "project_mode_reasons": [
+              "5 block(s) read as designed typography, 0 as platform caption",
+              "source style mixed_media (mixed), confidence 0.42"
+            ]
+          }
+        },
+        "typography_system": {
+          "schema_version": "1.0",
+          "primary_family_class": "condensed-sans",
+          "secondary_family_class": null,
+          "capability_level": "L2",
+          "base_size_ratio": 0.045,
+          "colour_roles": {
+            "primary": "near-black",
+            "warning-accent": "dark-red",
+            "positive-accent": "dark-green",
+            "separator": "white"
+          },
+          "text_roles": {
+            "top_headline": {
+              "family_class": "condensed-sans",
+              "weight": "bold",
+              "italic": true,
+              "case": "upper",
+              "colour_role": "primary",
+              "alignment": "centre",
+              "size_ratio": 1.65,
+              "tracking": 0.0,
+              "line_height": 0.9
+            },
+            "main_headline": {
+              "family_class": "condensed-sans",
+              "weight": "bold",
+              "italic": true,
+              "case": "upper",
+              "colour_role": "warning-accent",
+              "alignment": "centre",
+              "size_ratio": 2.15,
+              "tracking": -0.02,
+              "line_height": 0.9
+            },
+            "deck": {
+              "family_class": "condensed-sans",
+              "weight": "bold",
+              "italic": true,
+              "case": "upper",
+              "colour_role": "primary",
+              "alignment": "centre",
+              "size_ratio": 1.0,
+              "tracking": 0.01,
+              "line_height": 1.0
+            },
+            "negative_comparison_label": {
+              "family_class": "condensed-sans",
+              "weight": "bold",
+              "italic": true,
+              "case": "upper",
+              "colour_role": "warning-accent",
+              "alignment": "centre",
+              "size_ratio": 1.55,
+              "tracking": -0.01,
+              "line_height": 0.9
+            },
+            "positive_comparison_label": {
+              "family_class": "condensed-sans",
+              "weight": "bold",
+              "italic": true,
+              "case": "upper",
+              "colour_role": "positive-accent",
+              "alignment": "centre",
+              "size_ratio": 1.55,
+              "tracking": -0.01,
+              "line_height": 0.9
+            }
+          },
+          "marker_roles": {},
+          "rule_roles": {},
+          "divider_roles": {},
+          "italic_roles": {},
+          "stroke_roles": {},
+          "shadow_roles": {},
+          "container_roles": {},
+          "size_scale": {
+            "main_headline_to_body": 2.15,
+            "top_headline_to_body": 1.65,
+            "deck_to_body": 1.0,
+            "comparison_label_to_body": 1.55,
+            "red_horizontal_rule_thickness_to_body": 0.08,
+            "vertical_divider_thickness_to_body": 0.1
+          },
+          "case_rules": [],
+          "weight_hierarchy": []
+        },
+        "text_ownership": {
+          "ownership_model_version": "1.1",
+          "composition_contract_id": "0f9fe106-4ed2-4a51-81f6-88e28fde4778",
+          "composition_contract_version": "1.0",
+          "decisions": [
+            {
+              "block_id": "block-0",
+              "source_ocr_block_id": "ocr-0",
+              "text": "3 SIGNS OF",
+              "text_class": "designed_typography",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "typography is L2 and the renderer is L1 - left to the image rather than drawn flat; editorial: listicle headline; editorial: label-length copy",
+              "evidence": [
+                "typography is L2 and the renderer is L1 - left to the image rather than drawn flat",
+                "editorial: listicle headline",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.297,
+                0.076,
+                0.72,
+                0.127
+              ],
+              "composition_zone_id": "main-headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "portrait"
+              ]
+            },
+            {
+              "block_id": "block-1",
+              "source_ocr_block_id": "ocr-1",
+              "text": "BAD GUT HEALTH",
+              "text_class": "designed_typography",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "typography is L2 and the renderer is L1 - left to the image rather than drawn flat; editorial: all-caps display line; editorial: label-length copy",
+              "evidence": [
+                "typography is L2 and the renderer is L1 - left to the image rather than drawn flat",
+                "editorial: all-caps display line",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.177,
+                0.138,
+                0.838,
+                0.203
+              ],
+              "composition_zone_id": "main-headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "portrait"
+              ]
+            },
+            {
+              "block_id": "block-2",
+              "source_ocr_block_id": "ocr-2",
+              "text": "\u2014 AND HOW TO SUPPORT IT \u2014",
+              "text_class": "designed_typography",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "project_default",
+              "confidence": 0.0,
+              "reason": "typography is L2 and the renderer is L1 - left to the image rather than drawn flat; no distinguishing signals - preserving by default",
+              "evidence": [
+                "typography is L2 and the renderer is L1 - left to the image rather than drawn flat",
+                "no distinguishing signals - preserving by default"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.189,
+                0.211,
+                0.822,
+                0.237
+              ],
+              "composition_zone_id": "main-headline",
+              "composition_zone_role": "text",
+              "associated_zone_ids": [
+                "portrait"
+              ]
+            },
+            {
+              "block_id": "block-3",
+              "source_ocr_block_id": "ocr-3",
+              "text": "BAD",
+              "text_class": "designed_typography",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "typography is L2 and the renderer is L1 - left to the image rather than drawn flat; editorial: comparison label; editorial: label-length copy",
+              "evidence": [
+                "typography is L2 and the renderer is L1 - left to the image rather than drawn flat",
+                "editorial: comparison label",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.236,
+                0.281,
+                0.364,
+                0.322
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            },
+            {
+              "block_id": "block-4",
+              "source_ocr_block_id": "ocr-4",
+              "text": "GOOD",
+              "text_class": "designed_typography",
+              "owner": "image",
+              "handling_policy": "preserve_visual_role",
+              "source": "block_override",
+              "confidence": 1.0,
+              "reason": "typography is L2 and the renderer is L1 - left to the image rather than drawn flat; editorial: all-caps display line; editorial: comparison label",
+              "evidence": [
+                "typography is L2 and the renderer is L1 - left to the image rather than drawn flat",
+                "editorial: all-caps display line",
+                "editorial: comparison label",
+                "editorial: label-length copy"
+              ],
+              "image_strategy": "generated",
+              "bounds": [
+                0.635,
+                0.28,
+                0.803,
+                0.321
+              ],
+              "composition_zone_id": null,
+              "composition_zone_role": null,
+              "associated_zone_ids": []
+            }
+          ]
+        },
+        "ocr": {
+          "raw_text": "3 SIGNS OF BAD GUT HEALTH \u2014 AND HOW TO SUPPORT IT \u2014 BAD GOOD",
+          "blocks": [
+            {
+              "text": "3 SIGNS OF",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.297,
+                "y_min": 0.076,
+                "x_max": 0.72,
+                "y_max": 0.127
+              }
+            },
+            {
+              "text": "BAD GUT HEALTH",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.177,
+                "y_min": 0.138,
+                "x_max": 0.838,
+                "y_max": 0.203
+              }
+            },
+            {
+              "text": "\u2014 AND HOW TO SUPPORT IT \u2014",
+              "role": "subheadline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.189,
+                "y_min": 0.211,
+                "x_max": 0.822,
+                "y_max": 0.237
+              }
+            },
+            {
+              "text": "BAD",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.236,
+                "y_min": 0.281,
+                "x_max": 0.364,
+                "y_max": 0.322
+              }
+            },
+            {
+              "text": "GOOD",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.635,
+                "y_min": 0.28,
+                "x_max": 0.803,
+                "y_max": 0.321
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": {
+          "background_environment": "Plain studio backdrop in a warm beige/taupe tone, with no contextual props or lifestyle setting. The simplicity makes the face and headline the sole focus.",
+          "color_palette": [
+            "Warm beige/taupe background",
+            "Black headline text",
+            "Deep red for \u201cBAD\u201d and warning emphasis",
+            "Green for \u201cGOOD\u201d/positive contrast",
+            "White vertical divider",
+            "Natural skin tones",
+            "Dark brown/black clothing and hair"
+          ],
+          "emotional_appeal": [
+            "Health anxiety",
+            "Self-improvement",
+            "Curiosity",
+            "Problem awareness",
+            "Control/reassurance"
+          ],
+          "emotional_trigger": "Symptom-identification anxiety: the viewer is prompted to scan themselves for visible signs of poor gut health and seek a corrective solution before the issue feels worse or more obvious.",
+          "extensions": "The creative appears to be an educational top-of-funnel health/wellness post or ad. No product is shown, so the asset likely functions as a hook for a carousel, article, quiz, supplement brand, probiotic offer, or gut-health education funnel.",
+          "graphic_style": "Bold editorial infographic style using a before/after comparison device. Minimal design elements, high-contrast labels, and a central split line create an immediate diagnostic visual metaphor.",
+          "layout_and_composition": "Vertical social-media format. Large stacked headline occupies the top third, followed by a centered face portrait occupying most of the lower frame. A vertical white line divides the face into left \u201cBAD\u201d and right \u201cGOOD\u201d halves, with matching labels above each side. Composition is symmetrical and front-facing for quick comprehension.",
+          "lighting_style": "Soft, even studio lighting with minimal shadows. The face is clearly visible and clinically neutral rather than dramatic, supporting an educational health-assessment tone.",
+          "marketing_angle": "Uses a visible bad-versus-good comparison to frame gut health as something that may show up externally and can be improved with the right support. The message positions the brand/content as a guide to identifying warning signs and taking corrective action.",
+          "marketing_objective": "Capture attention and drive engagement or click-through by teasing an educational list: \u201c3 signs of bad gut health \u2014 and how to support it.\u201d The objective is awareness and problem activation rather than direct conversion.",
+          "object_placement": "The model\u2019s face is centered and tightly cropped from chest/neck upward. The white divider runs vertically through the center of the face from hairline area down past the chin, separating the left \u201cBAD\u201d side from the right \u201cGOOD\u201d side. The headline is centered above the portrait; \u201cBAD\u201d sits above the left side of the head in red, and \u201cGOOD\u201d sits above the right side in green. No product, packaging, or supporting objects are visible.",
+          "product_prominence": "No physical product is shown. The \u201cproduct\u201d or solution is implied through the educational promise of how to support gut health.",
+          "promotional_devices": [
+            "Educational hook/listicle format",
+            "Before/after contrast",
+            "Problem-solution framing",
+            "Color-coded bad/good comparison"
+          ],
+          "target_audience": "Health-conscious social media users, especially younger adults interested in wellness, skincare, digestion, supplements, probiotics, or self-diagnosing lifestyle-related symptoms. The male model may broaden appeal to young men who are typically less targeted in gut-health/skincare wellness content.",
+          "trust_elements": [
+            "Educational framing",
+            "Diagnostic-style comparison",
+            "Clear visual categorization of bad versus good"
+          ],
+          "typography_style": "Heavy, bold, condensed sans-serif typography in uppercase italics. The headline uses strong hierarchy with black for general copy, red for negative emphasis, and green for positive outcome. The style feels urgent, direct, and social-media optimized.",
+          "visual_hierarchy": "The eye first lands on the large headline, especially the red \u201cBAD GUT HEALTH.\u201d Next, the viewer sees the red \u201cBAD\u201d versus green \u201cGOOD\u201d labels, then the split-face comparison. The subtitle \u201cAND HOW TO SUPPORT IT\u201d acts as the solution-oriented bridge after the problem is established.",
+          "visual_style": "Clean, high-contrast wellness infographic with a clinical before/after aesthetic. It combines portrait photography with simple graphic overlays and bold color-coded text to make the health message instantly understandable."
+        }
+      },
+      "finished_at": 1785073170.772979
+    }
+  ],
+  "stages": [
+    "ocr",
+    "creative_fingerprint",
+    "scene_intelligence",
+    "composition_contract",
+    "creative_profile",
+    "text_ownership",
+    "marketing_analysis",
+    "narrative_structure"
+  ]
+}

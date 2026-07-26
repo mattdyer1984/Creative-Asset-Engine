@@ -85,26 +85,60 @@ class TextRole(BaseModel):
     tracking: float = 0.0
     line_height: float = Field(default=1.18, gt=0)
 
-    @field_validator("weight")
+    # O2. These NORMALISE rather than reject.
+    #
+    # Phase F found three of four designed cases producing a typography
+    # system with ZERO text roles. The cause was not the provider and not the
+    # benchmark: our own prompt told the model to answer with
+    # `weight: light/regular/medium/bold/black` and `alignment: left/center/
+    # right`, and these validators then rejected `black`, `medium`, `light`,
+    # `title` and the American spelling of `centre`. Every role that did what
+    # the prompt asked was silently dropped.
+    #
+    # The renderer really does only have regular and bold faces, so the
+    # domain vocabulary is right - the boundary was wrong. Losing an entire
+    # role over a synonym destroys far more than mapping `black` to `bold`
+    # ever could.
+
+    @field_validator("weight", mode="before")
     @classmethod
     def _weight(cls, value: str) -> str:
-        if value not in {"regular", "bold"}:
-            raise ValueError("weight must be 'regular' or 'bold'")
-        return value
+        normalised = str(value).strip().lower()
+        if normalised in {"bold", "black", "heavy", "semibold", "semi-bold", "extrabold"}:
+            return "bold"
+        if normalised in {"regular", "normal", "book", "light", "medium", "thin"}:
+            return "regular"
+        raise ValueError(
+            f"weight {value!r} maps to neither of the two faces the renderer has "
+            "(regular, bold)"
+        )
 
-    @field_validator("case")
+    @field_validator("case", mode="before")
     @classmethod
     def _case(cls, value: str) -> str:
-        if value not in {"as-written", "upper", "lower"}:
-            raise ValueError("case must be as-written, upper or lower")
-        return value
+        normalised = str(value).strip().lower().replace("_", "-")
+        if normalised in {"as-written", "aswritten", "none", "sentence", "title", "mixed"}:
+            # `title` and `sentence` are recorded as as-written: re-casing
+            # copy would change the words on the page, and copy policy is
+            # preserve_verbatim (ADR §5).
+            return "as-written"
+        if normalised in {"upper", "uppercase", "caps", "all-caps"}:
+            return "upper"
+        if normalised in {"lower", "lowercase"}:
+            return "lower"
+        raise ValueError(f"case {value!r} is not a recognised casing")
 
-    @field_validator("alignment")
+    @field_validator("alignment", mode="before")
     @classmethod
     def _alignment(cls, value: str) -> str:
-        if value not in {"left", "centre", "right"}:
-            raise ValueError("alignment must be left, centre or right")
-        return value
+        normalised = str(value).strip().lower()
+        if normalised in {"centre", "center", "middle"}:
+            return "centre"
+        if normalised in {"left", "start"}:
+            return "left"
+        if normalised in {"right", "end"}:
+            return "right"
+        raise ValueError(f"alignment {value!r} is not left, centre or right")
 
 
 class MarkerRole(BaseModel):
