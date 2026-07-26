@@ -1706,6 +1706,15 @@ section h2 {
   cursor: default;
 }
 
+/* Why the button is greyed out. Without this, a filled-in slideshow field
+   above a dead button reads as "it rejected my link". */
+.create-flow-missing-steps {
+  margin: 0.6rem 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b6b6b;
+}
+
 /* Phase 11.9 (Product Experience, see MIGRATION_PLAN.md) - the gallery
    home view + Advanced toggle, replacing the flat section stack as the
    default landing view. */

@@ -228,9 +228,20 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
 
   const busy = phase !== 'form' && phase !== 'done' && phase !== 'error';
 
-  const canGenerate =
-    (sourceMode === 'url' ? slideshowUrl.trim().length > 0 : uploadFiles.length > 0) &&
-    (productMode === 'url' ? productUrl.trim().length > 0 : existingProductId.length > 0);
+  const hasSource =
+    sourceMode === 'url' ? slideshowUrl.trim().length > 0 : uploadFiles.length > 0;
+  const hasProduct =
+    productMode === 'url' ? productUrl.trim().length > 0 : existingProductId.length > 0;
+
+  const canGenerate = hasSource && hasProduct;
+
+  // Say WHICH step is incomplete. A greyed-out button with a filled-in
+  // slideshow field reads as "it rejected my link" - the link was fine, the
+  // product step below it was empty, and nothing on screen said so.
+  const missingSteps = [
+    !hasSource && (sourceMode === 'url' ? 'a slideshow URL' : 'at least one image'),
+    !hasProduct && (productMode === 'url' ? 'a product URL' : 'an existing product'),
+  ].filter(Boolean) as string[];
 
   const handleFilesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUploadFiles(event.target.files ? Array.from(event.target.files) : []);
@@ -568,6 +579,12 @@ export function CreateCreativeFlow({ onCreated }: { onCreated: () => void }) {
             ? PROGRESS_LABELS[phase as Exclude<Phase, 'form' | 'done' | 'error'>]
             : 'Generate'}
       </button>
+
+      {!busy && missingSteps.length > 0 && (
+        <p className="create-flow-missing-steps">
+          Still needed: {missingSteps.join(' and ')}.
+        </p>
+      )}
     </div>
   );
 }
