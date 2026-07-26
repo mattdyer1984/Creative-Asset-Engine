@@ -21,6 +21,12 @@ class CompositionContractArtifact(Base, AnalysisArtifactMixin):
     device_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     contract_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    #: Phase F. Whether anything CHECKED this artifact, kept separate from
+    #: confidence - a model can be certain and wrong, and a deterministic
+    #: rule can be right with no confidence at all.
+    validation_status: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    validation_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     __table_args__ = (
         Index("ix_composition_contracts_slide_current", "slide_id", "is_current"),
     )

@@ -47,6 +47,12 @@ class CreativeProjectProfile(Base, AnalysisArtifactMixin):
     analysed_typography_system_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     classification_evidence_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    #: Phase F. Whether anything CHECKED this artifact, kept separate from
+    #: confidence - a model can be certain and wrong, and a deterministic
+    #: rule can be right with no confidence at all.
+    validation_status: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    validation_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     # --- what a human decided -------------------------------------------
     # Never written by the analyser. Null means "no human has expressed an
     # opinion", which is distinct from "the human agreed with the analyser".

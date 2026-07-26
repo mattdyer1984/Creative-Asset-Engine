@@ -21,6 +21,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.creative_project_profile import CreativeProjectProfile
+from app.services.validation_status import validate_profile
 from app.services.profile_schema import (
     SCHEMA_VERSION,
     ClassificationEvidence,
@@ -93,6 +94,11 @@ def record_analysis(
             classification_evidence.model_dump(mode="json") if classification_evidence else None
         ),
     )
+
+    # Validated against the profile being written, not the one it supersedes.
+    validation = validate_profile(profile, text_mode_confidence)
+    profile.validation_status = str(validation.status)
+    profile.validation_json = validation.model_dump(mode="json")
 
     if previous is not None:
         # The whole point of the analysed/user split. These are NOT copied

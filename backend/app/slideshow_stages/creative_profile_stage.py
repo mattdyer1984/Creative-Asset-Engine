@@ -59,6 +59,35 @@ logger = logging.getLogger(__name__)
 #: is better than nothing for routing - but the confidence says otherwise.
 _MODE_MAJORITY = 0.6
 
+# OpenAI structured outputs (strict mode) impose two constraints this schema
+# has to respect, both found by Phase F running against the real provider -
+# every unit test passed, because a fake does not validate what it is handed.
+#
+# 1. `required` must list EVERY property, at every level. A missing one is a
+#    400, not a degraded response.
+# 2. Open-ended maps are not expressible. `additionalProperties: {schema}` is
+#    rejected; strict mode demands `additionalProperties: false` and a fixed
+#    key set.
+#
+# The domain model keeps its open role maps - ADR §10 made them open on
+# purpose, so a design's OWN roles can be named rather than squeezed into a
+# fixed vocabulary. Only the WIRE shape changes: roles travel as arrays of
+# {role, ...} and `build_typography_system` rebuilds the maps on receipt.
+# That is a transport concern, not a modelling one.
+def _named_array(item_properties: dict, key: str = "role") -> dict:
+    """An open map, expressed as the array strict mode can actually carry."""
+    properties = {key: {"type": "string"}, **item_properties}
+    return {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": properties,
+            "required": list(properties),
+            "additionalProperties": False,
+        },
+    }
+
+
 TYPOGRAPHY_SYSTEM_SCHEMA = {
     "type": "object",
     "properties": {
@@ -67,29 +96,24 @@ TYPOGRAPHY_SYSTEM_SCHEMA = {
             "type": ["string", "null"], "enum": [str(f) for f in FamilyClass] + [None],
         },
         "capability_level": {"type": "string", "enum": [str(c) for c in CapabilityLevel]},
-        "colour_roles": {"type": "object", "additionalProperties": {"type": "string"}},
-        "text_roles": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "object",
-                "properties": {
-                    "family_class": {"type": "string", "enum": [str(f) for f in FamilyClass]},
-                    "weight": {"type": "string"},
-                    "italic": {"type": "boolean"},
-                    "case": {"type": "string"},
-                    "colour_role": {"type": "string"},
-                    "alignment": {"type": "string"},
-                    "size_ratio": {"type": "number"},
-                    "tracking": {"type": "number"},
-                    "line_height": {"type": "number"},
-                },
-                "required": ["family_class", "weight", "colour_role", "size_ratio"],
-                "additionalProperties": False,
-            },
-        },
-        "size_scale": {"type": "object", "additionalProperties": {"type": "number"}},
+        "colour_roles": _named_array({"colour": {"type": "string"}}),
+        "text_roles": _named_array({
+            "family_class": {"type": "string", "enum": [str(f) for f in FamilyClass]},
+            "weight": {"type": "string"},
+            "italic": {"type": "boolean"},
+            "case": {"type": "string"},
+            "colour_role": {"type": "string"},
+            "alignment": {"type": "string"},
+            "size_ratio": {"type": "number"},
+            "tracking": {"type": "number"},
+            "line_height": {"type": "number"},
+        }),
+        "size_scale": _named_array({"ratio": {"type": "number"}}, key="name"),
     },
-    "required": ["primary_family_class", "capability_level", "colour_roles", "text_roles"],
+    "required": [
+        "primary_family_class", "secondary_family_class", "capability_level",
+        "colour_roles", "text_roles", "size_scale",
+    ],
     "additionalProperties": False,
 }
 
@@ -188,13 +212,31 @@ def infer_text_mode(
     )
 
 
+def _as_map(value, key: str = "role") -> dict[str, dict]:
+    """
+    Normalise the wire shape back to the domain shape.
+
+    Accepts the array form strict structured outputs require, and the plain
+    map form, which is what the domain model uses and what a caller handing
+    back a stored system would supply.
+    """
+    if isinstance(value, dict):
+        return {str(k): v for k, v in value.items()}
+    result: dict[str, dict] = {}
+    for entry in value or []:
+        if isinstance(entry, dict) and entry.get(key):
+            name = str(entry[key])
+            result[name] = {k: v for k, v in entry.items() if k != key}
+    return result
+
+
 def build_typography_system(response: dict) -> TypographySystem:
     """
     Turn a provider response into a type system, dropping what will not
     validate rather than coercing it into something plausible.
     """
     text_roles: dict[str, TextRole] = {}
-    for name, raw in (response.get("text_roles") or {}).items():
+    for name, raw in _as_map(response.get("text_roles")).items():
         try:
             text_roles[name] = TextRole.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - one bad role must not lose the rest
@@ -231,12 +273,17 @@ def build_typography_system(response: dict) -> TypographySystem:
         secondary_family_class=secondary,
         capability_level=capability,
         colour_roles={
-            str(k): str(v) for k, v in (response.get("colour_roles") or {}).items()
+            name: str(entry.get("colour", entry) if isinstance(entry, dict) else entry)
+            for name, entry in _as_map(response.get("colour_roles")).items()
         },
         text_roles=text_roles,
         size_scale={
-            str(k): float(v) for k, v in (response.get("size_scale") or {}).items()
-            if isinstance(v, (int, float))
+            name: float(value)
+            for name, value in (
+                (n, e.get("ratio") if isinstance(e, dict) else e)
+                for n, e in _as_map(response.get("size_scale"), key="name").items()
+            )
+            if isinstance(value, (int, float))
         },
     )
 

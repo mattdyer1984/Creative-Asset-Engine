@@ -45,6 +45,12 @@ class TextOwnershipArtifact(Base, AnalysisArtifactMixin):
 
     blocks_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
+    #: Phase F. Whether anything CHECKED this artifact, kept separate from
+    #: confidence - a model can be certain and wrong, and a deterministic
+    #: rule can be right with no confidence at all.
+    validation_status: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    validation_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     __table_args__ = (
         Index("ix_text_ownership_artifacts_slide_current", "slide_id", "is_current"),
     )

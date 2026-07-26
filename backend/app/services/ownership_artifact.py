@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.models.composition_contract import CompositionContractArtifact
 from app.models.text_ownership_artifact import TextOwnershipArtifact
 from app.services.text_ownership import OwnershipPlan, TextOwnership
+from app.services.validation_status import validate_ownership
 
 #: Bumped when routing would produce different owners for identical input.
 #: 1.1 - composition-informed spatial routing (Package C). The same blocks
@@ -80,6 +81,7 @@ def record_ownership(
     effective_copy_policy: str | None = None,
     effective_overlay_policy: str | None = None,
     expected_block_ids: set[str] | None = None,
+    expected_block_count: int | None = None,
 ) -> TextOwnershipArtifact:
     """
     Persist one slide's ownership decisions as the new current artifact.
@@ -102,6 +104,8 @@ def record_ownership(
     if previous is not None:
         previous.is_current = False
 
+    validation = validate_ownership(plan, expected_block_count)
+
     artifact = TextOwnershipArtifact(
         slide_id=slide_id,
         analysis_run_id=analysis_run_id,
@@ -112,6 +116,8 @@ def record_ownership(
         ),
         ownership_model_version=OWNERSHIP_MODEL_VERSION,
         blocks_json=blocks,
+        validation_status=str(validation.status),
+        validation_json=validation.model_dump(mode="json"),
     )
     db.add(artifact)
     db.flush()

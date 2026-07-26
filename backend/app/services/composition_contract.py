@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.composition_contract import CompositionContractArtifact
+from app.services.validation_status import validate_composition_contract
 from app.services.composition_schema import CompositionContract, Device
 
 
@@ -19,9 +20,12 @@ def get_current_contract(db: Session, slide_id: str) -> CompositionContractArtif
 
 
 def record_contract(
-    db: Session, *, slide_id: str, analysis_run_id: str, contract: CompositionContract
+    db: Session, *, slide_id: str, analysis_run_id: str, contract: CompositionContract,
+    rejected: list[str] | None = None,
 ) -> CompositionContractArtifact:
     """Supersede the previous contract; history stays inspectable."""
+    validation = validate_composition_contract(contract, rejected)
+
     previous = get_current_contract(db, slide_id)
     if previous is not None:
         previous.is_current = False
@@ -33,6 +37,8 @@ def record_contract(
         device=str(contract.device),
         device_confidence=contract.device_confidence,
         contract_json=contract.model_dump(mode="json"),
+        validation_status=str(validation.status),
+        validation_json=validation.model_dump(mode="json"),
     )
     db.add(artifact)
     db.flush()

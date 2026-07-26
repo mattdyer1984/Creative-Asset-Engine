@@ -1,0 +1,135 @@
+{
+  "run_id": "7c477ab9-8906-4ca3-a05a-ea0a2a499d2b",
+  "data_dir": "/private/tmp/claude-502/-Users-apple-Downloads-creative-asset-engine/e632b521-ac34-495c-b841-d91226f1bd27/scratchpad/phasef/data",
+  "cases": [
+    {
+      "case": "case04_posture",
+      "started_at": 1785067149.295902,
+      "slideshow_id": "daaad71a-e08d-457d-a62d-fc2104edc489",
+      "slide_id": "c385ed88-816e-4bde-8bfb-6dbb8cb2e8c5",
+      "end_to_end_ms": 10198.76,
+      "pipeline_succeeded": false,
+      "failed_stage": "product_isolation",
+      "pipeline_error": "No product assigned to any slide - assign one before running Product Isolation.",
+      "stages": [
+        {
+          "analysis_run_id": "94d83ef5-b741-46c8-b70f-43eac79f38f4",
+          "stage": "ocr",
+          "status": "succeeded",
+          "error": null,
+          "provider": "gemini",
+          "model": "gemini-flash-latest",
+          "duration_ms": 3.084,
+          "provider_call_ms": 10171.879582921974,
+          "deterministic_ms": -10168.8,
+          "provider_calls": [
+            {
+              "provider": "gemini",
+              "model": "gemini-flash-latest",
+              "capability": "ocr",
+              "prompt_id": "ocr.extract_text",
+              "prompt_version": "1.0",
+              "prompt_tokens": 1254,
+              "completion_tokens": 734,
+              "image_count": null,
+              "provider_latency_ms": 10171.879582921974,
+              "estimated_cost_usd": 0.007385999999999999,
+              "cost_status": "estimated",
+              "record_source": "per_call"
+            }
+          ]
+        }
+      ],
+      "artifacts": {
+        "composition_contract": null,
+        "creative_project_profile": null,
+        "typography_system": null,
+        "text_ownership": null,
+        "ocr": {
+          "raw_text": "1.\nYour upper back\nfeels rounded\n\u2022 You struggle to\nstraighten up\n\u2022 Shoulders keep\nfalling forward",
+          "blocks": [
+            {
+              "text": "1.",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.082,
+                "y_min": 0.126,
+                "x_max": 0.177,
+                "y_max": 0.216
+              }
+            },
+            {
+              "text": "Your upper back",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.08,
+                "y_min": 0.252,
+                "x_max": 0.59,
+                "y_max": 0.306
+              }
+            },
+            {
+              "text": "feels rounded",
+              "role": "headline",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.068,
+                "y_min": 0.316,
+                "x_max": 0.526,
+                "y_max": 0.381
+              }
+            },
+            {
+              "text": "\u2022 You struggle to",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.083,
+                "y_min": 0.42,
+                "x_max": 0.317,
+                "y_max": 0.443
+              }
+            },
+            {
+              "text": "straighten up",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.118,
+                "y_min": 0.456,
+                "x_max": 0.293,
+                "y_max": 0.48
+              }
+            },
+            {
+              "text": "\u2022 Shoulders keep",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.083,
+                "y_min": 0.523,
+                "x_max": 0.32,
+                "y_max": 0.548
+              }
+            },
+            {
+              "text": "falling forward",
+              "role": "other",
+              "surface": "overlay",
+              "bounding_box": {
+                "x_min": 0.118,
+                "y_min": 0.557,
+                "x_max": 0.313,
+                "y_max": 0.581
+              }
+            }
+          ]
+        },
+        "creative_fingerprint": null
+      },
+      "finished_at": 1785067159.516169
+    }
+  ]
+}

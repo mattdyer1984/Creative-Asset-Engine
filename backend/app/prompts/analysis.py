@@ -132,7 +132,7 @@ Finally give `emphasis`: the zone ids in the order the eye reaches them, most pr
 
 TYPOGRAPHY_SYSTEM = register(
     id="analysis.typography_system",
-    version="1.0",
+    version="2.0",
     description=(
         "Reads a designed creative's type system as a design system - roles, "
         "not a font name (ADR 0001 §10). Only called for projects whose text "
@@ -144,11 +144,11 @@ Read the TYPE SYSTEM of this designed creative. Describe it as a design system -
 
 Name the primary family CLASS and, if a second is genuinely used, the secondary: serif, grotesque, geometric-sans, condensed-sans, slab, script or display. A class, never a specific font name - the exact face is not recoverable from an image and guessing one produces false confidence.
 
-Give `colour_roles` as a map of role name to a plain colour name, e.g. {"accent": "dark-red", "body": "near-black"}. Use the roles the design actually distinguishes, not a fixed list.
+Give `colour_roles` as a list of {role, colour}, where role is a name the design actually distinguishes (accent, body, muted...) and colour is a plain colour name such as dark-red or near-black. Use the roles this design really has, not a fixed list.
 
-Give `text_roles` as a map of role name (headline, subhead, body, label, numeral, bullet...) to its setting: family_class, weight (light/regular/medium/bold/black), italic (true/false), case (as-written/upper/lower/title), colour_role naming one of the colour roles above, alignment (left/center/right), size_ratio relative to the body text (body is 1.0), tracking, and line_height.
+Give `text_roles` as a list of entries, one per role (headline, subhead, body, label, numeral, bullet...). Each entry has: role, family_class, weight (light/regular/medium/bold/black), italic (true/false), case (as-written/upper/lower/title), colour_role naming one of the colour roles above, alignment (left/center/right), size_ratio relative to the body text (body is 1.0), tracking, and line_height. Give every field for every role.
 
-Give `size_scale` as named ratios between roles, e.g. {"headline_to_body": 2.9}.
+Give `size_scale` as a list of {name, ratio}, e.g. name "headline_to_body", ratio 2.9.
 
 Give `capability_level`: L1 if every text element is flat type placed in clear space and could be reproduced by drawing text onto the image; L2 if it needs effects a renderer must apply (outlines, shadows, containers, or text following a shape); L3 if the type is integrated INTO the image - occluded by a subject, wrapped around an object, or treated as part of the artwork. Judge honestly: claiming L1 for integrated typography produces a flat, wrong recreation.
 

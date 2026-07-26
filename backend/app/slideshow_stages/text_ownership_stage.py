@@ -111,6 +111,7 @@ class SlideTextOwnershipStage:
                 effective_copy_policy=str(copy_policy) if copy_policy else None,
                 effective_overlay_policy=str(overlay_policy) if overlay_policy else None,
                 expected_block_ids={f"block-{i}" for i in range(len(blocks))},
+                expected_block_count=len(blocks),
             )
         except Exception as exc:
             return mark_failed(db, analysis_run, exc, rollback=True)

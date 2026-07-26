@@ -236,7 +236,7 @@ class SlideCompositionContractStage:
                     )
                 record_contract(
                     db, slide_id=slide.id, analysis_run_id=analysis_run.id,
-                    contract=contract,
+                    contract=contract, rejected=rejected,
                 )
             except Exception as exc:
                 return mark_failed(db, analysis_run, exc, rollback=True)

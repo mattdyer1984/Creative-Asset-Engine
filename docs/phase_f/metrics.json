@@ -1,0 +1,389 @@
+{
+  "cost": {
+    "known_cost_subtotal_usd": 1.083959,
+    "unknown_cost_calls": 8,
+    "overall_cost": "incomplete - 8 call(s) have no configured rate",
+    "per_case_known_usd": [
+      0.131328,
+      0.168159,
+      0.087688,
+      0.155473,
+      0.133476,
+      0.141206,
+      0.159001,
+      0.107628
+    ],
+    "mean_known_usd_per_case": 0.135495,
+    "worst_case_known_usd": 0.168159,
+    "best_case_known_usd": 0.087688,
+    "per_stage": {
+      "composition_contract": {
+        "calls": 8,
+        "known_usd": 0.40647,
+        "unknown": 0,
+        "prompt_tokens": 23628,
+        "completion_tokens": 9611,
+        "mean_known_usd_per_case": 0.050809,
+        "deterministic": false
+      },
+      "scene_intelligence": {
+        "calls": 8,
+        "known_usd": 0.32985,
+        "unknown": 0,
+        "prompt_tokens": 19932,
+        "completion_tokens": 7673,
+        "mean_known_usd_per_case": 0.041231,
+        "deterministic": false
+      },
+      "creative_profile": {
+        "calls": 4,
+        "known_usd": 0.16088,
+        "unknown": 0,
+        "prompt_tokens": 9358,
+        "completion_tokens": 3803,
+        "mean_known_usd_per_case": 0.02011,
+        "deterministic": false
+      },
+      "marketing_analysis": {
+        "calls": 8,
+        "known_usd": 0.090055,
+        "unknown": 0,
+        "prompt_tokens": 4571,
+        "completion_tokens": 2240,
+        "mean_known_usd_per_case": 0.011257,
+        "deterministic": false
+      },
+      "ocr": {
+        "calls": 8,
+        "known_usd": 0.062849,
+        "unknown": 0,
+        "prompt_tokens": 10184,
+        "completion_tokens": 6343,
+        "mean_known_usd_per_case": 0.007856,
+        "deterministic": false
+      },
+      "narrative_structure": {
+        "calls": 8,
+        "known_usd": 0.033855,
+        "unknown": 0,
+        "prompt_tokens": 2193,
+        "completion_tokens": 763,
+        "mean_known_usd_per_case": 0.004232,
+        "deterministic": false
+      },
+      "creative_fingerprint": {
+        "calls": 8,
+        "known_usd": 0.0,
+        "unknown": 8,
+        "prompt_tokens": 10303,
+        "completion_tokens": 3603,
+        "mean_known_usd_per_case": 0.0,
+        "deterministic": false
+      },
+      "text_ownership": {
+        "calls": 0,
+        "known_usd": 0.0,
+        "unknown": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "mean_known_usd_per_case": 0.0,
+        "deterministic": true
+      }
+    }
+  },
+  "latency": {
+    "mean_end_to_end_ms": 71099.4,
+    "max_end_to_end_ms": 91783.3,
+    "min_end_to_end_ms": 48832.7,
+    "total_provider_wait_ms": 567532.3,
+    "total_wall_ms": 568794.9,
+    "provider_share_of_wall": 0.998,
+    "deterministic_cpu_ms_total": 36.6,
+    "mis_instrumented_stages": [
+      "composition_contract",
+      "creative_fingerprint",
+      "ocr",
+      "scene_intelligence"
+    ],
+    "mis_instrumentation_note": "these stages open their AnalysisRun after concurrent provider work completes, so duration_ms records bookkeeping only and `duration_ms - provider_call_ms` is negative and meaningless",
+    "per_stage": {
+      "composition_contract": {
+        "runs": 8,
+        "mean_effective_ms": 18816.8,
+        "max_effective_ms": 25994.2,
+        "mean_provider_ms": 18816.8,
+        "share_of_case_wall": 0.265,
+        "duration_ms_is_wall_clock": false
+      },
+      "scene_intelligence": {
+        "runs": 8,
+        "mean_effective_ms": 13641.5,
+        "max_effective_ms": 25765.7,
+        "mean_provider_ms": 13641.5,
+        "share_of_case_wall": 0.192,
+        "duration_ms_is_wall_clock": false
+      },
+      "ocr": {
+        "runs": 8,
+        "mean_effective_ms": 11708.6,
+        "max_effective_ms": 23823.7,
+        "mean_provider_ms": 11708.6,
+        "share_of_case_wall": 0.165,
+        "duration_ms_is_wall_clock": false
+      },
+      "creative_fingerprint": {
+        "runs": 8,
+        "mean_effective_ms": 9958.0,
+        "max_effective_ms": 20951.0,
+        "mean_provider_ms": 9958.0,
+        "share_of_case_wall": 0.14,
+        "duration_ms_is_wall_clock": false
+      },
+      "creative_profile": {
+        "runs": 8,
+        "mean_effective_ms": 7936.1,
+        "max_effective_ms": 22215.0,
+        "mean_provider_ms": 7932.3,
+        "share_of_case_wall": 0.112,
+        "duration_ms_is_wall_clock": true
+      },
+      "marketing_analysis": {
+        "runs": 8,
+        "mean_effective_ms": 6287.6,
+        "max_effective_ms": 8590.8,
+        "mean_provider_ms": 6281.7,
+        "share_of_case_wall": 0.089,
+        "duration_ms_is_wall_clock": true
+      },
+      "narrative_structure": {
+        "runs": 8,
+        "mean_effective_ms": 2606.7,
+        "max_effective_ms": 4185.9,
+        "mean_provider_ms": 2602.7,
+        "share_of_case_wall": 0.037,
+        "duration_ms_is_wall_clock": true
+      },
+      "text_ownership": {
+        "runs": 8,
+        "mean_effective_ms": 3.3,
+        "max_effective_ms": 10.5,
+        "mean_provider_ms": 0.0,
+        "share_of_case_wall": 0.0,
+        "duration_ms_is_wall_clock": true
+      }
+    }
+  },
+  "calibration": {
+    "bands": {
+      "high (>=0.80)": {
+        "n": 45,
+        "correct": 44,
+        "accuracy": 0.978,
+        "sources": {
+          "device": 8,
+          "text_mode": 8,
+          "ownership": 29
+        }
+      },
+      "medium (0.55-0.79)": {
+        "n": 0,
+        "correct": 0,
+        "accuracy": null,
+        "sources": {}
+      },
+      "low (<0.55)": {
+        "n": 2,
+        "correct": 2,
+        "accuracy": 1.0,
+        "sources": {
+          "ownership": 2
+        }
+      }
+    },
+    "decisions_with_no_confidence": 0
+  },
+  "failures": [
+    {
+      "case": "case01_weather_tv",
+      "artifact": "text_ownership",
+      "klass": "ownership_ambiguity",
+      "summary": "no decision for 'Lerwick / Stornoway / Aberdeen / Edinburgh / Glasg'",
+      "evidence": "the text appears in OCR output but no decision matched it",
+      "expected": "environmental"
+    },
+    {
+      "case": "case01_weather_tv",
+      "artifact": "text_ownership",
+      "klass": "ocr_failure",
+      "summary": "no decision for '16 17 21 23 24 26 27 29 30 32 35 25 28'",
+      "evidence": "OCR never reported this text, so nothing could own it",
+      "expected": "environmental"
+    },
+    {
+      "case": "case01_weather_tv",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'caption'",
+      "evidence": "best overlap 0.11 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case01_weather_tv",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'tv-screen'",
+      "evidence": "best overlap 0.27 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case01_weather_tv",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'subtitle'",
+      "evidence": "best overlap 0.28 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case02_books",
+      "artifact": "text_ownership",
+      "klass": "ocr_failure",
+      "summary": "no decision for '\ud83d\udc47\ud83d\udc47\ud83d\udc47'",
+      "evidence": "OCR never reported this text, so nothing could own it",
+      "expected": "platform_caption"
+    },
+    {
+      "case": "case02_books",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'books'",
+      "evidence": "best overlap 0.14 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case02_books",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'emoji-row'",
+      "evidence": "best overlap 0.28 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case03_mini_ac",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'caption'",
+      "evidence": "best overlap 0.11 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case03_mini_ac",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'subtitle'",
+      "evidence": "best overlap 0.01 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case04_posture",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'numeral-rule'",
+      "evidence": "best overlap 0.13 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case04_posture",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'whitespace'",
+      "evidence": "best overlap 0.02 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "artifact": "text_ownership",
+      "klass": "typography_mismatch",
+      "summary": "'10/10 man' owned by typography, benchmark says image",
+      "evidence": "capability inferred L1 but the benchmark says L2, so the capability gate never fired"
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "artifact": "typography_system",
+      "klass": "typography_mismatch",
+      "summary": "primary_family_class: inferred 'grotesque', benchmark says 'condensed-sans'",
+      "evidence": "single vision call, no cross-check against the render"
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "artifact": "typography_system",
+      "klass": "typography_mismatch",
+      "summary": "secondary_family_class: inferred 'serif', benchmark says 'display'",
+      "evidence": "single vision call, no cross-check against the render"
+    },
+    {
+      "case": "case05_ten_out_of_ten",
+      "artifact": "typography_system",
+      "klass": "typography_mismatch",
+      "summary": "capability_level: inferred 'L1', benchmark says 'L2'",
+      "evidence": "single vision call, no cross-check against the render"
+    },
+    {
+      "case": "case06_meal_prep",
+      "artifact": "typography_system",
+      "klass": "typography_mismatch",
+      "summary": "primary_family_class: inferred 'grotesque', benchmark says 'serif'",
+      "evidence": "single vision call, no cross-check against the render"
+    },
+    {
+      "case": "case07_gut_health",
+      "artifact": "typography_system",
+      "klass": "typography_mismatch",
+      "summary": "primary_family_class: inferred 'condensed-sans', benchmark says 'grotesque'",
+      "evidence": "single vision call, no cross-check against the render"
+    },
+    {
+      "case": "case07_gut_health",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'headline'",
+      "evidence": "best overlap 0.26 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case07_gut_health",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'bad-label'",
+      "evidence": "best overlap 0.28 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case07_gut_health",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'divider'",
+      "evidence": "best overlap 0.26 < 0.30",
+      "needs_adjudication": true
+    },
+    {
+      "case": "case08_fan_shelf",
+      "artifact": "composition_contract",
+      "klass": "composition_ambiguity",
+      "summary": "no inferred region for 'caption'",
+      "evidence": "best overlap 0.25 < 0.30",
+      "needs_adjudication": true
+    }
+  ],
+  "failure_counts": {
+    "ocr_failure": 2,
+    "provider_hallucination": 0,
+    "ownership_ambiguity": 1,
+    "composition_ambiguity": 13,
+    "typography_mismatch": 6,
+    "generation_failure": 0,
+    "cleanup_failure": 0,
+    "validation_failure": 0,
+    "benchmark_annotation_error": 0,
+    "scoring_limitation": 0
+  }
+}
