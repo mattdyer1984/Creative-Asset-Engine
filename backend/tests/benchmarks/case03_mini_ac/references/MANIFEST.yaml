@@ -1,0 +1,6 @@
+# Canonical Product References for case03_mini_ac.
+# See ../../REFERENCES.md for the acceptance criteria and manifest format.
+#
+# EMPTY: no asset has been sourced yet. Every entry needs a real checksum and
+# a stateable licence before it may be committed.
+assets: []

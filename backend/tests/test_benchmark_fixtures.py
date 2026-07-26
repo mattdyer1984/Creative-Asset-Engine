@@ -335,3 +335,89 @@ def test_expected_lock_fields_are_real_profile_fields(case):
         assert field in known, (
             f"{field!r} is not produced by the Product Lock Profile stage"
         )
+
+
+# --- Canonical Product References (suite v3) ------------------------------
+#
+# A Creative Input and a Canonical Product Reference are different assets.
+# `original.jpg` carries captions, shelf context and surrounding products;
+# production never treats such a frame as a product reference, and reference
+# scoring correctly rejected one at 0.4575. These tests govern the separate
+# reference assets, so the benchmark supplies inputs production would accept
+# rather than relaxing the gate to get through it.
+
+REFERENCE_ROLES = {"packaging", "product", "detail", "angle"}
+
+
+def _manifest(case: pathlib.Path) -> dict | None:
+    path = case / "references" / "MANIFEST.yaml"
+    return yaml.safe_load(path.read_text()) if path.exists() else None
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_a_references_directory_always_has_a_manifest(case):
+    """An asset directory without a manifest is an ungoverned asset store."""
+    if (case / "references").exists():
+        assert _manifest(case) is not None, f"{case.name}: references/ has no MANIFEST.yaml"
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_every_reference_asset_is_declared(case):
+    """
+    An undeclared file in references/ would reach the reference library with
+    no provenance - the same class of problem as an unpinned font reaching
+    the renderer.
+    """
+    manifest = _manifest(case)
+    if manifest is None:
+        return
+    declared = {a["file"] for a in manifest.get("assets") or []}
+    present = {
+        p.name for p in (case / "references").iterdir()
+        if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    }
+    assert present == declared, (
+        f"{case.name}: undeclared {sorted(present - declared)}, "
+        f"missing {sorted(declared - present)}"
+    )
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_every_declared_asset_is_fully_attributed(case):
+    manifest = _manifest(case)
+    if manifest is None:
+        return
+    for asset in manifest.get("assets") or []:
+        for field in ("file", "role", "sha256", "source", "licence",
+                      "added_in_suite_version"):
+            assert asset.get(field), f"{case.name}/{asset.get('file')}: {field} is required"
+        assert asset["role"] in REFERENCE_ROLES, asset["role"]
+        assert len(asset["sha256"]) == 64, "sha256 must be a full digest"
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_declared_checksums_match_the_files(case):
+    """
+    An asset that has drifted from its recorded checksum is no longer the
+    asset that was reviewed.
+    """
+    import hashlib
+
+    manifest = _manifest(case)
+    if manifest is None:
+        return
+    for asset in manifest.get("assets") or []:
+        path = case / "references" / asset["file"]
+        if not path.exists():
+            continue
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert digest == asset["sha256"], (
+            f"{case.name}/{asset['file']}: checksum mismatch - the asset has "
+            f"changed since it was reviewed"
+        )
+
+
+def test_reference_assets_are_documented():
+    assert (BENCHMARKS / "REFERENCES.md").exists(), (
+        "the governed-asset rules must be written down, not implied"
+    )
