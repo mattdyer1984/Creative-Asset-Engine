@@ -6,6 +6,15 @@ This document is the fast-orientation entry point. `MIGRATION_PLAN.md` is the ex
 
 ---
 
+## Architecture direction (read before major feature work)
+
+`docs/adr/0001-creative-intelligence-engine.md` is the canonical V2
+architecture: project-level analysis, the Composition Contract, the hybrid
+typography architecture, and the baked-in-versus-overlay text product rule.
+It supersedes the slide-level assumptions in MIGRATION_PLAN.md's "AI Creative
+Engine vNext" ADR. Status is Proposed until its implementation gates pass.
+
+
 ## 1. What this is
 
 A FastAPI/SQLAlchemy backend + React/TypeScript frontend that takes a TikTok slideshow ad (or a locally-uploaded set of images) plus a product, and uses AI to **recreate** each slide as a new, original marketing image — preserving the product's real identity (via reference-image-conditioned generation, not text description) while varying the scene, composition, and on-screen text. It also validates its own output (does the generated image actually preserve the product?) and composites marketing text back on top with its own rendering engine.

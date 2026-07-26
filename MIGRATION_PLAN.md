@@ -3949,6 +3949,10 @@ Only `slideshow_upload` is wired through this table as of this phase - Phase 9.6
 
 ---
 
+> **Partially superseded (2026-07-26).** The slide-level architectural
+> assumptions below are replaced by `docs/adr/0001-creative-intelligence-engine.md`.
+> Product Lock v2 remains in force and is extended, not replaced.
+
 ## ADR: AI Creative Engine vNext — 2026-07-23
 
 **Status**: implementation authorized and in progress as of 2026-07-23 (Phase 10, see the Phase list and standing authorization renewal above) - the sections below remain the authoritative design reference. Does not modify, supersede, or implement anything in the "ADR: Canonical Product Reference (Product Lock v2)" above - that ADR (Phase 9) is a dependency this one builds on and is implemented first. Every claim about "what exists today" below was verified by direct code investigation on 2026-07-23 (four parallel codebase surveys covering the domain model, the AI-provider abstraction, the product-source/evidence-ingestion code, and the stage pipeline/frontend), not assumed from the user's framing - several of the user's implicit assumptions about the current system turned out to be wrong in specific, important ways, documented inline below rather than silently corrected. Revised five times by the user on 2026-07-23 before implementation began (see Revisions #1-#5 below); sections rewritten in place to stay internally consistent, no renumbering.
