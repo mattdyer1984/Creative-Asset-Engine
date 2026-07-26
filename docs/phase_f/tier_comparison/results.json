@@ -1,0 +1,20 @@
+{
+  "lite": {
+    "model_requested": "gemini-3.1-flash-lite-image",
+    "model_reported": "gemini-3.1-flash-lite-image",
+    "provider_reported": "nano_banana",
+    "latency_ms": 50240.6,
+    "bytes": 671131,
+    "file": "case02_lite.png",
+    "cost_status": "unknown - no configured rate"
+  },
+  "high_quality": {
+    "model_requested": "gemini-3.1-flash-image-preview",
+    "model_reported": "gemini-3.1-flash-image-preview",
+    "provider_reported": "nano_banana",
+    "latency_ms": 11945.1,
+    "bytes": 703495,
+    "file": "case02_high_quality.png",
+    "cost_status": "unknown - no configured rate"
+  }
+}
