@@ -1,0 +1,86 @@
+case_id: case05_ten_out_of_ten
+source_project_type: designed_editorial
+primary_text_mode: designed_typography
+
+text_blocks:
+  - text: "HOW TO BE A"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "10/10 man"
+    class: designed_typography
+    expected_handling_mechanism: model_generated
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: aspiration
+
+composition_contract:
+  device: grid-collage
+  zones:
+    - role: subject-zone
+      bounds: [0.00, 0.00, 0.50, 0.50]
+    - role: subject-zone
+      bounds: [0.50, 0.00, 1.00, 0.50]
+    - role: subject-zone
+      bounds: [0.00, 0.50, 0.50, 1.00]
+    - role: subject-zone
+      bounds: [0.50, 0.50, 1.00, 1.00]
+    - role: text-zone
+      bounds: [0.05, 0.40, 0.95, 0.60]
+  relations:
+    - [headline, above, subheadline]
+    - [text-zone, splits, grid]
+    - [grid, contains, archetype-panels]
+  emphasis: [subheadline, headline, archetype-panels]
+
+typography_system:
+  primary_family: condensed-sans
+  secondary_family: display
+  case_rules: [upper-case-headline, lower-case-subheadline]
+  weight_hierarchy: [heavy-headline, heavy-italic-subheadline]
+  colour_roles:
+    headline: white
+    subheadline: red
+  alignment: centre
+  scale_ratios:
+    subheadline_to_headline: 1.35
+  bullets: null
+  number_treatments: inline-numeric
+  dividers: null
+  capability_level: L2
+
+production_value_strategy: refine
+
+required_invariants:
+  - a four-panel grid
+  - "the four archetype scenes: success/formalwear, gym/training, reflection/writing, physique/nature"
+  - a centred two-line headline overlapping the grid
+  - white upper-case first line, red italic second line
+  - wording verbatim
+
+allowed_transformations:
+  - the order in which archetypes occupy the grid cells
+  - the individual in each panel
+  - setting, wardrobe, time of day per panel
+  - rendering medium (photographic to stylised is acceptable)
+
+forbidden_transformations:
+  - reducing the grid below four panels
+  - dropping an archetype without replacement
+  - moving the headline out of the centre
+  - reworded copy
+
+human_rationale: >
+  The creative is the promise of a complete man expressed as four archetypes,
+  bound by a centred title. The recreation reordered the panels - gym moved to
+  top-left, sunset to top-right - proving the grid structure matters and the
+  cell ordering does not. It also shifted the medium toward a rendered look,
+  which the annotation treats as allowed.
+
+known_ambiguity: >
+  The subheadline carries a bevelled, glowing treatment (ADR §10.1 level L3).
+  Whether deterministic rendering can reproduce it is unresolved, so its
+  handling mechanism is recorded as model_generated for now while the headline
+  above it is L2-reachable.

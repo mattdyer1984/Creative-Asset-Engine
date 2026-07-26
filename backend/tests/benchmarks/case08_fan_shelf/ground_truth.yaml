@@ -1,0 +1,75 @@
+case_id: case08_fan_shelf
+source_project_type: ugc_photographic
+primary_text_mode: platform_caption
+
+text_blocks:
+  - text: "when ur paying £30 for this..."
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "16\" Pedestal Fan"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "3 speed settings / Adjustable height / Oscillating function"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "£30"
+    class: environmental
+    expected_handling_mechanism: model_generated
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: discovery
+
+composition_contract:
+  device: shelf-snapshot
+  zones:
+    - role: product-zone
+      bounds: [0.18, 0.12, 0.82, 0.70]
+    - role: text-zone
+      bounds: [0.12, 0.50, 0.88, 0.64]
+    - role: callout-zone
+      bounds: [0.20, 0.72, 0.60, 0.82]
+  relations:
+    - [caption, above, price-label]
+    - [price-label, below, product]
+    - [product, contains, packaging-text]
+    - [product, contains, feature-icons]
+    - [shelf, contains, product]
+  emphasis: [caption, product, price-label, aisle]
+
+typography_system: null
+
+production_value_strategy: refine
+
+required_invariants:
+  - the specific fan packaging with its illustration and feature icons
+  - the shelf price label showing the same price named in the caption
+  - a retail aisle context around the shelf
+  - the product photographed in situ rather than isolated
+  - wording verbatim
+
+allowed_transformations:
+  - camera position and distance
+  - surrounding stock on adjacent shelves
+  - floor surface, aisle furniture, store lighting
+  - which other products are visible
+
+forbidden_transformations:
+  - removing the price label
+  - changing the price so it disagrees with the caption
+  - substituting different packaging
+  - isolating the product on a studio background
+  - reworded copy
+
+human_rationale: >
+  The creative is a discovery: someone finding an overpriced product on a real
+  shelf. The price label is the evidence for the caption's complaint, so it and
+  the packaging are locked while the store around them is free. The recreation
+  pulled the camera back and filled the surrounding shelves with kettles - the
+  retail context is required, the specific shop is not.
+
+known_ambiguity: null

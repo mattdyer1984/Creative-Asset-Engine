@@ -1,0 +1,103 @@
+case_id: case07_gut_health
+source_project_type: designed_editorial
+primary_text_mode: designed_typography
+
+text_blocks:
+  - text: "3 SIGNS OF"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "BAD GUT HEALTH"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "AND HOW TO SUPPORT IT"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "BAD"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "GOOD"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: education
+
+composition_contract:
+  device: split-comparison
+  zones:
+    - role: text-zone
+      bounds: [0.08, 0.06, 0.92, 0.27]
+    - role: text-zone
+      bounds: [0.10, 0.28, 0.45, 0.36]
+    - role: text-zone
+      bounds: [0.55, 0.28, 0.90, 0.36]
+    - role: subject-zone
+      bounds: [0.10, 0.36, 0.90, 1.00]
+  relations:
+    - [headline, above, comparison-labels]
+    - [divider, splits, face]
+    - [bad-label, left-of, divider]
+    - [good-label, right-of, divider]
+    - [comparison-labels, above, face]
+  emphasis: [headline, comparison-labels, divider, face]
+
+typography_system:
+  primary_family: grotesque
+  secondary_family: null
+  case_rules: [upper-case-throughout]
+  weight_hierarchy: [heavy-primary, heavy-secondary, medium-tertiary]
+  colour_roles:
+    primary: near-black
+    accent: dark-red
+    negative-label: dark-red
+    positive-label: green
+  alignment: centre
+  scale_ratios:
+    accent_to_primary: 1.15
+    primary_to_tertiary: 1.9
+  bullets: null
+  number_treatments: inline-numeric
+  dividers: short-horizontal-rules-flanking-tertiary
+  capability_level: L1
+
+production_value_strategy: refine
+
+required_invariants:
+  - a single face, front-facing, centred
+  - a vertical divider splitting the face into two halves
+  - visible asymmetry between the halves (duller left, clearer right)
+  - BAD label left of the divider, GOOD label right
+  - three-line headline stack above
+  - red for the negative label, green for the positive
+  - wording verbatim
+
+allowed_transformations:
+  - facial identity, hair colour and style, facial hair
+  - clothing or bare shoulders
+  - background tone
+  - typeface family within the hierarchy
+
+forbidden_transformations:
+  - removing the divider
+  - swapping the BAD and GOOD sides
+  - making both halves identical
+  - changing the red/green colour semantics
+  - reworded copy
+
+human_rationale: >
+  The device is the whole creative: one face, split, labelled. The recreation
+  changed the person entirely - dark curly hair to blond, stubble to clean
+  shaven - and reinterpreted the typeface from a bold grotesque to a serif
+  italic, while keeping the divider, the asymmetry, the label positions and the
+  colour semantics exactly.
+
+known_ambiguity: >
+  The severity of the BAD/GOOD asymmetry is subtle in both images and cannot be
+  quantified from them; the invariant records that asymmetry exists rather than
+  how much.

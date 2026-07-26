@@ -1,0 +1,89 @@
+case_id: case06_meal_prep
+source_project_type: designed_editorial
+primary_text_mode: designed_typography
+
+text_blocks:
+  - text: "british meal prep \U0001F1EC\U0001F1E7"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "vs"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "japanese meal prep \U0001F1F0\U0001F1F7"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: comparison
+
+composition_contract:
+  device: side-by-side-comparison
+  zones:
+    - role: text-zone
+      bounds: [0.06, 0.24, 0.46, 0.36]
+    - role: text-zone
+      bounds: [0.54, 0.24, 0.94, 0.36]
+    - role: product-zone
+      bounds: [0.04, 0.36, 0.48, 0.86]
+    - role: product-zone
+      bounds: [0.52, 0.36, 0.96, 0.86]
+  relations:
+    - [left-label, above, left-stack]
+    - [right-label, above, right-stack]
+    - [connective, flanks, left-label]
+    - [connective, flanks, right-label]
+    - [left-stack, left-of, right-stack]
+  emphasis: [labels, left-stack, right-stack, setting]
+
+typography_system:
+  primary_family: serif
+  secondary_family: null
+  case_rules: [lower-case-labels]
+  weight_hierarchy: [regular-labels, regular-connective]
+  colour_roles:
+    label: white
+    connective: white
+  alignment: centre
+  scale_ratios:
+    label_to_connective: 1.5
+  bullets: null
+  number_treatments: null
+  dividers: null
+  capability_level: L1
+
+production_value_strategy: elevate
+
+required_invariants:
+  - two stacks of food containers, one per side
+  - visibly different container types between the sides
+  - a label above each stack with a connective between them
+  - both stacks on a shared surface in one continuous scene
+  - wording verbatim
+
+allowed_transformations:
+  - kitchen setting, time of day, view through windows
+  - typeface within the label hierarchy
+  - exact food contents within each container
+  - lighting and colour grading
+
+forbidden_transformations:
+  - making both stacks the same container type
+  - removing the connective
+  - separating the stacks into two images
+  - reworded copy
+
+human_rationale: >
+  A comparison creative: the whole point is that the two sides differ visibly
+  and are seen together. The container types carry that difference and are
+  preserved. The recreation moved a suburban daytime kitchen to a night-time
+  high-rise with a city skyline, and changed the label typeface from an italic
+  sans to a serif - both accepted, because neither weakens the comparison.
+
+known_ambiguity: >
+  The original pairs "japanese meal prep" with a South Korean flag and the
+  recreation with a Chinese flag. Whether the flag is meaningful or incidental
+  cannot be inferred, so it is not recorded as an invariant.

@@ -1,0 +1,73 @@
+case_id: case03_mini_ac
+source_project_type: ugc_photographic
+primary_text_mode: platform_caption
+
+text_blocks:
+  - text: "When this mini AC costs a fraction of them prices and does a job better..."
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "(Just add water & plug it in ✅)"
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "88"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: demonstration
+
+composition_contract:
+  device: scene-with-caption
+  zones:
+    - role: text-zone
+      bounds: [0.14, 0.09, 0.86, 0.24]
+    - role: product-zone
+      bounds: [0.52, 0.30, 0.80, 0.72]
+    - role: subject-zone
+      bounds: [0.00, 0.28, 0.55, 0.85]
+    - role: text-zone
+      bounds: [0.12, 0.84, 0.88, 0.92]
+  relations:
+    - [caption, above, product]
+    - [subtitle, below, product]
+    - [product, contains, display-readout]
+    - [product, right-of, bed]
+    - [lamp, right-of, product]
+  emphasis: [caption, product, bed, subtitle]
+
+typography_system: null
+
+production_value_strategy: refine
+
+required_invariants:
+  - the specific mini AC unit with its display and control panel
+  - the unit standing on a bedside surface beside a bed
+  - a bedroom setting
+  - caption above, subtitle below
+  - wording verbatim
+
+allowed_transformations:
+  - bed linen colour and texture
+  - nightstand material
+  - wall art
+  - lamp design
+  - plant species
+  - window treatment and light quality
+
+forbidden_transformations:
+  - altering the unit's form, controls or display
+  - moving the product out of the bedside position
+  - removing the bed context
+  - reworded copy
+
+human_rationale: >
+  A product demonstration in a believable domestic setting. The unit is locked;
+  the room is a stage. The recreation restyled every soft furnishing - navy to
+  sage, dark wood to light oak, landscape art to abstract - while keeping the
+  product's position, scale and eye-level framing identical.
+
+known_ambiguity: null

@@ -1,0 +1,116 @@
+# Benchmark ground-truth schema (ADR 0001 §16).
+#
+# Closed vocabularies throughout. If a case cannot be expressed without a new
+# term, extend the vocabulary here WITH THE CASE AS EVIDENCE - do not widen a
+# field into free text. Free text is where disagreement hides, and the whole
+# point of WP-0.1 is that two annotators produce the same structure.
+#
+# `human_rationale` and `known_ambiguity` are the only prose fields. They are
+# for the reader, never parsed.
+
+case_id: str                      # matches the directory name
+
+source_project_type:              # what kind of creative this is
+  - designed_editorial            # typeset, integral typography
+  - ugc_photographic              # real photo + platform caption
+  - hybrid                        # genuinely both (none in v0)
+
+primary_text_mode:                # the project DEFAULT (ADR §12.1)
+  - designed_typography
+  - platform_caption
+
+text_blocks:                      # every text element in the original
+  - text: str
+    class:                        # ADR §4
+      - product_native
+      - designed_typography
+      - platform_caption
+      - environmental
+    expected_handling_mechanism:  # who owns reconstructing it
+      - product_lock              # reference conditioning; never re-typeset
+      - deterministic_typography  # style-aware renderer
+      - deterministic_overlay     # caption renderer, user-removable
+      - model_generated           # expressive/environmental lettering
+    optional: bool                # may the user remove it entirely?
+
+overlay_policy:                   # ADR §4.2
+  - keep
+  - remove
+  - replace
+  - review_individually
+
+copy_policy:                      # ADR §5
+  - preserve_verbatim
+  - preserve_meaning
+  - user_replacement
+
+creative_intent:                  # ADR §8
+  - discovery
+  - comparison
+  - education
+  - warning
+  - aspiration
+  - transformation
+  - humour
+  - social_proof
+  - demonstration
+  - product_reveal
+
+composition_contract:             # ADR §9
+  device:
+    - split-comparison
+    - grid-collage
+    - side-by-side-comparison
+    - product-hero
+    - scene-with-caption
+    - shelf-snapshot
+    - diagram-with-callout
+    - screen-in-scene
+  zones:                          # normalised [x_min, y_min, x_max, y_max]
+    - role:
+        - text-zone
+        - subject-zone
+        - product-zone
+        - negative-space
+        - callout-zone
+      bounds: [float, float, float, float]
+  relations:                      # subject / relation / object
+    - [str, relation, str]        # relation ∈ above | below | left-of |
+                                  #   right-of | attached-to | points-to |
+                                  #   splits | flanks | contains
+  emphasis: [str]                 # ordered: what the eye reaches 1st, 2nd, 3rd
+
+typography_system:                # ADR §10; null for ugc_photographic projects
+  primary_family:                 # family CLASS, never a specific face
+    - serif
+    - grotesque
+    - geometric-sans
+    - condensed-sans
+    - slab
+    - script
+    - display
+  secondary_family: (same vocabulary, nullable)
+  case_rules: [str]
+  weight_hierarchy: [str]
+  colour_roles: {role: hex-or-name}
+  alignment: [left, centre, right]
+  scale_ratios: {str: float}
+  bullets: str | null
+  number_treatments: str | null
+  dividers: str | null
+  capability_level:               # ADR §10.1
+    - L1                          # flat structured
+    - L2                          # stroke/shadow/gradient/containers
+    - L3                          # expressive lettering
+
+production_value_strategy:        # ADR §7
+  - match
+  - refine
+  - elevate
+
+required_invariants: [str]        # must survive, or it is a different creative
+allowed_transformations: [str]    # free to change
+forbidden_transformations: [str]  # changing these breaks the creative
+
+human_rationale: str              # prose, for the reader
+known_ambiguity: str | null       # where intent cannot be inferred from images

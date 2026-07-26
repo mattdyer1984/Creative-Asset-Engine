@@ -1,0 +1,84 @@
+case_id: case01_weather_tv
+source_project_type: ugc_photographic
+primary_text_mode: platform_caption
+
+text_blocks:
+  - text: "NOW WAY NOT AGAINNN\U0001F629"
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "Apparently it's only going to get hotter so please don't be paying..."
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "Lerwick / Stornoway / Aberdeen / Edinburgh / Glasgow / Belfast / Newcastle / Liverpool / Hull / Birmingham / Norwich / Cardiff / London / Southeast / Plymouth / St Helier"
+    class: environmental
+    expected_handling_mechanism: model_generated
+    optional: false
+  - text: "16 17 21 23 24 26 27 29 30 32 35 25 28"
+    class: environmental
+    expected_handling_mechanism: model_generated
+    optional: false
+  - text: "Thursday"
+    class: environmental
+    expected_handling_mechanism: model_generated
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: humour
+
+composition_contract:
+  device: screen-in-scene
+  zones:
+    - role: text-zone
+      bounds: [0.10, 0.09, 0.90, 0.15]
+    - role: subject-zone
+      bounds: [0.08, 0.15, 0.92, 0.36]
+    - role: text-zone
+      bounds: [0.10, 0.36, 0.90, 0.46]
+    - role: negative-space
+      bounds: [0.00, 0.46, 1.00, 1.00]
+  relations:
+    - [caption, above, television]
+    - [subtitle, below, television]
+    - [television, contains, weather-graphic]
+    - [television, above, media-console]
+    - [presenter, left-of, weather-map]
+  emphasis: [caption, weather-graphic, subtitle, room]
+
+typography_system: null
+
+production_value_strategy: refine
+
+required_invariants:
+  - a television showing a broadcast weather graphic
+  - the UK heat map with its city labels and temperature values
+  - the "Thursday" day label
+  - a domestic living-room setting around the television
+  - caption above the screen, subtitle below it
+  - wording verbatim
+
+allowed_transformations:
+  - the presenter's identity, gender, clothing
+  - room styling, furniture, artwork, plants, lighting
+  - time of day and window light
+  - foreground props
+
+forbidden_transformations:
+  - altering the temperature values or city labels
+  - removing the television or the weather graphic
+  - moving the caption below the screen
+  - reworded copy
+
+human_rationale: >
+  The joke depends on the broadcast being credible evidence: the map and its
+  numbers are the punchline's setup, so they are preserved almost exactly. The
+  presenter is scenery - the recreation swapped a suited man for a woman in a
+  floral dress without weakening anything. The room was restyled and brightened
+  but kept its function: television on a console, lamp left, plant right, art
+  above, coffee table in the foreground.
+
+known_ambiguity: >
+  Whether the presenter's gender change was deliberate or incidental cannot be
+  determined. It is recorded as allowed rather than required.

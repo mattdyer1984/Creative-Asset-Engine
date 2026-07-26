@@ -1,0 +1,114 @@
+case_id: case04_posture
+source_project_type: designed_editorial
+primary_text_mode: designed_typography
+
+text_blocks:
+  - text: "1."
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "Your upper back"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "feels rounded"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "You struggle to straighten up"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+  - text: "Shoulders keep falling forward"
+    class: designed_typography
+    expected_handling_mechanism: deterministic_typography
+    optional: false
+
+overlay_policy: keep          # nothing to remove - there is no platform caption
+copy_policy: preserve_verbatim
+creative_intent: education
+
+composition_contract:
+  device: diagram-with-callout
+  zones:
+    - role: text-zone
+      bounds: [0.04, 0.10, 0.45, 0.62]
+    - role: subject-zone
+      bounds: [0.30, 0.18, 1.00, 1.00]
+    - role: callout-zone
+      bounds: [0.34, 0.24, 0.52, 0.56]
+    - role: negative-space
+      bounds: [0.00, 0.62, 0.30, 1.00]
+  relations:
+    - [numeral, above, headline]
+    - [headline, above, bullets]
+    - [spine-overlay, attached-to, subject.upper-back]
+    - [subject, right-of, text-zone]
+    - [laptop, contains, subject.hands]
+  emphasis: [numeral, headline, spine-overlay, bullets]
+
+typography_system:
+  primary_family: serif
+  secondary_family: serif
+  case_rules: [sentence-case-headline, sentence-case-bullets]
+  weight_hierarchy: [regular-headline, italic-emphasis, regular-body]
+  colour_roles:
+    numeral: dark-red
+    headline: near-black
+    emphasis: dark-red
+    body: near-black
+    bullet-marker: dark-red
+    rule: dark-red
+  alignment: left
+  scale_ratios:
+    numeral_to_headline: 1.6
+    headline_to_body: 2.9
+  bullets: round-marker-coloured
+  number_treatments: large-numeral-with-underrule
+  dividers: short-horizontal-rule-under-numeral
+  capability_level: L1
+
+production_value_strategy: refine
+
+required_invariants:
+  - illustrated medium preserved
+  - spine overlay present and attached to the upper back
+  - red glow concentrated on the upper spine
+  - seated hunched pose, side profile facing right
+  - subject working at a laptop on a desk
+  - text zone occupies the left, subject the right
+  - "typographic hierarchy: numeral, headline, italic emphasis, bullets"
+  - wording verbatim
+
+allowed_transformations:
+  - facial identity, hair, beard
+  - clothing colour and garment type
+  - desk material and colour
+  - props (mug, plant may become other desk objects)
+  - additional incidental props
+  - exact serif face within the serif family
+  - colour of the rule and bullet markers
+
+forbidden_transformations:
+  - converting the illustration to a photograph
+  - removing or weakening the spine overlay
+  - changing the pose to upright or non-seated
+  - moving text to the right and subject to the left
+  - reworded or paraphrased copy
+  - replacing designed typography with caption styling
+
+human_rationale: >
+  The creative is an educational diagram: a symptom, named, with the anatomy
+  that causes it drawn onto the body. The person is a vehicle for the posture,
+  not the subject - so their identity is free while their pose is not. The
+  recreation changed hair, beard, clothing, desk colour and props, and added a
+  sleeping dog, while keeping the hunch, the spine, the layout and the exact
+  wording. It also relaxed the headline to lowercase and switched the rule and
+  bullet markers from red to black, which shows the typography is reconstructed
+  within a system rather than copied.
+
+known_ambiguity: >
+  Whether the lowercase headline and black rule were deliberate design choices
+  or incidental to the generation cannot be determined from the images. The
+  annotation treats them as allowed variation rather than required, because the
+  hierarchy is unchanged either way.

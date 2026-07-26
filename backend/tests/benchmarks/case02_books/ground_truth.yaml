@@ -1,0 +1,86 @@
+case_id: case02_books
+source_project_type: ugc_photographic
+primary_text_mode: platform_caption
+
+text_blocks:
+  - text: "All 5 books for the price of 1 right now"
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "\U0001F447\U0001F447\U0001F447"
+    class: platform_caption
+    expected_handling_mechanism: deterministic_overlay
+    optional: true
+  - text: "Atomic Habits / James Clear"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "The Psychology of Money / Morgan Housel"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "The Let Them Theory / Mel Robbins"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "Don't Believe Everything You Think / Joseph Nguyen"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+  - text: "The Courage To Be Disliked / Ichiro Kishimi and Fumitake Koga"
+    class: product_native
+    expected_handling_mechanism: product_lock
+    optional: false
+
+overlay_policy: keep
+copy_policy: preserve_verbatim
+creative_intent: aspiration
+
+composition_contract:
+  device: product-hero
+  zones:
+    - role: text-zone
+      bounds: [0.14, 0.14, 0.86, 0.28]
+    - role: product-zone
+      bounds: [0.08, 0.30, 0.92, 0.82]
+    - role: text-zone
+      bounds: [0.20, 0.82, 0.55, 0.90]
+  relations:
+    - [caption, above, books]
+    - [emoji-row, below, books]
+    - [books, contains, cover-text]
+  emphasis: [caption, books, emoji-row]
+
+typography_system: null
+
+production_value_strategy: elevate
+
+required_invariants:
+  - all five specific book titles and their authors
+  - cover artwork recognisable per title
+  - five books visible together as one group
+  - caption above the group
+  - pointing emoji below the group
+  - wording verbatim
+
+allowed_transformations:
+  - camera angle (overhead flat-lay to eye-level upright is acceptable)
+  - arrangement and ordering of the books
+  - surface and setting
+  - added incidental props
+  - lighting and time of day
+
+forbidden_transformations:
+  - substituting different titles
+  - reducing the count below five
+  - fabricating cover artwork not belonging to the real book
+  - reworded copy
+
+human_rationale: >
+  The offer is the creative: five specific books for one price. The books are
+  therefore locked to their real covers, and everything else is free. The
+  recreation moved from a plain tiled floor to a marble table in a high-rise
+  with a London skyline, and changed the camera from overhead to eye-level -
+  a deliberate uplift in production value, not incidental variation.
+
+known_ambiguity: null
