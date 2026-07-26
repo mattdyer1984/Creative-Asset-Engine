@@ -80,6 +80,10 @@ providers:
   # the primary image_generation call itself raises. null disables
   # fallback entirely.
   image_generation_fallback: openai
+  # Escalation WITHIN the Google path, tried before the emergency fallback.
+  # The preview tier is slower and less predictable but higher quality, so it
+  # earns its place as a rung rather than as the default.
+  image_generation_high_quality_model: gemini-3.1-flash-image-preview
 
 models:
   openai:
@@ -108,7 +112,17 @@ models:
     # general-purpose tier. Must be live-verified with a real API call
     # before being trusted, same discipline as every other provider
     # change in this codebase.
-    image_generation: gemini-3.1-flash-image-preview
+    #
+    # Provider-routing audit: primary moved from the PREVIEW tier to Lite.
+    # Measured on an identical 8-reference production-sized payload, Lite
+    # returned in 4.6s against preview's 14.6s - and preview swung 14.6s /
+    # 46.5s / 59.5s / 141.2s / 172.1s across runs for comparable work,
+    # against a 180s client timeout. That variance is server-side queueing
+    # on a capacity-shed preview tier, which is why a 503 can arrive while
+    # Google's status page is green: preview capacity is managed separately
+    # from GA and is not on the dashboard. Lite is what Phase 10.2
+    # live-verified and is the adapter's own default.
+    image_generation: gemini-3.1-flash-lite-image
   gemini:
     # Distinct entry from nano_banana above even though both are Google
     # Gemini models under the same account - these are the general-

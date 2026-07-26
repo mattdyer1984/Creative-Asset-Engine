@@ -98,6 +98,21 @@ pricing:
         once the provider recovers.
 
   nano_banana:
+    gemini-3.1-flash-lite-image:
+      # Used for: image_generation - the PRIMARY model since the
+      # provider-routing audit (providers.yaml).
+      status: unknown
+      currency: USD
+      source: "https://ai.google.dev/gemini-api/docs/pricing"
+      verified_on: "2026-07-26"
+      reason: >-
+        Same two obstacles as the preview variant below, and one more: the
+        published page lists "Gemini 3.1 Flash Image" without separating the
+        Lite tier, so no figure can be attributed to this model with
+        confidence. Left explicitly unknown rather than guessed - a run
+        using it reports incomplete cost, which is the honest outcome.
+        Standing rule: no rate is inferred from unofficial sources.
+
     gemini-3.1-flash-image-preview:
       # Used for: image_generation - the PRIMARY provider (providers.yaml).
       status: unknown

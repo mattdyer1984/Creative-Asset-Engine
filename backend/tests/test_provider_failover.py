@@ -169,3 +169,34 @@ def test_status_is_read_from_common_sdk_attributes():
         status_code = 429
     assert status_of(_Alt()) == 429
     assert status_of(Exception("no status")) is None
+
+
+def test_the_primary_image_model_is_not_the_preview_tier():
+    """
+    Provider-routing audit. The preview tier swung 14.6s to 172.1s on
+    comparable payloads against a 180s timeout, and shed capacity as 503s
+    while Google's GA status stayed green. Lite returned the same 8-reference
+    payload in 4.6s and is the tier Phase 10.2 live-verified.
+    """
+    from app.ai_providers.registry import default_registry
+
+    primary = default_registry.image_generation()
+    assert primary.provider == "nano_banana"
+    assert "preview" not in primary.model, (
+        "the primary image model must not be a preview tier - see "
+        "docs/provider_audit/NANO_BANANA_DIAGNOSTIC.md"
+    )
+
+
+def test_escalation_stays_inside_the_google_path():
+    """
+    The higher-quality rung must be the same provider. Escalating straight to
+    GPT Image would make the emergency fallback the escalation step.
+    """
+    from app.ai_providers.registry import default_registry
+
+    primary = default_registry.image_generation()
+    high_quality = default_registry.image_generation_high_quality()
+    assert high_quality is not None, "the escalation rung should be configured"
+    assert high_quality.provider == primary.provider
+    assert high_quality.model != primary.model

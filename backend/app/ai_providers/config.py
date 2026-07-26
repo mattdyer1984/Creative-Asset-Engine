@@ -67,6 +67,10 @@ class ProvidersConfig(BaseModel):
     # already exists. None disables fallback entirely (e.g. if the two
     # configured providers are deliberately the same).
     image_generation_fallback: str | None = "openai"
+    # Provider-routing audit. The higher-quality model of the PRIMARY image
+    # provider, tried after retries and before the emergency fallback, so
+    # escalation stays inside the Google path. None disables the rung.
+    image_generation_high_quality_model: str | None = None
 
 
 class ModelsConfig(BaseModel):

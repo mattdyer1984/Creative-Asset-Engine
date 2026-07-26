@@ -59,3 +59,58 @@ The fallback fired on a transient error that a single retry would very likely
 have absorbed, and sent the work to GPT Image at **$0.25 and 139.9 s** —
 against Nano Banana's 24.1 s on the call that succeeded. GPT Image was
 behaving as the effective default, exactly as suspected.
+
+---
+
+# Addendum — why 503s arrive while Google's status page is green
+
+Your question was the right one, and it has an answer.
+
+## The 503 is real, and it is model-specific
+
+The P1 traceback shows the `google-genai` SDK's own internal retry (tenacity)
+exhausting and re-raising the server's `ServerError`. So this was a genuine
+503 from Google after the SDK had already retried — not a client timeout and
+not our error translation.
+
+But it was on **`gemini-3.1-flash-image-preview`**. Preview-tier capacity is
+managed separately from GA services and is not represented on the status
+dashboard. **A green status page and 503s on a preview model are entirely
+consistent** — preview capacity is shed under load precisely so GA is not.
+
+## Two hypotheses tested and eliminated
+
+| Hypothesis | Test | Result |
+|---|---|---|
+| Concurrency triggers it | 3 sequential vs 3 concurrent, identical prompt | **6/6 OK**, 6–11 s. Not concurrency |
+| Payload size triggers it | 1, 3, 5, 8 references at 900×1200 with a long prompt | **4/4 OK** — but latency 9.4 s → 172.1 s |
+
+## The signal is latency variance, not failure
+
+Measured on `gemini-3.1-flash-image-preview` for comparable production-sized
+work: **14.6 s · 24.1 s · 46.5 s · 59.5 s · 141.2 s · 172.1 s**, against a
+**180 s** client timeout. A 12× swing on the same payload shape is
+server-side queueing, and 172.1 s leaves 8 s of headroom.
+
+Head-to-head on an identical 8-reference payload:
+
+| Model | Latency |
+|---|---|
+| `gemini-3.1-flash-lite-image` | **4.6 s** |
+| `gemini-3.1-flash-image-preview` | 14.6 s |
+
+## Correction applied
+
+`providers.yaml` moves the primary from the preview tier to
+**`gemini-3.1-flash-lite-image`** — the tier Phase 10.2 originally
+live-verified, and the adapter's own default. The preview model becomes the
+**high-quality escalation rung**, tried after retries and before the
+emergency GPT Image fallback.
+
+    primary       nano_banana / gemini-3.1-flash-lite-image
+    high quality  nano_banana / gemini-3.1-flash-image-preview
+    fallback      openai      / gpt-image-1
+
+Both Google models remain **explicitly unpriced** in `pricing.yaml`. The
+published page does not separate the Lite tier, so no figure can be
+attributed with confidence, and no rate has been guessed.
