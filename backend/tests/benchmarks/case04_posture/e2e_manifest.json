@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0",
+  "renderer_version": "L1-1.0",
+  "profile_id": "profile-e2e",
+  "typography_schema_version": "1.0",
+  "font_token_bindings": {
+    "serif_editorial_regular": "/System/Library/Fonts/Supplemental/Georgia.ttf[0]",
+    "serif_editorial_italic": "/System/Library/Fonts/Supplemental/Georgia Italic.ttf[0]"
+  },
+  "source_blocks": [
+    "1.",
+    "Your upper back",
+    "feels rounded",
+    "• You struggle to straighten up",
+    "• Shoulders keep falling forward"
+  ],
+  "text_ownership_decisions": [
+    {
+      "block_id": "block-0",
+      "text": "1.",
+      "text_class": "designed_typography",
+      "owner": "deterministic_typography",
+      "handling_policy": "preserve_verbatim",
+      "source": "block_override",
+      "confidence": 1.0,
+      "reason": "editorial: standalone list numeral; editorial: label-length copy",
+      "bounds": [
+        0.083,
+        0.128,
+        0.175,
+        0.238
+      ]
+    },
+    {
+      "block_id": "block-1",
+      "text": "Your upper back",
+      "text_class": "designed_typography",
+      "owner": "deterministic_typography",
+      "handling_policy": "preserve_verbatim",
+      "source": "block_override",
+      "confidence": 1.0,
+      "reason": "editorial: label-length copy",
+      "bounds": [
+        0.083,
+        0.256,
+        0.591,
+        0.309
+      ]
+    },
+    {
+      "block_id": "block-2",
+      "text": "feels rounded",
+      "text_class": "designed_typography",
+      "owner": "deterministic_typography",
+      "handling_policy": "preserve_verbatim",
+      "source": "block_override",
+      "confidence": 1.0,
+      "reason": "editorial: label-length copy",
+      "bounds": [
+        0.068,
+        0.318,
+        0.525,
+        0.38
+      ]
+    },
+    {
+      "block_id": "block-3",
+      "text": "• You struggle to straighten up",
+      "text_class": "designed_typography",
+      "owner": "deterministic_typography",
+      "handling_policy": "preserve_verbatim",
+      "source": "project_default",
+      "confidence": 0.0,
+      "reason": "no distinguishing signals - preserving by default",
+      "bounds": [
+        0.084,
+        0.42,
+        0.318,
+        0.482
+      ]
+    },
+    {
+      "block_id": "block-4",
+      "text": "• Shoulders keep falling forward",
+      "text_class": "designed_typography",
+      "owner": "deterministic_typography",
+      "handling_policy": "preserve_verbatim",
+      "source": "project_default",
+      "confidence": 0.0,
+      "reason": "no distinguishing signals - preserving by default",
+      "bounds": [
+        0.084,
+        0.524,
+        0.321,
+        0.584
+      ]
+    }
+  ],
+  "rendered_blocks": [
+    {
+      "block_id": "block-0",
+      "text": "1.",
+      "role": "numeral",
+      "bounds": [
+        0.083,
+        0.128,
+        0.175,
+        0.238
+      ],
+      "font_token": "serif_editorial_regular",
+      "colour_role": "dark-red",
+      "owner": "deterministic_typography"
+    },
+    {
+      "block_id": "block-1",
+      "text": "Your upper back",
+      "role": "headline",
+      "bounds": [
+        0.083,
+        0.256,
+        0.591,
+        0.309
+      ],
+      "font_token": "serif_editorial_regular",
+      "colour_role": "near-black",
+      "owner": "deterministic_typography"
+    },
+    {
+      "block_id": "block-2",
+      "text": "feels rounded",
+      "role": "emphasis",
+      "bounds": [
+        0.068,
+        0.318,
+        0.525,
+        0.38
+      ],
+      "font_token": "serif_editorial_italic",
+      "colour_role": "dark-red",
+      "owner": "deterministic_typography"
+    },
+    {
+      "block_id": "block-3",
+      "text": "• You struggle to straighten up",
+      "role": "bullet",
+      "bounds": [
+        0.084,
+        0.42,
+        0.318,
+        0.482
+      ],
+      "font_token": "serif_editorial_regular",
+      "colour_role": "near-black",
+      "owner": "deterministic_typography"
+    },
+    {
+      "block_id": "block-4",
+      "text": "• Shoulders keep falling forward",
+      "role": "bullet",
+      "bounds": [
+        0.084,
+        0.524,
+        0.321,
+        0.584
+      ],
+      "font_token": "serif_editorial_regular",
+      "colour_role": "near-black",
+      "owner": "deterministic_typography"
+    }
+  ],
+  "skipped_blocks": [],
+  "caption_blocks": [],
+  "image_owned_blocks": [],
+  "effective_policies": {
+    "copy_policy": "preserve_verbatim",
+    "overlay_policy": "keep"
+  },
+  "warnings": []
+}

@@ -266,6 +266,7 @@ def compile_creative_intent(
     user_feedback: str | None = None,
     retry_reason: str | None = None,
     source_style=None,
+    typography_owned_text: list[str] | None = None,
 ) -> str:
     """
     Assembles the creative intent exactly as prompt_compiler always has.
@@ -323,6 +324,13 @@ def compile_creative_intent(
     if suppress_overlay_text:
         parts.append(fragments["suppress_overlay_text"])
 
+    # Last, and specific: naming the exact copy someone else will place is a
+    # far stronger instruction than a general ban on text.
+    if typography_owned_text:
+        owned = "\n".join(f'  - "{text}"' for text in typography_owned_text if text.strip())
+        if owned:
+            parts.append(fragments["typography_owned_text"].format(owned_text=owned))
+
     return "\n".join(parts)
 
 
@@ -359,7 +367,10 @@ GENERATION_COMPILER = register(
     #      shown to be outvoted by the layout prose above it.
     # 4.0: explicit transformation policy - preserve pose and composition,
     #      make the person and the environment new. Previously emergent.
-    version="4.0",
+    # 5.0: names the exact copy deterministic typography will place, so the
+    #      model is told what NOT to render rather than only that text is
+    #      banned in general (ADR 0001 WP-1.5A).
+    version="5.0",
     description=(
         "Compiles the creative intent sent to the image model - the single most "
         "consequential prompt in the application."
@@ -411,6 +422,17 @@ GENERATION_COMPILER = register(
             "reproduced exactly as instructed elsewhere.)"
         ),
         "text_overlays": "Text overlays: ",
+        # ADR §4 criterion 3, enforced BEFORE generation rather than only
+        # checked after. A block the deterministic renderer owns must not
+        # also be drawn by the model - checking afterwards tells you it went
+        # wrong; naming the copy up front is what stops it.
+        "typography_owned_text": (
+            "TEXT OWNERSHIP: the following copy will be typeset by the "
+            "application after generation and must NOT appear anywhere in "
+            "your image - not as written words, not as placeholder or "
+            "decorative lettering, and not paraphrased. Leave those areas as "
+            "clean, uninterrupted background:\n{owned_text}"
+        ),
         # What must stay the same and what must be made new. Before this
         # existed the answer was whatever the creative-specification model
         # happened to write that call: across seven slides of one run the

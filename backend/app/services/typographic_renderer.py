@@ -39,6 +39,27 @@ class TextBlock:
     bounds: tuple[float, float, float, float]
 
 
+#: Marker glyphs OCR commonly includes in the block text itself.
+_LEADING_MARKERS = "•‣▪◦·-–—*"
+
+
+def _strip_leading_marker(text: str, style: TextStyle) -> str:
+    """
+    Drop a marker the OCR text already carries when the style supplies one.
+
+    Live OCR returns "• You struggle to straighten up" - the glyph is part of
+    the recognised text. Adding the style's marker on top rendered "• •",
+    which the end-to-end run showed plainly. The style owns the marker, so
+    the text must not also carry it.
+    """
+    if not style.bullet:
+        return text
+    stripped = text.lstrip()
+    while stripped and stripped[0] in _LEADING_MARKERS:
+        stripped = stripped[1:].lstrip()
+    return stripped or text
+
+
 def _apply_case(text: str, style: TextStyle) -> str:
     if style.case == "upper":
         return text.upper()
@@ -102,7 +123,7 @@ def render_typography(
 
     for block in blocks:
         style = system.style_for(block.role)
-        text = _apply_case(block.text, style)
+        text = _apply_case(_strip_leading_marker(block.text, style), style)
         if not text.strip():
             continue
 

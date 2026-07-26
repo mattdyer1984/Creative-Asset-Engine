@@ -121,3 +121,20 @@ def test_long_words_overflow_rather_than_being_hyphenated():
         _case04_system(),
     )
     assert result.size == canvas.size  # rendered without raising
+
+
+def test_a_marker_in_the_ocr_text_is_not_doubled():
+    """
+    Live OCR returns "• You struggle to straighten up" - the glyph is part of
+    the recognised text. Adding the style's marker on top rendered "• •",
+    which the WP-1.5A end-to-end run showed plainly.
+    """
+    from app.services.typographic_renderer import _strip_leading_marker
+
+    style = TextStyle(bullet="•")
+    assert _strip_leading_marker("• You struggle to straighten up", style) == (
+        "You struggle to straighten up"
+    )
+    assert _strip_leading_marker("- dash item", style) == "dash item"
+    # A style with no marker of its own must leave the text alone.
+    assert _strip_leading_marker("• keep me", TextStyle()) == "• keep me"

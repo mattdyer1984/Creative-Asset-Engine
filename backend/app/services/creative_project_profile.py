@@ -170,7 +170,7 @@ def _require_supported(document: dict | None, field: str) -> dict | None:
     return document
 
 
-def effective_text_mode(profile: CreativeProjectProfile) -> TextMode | None:
+def effective_primary_text_mode(profile: CreativeProjectProfile) -> TextMode | None:
     """The user's decision if there is one, otherwise the analyser's."""
     chosen = profile.user_primary_text_mode or profile.analysed_primary_text_mode
     return TextMode(chosen) if chosen else None
@@ -188,7 +188,7 @@ def effective_overlay_policy(profile: CreativeProjectProfile) -> OverlayPolicy:
     )
 
 
-def effective_production_value(profile: CreativeProjectProfile) -> ProductionValueStrategy:
+def effective_production_value_strategy(profile: CreativeProjectProfile) -> ProductionValueStrategy:
     return (
         ProductionValueStrategy(profile.user_production_value_strategy)
         if profile.user_production_value_strategy
@@ -196,7 +196,7 @@ def effective_production_value(profile: CreativeProjectProfile) -> ProductionVal
     )
 
 
-def effective_typography(profile: CreativeProjectProfile) -> TypographySystem | None:
+def effective_typography_system(profile: CreativeProjectProfile) -> TypographySystem | None:
     """
     The analysed system with any human corrections laid over it, per role.
 

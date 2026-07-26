@@ -2,11 +2,29 @@
 
 | | |
 |---|---|
-| **Status** | **Proposed** — becomes Accepted only when the gates in §17 pass |
+| **Status** | **Accepted** (2026-07-26) — all four gates in §17 passed |
 | **Proposed** | 2026-07-26 |
+| **Accepted** | 2026-07-26, on `efb0be1` (WP-1.1, final gate) |
 | **Baseline commit** | `8f1b881318513f5c3438d19fd5991ac988a7a882` |
 | **Benchmark fixture version** | `v0` — committed, 8 cases (WP-0.1) |
 | **Supersedes** | Slide-level architectural assumptions in `MIGRATION_PLAN.md` §"ADR: AI Creative Engine vNext" (2026-07-23). Product Lock v2 remains in force and is extended, not replaced. |
+
+---
+
+## 0. Terminology
+
+Two different things have been called a "project". They are not the same unit
+and conflating them would make the data model semantically wrong from day one.
+
+| Term | Meaning |
+|---|---|
+| **Application Project** | The existing coarse organisational container (`projects` table). In the development database a single one holds 41 unrelated slideshows. |
+| **Creative Project** | The slideshow-scoped creative unit this engine analyses: one coherent set of slides sharing a design system, a cast and a typographic voice. |
+
+Everywhere this ADR says "project" without qualification it means the
+**Creative Project**. In code and database naming that is `slideshow_id` and
+slideshow-scoped models. The existing `projects` domain is **not** renamed to
+match this language.
 
 ---
 
@@ -386,6 +404,33 @@ free and no temporary table is created and retired.
 
 ---
 
+## 14a. Re-analysis behaviour (binding)
+
+The analyser may always produce a new current profile. It may never cost a
+user a decision.
+
+- A new analysis creates a **new profile version**; the previous row becomes
+  historical through the artifact lifecycle (`is_current=False`), so an
+  analyser regression stays visible rather than being overwritten.
+- Analysed values (`analysed_*`) are replaced on every cycle.
+- **User-owned policy values carry forward** to the new current profile,
+  unchanged, on every cycle — not merely the first.
+- **Sparse typography overrides carry forward** and continue to merge per role
+  over the newly analysed system.
+- Users may explicitly reset overrides. `reset_user_decisions` is the only
+  supported way to lose one, deliberately separate from re-analysis so that
+  "start again from what the machine thinks" is a decision someone takes.
+- Re-analysis **never silently changes an explicit user decision.**
+
+Effective values resolve consistently, and consumers must use the resolution
+layer rather than combining fields themselves:
+
+```
+explicit user value  →  analysed value  →  documented system default
+```
+
+---
+
 ## 15. Roadmap
 
 Every work package is one revertible commit. Every schema change is an Alembic
@@ -566,6 +611,19 @@ guesses.
 - **Validation** A human reads the plan and predicts the output; two runs of one plan produce identical preserve/transform decisions.
 - **Rollback** Revert. **Complexity** L. **Dependencies** WP-3.1, WP-2.3.
 
+### Pre-deployment — WP-D.1 Curated font package
+
+Not blocking WP-1.5A; blocking **deployment**, and blocking any comparison of
+benchmark scores across machines. See `docs/FONT_PORTABILITY.md`.
+
+- a small set of redistributable OFL/Apache font families;
+- bundled regular, italic and bold variants where the hierarchy needs them;
+- a configurable font root;
+- deterministic token resolution across macOS and Linux;
+- startup validation that every required token resolves;
+- benchmark comparison run on both platforms;
+- licence notices included in the distribution.
+
 ### Phase 4 — Project validation and explainability
 
 - **WP-4.1** Set-coherence validation — character, typography, palette, device across slides. M. Depends WP-3.5.
@@ -605,7 +663,7 @@ environment *transformable*.
 
 ## 17. Implementation gates
 
-Status moves **Proposed → Accepted** only when all four pass:
+Status moved **Proposed → Accepted** on 2026-07-26. All four passed:
 
 1. ✅ **PASSED** — benchmark fixtures and ground truth committed (WP-0.1),
    8 cases with closed-vocabulary annotation.
@@ -623,7 +681,10 @@ Status moves **Proposed → Accepted** only when all four pass:
    grew nor shrank. The application was exercised against the downgraded
    schema — ORM reads, timing report and three API endpoints all normal.
 
-**All four gates pass. This ADR is ready to move to Accepted.**
+**All four gates passed. Accepted 2026-07-26 on `efb0be1`.**
+
+`Accepted` authorises this implementation direction; it does not freeze
+the document. Later decisions supersede rather than edit.
 
 Gate 3 is the programme's premise. If deterministic L1 typography does not look
 right on case 4, Phase 1's foundation is wrong and the roadmap must be revised

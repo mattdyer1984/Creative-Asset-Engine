@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     # is fully self-contained on this machine.
     data_dir: Path = Path(__file__).resolve().parent.parent / "data"
 
+    # ADR 0001 WP-1.5A. Off by default: the previous rendering path stays
+    # live until case 4 passes end to end, the three regression cases pass,
+    # manifests prove ownership is correct and the benchmark does not
+    # regress. Rollback is this flag, not a database intervention.
+    typography_renderer_enabled: bool = False
+
     @property
     def database_path(self) -> Path:
         return self.data_dir / "creative_asset_engine.db"
