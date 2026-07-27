@@ -1,0 +1,409 @@
+{
+ "version": 1,
+ "regions": [
+  {
+   "id": "r01",
+   "creative": "posture_infographic",
+   "text": "1. your upper back feels rounded",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.95,
+    "reason": "left column of a designed infographic; layout depends on it"
+   }
+  },
+  {
+   "id": "r02",
+   "creative": "posture_infographic",
+   "text": "you struggle to straighten up / shoulders keep falling forward",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.95,
+    "reason": "symptom list is the content"
+   }
+  },
+  {
+   "id": "r03",
+   "creative": "gut_health_infographic",
+   "text": "3 SIGNS OF BAD GUT HEALTH / BAD / GOOD",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.95,
+    "reason": "headline + BAD/GOOD labels define the split-face meaning"
+   }
+  },
+  {
+   "id": "r04",
+   "creative": "pepsi_comic",
+   "text": "bro please could i borrow a can if so firsty / ofc check the fridge",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.9,
+    "reason": "baked comic dialogue = the hook"
+   }
+  },
+  {
+   "id": "r05",
+   "creative": "techbundle_chat",
+   "text": "Bro I've been meaning to get some new tech accessories but they all cost at least £67",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.9,
+    "reason": "simulated chat is the creative; £67 is the anchor"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "headline"
+   }
+  },
+  {
+   "id": "r06",
+   "creative": "books_imessage",
+   "text": "You don't even read books... / I know, but... / iMessage / Delivered",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.9,
+    "reason": "simulated iMessage conversation = the setup"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "other"
+   }
+  },
+  {
+   "id": "r07",
+   "creative": "ninja_reveal",
+   "text": "SCOOPABLE / DRINKABLE / GELATO / +MIX-IN / RE-SPIN",
+   "ground_truth": {
+    "class": "product_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "product_native",
+    "confidence": 0.95,
+    "reason": "printed on the machine; product identity"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "other"
+   }
+  },
+  {
+   "id": "r08",
+   "creative": "techbundle_product",
+   "text": "FullEra / 6 IN 1 / ONE SET IS ALL YOU NEED",
+   "ground_truth": {
+    "class": "product_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "product_native",
+    "confidence": 0.9,
+    "reason": "product branding/feature copy"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "subheadline"
+   }
+  },
+  {
+   "id": "r09",
+   "creative": "turtle_beach",
+   "text": "TURTLE BEACH",
+   "ground_truth": {
+    "class": "product_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "product_native",
+    "confidence": 0.9,
+    "reason": "brand on the headset/box"
+   }
+  },
+  {
+   "id": "r10",
+   "creative": "books_covers",
+   "text": "LET THEM / Atomic Habits / Mel Robbins / THE INTERNATIONAL BESTSELLER",
+   "ground_truth": {
+    "class": "scene_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "scene_native",
+    "confidence": 0.9,
+    "reason": "printed on the physical books; edition identity"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "headline"
+   }
+  },
+  {
+   "id": "r11",
+   "creative": "pedestal_fan",
+   "text": "16\" Pedestal Fan / 3 speed settings / Oscillating function",
+   "ground_truth": {
+    "class": "scene_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "scene_native",
+    "confidence": 0.9,
+    "reason": "real retail packaging"
+   }
+  },
+  {
+   "id": "r12",
+   "creative": "pedestal_fan",
+   "text": "£30 (shelf price label)",
+   "ground_truth": {
+    "class": "scene_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "scene_native",
+    "confidence": 0.9,
+    "reason": "real shop shelf tag = the in-store cheapness EVIDENCE; not a creator sticker"
+   }
+  },
+  {
+   "id": "r13",
+   "creative": "f1_kit",
+   "text": "Ferrari / McLaren / Renault / Lotus logos on shirts",
+   "ground_truth": {
+    "class": "scene_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "scene_native",
+    "confidence": 0.9,
+    "reason": "printed on the garments"
+   }
+  },
+  {
+   "id": "r21",
+   "creative": "weather_tv",
+   "text": "UK weather map + temperatures on the TV screen",
+   "ground_truth": {
+    "class": "design_integral",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "design_integral",
+    "confidence": 0.9,
+    "reason": "broadcast content on the TV = scene/story"
+   }
+  },
+  {
+   "id": "r22",
+   "creative": "plouise_product",
+   "text": "OBSESSED FOR LESS / PL / P.LOUISE",
+   "ground_truth": {
+    "class": "product_native",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "product_native",
+    "confidence": 0.9,
+    "reason": "on the product/box"
+   },
+   "ocr": {
+    "surface": "physical",
+    "role": "headline"
+   }
+  },
+  {
+   "id": "r23",
+   "creative": "techbundle_prices",
+   "text": "£35 £25 £10 £20 £30 £10 (itemised)",
+   "ground_truth": {
+    "class": "uncertain",
+    "is_separable": false,
+    "removal_alters_meaning": true
+   },
+   "recorded_prediction": {
+    "class": "uncertain",
+    "confidence": 0.4,
+    "reason": "may be a baked value-breakdown graphic, not stickers; removal could destroy the value story"
+   },
+   "ocr": {
+    "surface": "overlay",
+    "role": "price"
+   }
+  },
+  {
+   "id": "r14",
+   "creative": "ninja_hook",
+   "text": "OMFG I'm so glad I didn't get one of those expensive Ninja Creami's...",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.9,
+    "reason": "TikTok caption sticker over an otherwise-complete selfie"
+   },
+   "ocr": {
+    "surface": "overlay",
+    "role": "headline"
+   }
+  },
+  {
+   "id": "r15",
+   "creative": "ninja_reveal",
+   "text": "but ONLY bc I waited until it was on sale...",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.9,
+    "reason": "caption sticker over the product photo"
+   },
+   "ocr": {
+    "surface": "overlay",
+    "role": "headline"
+   }
+  },
+  {
+   "id": "r16",
+   "creative": "ninja_reveal",
+   "text": "-28% £179.99 £249.99 From £131.99 with vouchers",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.85,
+    "reason": "TikTok-Shop price card added on top"
+   },
+   "ocr": {
+    "surface": "overlay",
+    "role": "price"
+   }
+  },
+  {
+   "id": "r17",
+   "creative": "plt_unbox",
+   "text": "unbox my new plt joggers",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.9,
+    "reason": "caption over an unboxing photo"
+   }
+  },
+  {
+   "id": "r18",
+   "creative": "turtle_beach_hook",
+   "text": "I didn't know these were on tiktok shop!!!",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.9,
+    "reason": "caption over a selfie"
+   }
+  },
+  {
+   "id": "r19",
+   "creative": "pepsi_deal",
+   "text": "Big DISCOUNT On The Multi Packs Today / offer ends tonight",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.85,
+    "reason": "captions over a product photo"
+   }
+  },
+  {
+   "id": "r20",
+   "creative": "weather_tv",
+   "text": "NOW WAY NOT AGAINNN / Apparently it's only going to get hotter...",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.9,
+    "reason": "captions over the room/TV photo"
+   }
+  },
+  {
+   "id": "r24",
+   "creative": "plouise_hook",
+   "text": "27 + 27 + 27 = 24?!?!",
+   "ground_truth": {
+    "class": "creator_overlay",
+    "is_separable": true,
+    "removal_alters_meaning": false
+   },
+   "recorded_prediction": {
+    "class": "creator_overlay",
+    "confidence": 0.55,
+    "reason": "likely a caption but carries the core arithmetic claim; low confidence -> hold back"
+   },
+   "ocr": {
+    "surface": "overlay",
+    "role": "headline"
+   }
+  }
+ ]
+}
