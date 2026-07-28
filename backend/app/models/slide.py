@@ -18,9 +18,10 @@ many-to-many join.
 Additive as of Phase 2.1 - nothing reads or writes this table yet.
 """
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -43,6 +44,17 @@ class Slide(Base):
 
     stored_file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(512), nullable=False)
+
+    # Durable source pixel dimensions — measured once at ingestion (the earliest point
+    # the original bytes are guaranteed to exist) so the evidence survives even after
+    # the source file is gone. Read back through AnalysisSource.source_dims() with
+    # persisted-first precedence. Nullable + additive; a NULL width/height with a set
+    # `dimension_measurement_source` distinguishes "attempted but unmeasurable"
+    # (file-missing / unreadable) from "never attempted" (both NULL).
+    source_width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source_height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    dimension_measurement_source: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    dimension_measured_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Provenance from the Import Provider (plan §5), carried over
     # unchanged from Creative.

@@ -14,15 +14,20 @@ the migration roadmap.
 
 Phase 6 (multi per-slide product detection, see MIGRATION_PLAN.md) made
 assigning *multiple* products to one slide possible (via the new
-POST .../slides/{id}/products endpoint), but deliberately does NOT make
-this stage isolate each one automatically - isolate_product takes a
-whole slide image and a generic, non-targeted prompt, with no way to
-tell it *which* assigned product to focus on. Calling it once per
-product would just return the same detection twice, mislabeled under
-two different product_ids - silently wrong data, worse than an honest
-failure. A slide with 2+ current appearances fails clearly instead (see
-_MULTI_PRODUCT_ERROR below) - real product-targeted isolation is future
-work, logged in MIGRATION_PLAN.md, not guessed at here.
+POST .../slides/{id}/products endpoint). Upstream task 2 (per-slide
+multi-product isolation) makes this stage isolate each one: a slide with
+several assigned products no longer aborts. The earlier abort existed
+because `isolate_product` took a generic, non-targeted prompt, so calling
+it once per product returned the same detection mislabeled under two
+product_ids. It is now called with a product-SPECIFIC `target` (the
+product's display name) per distinct product, so each gets its OWN boxes
+and its OWN reference images; a single-product slide keeps the generic
+call (target=None) for identical behaviour to before. A per-product
+targeted call that finds nothing retracts only THAT product's appearance
+(the same per-product gap the single-product path already used), never
+the whole slide. (The targeted prompt's vision quality is validated with
+real provider calls; the stage plumbing is proven deterministically with
+a fake targeted provider.)
 
 Real-world-diagnosed widening (Generate All, see MIGRATION_PLAN.md): now
 loops over every slide in the slideshow, not just the primary one -
@@ -64,13 +69,6 @@ ISOLATION_METHOD = "llm_bounding_box_v1"
 # box's own width/height - keeps a bit of surrounding context rather than
 # an exact crop to the model's (imprecise) reported edges.
 CROP_PADDING_FRACTION = 0.05
-
-
-_MULTI_PRODUCT_ERROR = (
-    "Multiple products assigned to this slide - automated per-product isolation isn't "
-    "implemented yet. Each product's isolation must currently be generated from a slide "
-    "where it's the only one assigned."
-)
 
 
 class SlideProductIsolationStage:
@@ -139,15 +137,25 @@ class SlideProductIsolationStage:
         isolation_provider = default_registry.isolation()
         result: StageResult = StageResult(succeeded=True)
 
-        eligible: list[tuple[Slide, str]] = []
+        # One entry PER DISTINCT PRODUCT on each slide — the collection of assigned
+        # products is preserved, never collapsed and never aborted. When a slide has
+        # several products, each is isolated with a product-SPECIFIC target (its display
+        # name) so it gets its OWN boxes; a single-product slide keeps the generic call
+        # (target=None) for identical behaviour to before.
+        eligible: list[tuple[Slide, str, str | None]] = []
         for slide in slideshow.slides:
             current_appearances = slide.current_product_appearances
             if not current_appearances:
                 continue
             distinct_product_ids = {a.product_id for a in current_appearances}
-            if len(distinct_product_ids) > 1:
-                return StageResult(succeeded=False, error=_MULTI_PRODUCT_ERROR)
-            eligible.append((slide, current_appearances[0].product_id))
+            multi = len(distinct_product_ids) > 1
+            seen: set[str] = set()
+            for appearance in current_appearances:
+                if appearance.product_id in seen:
+                    continue
+                seen.add(appearance.product_id)
+                target = appearance.product.display_name if multi else None
+                eligible.append((slide, appearance.product_id, target))
 
         if not eligible:
             return StageResult(
@@ -155,12 +163,17 @@ class SlideProductIsolationStage:
                 error="No product assigned to any slide - assign one before running Product Isolation.",
             )
 
-        def _isolate(entry: tuple[Slide, str]):
-            slide, _product_id = entry
+        def _isolate(entry: tuple[Slide, str, str | None]):
+            slide, _product_id, target = entry
             image_bytes = Path(slide.stored_file_path).read_bytes()
             usage: dict = {}
             start = time.perf_counter()
-            bounding_boxes = isolation_provider.isolate_product(image_bytes, usage_sink=usage)
+            # Pass `target` only when set, so single-product calls are byte-for-byte the
+            # previous generic call (and pre-existing providers/fakes are unaffected).
+            kwargs = {"usage_sink": usage}
+            if target is not None:
+                kwargs["target"] = target
+            bounding_boxes = isolation_provider.isolate_product(image_bytes, **kwargs)
             provider_call_ms = (time.perf_counter() - start) * 1000
             # Real-world-diagnosed fix (see MIGRATION_PLAN.md): zero boxes
             # is no longer raised as an exception here - it's a
@@ -177,7 +190,7 @@ class SlideProductIsolationStage:
         # happens once, after the loop - see the note there.
         new_reference_ids_by_product: dict[str, list[str]] = {}
 
-        for index, (slide, product_id) in enumerate(eligible):
+        for index, (slide, product_id, _target) in enumerate(eligible):
             # Committed immediately as a durable "pending" record - same
             # reasoning as the old stage: if anything below fails and we
             # roll back, this row survives, so the failure is never silently

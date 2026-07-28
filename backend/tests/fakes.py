@@ -84,7 +84,8 @@ class FakeProductIsolationProvider:
     model = "fake-isolation-model"
     provider = "openai"
 
-    def __init__(self, bounding_boxes: list[dict] | None = None, raise_error: Exception | None = None):
+    def __init__(self, bounding_boxes: list[dict] | None = None, raise_error: Exception | None = None,
+                 boxes_by_target: dict[str, list[dict]] | None = None):
         self._bounding_boxes = (
             bounding_boxes
             if bounding_boxes is not None
@@ -99,17 +100,35 @@ class FakeProductIsolationProvider:
                 }
             ]
         )
-        if raise_error is None:
+        # Optional per-target boxes, so a multi-product test can give each named product
+        # its own detection (or an empty list to model "this product isn't in frame").
+        self._boxes_by_target = boxes_by_target
+        #: every `target` this fake was called with (None for a generic/single-product call).
+        self.targets_seen: list[str | None] = []
+        if raise_error is None and boxes_by_target is None:
             _assert_matches_product_isolation_shape(self._bounding_boxes)
         self._raise_error = raise_error
 
-    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
+    def isolate_product(self, image_bytes: bytes, *, target: str | None = None,
+                        usage_sink: dict | None = None, raw_sink: dict | None = None) -> list[dict]:
+        self.targets_seen.append(target)
         if self._raise_error is not None:
             raise self._raise_error
         if usage_sink is not None:
             usage_sink["prompt_tokens"] = 100
             usage_sink["completion_tokens"] = 50
-        return self._bounding_boxes
+        boxes = (
+            self._boxes_by_target.get(target, [])
+            if self._boxes_by_target is not None
+            else self._bounding_boxes
+        )
+        # Mirror the real adapter's raw_sink audit contract so a test can
+        # exercise the harness path without a paid call.
+        if raw_sink is not None:
+            raw_sink["target"] = target
+            raw_sink["raw_content"] = None
+            raw_sink["parsed"] = boxes
+        return boxes
 
 
 def _assert_matches_product_lock_profile_shape(result: dict) -> None:

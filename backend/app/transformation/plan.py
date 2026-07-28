@@ -24,7 +24,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 import json
 
-PLAN_SCHEMA_VERSION = "0.2.0-slice"
+PLAN_SCHEMA_VERSION = "0.4.0-slice"   # 0.3.x: subject extent/relation + presence/reveal split; 0.4.0: Canvas (source aspect evidence + decided output aspect)
 
 # closed vocabularies (small, extensible by governance)
 MUST_SURVIVE = {"identity", "exact_text", "meaning", "presence"}
@@ -80,6 +80,8 @@ class SceneDirective:
     concept: str = ""
     subject_present: bool = False
     subject_action: Optional[str] = None
+    subject_extent: Optional[str] = None            # visible body region: hand | hand and forearm | lower legs | full figure | unspecified
+    product_subject_relation: Optional[str] = None  # holding | wearing | using | None
     subject_emotion: list[str] = field(default_factory=list)
     environment: str = ""
     lighting: str = ""
@@ -92,11 +94,30 @@ class SceneDirective:
 
 
 @dataclass
+class Canvas:
+    """Output canvas decision + the source evidence it was decided against.
+
+    source_* are MEASURED evidence (may be None → explicit capture gap). output_aspect
+    is the DECISION (fixed 3:4 for all outputs). fit_behaviour records how the source
+    maps onto the output. Never invented: an unknown source is a recorded gap, and the
+    output aspect still flows from here (never a hardcoded literal downstream)."""
+    output_aspect: str                              # DECIDED (e.g. "3:4")
+    source_width: Optional[int] = None              # measured evidence
+    source_height: Optional[int] = None
+    source_aspect: Optional[str] = None             # measured evidence (e.g. "3:4", "9:16") or None
+    fit_behaviour: str = "target_only"              # identity | retarget | target_only
+    provenance: list[Provenance] = field(default_factory=list)
+    gaps: list[str] = field(default_factory=list)
+
+
+@dataclass
 class SlideDirective:
     slide_index: int
     role: str
-    promoted_product_allowed: bool
+    promoted_product_allowed: bool          # VISUAL PRESENCE: the product may/should be in the frame (detection-led)
     cta_allowed: bool
+    promoted_identity_revealed: bool = False  # NARRATIVE REVEAL: this beat anchors the promoted-offer identity
+    canvas: Optional["Canvas"] = None
     scene: SceneDirective = field(default_factory=SceneDirective)
     required_text_element_ids: list[str] = field(default_factory=list)
     elements: list[PlanElement] = field(default_factory=list)

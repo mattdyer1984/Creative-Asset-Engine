@@ -55,12 +55,20 @@ def build_generation_request(plan: TransformationPlan, slide_index: int) -> Gene
     prod = next((e for e in s.elements if e.kind == "product"), None)
     references: list[str] = list(sc.references_provided)
     if s.promoted_product_allowed and prod:
-        if prod.preservation_mode == "product_reference" and prod.reference_ids:
-            lines.append(f"Feature the exact promoted product ({prod.label}); reproduce its identity "
-                         f"precisely from the provided reference image(s); regenerate the surroundings.")
-        elif prod.preservation_mode == "identity_constraint":
-            lines.append(f"Feature the promoted product ({prod.label}); keep its identity accurate.")
-            unresolved.append("product identity has no reference images (identity_constraint only)")
+        # Anchor the promoted identity ONLY where the plan reveals it (product element
+        # survives by "identity"). Where the product is merely present (survives by
+        # "presence"), show it in-context WITHOUT anchoring the promoted-offer identity —
+        # so no missing-reference conflict is raised on an identity-withheld hook.
+        if "identity" in prod.must_survive:
+            if prod.preservation_mode == "product_reference" and prod.reference_ids:
+                lines.append(f"Feature the exact promoted product ({prod.label}); reproduce its identity "
+                             f"precisely from the provided reference image(s); regenerate the surroundings.")
+            elif prod.preservation_mode == "identity_constraint":
+                lines.append(f"Feature the promoted product ({prod.label}); keep its identity accurate.")
+                unresolved.append("product identity has no reference images (identity_constraint only)")
+        else:
+            lines.append(f"A product ({prod.label}) is visible in the scene, but do NOT reveal or anchor "
+                         f"the promoted-offer identity here — keep it incidental and in-context.")
     elif not s.promoted_product_allowed:
         lines.append("Do NOT show or reference the promoted product (this is the hook; the product is withheld).")
 

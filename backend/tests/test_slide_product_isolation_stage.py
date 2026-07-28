@@ -17,7 +17,6 @@ from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.slideshow_stages.product_isolation_stage import (
     ISOLATION_METHOD,
-    _MULTI_PRODUCT_ERROR,
     SlideProductIsolationStage,
     _crop_bounding_boxes,
 )
@@ -166,27 +165,94 @@ def test_multiple_crops_are_all_persisted_and_current(db_session, slideshow_with
     assert all(img.is_current for img in images)
 
 
-def test_fails_clearly_with_multiple_distinct_products_assigned(
+def test_isolates_each_product_when_multiple_assigned(
     db_session, slideshow_with_product, monkeypatch
 ):
     """
-    Phase 6.2: a slide with 2+ distinct current products fails with an
-    explicit, honest error rather than silently isolating the same crop
-    twice under two different product_ids (see MIGRATION_PLAN.md's
-    Phase 6.2 plan revision for why looping wasn't safe to implement).
+    Upstream task 2 (per-slide multi-product isolation): a slide with 2+ distinct
+    current products no longer aborts. Each product is isolated with a product-SPECIFIC
+    target (its display name), so each gets its OWN reference images, and both
+    appearances are preserved. (Vision targeting quality is validated with real calls;
+    here a fake proves the stage plumbing + that the right target reaches the provider.)
     """
+    slide = slideshow_with_product.primary_slide
+    first_product_id = slide.current_product_appearances[0].product_id
+    first_name = db_session.get(Product, first_product_id).display_name
+    _add_second_current_appearance(db_session, slideshow_with_product)  # adds "Second Product"
+
+    fake = FakeProductIsolationProvider()   # returns the canned box for any target
     monkeypatch.setattr(
-        "app.slideshow_stages.product_isolation_stage.default_registry", FakeAIProviderRegistry()
+        "app.slideshow_stages.product_isolation_stage.default_registry",
+        FakeAIProviderRegistry(isolation_provider=fake),
     )
+
+    result = SlideProductIsolationStage().run(db_session, slideshow_with_product)
+
+    assert result.succeeded is True                          # no abort
+    # each DISTINCT product was isolated with ITS OWN name as the target
+    assert set(fake.targets_seen) == {first_name, "Second Product"}, fake.targets_seen
+    # both products kept a current appearance and got their own reference image(s)
+    from app.models.product_reference_image import ProductReferenceImage
+    by_product = {}
+    for img in db_session.scalars(select(ProductReferenceImage)):
+        by_product.setdefault(img.product_id, []).append(img)
+    appearances = slide.current_product_appearances
+    assert {a.product_id for a in appearances} == {first_product_id} | {
+        db_session.scalars(select(Product).where(Product.display_name == "Second Product")).one().id}
+    assert len(by_product) == 2 and all(imgs for imgs in by_product.values())
+
+
+def test_one_missing_product_is_retracted_the_other_kept(
+    db_session, slideshow_with_product, monkeypatch
+):
+    """A per-product gap, not a whole-slide abort: if the targeted call for one product
+    finds nothing, only THAT product's appearance is retracted; the other stays."""
+    slide = slideshow_with_product.primary_slide
+    first_product_id = slide.current_product_appearances[0].product_id
+    first_name = db_session.get(Product, first_product_id).display_name
     _add_second_current_appearance(db_session, slideshow_with_product)
 
-    stage = SlideProductIsolationStage()
-    result = stage.run(db_session, slideshow_with_product)
+    box = [{"x_min": 0.2, "y_min": 0.15, "x_max": 0.8, "y_max": 0.9,
+            "confidence": 0.95, "notes": "found"}]
+    # "Second Product" isn't in frame -> empty; the first product is found.
+    fake = FakeProductIsolationProvider(boxes_by_target={first_name: box, "Second Product": []})
+    monkeypatch.setattr(
+        "app.slideshow_stages.product_isolation_stage.default_registry",
+        FakeAIProviderRegistry(isolation_provider=fake),
+    )
 
-    assert result.succeeded is False
-    assert result.error == _MULTI_PRODUCT_ERROR
-    # No AnalysisRun should even be created - this fails before any provider call.
-    assert db_session.scalars(select(AnalysisRun)).first() is None
+    result = SlideProductIsolationStage().run(db_session, slideshow_with_product)
+
+    assert result.succeeded is True
+    remaining = {a.product_id for a in slide.current_product_appearances}
+    assert first_product_id in remaining                     # kept (found)
+    second_id = db_session.scalars(
+        select(Product).where(Product.display_name == "Second Product")).one().id
+    assert second_id not in remaining                        # retracted (not in frame)
+
+
+def test_raw_sink_records_the_targeting_audit_trail():
+    """
+    Upstream task 2 targeting-validation audit contract: when a caller passes
+    a `raw_sink` dict, the provider fills it in place with {target, raw_content,
+    parsed} without changing the return value. This is the trail the paid
+    targeting-validation harness persists to explain why a prompt did/didn't
+    isolate the right product. The real OpenAI adapter and this fake share the
+    contract by construction; the fake proves the shape deterministically.
+    """
+    fake = FakeProductIsolationProvider()
+    sink: dict = {}
+
+    boxes = fake.isolate_product(b"image-bytes", target="Colgate Total", raw_sink=sink)
+
+    # Return value is unchanged by the presence of raw_sink.
+    assert boxes == fake._bounding_boxes
+    # And the audit record carries the target, the parsed boxes, and a slot
+    # for the model's verbatim response (None for the fake, populated by the
+    # real adapter).
+    assert sink["target"] == "Colgate Total"
+    assert sink["parsed"] == boxes
+    assert "raw_content" in sink
 
 
 def _make_two_slide_slideshow_with_shared_product(db_session, tmp_path):

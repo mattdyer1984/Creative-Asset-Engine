@@ -12,6 +12,10 @@ import json
 import sqlite3
 from typing import Optional
 
+from app.services.image_dimensions import (
+    measure_source_file, is_valid_pair, is_malformed_pair,
+)
+
 
 class AnalysisSource:
     def __init__(self, db_path: str):
@@ -32,6 +36,70 @@ class AnalysisSource:
             (slideshow_id,),
         ).fetchall()
         return [{"id": r["id"], "slide_index": r["slide_index"]} for r in rows]
+
+    def source_dims(self, slide_id: str) -> Optional[dict]:
+        """Source pixel dimensions {"width","height"} for the slide, or None (explicit
+        unknown — never a default). This is the compatibility seam Canvas consumes; its
+        CONTRACT is unchanged. Deterministic read precedence:
+
+            1. persisted width+height        -> returned WITHOUT opening the file
+            2. source-file measurement       -> legacy compatibility
+            3. explicit unknown (None)
+
+        Persisted evidence is AUTHORITATIVE over the disk: when a valid pair is stored
+        it is returned as-is and the file is never opened (so a later disk measurement
+        can never silently replace it). A partial pair (exactly one of width/height) is
+        MALFORMED — never used to derive dimensions; it falls through to the file. Use
+        `source_dimension_state()` to observe malformed/conflict diagnostics."""
+        row = self._c.execute(
+            "select source_width, source_height, stored_file_path from slides where id=?",
+            (slide_id,),
+        ).fetchone()
+        if not row:
+            return None
+        w, h = self._col(row, "source_width"), self._col(row, "source_height")
+        if is_valid_pair(w, h):                                   # 1. persisted, authoritative
+            return {"width": int(w), "height": int(h)}
+        state, dims = measure_source_file(self._col(row, "stored_file_path"))  # 2. file fallback
+        if dims is not None:
+            return {"width": dims[0], "height": dims[1]}
+        return None                                              # 3. explicit unknown
+
+    def source_dimension_state(self, slide_id: str) -> dict:
+        """Observability for the dimension lifecycle (diagnostics, backfill audit) —
+        NOT the hot read path. Reports what is persisted, what the file measures, which
+        source resolves, and whether the two disagree (persisted always wins, but the
+        discrepancy is made observable rather than silently dropped)."""
+        row = self._c.execute(
+            "select source_width, source_height, dimension_measurement_source, "
+            "stored_file_path from slides where id=?", (slide_id,),
+        ).fetchone()
+        if not row:
+            return {"resolved": None, "source": "unknown", "persisted": None,
+                    "malformed": False, "file": None, "conflict": False,
+                    "measurement_source": None}
+        w, h = self._col(row, "source_width"), self._col(row, "source_height")
+        persisted = (int(w), int(h)) if is_valid_pair(w, h) else None
+        malformed = is_malformed_pair(w, h)
+        _, file_dims = measure_source_file(self._col(row, "stored_file_path"))
+        if persisted is not None:
+            resolved, source = persisted, "persisted"
+            conflict = file_dims is not None and file_dims != persisted
+        elif file_dims is not None:
+            resolved, source, conflict = file_dims, "file", False
+        else:
+            resolved, source, conflict = None, "unknown", False
+        return {"resolved": resolved, "source": source, "persisted": persisted,
+                "malformed": malformed, "file": file_dims, "conflict": conflict,
+                "measurement_source": self._col(row, "dimension_measurement_source")}
+
+    @staticmethod
+    def _col(row, name):
+        """sqlite Row column access tolerant of older DBs without the column."""
+        try:
+            return row[name]
+        except (IndexError, KeyError):
+            return None
 
     def narrative(self, slideshow_id: str) -> Optional[dict]:
         row = self._c.execute(
@@ -64,6 +132,39 @@ class AnalysisSource:
             (slide_id,),
         ).fetchone()
         return json.loads(row["structured_json"]) if row else {}
+
+    def text_ownership(self, slide_id: str) -> dict:
+        """The authoritative text-ownership artifact per OCR block, keyed by block
+        INDEX (aligned to ocr_blocks order via block_id 'block-{i}'). The Plan Builder
+        must CONSUME this instead of re-deriving ownership from OCR surface/role.
+        Returns {} when no artifact was produced (an explicit absence → the caller
+        records a gap and falls back to the OCR heuristic; it never pretends)."""
+        try:
+            row = self._c.execute(
+                "select blocks_json from text_ownership_artifacts "
+                "where slide_id=? and is_current=1", (slide_id,),
+            ).fetchone()
+        except Exception:
+            return {}
+        if not row or not row["blocks_json"]:
+            return {}
+        out: dict[int, dict] = {}
+        for b in json.loads(row["blocks_json"]):
+            bid = str(b.get("block_id") or "")
+            if not bid.startswith("block-"):
+                continue
+            try:
+                i = int(bid.split("-", 1)[1])
+            except (ValueError, IndexError):
+                continue
+            out[i] = {
+                "owner": b.get("owner"),
+                "text_class": b.get("text_class"),
+                "handling_policy": b.get("handling_policy"),
+                "copy_policy": b.get("effective_copy_policy"),
+                "confidence": b.get("confidence"),
+            }
+        return out
 
     def scene_regions(self, slide_id: str) -> list[dict]:
         row = self._c.execute(

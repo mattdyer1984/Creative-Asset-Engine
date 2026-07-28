@@ -25,3 +25,11 @@ frontend/dist/
 
 # OS
 .DS_Store
+
+# Generated image outputs (produced by run_*.py scripts) — never committed
+backend/gen_out/
+backend/gen_out_crocs/
+backend/gen_out_slideshow/
+
+# Scratch: files moved here for manual deletion — never committed
+_to_delete/

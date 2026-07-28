@@ -1,0 +1,1556 @@
+{
+ "slideshow_id": "e3fbf713-7141-44a3-91be-d1b7e37551b1",
+ "slides": [
+  {
+   "id": "7118bb10-d3b9-403d-8f26-c23fdf81f7c1",
+   "slide_index": 0
+  },
+  {
+   "id": "945bbf4f-57b4-4771-a1be-f50e315432a7",
+   "slide_index": 1
+  },
+  {
+   "id": "dd45b6d6-5c06-49ca-af4d-efed20112941",
+   "slide_index": 2
+  },
+  {
+   "id": "bb6d57ed-b12b-4f33-82a0-2c7b38a894f8",
+   "slide_index": 3
+  },
+  {
+   "id": "0cb8711a-17a8-4ded-9039-f882eff0453e",
+   "slide_index": 4
+  },
+  {
+   "id": "02af6b08-175f-4197-be94-44a032fbca11",
+   "slide_index": 5
+  },
+  {
+   "id": "d7e926bf-4b17-499b-8529-697763173217",
+   "slide_index": 6
+  }
+ ],
+ "narrative": {
+  "slides": [
+   {
+    "slide_id": "7118bb10-d3b9-403d-8f26-c23fdf81f7c1",
+    "slide_index": 0,
+    "beat": "hook"
+   },
+   {
+    "slide_id": "945bbf4f-57b4-4771-a1be-f50e315432a7",
+    "slide_index": 1,
+    "beat": "story"
+   },
+   {
+    "slide_id": "dd45b6d6-5c06-49ca-af4d-efed20112941",
+    "slide_index": 2,
+    "beat": "story"
+   },
+   {
+    "slide_id": "bb6d57ed-b12b-4f33-82a0-2c7b38a894f8",
+    "slide_index": 3,
+    "beat": "story"
+   },
+   {
+    "slide_id": "0cb8711a-17a8-4ded-9039-f882eff0453e",
+    "slide_index": 4,
+    "beat": "reveal"
+   },
+   {
+    "slide_id": "02af6b08-175f-4197-be94-44a032fbca11",
+    "slide_index": 5,
+    "beat": "proof"
+   },
+   {
+    "slide_id": "d7e926bf-4b17-499b-8529-697763173217",
+    "slide_index": 6,
+    "beat": "cta"
+   }
+  ],
+  "arc_summary": "The slideshow opens by warning viewers about subtle signs of developing a hunched posture, then builds recognition through common symptoms. It reveals LEOMO as the solution, briefly explains how to use it, and ends with urgency around a limited-time sale."
+ },
+ "marketing_text": "This creative is designed to spark interest in posture-related information rather than sell a visible product directly. Using a medical infographic style, it places a young person looking down at a device in the center of the frame, with the headline leading the viewer\u2019s attention first and a highlighted spine reinforcing the health message. The click-through arrows suggest there is more to learn, making it well suited for an educational carousel, article teaser, or awareness campaign.\n\nThe target audience is young adults who spend a lot of time on mobile devices and may not yet think of posture as an urgent health issue. The emotional appeal combines concern and curiosity: it raises worry about unseen physical changes while inviting the viewer to discover what might be happening inside their body. The faded secondary figure adds a comparison element, making the potential impact easier to visualize.\n\nThe neutral beige, grey, black, and red palette keeps the focus on the body and the warning signal, while the central composition and mixed serif typography give the piece an informational, slightly clinical feel. Because the product is not shown, the marketing works by creating a problem-aware mindset first. It draws people in through self-recognition and health concern, encouraging engagement before introducing any solution later in the funnel.",
+ "per_slide": {
+  "7118bb10-d3b9-403d-8f26-c23fdf81f7c1": {
+   "fingerprint": {
+    "visual_style": "Informational 2D illustration",
+    "marketing_objective": "Generate interest in posture info",
+    "emotional_appeal": [
+     "Concern",
+     "Curiosity"
+    ],
+    "target_audience": "Young adults using mobile devices",
+    "color_palette": [
+     "Beige",
+     "Red",
+     "Black",
+     "Grey"
+    ],
+    "typography_style": "Mixed serif",
+    "layout_and_composition": "Text at top with central figure",
+    "background_environment": "Solid neutral background",
+    "lighting_style": "Basic illustrated shading",
+    "graphic_style": "Medical infographic style",
+    "product_prominence": "Product not shown",
+    "marketing_angle": "Highlighting unseen physical issues",
+    "visual_hierarchy": "Headline first then glowing spine",
+    "trust_elements": [],
+    "promotional_devices": [
+     "Click-through arrows"
+    ],
+    "object_placement": "Subject is centered looking down",
+    "emotional_trigger": "Worry about unnoticed physical changes",
+    "extensions": "Uses faded secondary figure for comparison"
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "context",
+     "notes": "Warm off-white paper-like backdrop spanning the full creative; establishes the clean medical/educational ad setting and can be replaced with a similar plain neutral background.",
+     "region_type": "background",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Main headline text '3 SIGNS'; key marketing message and visual hierarchy should be preserved if regenerated.",
+     "region_type": "decorative_element",
+     "x_max": 0.732,
+     "x_min": 0.319,
+     "y_max": 0.077,
+     "y_min": 0.128
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Second line of headline, 'you\u2019re starting to'; part of the core ad copy and composition.",
+     "region_type": "decorative_element",
+     "x_max": 0.742,
+     "x_min": 0.258,
+     "y_max": 0.141,
+     "y_min": 0.185
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Emphasized red italic phrase 'look hunched'; central claim of the creative and should remain prominent.",
+     "region_type": "decorative_element",
+     "x_max": 0.747,
+     "x_min": 0.301,
+     "y_max": 0.198,
+     "y_min": 0.25
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Small supporting copy '(most people don\u2019t realise until it\u2019s too late...) >>'; important CTA/teaser text and should be retained closely.",
+     "region_type": "decorative_element",
+     "x_max": 0.822,
+     "x_min": 0.208,
+     "y_max": 0.268,
+     "y_min": 0.298
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Faded upright side-profile reference figure behind the main subject, showing contrast with the hunched posture; can vary but should remain as a ghosted posture comparison.",
+     "region_type": "secondary_subject",
+     "x_max": 0.48,
+     "x_min": 0.207,
+     "y_max": 0.306,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "important",
+     "notes": "White spine overlay on the faded reference figure, reinforcing posture/anatomy comparison; should remain conceptually similar.",
+     "region_type": "decorative_element",
+     "x_max": 0.386,
+     "x_min": 0.28,
+     "y_max": 0.419,
+     "y_min": 0.894
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Main illustrated man in hunched side profile; central subject/action showing forward-head posture while using a phone. Appearance can vary, but posture and placement should closely match.",
+     "region_type": "primary_subject",
+     "x_max": 0.829,
+     "x_min": 0.318,
+     "y_max": 0.363,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Head, neck, and downward gaze of the main subject; important to communicate phone-related hunching and neck strain.",
+     "region_type": "human_subject",
+     "x_max": 0.832,
+     "x_min": 0.565,
+     "y_max": 0.363,
+     "y_min": 0.578
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Anatomical spine overlay on the main subject\u2019s back and neck; core explanatory visual for the posture problem and should be preserved in placement and shape.",
+     "region_type": "decorative_element",
+     "x_max": 0.594,
+     "x_min": 0.36,
+     "y_max": 0.464,
+     "y_min": 0.917
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Red glow/pain highlight around the neck and upper back; central visual cue indicating discomfort or injury and should remain in the same general area.",
+     "region_type": "decorative_element",
+     "x_max": 0.623,
+     "x_min": 0.437,
+     "y_max": 0.452,
+     "y_min": 0.598
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Arms and hands held forward while texting; the pose drives the hunched-posture message, so it should be closely matched.",
+     "region_type": "human_subject",
+     "x_max": 0.805,
+     "x_min": 0.45,
+     "y_max": 0.626,
+     "y_min": 0.84
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Smartphone being held by the subject; not the advertised product, but it explains the posture behavior and should remain as a prop in the same position.",
+     "region_type": "prop",
+     "x_max": 0.867,
+     "x_min": 0.758,
+     "y_max": 0.624,
+     "y_min": 0.704
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Dark shirt and pants of the main subject; clothing style and colors can change as long as they do not obscure the posture/anatomy overlays.",
+     "region_type": "human_subject",
+     "x_max": 0.608,
+     "x_min": 0.318,
+     "y_max": 0.528,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Open empty space to the right of the subject; safe to keep blank or adjust slightly for layout balance.",
+     "region_type": "negative_space",
+     "x_max": 1,
+     "x_min": 0.824,
+     "y_max": 0.308,
+     "y_min": 1
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "3 SIGNS",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.317,
+      "y_min": 0.075,
+      "x_max": 0.702,
+      "y_max": 0.137
+     }
+    },
+    {
+     "text": "you're starting to",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.255,
+      "y_min": 0.144,
+      "x_max": 0.76,
+      "y_max": 0.198
+     }
+    },
+    {
+     "text": "look hunched",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.298,
+      "y_min": 0.198,
+      "x_max": 0.73,
+      "y_max": 0.248
+     }
+    },
+    {
+     "text": "(most people don't realise until it's too late...) >>",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.207,
+      "y_min": 0.266,
+      "x_max": 0.814,
+      "y_max": 0.293
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": false,
+     "has_lock": true
+    }
+   ]
+  },
+  "945bbf4f-57b4-4771-a1be-f50e315432a7": {
+   "fingerprint": {
+    "visual_style": "Illustrative and informational",
+    "marketing_objective": "To raise awareness about poor posture symptoms and likely promote a corrective product or service.",
+    "emotional_appeal": [
+     "Empathy",
+     "Concern",
+     "Relatability"
+    ],
+    "target_audience": "Office workers, students, or anyone who spends long hours at a desk experiencing back pain or poor posture.",
+    "color_palette": [
+     "Off-white (background)",
+     "Red (text and highlight)",
+     "Black (text)",
+     "Grey (clothing)",
+     "Wood tones (furniture)"
+    ],
+    "typography_style": "Serif font for headings, with italics for emphasis, and sans-serif for bullet points.",
+    "layout_and_composition": "Text on the left side with a large number '1', illustration of the target audience on the right side.",
+    "background_environment": "A minimal, off-white background with a hint of a desk setup (plant, laptop, mug).",
+    "lighting_style": "Flat, illustrative lighting with soft shadows to ground the elements.",
+    "graphic_style": "Digital illustration with a semi-realistic, hand-drawn feel, overlaying an anatomical detail (spine).",
+    "product_prominence": "No specific product is shown; the focus is on the problem (poor posture).",
+    "marketing_angle": "Problem-identification; highlighting specific, relatable symptoms of bad posture.",
+    "visual_hierarchy": "1. Large red '1.' 2. Headline 'Your upper back feels rounded' 3. Red highlighted spine on the illustration 4. Bullet points.",
+    "trust_elements": [],
+    "promotional_devices": [],
+    "object_placement": "The illustration of the person at the desk occupies the right two-thirds of the image, facing right. The text is left-aligned in the remaining space.",
+    "emotional_trigger": "Self-recognition of physical discomfort and the realization of having a physical flaw (poor posture) that needs fixing.",
+    "extensions": "The use of the visible spine with a red glow effectively communicates the internal physical strain caused by the visible external posture."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "important",
+     "notes": "Main illustrated person demonstrating the problem posture; overall hunched seated pose and interaction with laptop are central to the message and should closely match.",
+     "region_type": "human_subject",
+     "x_max": 0.879,
+     "x_min": 0.432,
+     "y_max": 0.95,
+     "y_min": 0.277
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Highlighted rounded upper-back/spine overlay with red glow; this is the key medical/problem visualization and should not change in position or meaning.",
+     "region_type": "primary_subject",
+     "x_max": 0.671,
+     "x_min": 0.43,
+     "y_max": 0.635,
+     "y_min": 0.367
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Hands and forearms typing on the laptop, directly supporting the slouched-at-desk action; should remain closely matched to preserve the scenario.",
+     "region_type": "secondary_subject",
+     "x_max": 0.907,
+     "x_min": 0.589,
+     "y_max": 0.587,
+     "y_min": 0.501
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Headline and numbered symptom statement on the left; core marketing copy communicating the problem, so its placement and content are important.",
+     "region_type": "primary_subject",
+     "x_max": 0.63,
+     "x_min": 0.081,
+     "y_max": 0.385,
+     "y_min": 0.124
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Bullet-point symptom list; supports the main claim and should remain legible and similar in placement if regenerated.",
+     "region_type": "secondary_subject",
+     "x_max": 0.343,
+     "x_min": 0.081,
+     "y_max": 0.576,
+     "y_min": 0.423
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Laptop used to establish the working-at-computer posture context; can be replaced by a similar laptop but should remain in the same functional role.",
+     "region_type": "prop",
+     "x_max": 1,
+     "x_min": 0.787,
+     "y_max": 0.626,
+     "y_min": 0.455
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Wood desk/table creates the office or work setup; exact design can vary while preserving the desk context.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0.692,
+     "y_max": 0.981,
+     "y_min": 0.583
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Chair supporting the seated posture; can vary in style but should remain a chair in similar position for the posture demonstration.",
+     "region_type": "prop",
+     "x_max": 0.716,
+     "x_min": 0.351,
+     "y_max": 0.952,
+     "y_min": 0.535
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Small potted plant on desk adds visual warmth and office decor; not central and can change freely.",
+     "region_type": "decorative_element",
+     "x_max": 0.972,
+     "x_min": 0.833,
+     "y_max": 0.558,
+     "y_min": 0.423
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Coffee mug on desk is a secondary desk accessory; safe to alter or remove without changing the core message.",
+     "region_type": "prop",
+     "x_max": 0.962,
+     "x_min": 0.855,
+     "y_max": 0.646,
+     "y_min": 0.582
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Plain off-white background/negative space used to keep focus on text and illustration; color or emptiness could change as long as readability remains.",
+     "region_type": "background",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Soft floor shadow under chair/person adds grounding; can be regenerated differently or omitted.",
+     "region_type": "decorative_element",
+     "x_max": 0.96,
+     "x_min": 0.339,
+     "y_max": 0.955,
+     "y_min": 0.844
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "1.",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.083,
+      "y_min": 0.128,
+      "x_max": 0.175,
+      "y_max": 0.238
+     }
+    },
+    {
+     "text": "Your upper back",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.083,
+      "y_min": 0.256,
+      "x_max": 0.591,
+      "y_max": 0.309
+     }
+    },
+    {
+     "text": "feels rounded",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.068,
+      "y_min": 0.318,
+      "x_max": 0.525,
+      "y_max": 0.38
+     }
+    },
+    {
+     "text": "\u2022 You struggle to straighten up",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.084,
+      "y_min": 0.42,
+      "x_max": 0.318,
+      "y_max": 0.482
+     }
+    },
+    {
+     "text": "\u2022 Shoulders keep falling forward",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.084,
+      "y_min": 0.524,
+      "x_max": 0.321,
+      "y_max": 0.584
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": false,
+     "has_lock": true
+    }
+   ]
+  },
+  "dd45b6d6-5c06-49ca-af4d-efed20112941": {
+   "fingerprint": {
+    "visual_style": "Problem-focused, empathetic, and relatable lifestyle imagery",
+    "marketing_objective": "Highlight a common pain point (neck stiffness) to agitate the problem before introducing a solution",
+    "emotional_appeal": [
+     "Relatability",
+     "Empathy",
+     "Pain/Discomfort"
+    ],
+    "target_audience": "Office workers, remote workers, students, or anyone who spends long hours at a desk or on a computer",
+    "color_palette": [
+     "Off-white",
+     "Navy blue",
+     "Red (for emphasis and pain indication)",
+     "Warm wood tones"
+    ],
+    "typography_style": "Clean, elegant serif font for the main heading with a mix of regular and italic styles; simple sans-serif for bullet points",
+    "layout_and_composition": "Two-column layout. The left side is text-heavy, presenting the symptoms clearly. The right side features an image of a person experiencing the symptoms, creating a strong visual-text connection.",
+    "background_environment": "A clean, modern, and warm home office or living space setting",
+    "lighting_style": "Soft, natural-looking, even lighting",
+    "graphic_style": "Photographic with subtle digital enhancements (red glow and jagged lines to signify pain)",
+    "product_prominence": "No product is shown; the focus is entirely on the user's problem",
+    "marketing_angle": "Agitation of a specific, relatable physical problem (tech neck/postural stiffness) to prepare the audience for a potential solution",
+    "visual_hierarchy": "1. The large red number '2.' (indicating this is part of a list or sequence)\n2. The main headline 'Your neck always feels stiff'\n3. The visual of the man holding his neck with the red pain indicator\n4. The bulleted list of specific symptoms",
+    "trust_elements": [],
+    "promotional_devices": [],
+    "object_placement": "A young man sits at a wooden desk on the right side of the frame, facing slightly left towards a laptop. He is rubbing the back of his neck, eyes closed in discomfort. A coffee mug and notebook are on the desk in the foreground.",
+    "emotional_trigger": "Physical discomfort and the frustration of chronic, relatable pain caused by daily habits.",
+    "extensions": ""
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Main marketing copy and symptom bullets; the exact message is central to the creative and should not be changed or removed.",
+     "region_type": "decorative_element",
+     "x_max": 0.46,
+     "x_min": 0.07,
+     "y_max": 0.54,
+     "y_min": 0.15
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Primary human subject demonstrating neck discomfort while working; overall pose, downward gaze, seated orientation, and placement are core to the concept.",
+     "region_type": "human_subject",
+     "x_max": 0.94,
+     "x_min": 0.37,
+     "y_max": 0.88,
+     "y_min": 0.22
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Hand placed on the back/side of the neck is the key gesture communicating stiffness and pain; this interaction should remain very close.",
+     "region_type": "human_subject",
+     "x_max": 0.66,
+     "x_min": 0.5,
+     "y_max": 0.66,
+     "y_min": 0.35
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Red glow and lightning pain marks identify the neck pain location; essential visual cue for the advertised symptom.",
+     "region_type": "decorative_element",
+     "x_max": 0.63,
+     "x_min": 0.5,
+     "y_max": 0.4,
+     "y_min": 0.28
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Laptop reinforces the 'looking down' work posture and discomfort scenario; model/details may vary but it should remain in the same functional role and position.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.63,
+     "y_max": 0.92,
+     "y_min": 0.65
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Wood desk establishes a work/study environment; material and exact shape can change as long as a desk surface remains.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.28,
+     "y_max": 1.0,
+     "y_min": 0.76
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Upholstered chair supports the seated pose but is not a branded or message-critical object; style can change.",
+     "region_type": "prop",
+     "x_max": 0.75,
+     "x_min": 0.29,
+     "y_max": 0.91,
+     "y_min": 0.57
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Coffee mug is secondary desk clutter adding realism; safe to change or remove if composition still feels like a work setting.",
+     "region_type": "prop",
+     "x_max": 0.6,
+     "x_min": 0.44,
+     "y_max": 0.91,
+     "y_min": 0.78
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Notebook and pen add office/study context but are not essential to the message.",
+     "region_type": "prop",
+     "x_max": 0.86,
+     "x_min": 0.44,
+     "y_max": 1.0,
+     "y_min": 0.87
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Neutral white background provides clean ad layout and space for copy; should remain uncluttered but can be regenerated as a similar clean backdrop.",
+     "region_type": "background",
+     "x_max": 0.9,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Right-side shelving with books is background decor; safe to swap, simplify, or remove.",
+     "region_type": "background",
+     "x_max": 1.0,
+     "x_min": 0.89,
+     "y_max": 0.66,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Potted plant adds room decor and depth; not core to the message and can be replaced with similar decor.",
+     "region_type": "prop",
+     "x_max": 0.99,
+     "x_min": 0.83,
+     "y_max": 0.62,
+     "y_min": 0.39
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "2.",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.082,
+      "y_min": 0.158,
+      "x_max": 0.187,
+      "y_max": 0.237
+     }
+    },
+    {
+     "text": "Your neck",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.081,
+      "y_min": 0.279,
+      "x_max": 0.334,
+      "y_max": 0.316
+     }
+    },
+    {
+     "text": "always feels stiff",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.082,
+      "y_min": 0.327,
+      "x_max": 0.463,
+      "y_max": 0.37
+     }
+    },
+    {
+     "text": "\u2022 Looking down\nfeels uncomfortable",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.083,
+      "y_min": 0.414,
+      "x_max": 0.368,
+      "y_max": 0.462
+     }
+    },
+    {
+     "text": "\u2022 Tight after\na long day",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.083,
+      "y_min": 0.489,
+      "x_max": 0.258,
+      "y_max": 0.54
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": false,
+     "has_lock": true
+    }
+   ]
+  },
+  "bb6d57ed-b12b-4f33-82a0-2c7b38a894f8": {
+   "fingerprint": {
+    "visual_style": "Minimalist and modern, utilizing a clean layout with a muted color palette to emphasize the text.",
+    "marketing_objective": "To raise awareness about poor posture, likely as a lead-in to presenting a solution or product.",
+    "emotional_appeal": [
+     "Empathy",
+     "Relatability",
+     "Self-awareness"
+    ],
+    "target_audience": "Individuals who spend significant time sitting, using smartphones, and may suffer from bad posture or back issues.",
+    "color_palette": [
+     "#f4f1eb",
+     "#2b2f33",
+     "#c42a2a",
+     "#3b4559",
+     "#b3b0a6"
+    ],
+    "typography_style": "A mix of classic serif for numbers and emphasis (red italicized), and a clean sans-serif or simple serif for body text.",
+    "layout_and_composition": "The image is split vertically; the left side is dedicated to bold, structured text, while the right side features a photograph of a person demonstrating the text's subject.",
+    "background_environment": "A contemporary, tidy living room with a beige sofa, a dark blue throw blanket, a coffee table with a mug, and a glimpse of a kitchen in the background.",
+    "lighting_style": "Soft, natural-looking ambient light that evenly illuminates the subject and the room, creating a calm atmosphere.",
+    "graphic_style": "Editorial style with clear, legible text formatting and bullet points.",
+    "product_prominence": "No specific product is shown; the focus is entirely on the problem (slouching).",
+    "marketing_angle": "Educational and problem-identifying; it aims to make the viewer recognize a common habit in themselves.",
+    "visual_hierarchy": "The large red number '3.' draws the eye first, followed by the red italicized text 'constantly slouching', then the bullet points, and finally the image of the person slouching.",
+    "trust_elements": [],
+    "promotional_devices": [],
+    "object_placement": "The text is aligned to the left side of the frame, structured vertically. The main subject (the man) is seated on a sofa on the right side of the frame, facing slightly left, visually balancing the text.",
+    "emotional_trigger": "Relatability to an unhealthy habit",
+    "extensions": "The use of the number '3' suggests this image is part of a carousel or a larger listicle format ad."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Main human subject demonstrating the key problem in the ad: hunched/slouched posture while seated and looking down. Pose and placement are central to the message and should not change significantly.",
+     "region_type": "human_subject",
+     "x_max": 0.863,
+     "x_min": 0.331,
+     "y_max": 0.976,
+     "y_min": 0.285
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Smartphone being held and viewed by the subject; it motivates the slouched pose and the hands interact directly with it. Its position relative to the hands/face is essential.",
+     "region_type": "product",
+     "x_max": 0.842,
+     "x_min": 0.746,
+     "y_max": 0.622,
+     "y_min": 0.537
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Hands directly holding and interacting with the phone. These are part of the exact action/posture and should remain closely preserved.",
+     "region_type": "primary_subject",
+     "x_max": 0.842,
+     "x_min": 0.65,
+     "y_max": 0.65,
+     "y_min": 0.548
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large marketing copy block on the left communicates the core creative message: '3. You're constantly slouching' plus supporting bullets. Text content, hierarchy, and placement are highly important to the ad concept.",
+     "region_type": "primary_subject",
+     "x_max": 0.344,
+     "x_min": 0.083,
+     "y_max": 0.568,
+     "y_min": 0.098
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Light-colored sofa supports the subject and establishes the seated posture. Overall placement and scale matter for the composition, though the exact sofa design can vary.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.037,
+     "y_max": 0.917,
+     "y_min": 0.498
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Living-room/kitchen interior setting provides lifestyle context. The room type and warm modern feel should remain, but a different comparable interior could replace it.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.651,
+     "y_max": 0.515,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Dark blue throw blanket draped over the sofa arm. It adds comfort and color balance but is not central to the message.",
+     "region_type": "prop",
+     "x_max": 0.189,
+     "x_min": 0.0,
+     "y_max": 0.989,
+     "y_min": 0.62
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Dark blue pillow on the right side of the sofa. It supports the living-room styling but can be changed or removed without affecting the concept.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.872,
+     "y_max": 0.649,
+     "y_min": 0.498
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Coffee table in the foreground. It helps create a lived-in living-room scene but is not essential to the slouching concept.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.622,
+     "y_max": 1.0,
+     "y_min": 0.812
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Mug on the coffee table. Small lifestyle prop; safe to alter while preserving overall setting.",
+     "region_type": "prop",
+     "x_max": 0.889,
+     "x_min": 0.787,
+     "y_max": 0.894,
+     "y_min": 0.803
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Small potted plant on the coffee table. Decorative lifestyle element and safe to swap or remove.",
+     "region_type": "decorative_element",
+     "x_max": 1.0,
+     "x_min": 0.919,
+     "y_max": 0.904,
+     "y_min": 0.681
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Tray/books or flat objects on the coffee table. Background clutter/styling that can be freely replaced.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.88,
+     "y_max": 0.906,
+     "y_min": 0.837
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Framed wall art behind the subject. Decorative background item; safe to swap without changing the ad's core meaning.",
+     "region_type": "decorative_element",
+     "x_max": 0.768,
+     "x_min": 0.649,
+     "y_max": 0.355,
+     "y_min": 0.205
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Hanging black pendant lamp in the upper-right. Decorative lighting fixture; contributes style but is not conceptually important.",
+     "region_type": "decorative_element",
+     "x_max": 0.997,
+     "x_min": 0.841,
+     "y_max": 0.238,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Back-counter plant and small decor items in the kitchen area. They add depth and lifestyle context but are not important to the message.",
+     "region_type": "decorative_element",
+     "x_max": 0.941,
+     "x_min": 0.77,
+     "y_max": 0.503,
+     "y_min": 0.352
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Books and bottles on the rear counter. Minor background styling that can be changed freely.",
+     "region_type": "prop",
+     "x_max": 0.982,
+     "x_min": 0.831,
+     "y_max": 0.502,
+     "y_min": 0.434
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Plain off-white left wall/negative space behind the marketing text. Important as clean readable space, but the exact wall surface can vary.",
+     "region_type": "negative_space",
+     "x_max": 0.65,
+     "x_min": 0.0,
+     "y_max": 0.618,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Floor/rug area beneath the sofa and subject. Provides grounding and living-room context; exact texture or rug can vary.",
+     "region_type": "environment",
+     "x_max": 0.836,
+     "x_min": 0.114,
+     "y_max": 1.0,
+     "y_min": 0.887
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "3.",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.088,
+      "y_min": 0.098,
+      "x_max": 0.2,
+      "y_max": 0.191
+     }
+    },
+    {
+     "text": "You're constantly slouching",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.088,
+      "y_min": 0.237,
+      "x_max": 0.351,
+      "y_max": 0.387
+     }
+    },
+    {
+     "text": "Sitting up straight doesn't last",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.125,
+      "y_min": 0.432,
+      "x_max": 0.35,
+      "y_max": 0.483
+     }
+    },
+    {
+     "text": "You don't even notice anymore",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.125,
+      "y_min": 0.515,
+      "x_max": 0.318,
+      "y_max": 0.567
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": false,
+     "has_lock": true
+    }
+   ]
+  },
+  "0cb8711a-17a8-4ded-9039-f882eff0453e": {
+   "fingerprint": {
+    "visual_style": "Illustrative and clean, with a focus on product demonstration.",
+    "marketing_objective": "To introduce a solution to a problem (likely posture or back pain) and encourage purchase through personal recommendation.",
+    "emotional_appeal": [
+     "Relief",
+     "Hope",
+     "Empowerment",
+     "Trust"
+    ],
+    "target_audience": "Individuals experiencing back pain or poor posture, seeking a non-invasive solution.",
+    "color_palette": [
+     "Black",
+     "White",
+     "Dark Red",
+     "Skin tones"
+    ],
+    "typography_style": "Bold serif for emphasis, combined with an italicized serif script for a personal touch.",
+    "layout_and_composition": "The person holds the product centrally, with the text block positioned in the upper left to balance the visual weight.",
+    "background_environment": "A simple off-white background with subtle blue wave-like graphics at the bottom left.",
+    "lighting_style": "Soft, even lighting that highlights the product and the person's face without harsh shadows.",
+    "graphic_style": "A mix of digital illustration and 3D rendering for the product.",
+    "product_prominence": "High. The product is held prominently in the foreground.",
+    "marketing_angle": "Personal testimonial/success story approach.",
+    "visual_hierarchy": "1. The text 'This is what helped me'. 2. The product being held. 3. The person holding the product.",
+    "trust_elements": [
+     "Personal testimonial phrasing ('helped me')"
+    ],
+    "promotional_devices": [],
+    "object_placement": "The person is positioned on the right side of the frame, holding the product out towards the center-left, with the text floating above the product.",
+    "emotional_trigger": "Desire for relief and improvement, triggered by a relatable, 'real-life' success story.",
+    "extensions": ""
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Black wearable back-support brace/harness being advertised; its shape, placement, and visibility are central to the creative and should not change.",
+     "region_type": "product",
+     "x_max": 0.585,
+     "x_min": 0.185,
+     "y_max": 0.775,
+     "y_min": 0.4
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Hands directly holding and presenting the product; their grip and placement are essential to the product demonstration.",
+     "region_type": "human_subject",
+     "x_max": 0.56,
+     "x_min": 0.145,
+     "y_max": 0.84,
+     "y_min": 0.41
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Main presenter\u2019s head and face; identity/expression and orientation toward the viewer should closely match, though exact facial details may vary.",
+     "region_type": "human_subject",
+     "x_max": 0.915,
+     "x_min": 0.59,
+     "y_max": 0.49,
+     "y_min": 0.15
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Presenter\u2019s torso, arms, and black shirt form the key holding pose and composition around the product.",
+     "region_type": "human_subject",
+     "x_max": 1.0,
+     "x_min": 0.43,
+     "y_max": 1.0,
+     "y_min": 0.44
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large marketing headline text reading 'This is what helped me'; the message and placement are important to the ad concept.",
+     "region_type": "decorative_element",
+     "x_max": 0.545,
+     "x_min": 0.06,
+     "y_max": 0.37,
+     "y_min": 0.135
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Plain off-white background/negative space behind the subject and text; mainly provides clean contrast and can be regenerated similarly or simplified.",
+     "region_type": "negative_space",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 0.71,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Subtle dotted pattern in the lower-left corner; decorative flourish that is safe to alter or remove.",
+     "region_type": "decorative_element",
+     "x_max": 0.33,
+     "x_min": 0.0,
+     "y_max": 0.87,
+     "y_min": 0.62
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Fine curved line pattern across the lower background; decorative motion/graphic element not critical to the product message.",
+     "region_type": "decorative_element",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 0.98,
+     "y_min": 0.74
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Blue wave shapes along the bottom edge; brand-like visual accent but not central to the product or pose.",
+     "region_type": "decorative_element",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.925
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "bounding_box": {
+      "x_max": 0.348,
+      "x_min": 0.071,
+      "y_max": 0.189,
+      "y_min": 0.132
+     },
+     "role": "headline",
+     "surface": "overlay",
+     "text": "This is"
+    },
+    {
+     "bounding_box": {
+      "x_max": 0.533,
+      "x_min": 0.074,
+      "y_max": 0.267,
+      "y_min": 0.21
+     },
+     "role": "headline",
+     "surface": "overlay",
+     "text": "what helped"
+    },
+    {
+     "bounding_box": {
+      "x_max": 0.203,
+      "x_min": 0.075,
+      "y_max": 0.335,
+      "y_min": 0.289
+     },
+     "role": "headline",
+     "surface": "overlay",
+     "text": "me"
+    },
+    {
+     "bounding_box": {
+      "x_max": 0.421,
+      "x_min": 0.338,
+      "y_max": 0.752,
+      "y_min": 0.735
+     },
+     "role": "logo_text",
+     "surface": "physical",
+     "text": "LEOMO"
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  },
+  "02af6b08-175f-4197-be94-44a032fbca11": {
+   "fingerprint": {
+    "visual_style": "Instructional infographic, clean and modern.",
+    "marketing_objective": "Educate users on product usage to ease the buying friction regarding perceived complexity.",
+    "emotional_appeal": [
+     "Reassurance",
+     "Simplicity",
+     "Confidence"
+    ],
+    "target_audience": "Individuals suffering from poor posture or back pain looking for an easy-to-use solution.",
+    "color_palette": [
+     "Cream/Off-white",
+     "Navy Blue",
+     "Dark Grey/Black"
+    ],
+    "typography_style": "Elegant serif for the main title, clear sans-serif for instructions.",
+    "layout_and_composition": "Three-column grid layout, sequentially guiding the viewer from left to right through the steps.",
+    "background_environment": "Plain, light cream background to keep focus entirely on the subject and the instructions.",
+    "lighting_style": "Soft, even studio lighting with no harsh shadows.",
+    "graphic_style": "Minimalist graphic elements (numbers in circles, dotted line indicating posture improvement).",
+    "product_prominence": "High. The product is clearly visible and its application is the main focus.",
+    "marketing_angle": "Focuses on the ease of use and immediate benefits of the product.",
+    "visual_hierarchy": "Main title at the top, followed by numbered steps, then corresponding visual demonstrations of the steps.",
+    "trust_elements": [],
+    "promotional_devices": [],
+    "object_placement": "Three images of the same model demonstrating each step horizontally aligned below the corresponding text.",
+    "emotional_trigger": "Relief from the anxiety of a complicated solution by showing how simple it is to use.",
+    "extensions": ""
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "context",
+     "notes": "Plain warm cream background/negative space that supports the clean instructional layout; color and texture can vary as long as the uncluttered studio-style backdrop remains.",
+     "region_type": "negative_space",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Main headline typography reading 'how to put it on'; critical to the instructional marketing message and should closely match in placement and style.",
+     "region_type": "decorative_element",
+     "x_max": 0.655,
+     "x_min": 0.355,
+     "y_max": 0.041,
+     "y_min": 0.192
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Step 1 label and copy: numbered circle plus 'slip it on / like a backpack'; instructional text should remain legible and in this left-column position.",
+     "region_type": "decorative_element",
+     "x_max": 0.292,
+     "x_min": 0.089,
+     "y_max": 0.235,
+     "y_min": 0.366
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Step 2 label and copy: numbered circle plus 'adjust + secure / tighten the straps for a snug fit'; important instructional element tied to the center demonstration.",
+     "region_type": "decorative_element",
+     "x_max": 0.628,
+     "x_min": 0.383,
+     "y_max": 0.235,
+     "y_min": 0.386
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Step 3 label and copy: numbered circle plus 'stand taller / feel the difference right away'; important instructional element tied to the final posture demonstration.",
+     "region_type": "decorative_element",
+     "x_max": 0.914,
+     "x_min": 0.724,
+     "y_max": 0.235,
+     "y_min": 0.386
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Left demonstration model showing the first action, wearing the device like backpack straps; overall pose and composition should closely match.",
+     "region_type": "human_subject",
+     "x_max": 0.382,
+     "x_min": 0.002,
+     "y_max": 0.392,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Left view of the black posture-corrector/back brace product on the model's shoulders and back; the product shape, placement, and fit are central and should not change.",
+     "region_type": "product",
+     "x_max": 0.318,
+     "x_min": 0.048,
+     "y_max": 0.552,
+     "y_min": 0.805
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Left model's hands gripping the straps, directly interacting with the product to demonstrate slipping it on; hand placement is essential to the step.",
+     "region_type": "human_subject",
+     "x_max": 0.298,
+     "x_min": 0.002,
+     "y_max": 0.623,
+     "y_min": 0.767
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Center demonstration model looking down while adjusting and securing the device; pose and action are central to the how-to sequence.",
+     "region_type": "human_subject",
+     "x_max": 0.701,
+     "x_min": 0.343,
+     "y_max": 0.402,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Center view of the posture-corrector/back brace with front support panels and waist strap visible; product details and fit are the key selling focus.",
+     "region_type": "product",
+     "x_max": 0.68,
+     "x_min": 0.393,
+     "y_max": 0.557,
+     "y_min": 0.823
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Center model's hands holding and tightening the front/side straps; this direct interaction explains the adjustment step and should be preserved.",
+     "region_type": "human_subject",
+     "x_max": 0.714,
+     "x_min": 0.377,
+     "y_max": 0.721,
+     "y_min": 0.812
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Right demonstration model in side profile showing improved upright posture; body orientation and pose should closely match the final result.",
+     "region_type": "human_subject",
+     "x_max": 0.97,
+     "x_min": 0.724,
+     "y_max": 0.392,
+     "y_min": 1
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Right side view of the black posture-corrector/back brace wrapped around shoulders, chest, and torso; exact product presence and positioning are essential.",
+     "region_type": "product",
+     "x_max": 0.948,
+     "x_min": 0.728,
+     "y_max": 0.548,
+     "y_min": 0.826
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Dashed blue curved posture guide line beside the right model; reinforces the 'stand taller' benefit and should remain in roughly this position.",
+     "region_type": "decorative_element",
+     "x_max": 0.765,
+     "x_min": 0.724,
+     "y_max": 0.557,
+     "y_min": 0.785
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "how to",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.395,
+      "y_min": 0.034,
+      "x_max": 0.625,
+      "y_max": 0.108
+     }
+    },
+    {
+     "text": "put it on",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.348,
+      "y_min": 0.118,
+      "x_max": 0.652,
+      "y_max": 0.194
+     }
+    },
+    {
+     "text": "1",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.139,
+      "y_min": 0.236,
+      "x_max": 0.196,
+      "y_max": 0.276
+     }
+    },
+    {
+     "text": "slip it on",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.104,
+      "y_min": 0.295,
+      "x_max": 0.232,
+      "y_max": 0.318
+     }
+    },
+    {
+     "text": "like a backpack",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.093,
+      "y_min": 0.326,
+      "x_max": 0.243,
+      "y_max": 0.345
+     }
+    },
+    {
+     "text": "2",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.468,
+      "y_min": 0.236,
+      "x_max": 0.525,
+      "y_max": 0.276
+     }
+    },
+    {
+     "text": "adjust + secure",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.391,
+      "y_min": 0.295,
+      "x_max": 0.613,
+      "y_max": 0.318
+     }
+    },
+    {
+     "text": "tighten the straps for a snug fit",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.418,
+      "y_min": 0.326,
+      "x_max": 0.593,
+      "y_max": 0.367
+     }
+    },
+    {
+     "text": "3",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.785,
+      "y_min": 0.236,
+      "x_max": 0.842,
+      "y_max": 0.276
+     }
+    },
+    {
+     "text": "stand taller",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.736,
+      "y_min": 0.295,
+      "x_max": 0.898,
+      "y_max": 0.314
+     }
+    },
+    {
+     "text": "feel the difference right away",
+     "role": "other",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.727,
+      "y_min": 0.326,
+      "x_max": 0.908,
+      "y_max": 0.367
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  },
+  "d7e926bf-4b17-499b-8529-697763173217": {
+   "fingerprint": {
+    "visual_style": "Minimalist and clean, with a focus on product presentation.",
+    "marketing_objective": "Drive immediate sales through urgency and a significant discount.",
+    "emotional_appeal": [
+     "Urgency",
+     "Desire for a bargain",
+     "Fear of missing out (FOMO)"
+    ],
+    "target_audience": "Individuals seeking posture correction or back support, likely looking for a deal.",
+    "color_palette": [
+     "Off-white",
+     "Black",
+     "Red"
+    ],
+    "typography_style": "Elegant serif font with italicized text for emphasis, using red to highlight key promotional words.",
+    "layout_and_composition": "Centered layout with text at the top and bottom, framing the product in the middle. Clean and uncluttered.",
+    "background_environment": "Plain, off-white background, eliminating distractions.",
+    "lighting_style": "Soft, even lighting that clearly illuminates the product's details and textures without harsh shadows.",
+    "graphic_style": "Photorealistic product image with clear, stylized typography.",
+    "product_prominence": "Very high; the product is the central and largest element in the composition.",
+    "marketing_angle": "Price promotion and urgency.",
+    "visual_hierarchy": "1. 'HUGE sale' text (red, large), 2. Product image, 3. 'sale ends soon...' text (red, smaller).",
+    "trust_elements": [],
+    "promotional_devices": [
+     "'HUGE sale'",
+     "'for today'",
+     "'sale ends soon...'"
+    ],
+    "object_placement": "The posture corrector is centered vertically and horizontally, taking up the majority of the frame, with text positioned directly above and below it.",
+    "emotional_trigger": "Fear of missing out on a significant, time-limited discount.",
+    "extensions": ""
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Main advertised item: black posture/back-support brace with shoulder straps, crisscross elastic bands, waist belt, and buckles. Its shape, proportions, materials, and centered placement are core to the creative and should not change.",
+     "region_type": "product",
+     "x_max": 0.72,
+     "x_min": 0.3,
+     "y_max": 0.78,
+     "y_min": 0.33
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Primary sale headline text above the product, including the emphasized red 'HUGE sale'. The exact message and typographic hierarchy are important to the ad, though font styling could be closely recreated rather than treated as the product itself.",
+     "region_type": "decorative_element",
+     "x_max": 0.73,
+     "x_min": 0.31,
+     "y_max": 0.27,
+     "y_min": 0.135
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Secondary urgency caption below the product: '(sale ends soon...)'. It supports the promotional callout and should remain in the same general position and style.",
+     "region_type": "decorative_element",
+     "x_max": 0.64,
+     "x_min": 0.38,
+     "y_max": 0.855,
+     "y_min": 0.82
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Soft studio shadow beneath and slightly behind the brace, grounding the product. It can be adjusted or regenerated as long as the product remains visually grounded.",
+     "region_type": "prop",
+     "x_max": 0.7,
+     "x_min": 0.35,
+     "y_max": 0.795,
+     "y_min": 0.735
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Plain warm off-white studio backdrop. It provides the clean marketing setting and high contrast with the black product, but can be replaced with a similar neutral background.",
+     "region_type": "background",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Large empty margins around the product and copy. This negative space is useful for the minimalist layout but contains no essential visual content and can be resized or recolored within the same clean style.",
+     "region_type": "negative_space",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "they have just been put on a HUGE sale for today...",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.312,
+      "y_min": 0.138,
+      "x_max": 0.716,
+      "y_max": 0.267
+     }
+    },
+    {
+     "text": "(sale ends soon...)",
+     "role": "disclaimer",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.384,
+      "y_min": 0.801,
+      "x_max": 0.622,
+      "y_max": 0.832
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b",
+     "display_name": "Security Check",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  }
+ },
+ "product_references": {
+  "12ecb05c-a255-4b43-b00e-0b0e11b4ae1b": [
+   "98339854-2ab7-4545-8547-c08f6d408f0d"
+  ]
+ }
+}

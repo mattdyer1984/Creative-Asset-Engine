@@ -75,9 +75,9 @@ def validate_post(plan: TransformationPlan, observed: dict[int, ObservedOutput])
                             "needs real generation"))
 
     for inv in plan.invariants:
-        if inv.name == "single_promoted_product":
+        if inv.name == "distinct_promoted_products":
             got = max((o.distinct_products for o in observed.values()), default=0)
-            checks.append(Check("invariant: single_promoted_product", "pass" if got <= inv.spec.get("distinct_promoted", 1) else "fail",
+            checks.append(Check("invariant: distinct_promoted_products", "pass" if got <= inv.spec.get("distinct_promoted", 1) else "fail",
                                 f"observed distinct={got}"))
         elif inv.name == "commercial_values_present":
             hay_all = " ".join(_norm(t) for o in observed.values() for t in o.detected_text)

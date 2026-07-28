@@ -242,6 +242,24 @@ PRODUCT_ISOLATION_RESPONSE_SCHEMA = {
 PRODUCT_ISOLATION_PROMPT = _analysis_prompts.PRODUCT_ISOLATION.render()
 
 
+def _targeted_isolation_prompt(target: str) -> str:
+    """A product-SPECIFIC isolation prompt: isolate only the named product, and return
+    empty when that specific product is absent. Used when a slide has several assigned
+    products so each gets its own boxes rather than the generic call's shared ones.
+    (The exact wording is a vision-behaviour change and is validated with real calls,
+    not in the deterministic suite — the Stage plumbing is proven with a fake provider.)"""
+    t = target.replace('"', "'")
+    return (
+        f'Identify the bounding box(es) of ONE SPECIFIC product in this marketing image: "{t}". '
+        "Isolate ONLY that product — ignore every other product, prop, person, or background "
+        "element, even if other products are clearly visible. Return coordinates as fractions of "
+        "the image width/height (0.0 to 1.0), a confidence score, and brief notes on what you "
+        f'identified. If "{t}" is not visible in this image, return an empty bounding_boxes array — '
+        "that is a normal, expected, and CORRECT answer, not a failure. Never force a box around a "
+        "different product, a hand, a prop, or the background just to return a non-empty result."
+    )
+
+
 class OpenAIProductIsolationAdapter:
     def __init__(self, model: str = "gpt-5.5", provider: str = "openai"):
         self.model = model
@@ -260,15 +278,19 @@ class OpenAIProductIsolationAdapter:
         # ever was - only actually calling a method needs a real API key.
         return OpenAI(api_key=get_api_key("openai"), timeout=AI_PROVIDER_TIMEOUT_SECONDS)
 
-    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
+    def isolate_product(
+        self, image_bytes: bytes, *, target: str | None = None,
+        usage_sink: dict | None = None, raw_sink: dict | None = None,
+    ) -> list[dict]:
         client = self.client
+        prompt = PRODUCT_ISOLATION_PROMPT if not target else _targeted_isolation_prompt(target)
         response = client.chat.completions.create(
             model=self.model,
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": PRODUCT_ISOLATION_PROMPT},
+                        {"type": "text", "text": prompt},
                         _image_content_block(image_bytes),
                     ],
                 }
@@ -283,8 +305,21 @@ class OpenAIProductIsolationAdapter:
             },
         )
         _populate_usage_sink(response, usage_sink)
-        payload = json.loads(response.choices[0].message.content)
-        return payload["bounding_boxes"]
+        raw_content = response.choices[0].message.content
+        payload = json.loads(raw_content)
+        boxes = payload["bounding_boxes"]
+        # raw_sink (targeting-validation audit trail): fill in place, like
+        # usage_sink, without changing the return value. The harness that
+        # validates the product-targeted prompt against real vision calls
+        # needs the exact target, the model's verbatim response, and the
+        # parsed boxes to explain why a given prompt did or didn't isolate
+        # the right product. None (the default, every pre-existing call
+        # site) means the caller doesn't want the trail.
+        if raw_sink is not None:
+            raw_sink["target"] = target
+            raw_sink["raw_content"] = raw_content
+            raw_sink["parsed"] = boxes
+        return boxes
 
 
 class OpenAIVisionAnalysisAdapter:

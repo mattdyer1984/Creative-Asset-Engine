@@ -29,6 +29,7 @@ from app.transformation.generation_request import (
 from app.transformation.adapters.nano_banana_prompt_adapter import (
     NanoBananaPromptAdapter, NanoBananaCapabilities,
 )
+from app.transformation.adapters.provider_language import humanize
 
 DB = os.path.join(os.path.dirname(__file__), "data", "creative_asset_engine.db")
 TX = os.path.join(os.path.dirname(__file__), "app", "transformation")
@@ -138,8 +139,13 @@ def main():
     gate4 = ninja_ok
 
     # ---------------------------------------------------------------- GATE 5
-    # Encoded entries are genuinely translated: their payload content appears in the request.
+    # Encoded entries are genuinely translated: their PROVIDER-FACING content appears
+    # in the request. For invariants that content is the humanised translation, NOT
+    # the raw internal statement — the adapter deliberately never emits the raw token
+    # (adapter-purity family). So the needle is the humanised form, and we ALSO assert
+    # the forbidden raw internal token is absent.
     translation_fail = []
+    raw_leak = []
     for e in outs[1].manifest.entries:
         if e.status != "encoded":
             continue
@@ -149,12 +155,17 @@ def main():
         if k == "scene_concept":       needle = (req.get("concept") or "")[:24]
         elif k == "environment":       needle = (req.get("environment") or "")[:20]
         elif k == "lighting":          needle = (req.get("lighting") or "")[:16]
-        elif k == "invariant":         needle = (req.get("statement") or "")[:20]
+        elif k == "invariant":
+            raw = req.get("statement") or ""
+            needle = humanize(raw, reveal)[:24]          # provider-facing translation
+            # a raw internal snake_case token must NOT survive into the request
+            if re.search(r"[a-z]+_[a-z0-9_]+", raw) and raw.lower() in reveal_req.lower():
+                raw_leak.append((k, raw))
         elif k == "render_text" and req.get("fidelity") == "semantic_presence":
             needle = (req.get("text") or "")[:16]
         if needle and needle.lower() not in reveal_req.lower():
             translation_fail.append((k, needle))
-    gate5 = not translation_fail
+    gate5 = not translation_fail and not raw_leak
 
     # ---------------------------------------------------------------- GATE 6
     # Reference fidelity bound to the CORRECT owning asset.
@@ -164,7 +175,7 @@ def main():
     txt_owned_by_B = SpecText("tB", "SUPER SEAL", "render_in_asset", "reference_fidelity", "prodB", "")
     # Attach only prodA's reference -> B's reference-fidelity text must NOT be falsely encoded.
     s_wrong = SlideGenerationSpec(50, True, (prodA,), (txt_owned_by_B,),
-                                  SpecScene(False, None, (), "", "", ""),
+                                  SpecScene(False, None, None, None, (), "", "", ""),
                                   SpecAttention((), (), (), "calm", (), False), ())
     cap1 = NanoBananaCapabilities(max_references=1)
     m_wrong = NanoBananaPromptAdapter(cap1).write(s_wrong).manifest
@@ -172,7 +183,7 @@ def main():
     bound_wrong_ok = e_wrong.status == "unsupported" and "prodB" in e_wrong.reason
     # Now attach B's reference -> encoded, referencing B.
     s_right = SlideGenerationSpec(51, True, (prodB,), (txt_owned_by_B,),
-                                  SpecScene(False, None, (), "", "", ""),
+                                  SpecScene(False, None, None, None, (), "", "", ""),
                                   SpecAttention((), (), (), "calm", (), False), ())
     out_right = NanoBananaPromptAdapter().write(s_right)
     e_right = next(e for e in out_right.manifest.entries if e.requirement.id.kind == "render_text")
@@ -219,7 +230,7 @@ def main():
         ("4. manifest exactly bijective with requirement identities", gate4,
          "validator: no missing / extraneous / dup on both slides"),
         ("5. encoded entries are genuinely translated into the request", gate5,
-         f"untranslated: {translation_fail or 'none'}"),
+         f"untranslated: {translation_fail or 'none'}; raw-token leaks: {raw_leak or 'none'}"),
         ("6. reference fidelity bound to the CORRECT owning asset", gate6,
          f"wrong-asset->unsupported({bound_wrong_ok}), right-asset->encoded({bound_right_ok})"),
         ("7. the full Ninja scene survives into the provider request", gate7,

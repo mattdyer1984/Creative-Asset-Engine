@@ -75,8 +75,24 @@ class VisionAnalysisProvider(Protocol):
 
 
 class ProductIsolationProvider(Protocol):
-    def isolate_product(self, image_bytes: bytes, *, usage_sink: dict | None = None) -> list[dict]:
-        """Returns bounding-box + notes dicts; the Stage handles cropping/saving."""
+    def isolate_product(
+        self, image_bytes: bytes, *, target: str | None = None,
+        usage_sink: dict | None = None, raw_sink: dict | None = None,
+    ) -> list[dict]:
+        """Returns bounding-box + notes dicts; the Stage handles cropping/saving.
+
+        `target` names a SPECIFIC product to isolate (its display name). None (the
+        default, and every pre-existing call site) means generic "the featured product"
+        detection — correct for a single-product slide. When a slide has several assigned
+        products the Stage passes each product's name as `target`, so detection is
+        product-specific and each product gets its OWN boxes, instead of the generic call
+        returning the same boxes mislabeled under every product id.
+
+        `raw_sink` (like `usage_sink`) is an optional out-dict: when provided, the
+        provider fills it with an audit record of the call — at least `{target,
+        raw_content, parsed}` — without changing the return value. Used by the targeting
+        validation harness to keep a trail explaining why a prompt did/didn't work.
+        """
         ...
 
 

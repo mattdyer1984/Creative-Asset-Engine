@@ -1,0 +1,1173 @@
+{
+ "slideshow_id": "a522518b-03bb-4642-9c82-ed14740b28e3",
+ "slides": [
+  {
+   "id": "0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3",
+   "slide_index": 0
+  },
+  {
+   "id": "5e8d0f4b-4a4c-4930-a863-053ade4efeac",
+   "slide_index": 1
+  },
+  {
+   "id": "c325bf9d-6baa-47fd-b3dd-1fb5c02dc432",
+   "slide_index": 2
+  },
+  {
+   "id": "d75c355f-1e8b-4267-b461-e325fd2fd94e",
+   "slide_index": 3
+  },
+  {
+   "id": "dda5b28c-de09-4c5b-8cbd-d7a0155635c0",
+   "slide_index": 4
+  }
+ ],
+ "narrative": {
+  "slides": [
+   {
+    "slide_id": "0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3",
+    "slide_index": 0,
+    "beat": "hook"
+   },
+   {
+    "slide_id": "5e8d0f4b-4a4c-4930-a863-053ade4efeac",
+    "slide_index": 1,
+    "beat": "story"
+   },
+   {
+    "slide_id": "c325bf9d-6baa-47fd-b3dd-1fb5c02dc432",
+    "slide_index": 2,
+    "beat": "story"
+   },
+   {
+    "slide_id": "d75c355f-1e8b-4267-b461-e325fd2fd94e",
+    "slide_index": 3,
+    "beat": "story"
+   },
+   {
+    "slide_id": "dda5b28c-de09-4c5b-8cbd-d7a0155635c0",
+    "slide_index": 4,
+    "beat": "cta"
+   }
+  ],
+  "arc_summary": "The slideshow hooks viewers with a surprising value claim under \u00a320, then escalates by showing they won\u2019t just receive one or two Colgate whitening products, but three. It closes by revealing the bundle deal and directing viewers to check the sale price in the basket."
+ },
+ "marketing_text": "This creative is built as a social-first teaser: it opens with a hand holding a \u00a320 note and a bold caption that implies something unexpectedly valuable or \u201csaucy\u201d can be had for that price. By withholding the actual product, the ad turns the price point into the hook, encouraging viewers to keep watching or click through to discover the reveal. The casual POV framing, natural lighting, and domestic background make it feel like user-generated content rather than a polished ad.\n\nThe target audience is likely UK-based bargain hunters, especially younger adults used to TikTok and Reels-style content. The language and typography feel native to social media, while the \u00a320 note creates immediate relevance and accessibility. The emotional appeal combines curiosity, excitement, thriftiness, and surprise: viewers are invited to think, \u201cWhat can I get for only \u00a320?\u201d\n\nAs marketing, it works because it leads with a clear value proposition without over-explaining. The creative uses price anchoring to make the offer feel attainable, then relies on suspense to create engagement. The UGC style also adds a sense of authenticity, making the message feel like a peer recommendation rather than a hard sell.",
+ "per_slide": {
+  "0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3": {
+   "fingerprint": {
+    "visual_style": "Casual, user-generated content (UGC), informal, POV (point of view).",
+    "marketing_objective": "To tease a high-value product or offer available for a low price, generating curiosity and encouraging viewers to watch the rest of the video or click a link.",
+    "emotional_appeal": [
+     "Curiosity",
+     "Excitement",
+     "Thriftiness",
+     "Surprise"
+    ],
+    "target_audience": "Bargain hunters, young adults, people interested in getting good deals in the UK.",
+    "color_palette": [
+     "Purple (banknote)",
+     "White (text and banknote highlights)",
+     "Wood tones (background)",
+     "Skin tones (hand)"
+    ],
+    "typography_style": "Bold, sans-serif, white with a black outline, typical of social media captions (like TikTok or Instagram Reels).",
+    "layout_and_composition": "Central focus on the \u00a320 note held in a hand, taking up the lower two-thirds of the frame. Large text overlay at the top third, typical portrait video format (9:16).",
+    "background_environment": "A slightly blurry, everyday domestic setting, likely a bedroom, showing a wooden chest of drawers.",
+    "lighting_style": "Natural, soft indoor lighting.",
+    "graphic_style": "Text overlay on raw video footage.",
+    "product_prominence": "The product itself is not shown yet; the focus is entirely on the price point (\u00a320) serving as a teaser.",
+    "marketing_angle": "Value proposition: high perceived value for a low, accessible price point.",
+    "visual_hierarchy": "1. The text overlay ('So you're telling me...'), 2. The \u00a320 note, 3. The background.",
+    "trust_elements": [
+     "UGC format implies authenticity and peer recommendation."
+    ],
+    "promotional_devices": [
+     "Teaser format (creating a 'hook')",
+     "Price anchoring (setting the expectation of a bargain)"
+    ],
+    "object_placement": "A hand holds a crisp \u00a320 note horizontally in the center of the foreground. The background is a slightly out-of-focus wooden dresser. The text is placed prominently at the top.",
+    "emotional_trigger": "Desire for a bargain/deal (the thrill of getting something valuable for surprisingly little money) combined with intense curiosity to see the reveal.",
+    "extensions": "The use of the word 'saucy' adds a colloquial, playful, and relatable tone, typical of UK Gen Z/Millennial internet culture."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "The \u00a320 Bank of England note is the central product/offer cue and should retain its denomination, orientation, scale, and prominent foreground placement.",
+     "region_type": "product",
+     "x_max": 0.933,
+     "x_min": 0.017,
+     "y_max": 0.844,
+     "y_min": 0.381
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Hand/fingers directly holding and presenting the banknote; pose and interaction with the note are integral to the creative.",
+     "region_type": "human_subject",
+     "x_max": 0.864,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.315
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large meme-style overlay text communicates the marketing hook; wording, placement, high contrast, and approximate size should be preserved.",
+     "region_type": "decorative_element",
+     "x_max": 0.86,
+     "x_min": 0.062,
+     "y_max": 0.24,
+     "y_min": 0.122
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Wooden chest of drawers forms the main indoor/home background context; it can be replaced with a similar room/furniture backdrop but should remain unobtrusive.",
+     "region_type": "environment",
+     "x_max": 0.815,
+     "x_min": 0.0,
+     "y_max": 0.463,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Drawer knobs and trim details are background furniture features and can change freely without affecting the concept.",
+     "region_type": "prop",
+     "x_max": 0.586,
+     "x_min": 0.515,
+     "y_max": 0.449,
+     "y_min": 0.257
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Blue fabric or upholstered item at right edge is background clutter; safe to swap or remove.",
+     "region_type": "background",
+     "x_max": 0.978,
+     "x_min": 0.795,
+     "y_max": 0.407,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Dark chair/stand-like object in the right background is not central to the message and can be removed or replaced.",
+     "region_type": "background",
+     "x_max": 1.0,
+     "x_min": 0.84,
+     "y_max": 0.51,
+     "y_min": 0.217
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Dark floor/carpet and lower room background provide general indoor setting and contrast behind the hand; can vary as long as the foreground remains clear.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.43
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Blurred/low-detail upper background and edges behind the text are nonessential negative space supporting legibility.",
+     "region_type": "negative_space",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 0.32,
+     "y_min": 0.0
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "So you're telling me for less than a saucy \u00a320 I can get...",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.053,
+      "y_min": 0.111,
+      "x_max": 0.887,
+      "y_max": 0.222
+     }
+    },
+    {
+     "text": "\u00a320",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.117,
+      "y_min": 0.375,
+      "x_max": 0.243,
+      "y_max": 0.435
+     }
+    },
+    {
+     "text": "LONDON FOR THE GOVERNOR AND COMPANY OF THE BANK OF ENGLAND\nSarah John\nCHIEF CASHIER",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.106,
+      "y_min": 0.418,
+      "x_max": 0.223,
+      "y_max": 0.472
+     }
+    },
+    {
+     "text": "Bank of England",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.368,
+      "y_min": 0.438,
+      "x_max": 0.655,
+      "y_max": 0.518
+     }
+    },
+    {
+     "text": "I PROMISE TO PAY THE BEARER ON DEMAND THE SUM OF TWENTY POUNDS",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.376,
+      "y_min": 0.481,
+      "x_max": 0.59,
+      "y_max": 0.523
+     }
+    },
+    {
+     "text": "20",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.738,
+      "y_min": 0.49,
+      "x_max": 0.863,
+      "y_max": 0.556
+     }
+    },
+    {
+     "text": "Twenty Pounds",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.323,
+      "y_min": 0.62,
+      "x_max": 0.536,
+      "y_max": 0.73
+     }
+    }
+   ],
+   "product_appearances": []
+  },
+  "5e8d0f4b-4a4c-4930-a863-053ade4efeac": {
+   "fingerprint": {
+    "visual_style": "Minimalist, modern, and clean.",
+    "marketing_objective": "Brand awareness and product showcase.",
+    "emotional_appeal": [
+     "Simplicity",
+     "Curiosity"
+    ],
+    "target_audience": "Consumers looking for premium dental care products.",
+    "color_palette": [
+     "Red",
+     "White",
+     "Grey",
+     "Black"
+    ],
+    "typography_style": "Sans-serif, bold, and clean.",
+    "layout_and_composition": "The product is placed centrally on a clean countertop with a minimalist background, emphasizing the item.",
+    "background_environment": "A modern bathroom setting with a grey tiled wall and a marble countertop.",
+    "lighting_style": "Soft, natural-looking light with a subtle glow from a mirror in the background.",
+    "graphic_style": "Realistic photography with a text overlay.",
+    "product_prominence": "High. The product is placed right in the center and is the main focus of the image.",
+    "marketing_angle": "Highlighting a specific, perhaps premium, product in a real-world, yet aspirational, setting.",
+    "visual_hierarchy": "The central red product box immediately catches the eye, followed by the text 'Not 1...', and then the surrounding bathroom environment.",
+    "trust_elements": [
+     "Well-known brand name (Colgate) visible on the packaging."
+    ],
+    "promotional_devices": [
+     "Teaser text ('Not 1...') to build anticipation."
+    ],
+    "object_placement": "The product box stands vertically in the center of the frame, positioned on the counter next to a sink.",
+    "emotional_trigger": "Anticipation and curiosity created by the incomplete phrase 'Not 1...'",
+    "extensions": "The reflection of the product on the marble counter adds a touch of elegance."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Main marketed item: the red Colgate toothbrush package and visible toothbrush. Product branding, color, shape, and exact central placement should be preserved.",
+     "region_type": "product",
+     "x_max": 0.612,
+     "x_min": 0.456,
+     "y_max": 0.888,
+     "y_min": 0.37
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "On-package product/brand details including 'SOFT', 'MAX WHITE ULTRA', toothbrush head image, and Colgate logo are part of the product identity and should not change independently from the package.",
+     "region_type": "product",
+     "x_max": 0.609,
+     "x_min": 0.465,
+     "y_max": 0.878,
+     "y_min": 0.386
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large overlay text reading 'Not 1...' is a key marketing/message element and should remain in a similar location and style if regenerated.",
+     "region_type": "secondary_subject",
+     "x_max": 0.379,
+     "x_min": 0.151,
+     "y_max": 0.674,
+     "y_min": 0.613
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Gray tiled bathroom wall provides the bathroom setting and neutral backdrop; tile material and wall setting should remain generally similar but exact pattern/grout lines can vary.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 0.766,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Marble/stone bathroom countertop supporting the product; establishes sink-counter environment and product placement surface. Material and placement are contextually important but exact veining can change.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0.751
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Black faucet on the right reinforces bathroom-sink context but is not central to the product message and can be changed or replaced with another faucet.",
+     "region_type": "prop",
+     "x_max": 1,
+     "x_min": 0.89,
+     "y_max": 0.79,
+     "y_min": 0.537
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Partial white sink basin at bottom right is contextual bathroom furniture; it may be repositioned or replaced as long as bathroom counter setting remains.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0.79,
+     "y_max": 1,
+     "y_min": 0.843
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Curved black mirror edge/light at upper right adds bathroom decor and lighting ambience; safe to alter or omit if composition still reads as a bathroom vanity.",
+     "region_type": "decorative_element",
+     "x_max": 1,
+     "x_min": 0.775,
+     "y_max": 0.32,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Open wall space around the centered product gives the ad its clean composition and visual focus; should remain relatively uncluttered though exact texture can vary.",
+     "region_type": "negative_space",
+     "x_max": 0.86,
+     "x_min": 0.05,
+     "y_max": 0.56,
+     "y_min": 0.02
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "Not 1...",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.155,
+      "y_min": 0.536,
+      "x_max": 0.378,
+      "y_max": 0.582
+     }
+    },
+    {
+     "text": "SOFT",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.519,
+      "y_min": 0.323,
+      "x_max": 0.565,
+      "y_max": 0.34
+     }
+    },
+    {
+     "text": "MAX WHITE ULTRA",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.505,
+      "y_min": 0.458,
+      "x_max": 0.544,
+      "y_max": 0.485
+     }
+    },
+    {
+     "text": "Colgate\u00ae",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.47,
+      "y_min": 0.62,
+      "x_max": 0.513,
+      "y_max": 0.757
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "5ceb9397-ed26-4776-afe3-c9e8f0d3caea",
+     "display_name": "Colgate Max White Ultra toothbrush",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  },
+  "c325bf9d-6baa-47fd-b3dd-1fb5c02dc432": {
+   "fingerprint": {
+    "visual_style": "Minimalist and modern lifestyle photography.",
+    "marketing_objective": "To introduce or tease a new oral care product, highlighting its unique format (serum).",
+    "emotional_appeal": [
+     "Curiosity",
+     "Desire for improvement (whitening)"
+    ],
+    "target_audience": "Adults interested in cosmetic dental care and teeth whitening solutions.",
+    "color_palette": [
+     "Red (Colgate brand color)",
+     "White (countertop, text)",
+     "Grey (wall tiles)",
+     "Black (faucet, text outline)",
+     "Purple (product detail)"
+    ],
+    "typography_style": "Sans-serif, bold, with a black outline for the overlaid text; clean and standard corporate font for product packaging.",
+    "layout_and_composition": "Center-focused composition with the product box placed centrally on a bathroom counter. A faucet is visible on the right, providing context. Overlaid text is placed centrally above the product.",
+    "background_environment": "A modern bathroom setting with grey textured wall tiles and a white marble-patterned countertop.",
+    "lighting_style": "Soft, natural-looking indoor lighting with a warm glow from a mirror light in the upper right, casting gentle shadows.",
+    "graphic_style": "Photographic with simple text overlay and packaging graphics.",
+    "product_prominence": "High; the product box is the central and most colorful object in the frame.",
+    "marketing_angle": "Product innovation/format (Serum instead of toothpaste) and efficacy (Whitening Booster).",
+    "visual_hierarchy": "1. Overlaid text ('Not 2..') 2. Product Box (Colgate red) 3. Specific product details (Serum, Purple) 4. Bathroom context (faucet, sink).",
+    "trust_elements": [
+     "Well-known brand name (Colgate) prominent on packaging."
+    ],
+    "promotional_devices": [
+     "Teasing text ('Not 2..') to create intrigue."
+    ],
+    "object_placement": "The Colgate product box is standing upright in the center of the frame on a counter. A black faucet is on the mid-right. A sink edge is on the bottom right. A mirror edge is on the top right.",
+    "emotional_trigger": "Curiosity and intrigue generated by the incomplete, teasing statement 'Not 2..', prompting the viewer to find out more about what the product is or isn't.",
+    "extensions": "The use of the word 'Serum' for a dental product borrows terminology from skincare, elevating the perceived sophistication of the product."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Main advertised Colgate Max White Purple Serum retail box, centered on counter; product branding, color, and position are core to the creative and should not change.",
+     "region_type": "product",
+     "x_max": 0.562,
+     "x_min": 0.322,
+     "y_max": 0.742,
+     "y_min": 0.372
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Bottle/serum applicator image printed on the front of the packaging; part of the product depiction and should remain accurate.",
+     "region_type": "product",
+     "x_max": 0.484,
+     "x_min": 0.411,
+     "y_max": 0.718,
+     "y_min": 0.505
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Overlay caption text reading 'Not 2..' above the product; important marketing/message element that drives the creative concept, though text styling could be regenerated closely.",
+     "region_type": "decorative_element",
+     "x_max": 0.547,
+     "x_min": 0.337,
+     "y_max": 0.301,
+     "y_min": 0.235
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Gray tiled bathroom wall backdrop; establishes bathroom/vanity setting but can be replaced with a similar wall surface.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 0.695,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Light marble/stone vanity countertop supporting the product; key bathroom surface context, but exact veining/material can vary.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.663
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Black faucet fixture on the right side; reinforces bathroom sink setting but is not central to the product message and may change style or placement.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.829,
+     "y_max": 0.737,
+     "y_min": 0.487
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Partial sink basin at bottom right; bathroom context element, safe to alter as long as the vanity setting remains clear.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.724,
+     "y_max": 1.0,
+     "y_min": 0.812
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Partial circular mirror or illuminated mirror edge in the upper right; decorative/contextual bathroom feature, not essential to the ad.",
+     "region_type": "decorative_element",
+     "x_max": 1.0,
+     "x_min": 0.771,
+     "y_max": 0.303,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Large open wall area around the text and product; functions mostly as negative/background space and can be changed if composition remains uncluttered.",
+     "region_type": "negative_space",
+     "x_max": 0.77,
+     "x_min": 0.0,
+     "y_max": 0.371,
+     "y_min": 0.0
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "Not 2..",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.339,
+      "y_min": 0.208,
+      "x_max": 0.548,
+      "y_max": 0.258
+     }
+    },
+    {
+     "text": "Colgate",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.344,
+      "y_min": 0.364,
+      "x_max": 0.539,
+      "y_max": 0.398
+     }
+    },
+    {
+     "text": "SERUM",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.332,
+      "y_min": 0.481,
+      "x_max": 0.4,
+      "y_max": 0.492
+     }
+    },
+    {
+     "text": "AFTER\nBRUSHING\nTEETH\nWHITENING\nBOOSTER*",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.339,
+      "y_min": 0.508,
+      "x_max": 0.395,
+      "y_max": 0.551
+     }
+    },
+    {
+     "text": "Colgate",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.422,
+      "y_min": 0.549,
+      "x_max": 0.472,
+      "y_max": 0.558
+     }
+    },
+    {
+     "text": "MAX\nWHITE\nPURPLE\nSERUM",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.424,
+      "y_min": 0.584,
+      "x_max": 0.473,
+      "y_max": 0.619
+     }
+    },
+    {
+     "text": "40 ml e",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.498,
+      "y_min": 0.693,
+      "x_max": 0.551,
+      "y_max": 0.704
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "840bce5c-9e50-4914-9f02-2045f54b3d19",
+     "display_name": "Colgate Max White Purple Reveal serum",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  },
+  "d75c355f-1e8b-4267-b461-e325fd2fd94e": {
+   "fingerprint": {
+    "visual_style": "Modern, Clean, Minimalist",
+    "marketing_objective": "Product Awareness, Highlighting Key Benefits",
+    "emotional_appeal": [
+     "Desire for self-improvement",
+     "Confidence"
+    ],
+    "target_audience": "Adults seeking teeth whitening solutions, individuals conscious about oral hygiene and aesthetics",
+    "color_palette": [
+     "Red",
+     "Purple",
+     "White",
+     "Grey",
+     "Black"
+    ],
+    "typography_style": "Clean sans-serif for product details; bold, rounded sans-serif with a black outline for the overlay text",
+    "layout_and_composition": "Centered product focus with overlay text placed to the left to balance the composition. Clean, uncluttered background.",
+    "background_environment": "A modern bathroom setting with grey textured wall tiles and a white marble countertop.",
+    "lighting_style": "Soft, natural-looking ambient light, with a warm glow from the backlit mirror in the background.",
+    "graphic_style": "Photographic with a text overlay.",
+    "product_prominence": "High - the product is the central focus of the image.",
+    "marketing_angle": "Focuses on instant results and effectiveness ('Instantly Corrects Yellow Tones', 'Removes up to 100% Surface Stains').",
+    "visual_hierarchy": "1. The product packaging (specifically the red and purple colors). 2. The overlay text 'Not 3...'. 3. The specific claims on the box ('Instantly Corrects...').",
+    "trust_elements": [
+     "Brand name (Colgate)",
+     "Asterisks denoting clinically proven claims (implied)"
+    ],
+    "promotional_devices": [
+     "Bold claims ('Removes up to 100% Surface Stains', 'Instantly Corrects Yellow Tones')"
+    ],
+    "object_placement": "The toothpaste box is placed directly in the center of the frame on the countertop, slightly in front of a modern black faucet on the right and a backlit mirror in the top right.",
+    "emotional_trigger": "Desire for immediate aesthetic improvement (instant gratification regarding teeth whiteness)",
+    "extensions": "The text 'Not 3...' suggests a comparison or a continuation from a previous frame in a video context, implying this product is superior or works faster than a competitor or an alternative."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Colgate Max White Purple Reveal toothpaste box is the advertised product; its branding, colors, label text, and central upright placement should not change.",
+     "region_type": "product",
+     "x_max": 0.612,
+     "x_min": 0.435,
+     "y_max": 0.842,
+     "y_min": 0.397
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large overlay text reading \u201cNot 3...\u201d is part of the marketing message/composition and should closely match if regenerated.",
+     "region_type": "decorative_element",
+     "x_max": 0.377,
+     "x_min": 0.177,
+     "y_max": 0.525,
+     "y_min": 0.484
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Gray tiled bathroom backsplash establishes the sink/vanity setting; the exact tile texture and grout lines can vary but the general bathroom wall context should remain.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 0.79,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Light marble/stone countertop surface supports the product and confirms bathroom vanity context; exact veining can vary.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0.785
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Black faucet fixture at right is bathroom hardware providing context but not central to the ad; can be changed or repositioned as long as setting remains plausible.",
+     "region_type": "prop",
+     "x_max": 0.999,
+     "x_min": 0.897,
+     "y_max": 0.833,
+     "y_min": 0.57
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Partial white sink basin in bottom-right reinforces bathroom setting but is peripheral and can vary or be cropped differently.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0.767,
+     "y_max": 1,
+     "y_min": 0.882
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Partial circular mirror edge and warm reflected light in the upper-right adds bathroom ambience; exact mirror shape/position and lighting are flexible.",
+     "region_type": "prop",
+     "x_max": 1,
+     "x_min": 0.761,
+     "y_max": 0.347,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Open tiled wall area on the upper-left/center functions mostly as empty background/negative space behind the message and product; safe to alter while maintaining clean bathroom backdrop.",
+     "region_type": "negative_space",
+     "x_max": 0.713,
+     "x_min": 0,
+     "y_max": 0.482,
+     "y_min": 0
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "Not 3...",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.179,
+      "y_min": 0.395,
+      "x_max": 0.384,
+      "y_max": 0.435
+     }
+    },
+    {
+     "text": "Colgate\u00ae",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.45,
+      "y_min": 0.347,
+      "x_max": 0.601,
+      "y_max": 0.375
+     }
+    },
+    {
+     "text": "MAX* WHITE..",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.459,
+      "y_min": 0.458,
+      "x_max": 0.588,
+      "y_max": 0.501
+     }
+    },
+    {
+     "text": "PURPLE REVEAL",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.469,
+      "y_min": 0.518,
+      "x_max": 0.575,
+      "y_max": 0.548
+     }
+    },
+    {
+     "text": "Instantly Corrects Yellow Tones*",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.481,
+      "y_min": 0.619,
+      "x_max": 0.564,
+      "y_max": 0.651
+     }
+    },
+    {
+     "text": "Removes up to 100% Surface Stains*",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.479,
+      "y_min": 0.671,
+      "x_max": 0.567,
+      "y_max": 0.701
+     }
+    },
+    {
+     "text": "ENAMEL SAFE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.492,
+      "y_min": 0.718,
+      "x_max": 0.554,
+      "y_max": 0.726
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "75d4983b-0cfa-496b-9a52-a9b835575627",
+     "display_name": "Colgate Max White Purple Reveal toothpaste",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  },
+  "dda5b28c-de09-4c5b-8cbd-d7a0155635c0": {
+   "fingerprint": {
+    "visual_style": "Casual, user-generated content (UGC) style social media screenshot.",
+    "marketing_objective": "Drive direct sales and conversions through an in-app shopping feature.",
+    "emotional_appeal": [
+     "Excitement",
+     "Desire for self-improvement",
+     "Thrill of a bargain"
+    ],
+    "target_audience": "Social media users interested in oral care, teeth whitening, and finding deals/discounts.",
+    "color_palette": [
+     "Red",
+     "Purple",
+     "White",
+     "Grey",
+     "Yellow"
+    ],
+    "typography_style": "Bold, sans-serif, white text with a heavy black outline, typical of native social media video captions.",
+    "layout_and_composition": "Centered composition with products lined up in the middle, framed by a prominent text hook at the top and directional call-to-action emojis at the bottom.",
+    "background_environment": "A clean, modern bathroom interior featuring grey wall tiles, a marble-patterned countertop, a small potted plant, and bathroom fixtures.",
+    "lighting_style": "Soft, even, natural-looking indoor lighting that clearly illuminates the products without harsh shadows.",
+    "graphic_style": "Photographic base with digital text overlay and standard emoji graphics.",
+    "product_prominence": "Very high; the three Colgate products are the primary focus in the center of the frame, occupying significant space.",
+    "marketing_angle": "Value-driven bundle promotion emphasizing a 'huge sale' on a well-known brand's teeth whitening regimen.",
+    "visual_hierarchy": "1. The bold text hook at the top ('But 3 of these on a huge sale!'). 2. The central product lineup. 3. The pointing hand emojis directing the user's eye to the bottom.",
+    "trust_elements": [
+     "Familiar, established brand logo (Colgate)",
+     "On-pack product claims ('Enamel Safe', 'Visibly Corrects Yellow Tones')"
+    ],
+    "promotional_devices": [
+     "Explicit mention of a 'huge sale'",
+     "Direct call-to-action ('Get yours here and check your price')",
+     "Directional cues (pointing emojis) to the purchase link"
+    ],
+    "object_placement": "The toothbrush, toothpaste, and serum are arranged standing upright side-by-side in the center foreground on the bathroom counter, flanked by background bathroom accessories.",
+    "emotional_trigger": "The excitement of unlocking a hidden or limited-time bargain on a premium daily-use product bundle, prompted by the mystery of 'check your price'.",
+    "extensions": "The phrase 'yellow basket' is a specific platform cue indicating this is an ad designed for TikTok Shop."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Central Colgate Max White Purple Reveal toothpaste box; main advertised product and exact branding/position should be preserved.",
+     "region_type": "product",
+     "x_max": 0.566,
+     "x_min": 0.384,
+     "y_max": 0.838,
+     "y_min": 0.341
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Left Colgate toothbrush package; one of the three promoted sale items and should remain accurately represented.",
+     "region_type": "product",
+     "x_max": 0.379,
+     "x_min": 0.264,
+     "y_max": 0.827,
+     "y_min": 0.348
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Right Colgate serum box with bottle imagery; one of the three promoted sale items and core to the offer.",
+     "region_type": "product",
+     "x_max": 0.801,
+     "x_min": 0.568,
+     "y_max": 0.83,
+     "y_min": 0.45
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Large promotional headline text explaining the sale and call to action; not the physical product but central marketing message and composition element.",
+     "region_type": "decorative_element",
+     "x_max": 0.89,
+     "x_min": 0.097,
+     "y_max": 0.314,
+     "y_min": 0.094
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Three yellow pointing-hand icons indicating where to check the basket/price; important CTA cue but can be restyled if function remains.",
+     "region_type": "decorative_element",
+     "x_max": 0.354,
+     "x_min": 0.065,
+     "y_max": 0.946,
+     "y_min": 0.867
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Bathroom/vanity tiled wall background; establishes bathroom setting appropriate for oral-care products, but tile pattern could change.",
+     "region_type": "background",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 0.674,
+     "y_min": 0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Marble countertop surface supporting the products; important setting cue and product placement surface, but material/details can vary.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0,
+     "y_max": 1,
+     "y_min": 0.648
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Potted green plant on the left; adds bathroom decor ambiance but is not essential to the ad.",
+     "region_type": "decorative_element",
+     "x_max": 0.252,
+     "x_min": 0,
+     "y_max": 0.726,
+     "y_min": 0.121
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Soap/lotion dispenser at left edge; bathroom prop, free to change or remove without affecting message.",
+     "region_type": "prop",
+     "x_max": 0.087,
+     "x_min": 0,
+     "y_max": 0.774,
+     "y_min": 0.344
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Black faucet fixture on the right; reinforces bathroom sink setting but not central to the creative.",
+     "region_type": "prop",
+     "x_max": 1,
+     "x_min": 0.855,
+     "y_max": 0.754,
+     "y_min": 0.493
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Visible sink basin/corner at bottom right; contextual bathroom element that can be altered while preserving setting.",
+     "region_type": "environment",
+     "x_max": 1,
+     "x_min": 0.697,
+     "y_max": 1,
+     "y_min": 0.815
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Open wall/counter negative space around products and text; mainly provides layout breathing room and can be adjusted as long as readability remains.",
+     "region_type": "negative_space",
+     "x_max": 1,
+     "x_min": 0.011,
+     "y_max": 0.881,
+     "y_min": 0.005
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "But 3 of these on a huge sale! Get yours here and check your price in the yellow basket below!",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.1,
+      "y_min": 0.08,
+      "x_max": 0.9,
+      "y_max": 0.29
+     }
+    },
+    {
+     "text": "SLIM",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.32,
+      "y_min": 0.32,
+      "x_max": 0.33,
+      "y_max": 0.33
+     }
+    },
+    {
+     "text": "MAX WHITE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.28,
+      "y_min": 0.44,
+      "x_max": 0.32,
+      "y_max": 0.46
+     }
+    },
+    {
+     "text": "Colgate",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.27,
+      "y_min": 0.61,
+      "x_max": 0.31,
+      "y_max": 0.73
+     }
+    },
+    {
+     "text": "MEDIUM",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.28,
+      "y_min": 0.75,
+      "x_max": 0.31,
+      "y_max": 0.76
+     }
+    },
+    {
+     "text": "Colgate",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.4,
+      "y_min": 0.34,
+      "x_max": 0.54,
+      "y_max": 0.36
+     }
+    },
+    {
+     "text": "VISIBLY CORRECTS YELLOW TONES",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.49,
+      "y_min": 0.41,
+      "x_max": 0.55,
+      "y_max": 0.44
+     }
+    },
+    {
+     "text": "MAX WHITE PURPLE REVEAL",
+     "role": "headline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.4,
+      "y_min": 0.47,
+      "x_max": 0.52,
+      "y_max": 0.56
+     }
+    },
+    {
+     "text": "Removes up to 100% Surface Stains*",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.41,
+      "y_min": 0.65,
+      "x_max": 0.52,
+      "y_max": 0.68
+     }
+    },
+    {
+     "text": "Instantly Corrects Yellow Tones*",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.42,
+      "y_min": 0.7,
+      "x_max": 0.51,
+      "y_max": 0.73
+     }
+    },
+    {
+     "text": "ENAMEL SAFE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.44,
+      "y_min": 0.76,
+      "x_max": 0.5,
+      "y_max": 0.77
+     }
+    },
+    {
+     "text": "Colgate",
+     "role": "logo_text",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.6,
+      "y_min": 0.43,
+      "x_max": 0.8,
+      "y_max": 0.46
+     }
+    },
+    {
+     "text": "SERUM",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.58,
+      "y_min": 0.54,
+      "x_max": 0.64,
+      "y_max": 0.55
+     }
+    },
+    {
+     "text": "AFTER BRUSHING TEETH WHITENING BOOSTER*",
+     "role": "subheadline",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.58,
+      "y_min": 0.56,
+      "x_max": 0.64,
+      "y_max": 0.61
+     }
+    },
+    {
+     "text": "Colgate MAX WHITE PURPLE REVEAL",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.67,
+      "y_min": 0.61,
+      "x_max": 0.73,
+      "y_max": 0.69
+     }
+    },
+    {
+     "text": "40ml e",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.76,
+      "y_min": 0.75,
+      "x_max": 0.81,
+      "y_max": 0.76
+     }
+    }
+   ],
+   "product_appearances": []
+  }
+ },
+ "product_references": {
+  "5ceb9397-ed26-4776-afe3-c9e8f0d3caea": [
+   "574ef792-d99c-4cd6-b1c7-6408702cada6"
+  ],
+  "840bce5c-9e50-4914-9f02-2045f54b3d19": [
+   "60b49c9d-6e07-4381-89d1-8bebb350f24d"
+  ],
+  "75d4983b-0cfa-496b-9a52-a9b835575627": [
+   "3756f003-4778-4777-a5b9-26c214302061"
+  ]
+ }
+}

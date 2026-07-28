@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from ..generation_spec import SlideGenerationSpec
 from ..generation_request import (
-    AdapterOutput, RequestManifest, ManifestEntry, slide_requirements,
+    AdapterOutput, RequestManifest, ManifestEntry, Realization, slide_requirements,
 )
 
 
@@ -36,6 +36,9 @@ class NanoBananaCapabilities:
     can_render_illustration: bool = True
     variable_axes: tuple = ("setting", "lighting", "person_identity", "palette",
                             "props", "framing", "viewpoint", "styling")
+
+
+from .provider_language import zone_purpose, element_phrase, humanize
 
 
 class NanoBananaPromptAdapter:
@@ -56,104 +59,138 @@ class NanoBananaPromptAdapter:
         product_has_ref = {p.ref: any(r in attached for r in p.reference_ids) for p in spec.products}
 
         entries: list[ManifestEntry] = []
-        lines: list[str] = ["[nano_banana] Generate an original vertical 9:16 TikTok-Shop image."]
+        # Aspect is NOT invented here — it flows from the spec's canvas requirement below.
+        lines: list[str] = ["[nano_banana] Generate an original TikTok-Shop image."]
         scene_bits: list[str] = []      # accumulate the scene body so it survives as prose
 
-        def enc(req, line=None):
-            entries.append(ManifestEntry(req, "encoded"))
-            if line:
-                lines.append(line)
+        # Every encoding records HOW it was realized, at the point of realization.
+        def enc_line(req, line):                 # realized as a provider-facing text line
+            lines.append(line)
+            entries.append(ManifestEntry(req, "encoded", realization=Realization("text", line)))
+
+        def enc_scene(req, bit):                 # realized as a scene-body fragment (merged into the prose)
+            scene_bits.append(bit)
+            entries.append(ManifestEntry(req, "encoded", realization=Realization("text", bit)))
+
+        def enc_attach(req, ref):                # realized as an attached asset, not text
+            entries.append(ManifestEntry(req, "encoded", realization=Realization("attachment", ref)))
+
+        def enc_collective(req, marker):         # realized by a shared/global directive
+            entries.append(ManifestEntry(req, "encoded", realization=Realization("collective", marker)))
+
+        def enc_noop(req, why):                  # an intentional no-op — deliberately nothing to render
+            entries.append(ManifestEntry(req, "encoded", realization=Realization("noop", why)))
 
         def uns(req, reason):
-            entries.append(ManifestEntry(req, "unsupported", reason))
+            entries.append(ManifestEntry(req, "unsupported", reason=reason))
 
         for req in slide_requirements(spec):
             k = req.id.kind
 
-            if k == "scene_concept":
-                scene_bits.append(f"Scene: {req.get('concept')}")
-                enc(req)
+            if k == "canvas":
+                out_aspect = req.get("output_aspect")
+                src_aspect = req.get("source_aspect")
+                line = f"Output aspect ratio: {out_aspect} (render the image at exactly {out_aspect})."
+                if src_aspect and src_aspect != out_aspect:
+                    line += f" The source was {src_aspect}; recompose for {out_aspect} rather than stretching."
+                enc_line(req, line)
+            elif k == "scene_concept":
+                enc_scene(req, f"Scene: {req.get('concept')}")
             elif k == "subject_presence":
                 if req.get("present"):
-                    scene_bits.append("A human subject is present.")
+                    extent = req.get("extent") or "unspecified"
+                    if extent in ("full figure", "unspecified", ""):
+                        bit = "A person is present in the frame."
+                    else:
+                        bit = (f"Only the subject's {extent} is visible — do NOT render a full "
+                               f"person or any body part that was not in the source.")
                 else:
-                    scene_bits.append("No human subject in frame.")
-                enc(req)
+                    bit = "No human subject in frame."
+                enc_scene(req, bit)
             elif k == "subject_action":
-                scene_bits.append(f"The subject is {req.get('action')}.")
-                enc(req)
+                enc_scene(req, f"The visible subject is {req.get('action')}.")
+            elif k == "subject_product_relation":
+                rel = req.get("relation")
+                phrase = {
+                    "holding": "held in the subject's hand",
+                    "wearing": "worn by the subject",
+                    "using": "used by the subject",
+                }.get(rel, f"{rel} by the subject")
+                enc_scene(req, f"The promoted product is {phrase}.")
             elif k == "subject_emotion":
                 emo = ", ".join(req.get("emotion") or ())
                 if emo:
-                    scene_bits.append(f"Emotional register: {emo}.")
-                enc(req)
+                    enc_scene(req, f"Emotional register: {emo}.")
+                else:
+                    enc_noop(req, "no emotional register supplied — nothing to render")
             elif k == "environment":
-                scene_bits.append(f"Environment: {req.get('environment')}.")
-                enc(req)
+                enc_scene(req, f"Environment: {req.get('environment')}.")
             elif k == "lighting":
-                scene_bits.append(f"Lighting: {req.get('lighting')}.")
-                enc(req)
+                enc_scene(req, f"Lighting: {req.get('lighting')}.")
             elif k == "dynamics":
-                scene_bits.append(f"Energy: {req.get('energy')}.")
-                enc(req)
+                enc_scene(req, f"Energy: {req.get('energy')}.")
             elif k == "product_presence":
                 if req.get("product_allowed"):
-                    enc(req, "The promoted product must be visible in this frame.")
+                    enc_line(req, "The promoted product must be visible in this frame.")
                 else:
-                    enc(req, "Do NOT show the promoted product in this frame (it is withheld here).")
+                    enc_line(req, "Do NOT show the promoted product in this frame (it is withheld here).")
             elif k == "focal":
                 w = req.get("weight")
                 if w == "primary":
-                    enc(req, f"Make {req.get('element')} the dominant focal point.")
+                    enc_line(req, f"Make {element_phrase(req.get('element'), spec)} the dominant focal point.")
                 elif w == "absent":
-                    enc(req, f"{req.get('element')} must NOT appear in this frame.")
+                    enc_line(req, f"{element_phrase(req.get('element'), spec).capitalize()} must NOT appear in this frame.")
                 else:
-                    enc(req)
+                    enc_noop(req, f"focal weight '{w}' carries no directive")
             elif k == "invariant":
-                enc(req, f"Preserve (invariant): {req.get('statement')} — you choose the composition.")
+                enc_line(req, f"Preserve: {humanize(req.get('statement'), spec)} — you choose the composition.")
             elif k == "opening":
                 if caps.can_reserve_open_zone:
-                    enc(req, f"Leave the {req.get('zone')} clear/uncluttered for '{req.get('purpose')}' "
-                             f"(strictness: {req.get('strictness')}).")
+                    # The internal purpose enum never reaches the provider — it is
+                    # translated to provider-facing language (adapter-purity family).
+                    enc_line(req, f"Keep the {req.get('zone')} area visually clear and uncluttered "
+                                  f"(reserved space for {zone_purpose(req.get('purpose'))}, added later); "
+                                  f"render no text there.")
                 else:
                     uns(req, "adapter cannot reserve a clean zone")
             elif k == "overlay_exclusion":
-                # The copy is added by the creator later; the image must not bake it in.
-                enc(req)
+                # Realized collectively by the global "render NO overlay text" directive below;
+                # the creator adds this copy later, so the image must not bake it in.
+                enc_collective(req, "global no-overlay-text directive")
             elif k == "render_text":
                 fidelity = req.get("fidelity")
                 text = req.get("text") or ""
                 owner = req.get("owner") or ""
                 if fidelity == "exact_text":
                     if caps.can_render_exact_text:
-                        enc(req, f'Render the exact text: "{text}".')
+                        enc_line(req, f'Render the exact text: "{text}".')
                     else:
                         uns(req, "provider cannot guarantee legible exact text — needs compositing "
                                  "or a different execution path")
                 elif fidelity == "reference_fidelity":
                     if owner and product_has_ref.get(owner):
-                        enc(req, f'Reproduce "{text}" faithfully as it appears on referenced product {owner}.')
+                        enc_line(req, f'Reproduce "{text}" faithfully as it appears on referenced product {owner}.')
                     elif owner:
                         uns(req, f"reference fidelity for '{text}' requires product {owner}'s reference, "
                                  f"which is not attached")
                     else:
                         uns(req, f"reference fidelity for '{text}' has no owning reference target")
                 elif fidelity == "semantic_presence":
-                    enc(req, f'Keep the idea of "{text}" recognisably present (exact wording not required).')
+                    enc_line(req, f'Keep the idea of "{text}" recognisably present (exact wording not required).')
                 elif fidelity == "none":
-                    enc(req)      # decorative / no fidelity obligation
+                    enc_noop(req, "decorative text — no fidelity obligation, nothing rendered")
                 else:
                     uns(req, f"unresolved text fidelity '{fidelity}' — not encoded")
             elif k == "product_identity":
                 if product_has_ref.get(req.id.ref):
-                    enc(req, f"Reproduce product '{req.get('label')}' exactly from its attached reference; "
-                             f"regenerate the scene around it.")
+                    enc_line(req, f"Reproduce product '{req.get('label')}' exactly from its attached reference; "
+                                  f"regenerate the scene around it.")
                 else:
                     uns(req, "no reference could be attached to anchor product identity")
             elif k == "reference":
                 rid = req.get("reference_id")
                 if rid in attached:
-                    enc(req)
+                    enc_attach(req, rid)
                 else:
                     uns(req, f"exceeds adapter max_references={caps.max_references}")
             elif k == "gap":

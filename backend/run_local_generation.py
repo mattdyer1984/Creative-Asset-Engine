@@ -56,8 +56,10 @@ def reference_paths(reference_ids):
     return paths
 
 
-def gen_image(prompt, ref_image_paths, out_path):
-    """One real Nano Banana call. Confirmed against google-genai==2.14.0."""
+def gen_image(prompt, ref_image_paths, out_path, aspect_ratio):
+    """One real Nano Banana call. Confirmed against google-genai==2.14.0.
+
+    aspect_ratio is REQUIRED and flows from the spec's canvas (never hardcoded here)."""
     from google import genai
     from google.genai import types
     from PIL import Image
@@ -69,7 +71,7 @@ def gen_image(prompt, ref_image_paths, out_path):
     contents = [prompt] + [Image.open(p) for p in ref_image_paths]
     resp = client.models.generate_content(
         model=MODEL, contents=contents,
-        config=types.GenerateContentConfig(image_config=types.ImageConfig(aspect_ratio="9:16")),
+        config=types.GenerateContentConfig(image_config=types.ImageConfig(aspect_ratio=aspect_ratio)),
     )
     for part in resp.candidates[0].content.parts:
         if getattr(part, "inline_data", None) and part.inline_data.data:
@@ -122,7 +124,8 @@ def run_family(key, dry_run):
     img_path = None
     if not dry_run:
         os.makedirs(OUTDIR, exist_ok=True)
-        img_path = gen_image(out.provider_request, refs, os.path.join(OUTDIR, f"{key}.png"))
+        aspect = slide.canvas.output_aspect if slide.canvas else "3:4"
+        img_path = gen_image(out.provider_request, refs, os.path.join(OUTDIR, f"{key}.png"), aspect)
         print(f"  saved: {img_path}")
 
     scorer = None if dry_run else make_vlm_scorer()

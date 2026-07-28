@@ -43,9 +43,11 @@ from app.models.evidence_source import (
     EVIDENCE_TYPE_SLIDESHOW_UPLOAD,
     EVIDENCE_TYPE_TIKTOK_SLIDESHOW_URL,
 )
+from app.models._shared import utcnow
 from app.models.slide import Slide
 from app.models.slideshow import Slideshow
 from app.services.evidence_router import record_evidence_source
+from app.services.image_dimensions import measure_dimensions
 from app.storage import save_creative_original
 
 _EVIDENCE_TYPE_BY_SOURCE_TYPE = {
@@ -131,6 +133,20 @@ def _persist_slide(
     )
     db.add(slide)
     db.flush()  # assigns slide.id without committing yet
+
+    # Measure source pixel dimensions HERE — the earliest boundary at which the
+    # original bytes are guaranteed to exist. Persisted so the evidence survives even
+    # if the stored file is later removed. A failed measurement leaves width/height
+    # NULL but records the attempt, so "unmeasurable" is distinguishable from
+    # "never attempted".
+    dims = measure_dimensions(marketing_creative.image_bytes)
+    if dims is not None:
+        slide.source_width, slide.source_height = dims
+        slide.dimension_measurement_source = "ingest:slideshow_import"
+        slide.dimension_measured_at = utcnow()
+    else:
+        slide.dimension_measurement_source = "ingest:slideshow_import:unreadable"
+        slide.dimension_measured_at = utcnow()
 
     stored_path = save_creative_original(
         slide.id, marketing_creative.original_filename, marketing_creative.image_bytes

@@ -1,0 +1,497 @@
+{
+ "slideshow_id": "8a1f583a-4c43-40b1-bec4-f8537620e0d1",
+ "slides": [
+  {
+   "id": "d15b006e-4bc5-4dc1-9abe-ba008ce643ad",
+   "slide_index": 0
+  },
+  {
+   "id": "fed21b71-119e-4e2a-bc3d-f4405e926821",
+   "slide_index": 1
+  }
+ ],
+ "narrative": {
+  "slides": [
+   {
+    "slide_id": "d15b006e-4bc5-4dc1-9abe-ba008ce643ad",
+    "slide_index": 0,
+    "beat": "hook"
+   },
+   {
+    "slide_id": "fed21b71-119e-4e2a-bc3d-f4405e926821",
+    "slide_index": 1,
+    "beat": "reveal"
+   }
+  ],
+  "arc_summary": "The slideshow starts with a provocative personal hook about avoiding an expensive Ninja Creami, then reveals the product/deal as a discounted way to make low-calorie frozen treats at home. The persuasion hinges on savings and indulgent everyday use rather than formal proof or a direct CTA."
+ },
+ "marketing_text": "This creative is built like an organic social post rather than a traditional ad: a close-up selfie in a car, natural daylight, native text overlay, and an expressive reaction as the main visual hook. By not showing the product immediately, it creates curiosity and encourages the viewer to stop and read the headline\u2014\u201cOMFG I\u2019m so glad\u2026\u201d\u2014which frames the message as a personal discovery rather than a sales pitch.\n\nThe target audience is consumers considering home appliances, especially people interested in popular ice cream makers like the Ninja Creami but hesitant about the price. The strategy leans into an \u201cus-vs-them\u201d comparison: it positions the advertised alternative as the smarter, more cost-effective choice versus a well-known expensive competitor. This makes the ad especially relevant to price-conscious shoppers who are actively researching or second-guessing a purchase.\n\nEmotionally, the creative taps into relief, surprise, and validation. It triggers the fear of buyer\u2019s remorse\u2014\u201cwhat if I almost bought the wrong thing?\u201d\u2014and replaces it with the satisfaction of discovering a better option. The informal language, crying emoji, and UGC-style presentation make the message feel like a recommendation from a peer, which can be more persuasive than polished product claims.\n\nAs marketing, it works because it leads with a relatable emotional moment instead of product features. The viewer is pulled in by the subject\u2019s expression and the dramatic text, then motivated to learn what alternative caused that reaction. That curiosity makes it effective for lead generation or driving clicks, particularly on platforms like TikTok or Instagram Reels where native, authentic-looking content often outperforms overt advertising.",
+ "per_slide": {
+  "d15b006e-4bc5-4dc1-9abe-ba008ce643ad": {
+   "fingerprint": {
+    "visual_style": "User-generated content (UGC), selfie style",
+    "marketing_objective": "Lead generation / Product curiosity, positioning an alternative product as superior/more cost-effective",
+    "emotional_appeal": [
+     "Relief",
+     "Surprise",
+     "Validation"
+    ],
+    "target_audience": "Consumers interested in home appliances, specifically ice cream makers like the Ninja Creami, who are price-conscious or looking for alternatives.",
+    "color_palette": [
+     "Skin tones",
+     "White",
+     "Black",
+     "Light blue (sky)"
+    ],
+    "typography_style": "Simple, clean sans-serif font common in social media text overlays (like TikTok or Instagram Reels).",
+    "layout_and_composition": "Close-up selfie shot, subject dominates the frame. Text overlay is positioned near the top center, slightly covering the forehead to ensure it's read immediately.",
+    "background_environment": "Inside a car, looking out the window at a blue sky and rooftops.",
+    "lighting_style": "Natural daylight, bright and slightly direct, casting realistic shadows on the face.",
+    "graphic_style": "Native social media text box with a crying emoji.",
+    "product_prominence": "The product itself is not visible; the ad relies purely on the hook text and the subject's expression.",
+    "marketing_angle": "Us-vs-them / Cost-saving alternative. Positioning the unseen product as a better choice compared to a well-known, expensive competitor.",
+    "visual_hierarchy": "1. Subject's shocked/relieved facial expression. 2. Text overlay ('OMFG I'm so glad...').",
+    "trust_elements": [],
+    "promotional_devices": [],
+    "object_placement": "The subject is centrally located, taking up most of the vertical space. The text box is placed at the top center.",
+    "emotional_trigger": "Relief of avoiding a bad purchase (buyer's remorse) combined with the excitement of finding a better/cheaper alternative.",
+    "extensions": "The use of 'OMFG' and a crying emoji makes the tone highly informal and relatable to a younger, social-media-savvy demographic."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Large white rounded text overlay containing the main marketing/testimonial message; it is the clearest ad-copy element and should remain in the same general placement and style.",
+     "region_type": "decorative_element",
+     "x_max": 0.8,
+     "x_min": 0.2,
+     "y_max": 0.305,
+     "y_min": 0.172
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Primary human face and head with surprised/open-mouth expression; the reaction and close selfie framing are central to the creative and should closely match if regenerated.",
+     "region_type": "primary_subject",
+     "x_max": 0.73,
+     "x_min": 0.09,
+     "y_max": 0.79,
+     "y_min": 0.125
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Raised hand touching the forehead/hairline, reinforcing the surprised reaction pose; should remain similar in action and placement.",
+     "region_type": "human_subject",
+     "x_max": 0.22,
+     "x_min": 0.0,
+     "y_max": 0.51,
+     "y_min": 0.175
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Upper torso, shoulders, and neckline of the selfie subject; supports the close-up composition and body pose but exact clothing details can vary.",
+     "region_type": "human_subject",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.72
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "White shirt/top visible at the lower edges; clothing is not the core message and can be changed as long as the selfie composition remains natural.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.75
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Gold necklace and pendant on the chest; small accessory detail that is safe to alter or remove.",
+     "region_type": "prop",
+     "x_max": 0.67,
+     "x_min": 0.31,
+     "y_max": 0.985,
+     "y_min": 0.74
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Dark car interior roof/side panel surrounding the subject; establishes that the selfie is taken inside a vehicle, but the exact upholstery and shapes can vary.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 0.78,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Car window view with blue sky and exterior light; provides setting context and contrast behind the subject, but can be replaced with a similar outside-through-window background.",
+     "region_type": "background",
+     "x_max": 1.0,
+     "x_min": 0.61,
+     "y_max": 0.72,
+     "y_min": 0.13
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Distant rooftops/buildings visible through the car window; background clutter that is not important to the message and can be swapped or removed.",
+     "region_type": "background",
+     "x_max": 1.0,
+     "x_min": 0.62,
+     "y_max": 0.71,
+     "y_min": 0.61
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Dark rear seat/headrest area behind the lower right of the subject; secondary car-interior detail, not central to the creative.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.62,
+     "y_max": 0.86,
+     "y_min": 0.67
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "OMFG I'm so glad I didn't get one of those expensive Ninja Creami's... \u11000",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.203,
+      "y_min": 0.171,
+      "x_max": 0.801,
+      "y_max": 0.304
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+     "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+     "prominence": "primary",
+     "is_current": false,
+     "has_lock": true
+    }
+   ]
+  },
+  "fed21b71-119e-4e2a-bc3d-f4405e926821": {
+   "fingerprint": {
+    "visual_style": "User-generated content (UGC) style, casual and relatable, resembling a social media story or post.",
+    "marketing_objective": "Drive sales for a Ninja CREAMi ice cream maker by highlighting a significant discount and showcasing a delicious, healthy end product.",
+    "emotional_appeal": [
+     "Desire for indulgence",
+     "Thriftiness/Smart shopping",
+     "Health consciousness",
+     "Excitement"
+    ],
+    "target_audience": "Health-conscious individuals, ice cream lovers, bargain hunters, fitness enthusiasts (implied by 'protein' and 'low cal').",
+    "color_palette": [
+     "Warm neutrals (beige, cream)",
+     "Rich chocolate brown",
+     "White",
+     "Black (pricing overlay)",
+     "Pops of red/pink (pricing overlay)"
+    ],
+    "typography_style": "Casual sans-serif fonts, typical of social media text overlays (TikTok/Instagram style), with a distinct, clean sans-serif for the pricing block.",
+    "layout_and_composition": "First-person perspective. The main product (the resulting ice cream) is held in the foreground, centered. The machine that made it is in the soft-focus background. Text overlays are placed strategically: conversational text top-left, product description bottom-left, pricing block bottom-right.",
+    "background_environment": "A domestic kitchen counter, bright and tidy, featuring the ice cream maker and a diffuser, suggesting a comfortable home setting.",
+    "lighting_style": "Bright, natural-looking indoor lighting, casting soft shadows, making the food look appetizing and the scene realistic.",
+    "graphic_style": "Social media native overlays: white text boxes with black text for narrative, plain white text for description, and a stylized dark rectangular badge for pricing.",
+    "product_prominence": "Very high for the end result (the ice cream tub is front and center). The machine itself is secondary but clearly visible in the background, establishing context.",
+    "marketing_angle": "Value and lifestyle integration: You can have indulgent, healthy treats every day if you buy this machine, especially now that it's heavily discounted.",
+    "visual_hierarchy": "1. The chocolate ice cream (central, large, appetizing). 2. The top text overlay (narrative hook). 3. The pricing block (bottom right, high contrast). 4. The bottom left text (product details). 5. The machine in the background.",
+    "trust_elements": [
+     "UGC aesthetic implies authentic user experience",
+     "Specific dietary callouts ('100% dairy free', 'protein', 'low cal')"
+    ],
+    "promotional_devices": [
+     "-28% discount callout",
+     "Strikethrough original price (\u00a3249.99)",
+     "Sale price (\u00a3179.99)",
+     "Additional voucher discount mention ('From \u00a3131.99')"
+    ],
+    "object_placement": "A hand holds a clear tub of chocolate ice cream directly in front of the camera in the lower-middle frame. The ice cream maker stands on the counter in the upper right background. A small diffuser is visible in the upper left background.",
+    "emotional_trigger": "The thrill of a 'life hack' or smart purchase\u2014combining the satisfaction of getting a great deal with the ongoing reward of guilt-free daily indulgence.",
+    "extensions": "The use of emojis (\ud83d\ude2d\ud83d\ude0d) reinforces the casual, peer-to-peer recommendation vibe, making it feel less like a traditional ad and more like a tip from a friend."
+   },
+   "scene_regions": [
+    {
+     "importance_tier": "essential",
+     "notes": "Clear plastic tub/cup containing the prepared chocolate ice cream; this is the featured food result and central product outcome, so its shape, position, and contents should be preserved closely.",
+     "region_type": "product",
+     "x_max": 0.81,
+     "x_min": 0.08,
+     "y_max": 0.84,
+     "y_min": 0.32
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Chocolate ice cream surface with toppings/drizzles/cookie pieces inside the tub; the exact appetizing appearance is core to the marketing message.",
+     "region_type": "product",
+     "x_max": 0.76,
+     "x_min": 0.23,
+     "y_max": 0.73,
+     "y_min": 0.44
+    },
+    {
+     "importance_tier": "essential",
+     "notes": "Hand holding the tub from below/left; directly interacts with and supports the product, so pose and placement are important to maintain.",
+     "region_type": "human_subject",
+     "x_max": 0.6,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.55
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Ice cream/slush machine body in the background; it provides product-use context and reinforces how the ice cream was made, though exact details can vary slightly.",
+     "region_type": "secondary_subject",
+     "x_max": 1.0,
+     "x_min": 0.49,
+     "y_max": 0.79,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "important",
+     "notes": "Machine control panel with dial and visible frozen dessert settings; recognizable interface supports the appliance context and should remain similar if regenerated.",
+     "region_type": "secondary_subject",
+     "x_max": 1.0,
+     "x_min": 0.58,
+     "y_max": 0.3,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Large white text box overlay describing sale/low-cal ice cream; graphic copy is part of the ad creative but can be edited independently from the scene.",
+     "region_type": "prop",
+     "x_max": 0.61,
+     "x_min": 0.08,
+     "y_max": 0.34,
+     "y_min": 0.19
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Bottom-left caption describing flavor and dairy-free claim; promotional text overlay that can be changed or removed without altering the photographed scene.",
+     "region_type": "prop",
+     "x_max": 0.41,
+     "x_min": 0.07,
+     "y_max": 0.92,
+     "y_min": 0.83
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Black sale-price overlay with discount and voucher information; explicit marketing graphic element, safe to update to match pricing/promotion.",
+     "region_type": "prop",
+     "x_max": 0.86,
+     "x_min": 0.5,
+     "y_max": 0.85,
+     "y_min": 0.77
+    },
+    {
+     "importance_tier": "context",
+     "notes": "Kitchen/bathroom-style countertop and tiled wall background; provides domestic appliance-use setting, but exact surface/tile pattern can be replaced with a similar clean home environment.",
+     "region_type": "environment",
+     "x_max": 1.0,
+     "x_min": 0.0,
+     "y_max": 1.0,
+     "y_min": 0.0
+    },
+    {
+     "importance_tier": "incidental",
+     "notes": "Small glowing countertop appliance or lamp on the left; background object contributing ambiance, not central to the product message.",
+     "region_type": "prop",
+     "x_max": 0.18,
+     "x_min": 0.0,
+     "y_max": 0.43,
+     "y_min": 0.16
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Partial dark appliance/edge at lower right; background clutter that is not relevant to the creative and can be removed or swapped.",
+     "region_type": "prop",
+     "x_max": 1.0,
+     "x_min": 0.89,
+     "y_max": 1.0,
+     "y_min": 0.78
+    },
+    {
+     "importance_tier": "replaceable",
+     "notes": "Small dark object at lower left edge; incidental cropped clutter, safe to remove.",
+     "region_type": "prop",
+     "x_max": 0.05,
+     "x_min": 0.0,
+     "y_max": 0.6,
+     "y_min": 0.38
+    }
+   ],
+   "ocr_blocks": [
+    {
+     "text": "SCOOPABLE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.698,
+      "y_min": 0.002,
+      "x_max": 0.774,
+      "y_max": 0.051
+     }
+    },
+    {
+     "text": "DRINKABLE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.817,
+      "y_min": 0.002,
+      "x_max": 0.887,
+      "y_max": 0.059
+     }
+    },
+    {
+     "text": "LITE ICE CREAM",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.612,
+      "y_min": 0.016,
+      "x_max": 0.673,
+      "y_max": 0.038
+     }
+    },
+    {
+     "text": "FROZEN DRINK",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.922,
+      "y_min": 0.033,
+      "x_max": 0.982,
+      "y_max": 0.062
+     }
+    },
+    {
+     "text": "SORBET",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.604,
+      "y_min": 0.06,
+      "x_max": 0.665,
+      "y_max": 0.072
+     }
+    },
+    {
+     "text": "SLUSHI",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.917,
+      "y_min": 0.081,
+      "x_max": 0.969,
+      "y_max": 0.094
+     }
+    },
+    {
+     "text": "GELATO",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.602,
+      "y_min": 0.103,
+      "x_max": 0.658,
+      "y_max": 0.116
+     }
+    },
+    {
+     "text": "MILKSHAKE",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.871,
+      "y_min": 0.122,
+      "x_max": 0.956,
+      "y_max": 0.138
+     }
+    },
+    {
+     "text": "FROZEN YOGURT",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.598,
+      "y_min": 0.143,
+      "x_max": 0.71,
+      "y_max": 0.158
+     }
+    },
+    {
+     "text": "but ONLY bc I waited until it was on sale so now I get delicious, low cal ice cream every night \ud83d\ude2d\ud83d\ude0d",
+     "role": "headline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.081,
+      "y_min": 0.185,
+      "x_max": 0.615,
+      "y_max": 0.339
+     }
+    },
+    {
+     "text": "+MIX-IN",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.722,
+      "y_min": 0.218,
+      "x_max": 0.783,
+      "y_max": 0.229
+     }
+    },
+    {
+     "text": "RE-SPIN",
+     "role": "other",
+     "surface": "physical",
+     "bounding_box": {
+      "x_min": 0.84,
+      "y_min": 0.223,
+      "x_max": 0.898,
+      "y_max": 0.237
+     }
+    },
+    {
+     "text": "-28% \u00a3179.99 \u00a3249.99 From \u00a3 131.99 with vouchers \u24d8",
+     "role": "price",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.502,
+      "y_min": 0.749,
+      "x_max": 0.865,
+      "y_max": 0.828
+     }
+    },
+    {
+     "text": "this is protein double chocolate cookie dough 100% dairy free",
+     "role": "subheadline",
+     "surface": "overlay",
+     "bounding_box": {
+      "x_min": 0.073,
+      "y_min": 0.818,
+      "x_max": 0.428,
+      "y_max": 0.898
+     }
+    }
+   ],
+   "product_appearances": [
+    {
+     "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+     "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+     "prominence": "primary",
+     "is_current": true,
+     "has_lock": true
+    }
+   ]
+  }
+ },
+ "product_references": {
+  "5cf08f06-7736-4852-b616-6a235f8cf3da": [
+   "972cc31a-b043-47d2-90df-c3a2b9198120"
+  ]
+ }
+}

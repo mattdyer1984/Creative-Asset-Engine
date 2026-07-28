@@ -32,7 +32,8 @@ _ROLE_TO_PURPOSE = {"headline": "hook_caption", "price": "price_card", "subheadl
 def brief_from_plan(plan):
     b = {}
     for s in plan.slides:
-        b[s.slide_index] = [BriefItem(_ROLE_TO_PURPOSE.get(e.label.split()[0], "subhead"))
+        b[s.slide_index] = [BriefItem(_ROLE_TO_PURPOSE.get(e.label.split()[0], "subhead"),
+                                      box=tuple(e.reserved_zone) if e.reserved_zone else None)
                             for e in s.elements if e.kind == "text" and e.rendering_owner == "composite_layer"]
     return b
 
