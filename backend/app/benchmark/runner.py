@@ -172,6 +172,53 @@ def _source_edit_request(slide, prompt: str, aspect: str):
     )
 
 
+# Output aspect ratios Nano Banana supports, as width/height floats. We KEEP the
+# original slide's ratio (snapped to the nearest supported one) rather than forcing
+# 3:4 — squashing a 1:1 or 9:16 slide into 3:4 hurts both fidelity and originality.
+_SUPPORTED_ASPECTS = {
+    "1:1": 1.0, "2:3": 2 / 3, "3:4": 3 / 4, "4:3": 4 / 3,
+    "3:2": 3 / 2, "9:16": 9 / 16, "16:9": 16 / 9, "21:9": 21 / 9,
+}
+
+
+def _nearest_aspect_ratio(width, height, default: str = "3:4") -> str:
+    if not width or not height:
+        return default
+    r = width / height
+    return min(_SUPPORTED_ASPECTS, key=lambda k: abs(_SUPPORTED_ASPECTS[k] - r))
+
+
+def _measure_image(path):
+    """(width, height) of an image, via the app's measurer with a PIL fallback."""
+    try:
+        from app.services.image_dimensions import measure_source_file
+
+        _, dims = measure_source_file(path)
+        if dims:
+            return int(dims[0]), int(dims[1])
+    except Exception:
+        pass
+    try:
+        from PIL import Image
+
+        with Image.open(path) as im:
+            return im.size
+    except Exception:
+        return None, None
+
+
+def source_output_aspect(slide, default: str = "3:4") -> str:
+    """The output aspect for a slide = its ORIGINAL image's ratio, snapped to the
+    nearest supported provider ratio. Falls back to `default` when the source image
+    can't be measured."""
+    from app.benchmark import corpus as corpuslib
+
+    raw = getattr(slide, "stored_file_path", "") or ""
+    src = corpuslib._resolve_asset_path(raw) or raw
+    w, h = _measure_image(str(src)) if src else (None, None)
+    return _nearest_aspect_ratio(w, h, default)
+
+
 def resolve_slide(db, *, slideshow: Optional[str] = None, slide_index: Optional[int] = None,
                   slide_id: Optional[str] = None):
     """Resolve a Slide by explicit id, or by slideshow-prefix (+ optional index)."""
@@ -250,6 +297,11 @@ def run_case(
         return {"case_id": freeze.case_id, "created": freeze.created,
                 "drift": freeze.drift, "frozen_only": True}
 
+    # Output ratio = the ORIGINAL slide's ratio (snapped to a supported one), not a
+    # forced 3:4. Applied to every strategy so generations keep the source shape.
+    out_aspect = source_output_aspect(slide, frozen.aspect_ratio)
+    print(f"  output aspect: {out_aspect} (from source; frozen was {frozen.aspect_ratio})")
+
     # ---- choose the generation request by STRATEGY ----
     strategy_prompt = None
     if strategy in ("source_edit", "source_edit_grounded"):
@@ -257,10 +309,10 @@ def run_case(
         name = product.display_name if product else "the product"
         scene = getattr(frozen.spec, "scene", None) if getattr(frozen, "spec", None) else None
         if strategy == "source_edit_grounded":
-            strategy_prompt = _source_edit_grounded_prompt(name, scene, frozen.aspect_ratio)
+            strategy_prompt = _source_edit_grounded_prompt(name, scene, out_aspect)
         else:
-            strategy_prompt = _source_edit_prompt(name, frozen.aspect_ratio)
-        request = _source_edit_request(slide, strategy_prompt, frozen.aspect_ratio)
+            strategy_prompt = _source_edit_prompt(name, out_aspect)
+        request = _source_edit_request(slide, strategy_prompt, out_aspect)
         if request is None:
             return {"error": f"{tag}: {strategy} needs the original slide image, none resolved"}
         print(f"  {strategy}: reference=original slide  prompt_chars={len(strategy_prompt)}")
@@ -268,6 +320,7 @@ def run_case(
         # transformation_plan: the creative-spec pipeline prompt + product references.
         corpuslib.ensure_provider_prompt(freeze.case_root, provider)
         request = frozen.to_generation_request(provider)
+        request.aspect_ratio = out_aspect  # keep the source ratio here too
 
     generation_reference_set = create_reference_set_from_ids(
         db, product.id if product else None, frozen.reference_ids

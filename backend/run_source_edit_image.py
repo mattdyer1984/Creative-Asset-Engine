@@ -37,7 +37,8 @@ def main() -> int:
     ap.add_argument("--subject-extent", default="face",
                     help="hand | face | full figure ... (face/figure => recast the person)")
     ap.add_argument("--environment", default=None, help="setting type to keep (e.g. bedroom)")
-    ap.add_argument("--aspect", default="3:4")
+    ap.add_argument("--aspect", default=None,
+                    help="output aspect; default = keep the source image's ratio (snapped to supported)")
     ap.add_argument("--candidates", type=int, default=2)
     ap.add_argument("--models", nargs="+",
                     default=["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"])
@@ -46,12 +47,21 @@ def main() -> int:
     ap.add_argument("--out", default="source_edit_image_out")
     args = ap.parse_args()
 
-    from app.benchmark.runner import _source_edit_grounded_prompt, _generate_with_retry
+    from app.benchmark.runner import (
+        _source_edit_grounded_prompt, _generate_with_retry, _measure_image, _nearest_aspect_ratio,
+    )
     from app.ai_providers.base import GenerationRequest
     from app.ai_providers.nano_banana_adapter import NanoBananaImageGenerationAdapter
 
     if not Path(args.image).is_file():
         print(f"image not found: {args.image}"); return 2
+
+    # Keep the source image's ratio unless the caller overrode --aspect.
+    aspect = args.aspect
+    if aspect is None:
+        w, h = _measure_image(args.image)
+        aspect = _nearest_aspect_ratio(w, h, "3:4")
+        print(f"(auto aspect from source {w}x{h} -> {aspect})")
 
     scene = SimpleNamespace(
         subject_present=bool(args.subject_action or args.subject_extent),
@@ -60,14 +70,14 @@ def main() -> int:
         product_subject_relation=None,
         environment=args.environment,
     )
-    prompt = _source_edit_grounded_prompt(args.product, scene, args.aspect)
+    prompt = _source_edit_grounded_prompt(args.product, scene, aspect)
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     (out / "prompt.txt").write_text(prompt)
     print("PROMPT:\n" + prompt + "\n" + "=" * 66)
 
     req = GenerationRequest(
         creative_intent=prompt, reference_image_paths=[args.image],
-        things_to_avoid=[], aspect_ratio=args.aspect, precompiled_prompt=prompt,
+        things_to_avoid=[], aspect_ratio=aspect, precompiled_prompt=prompt,
     )
     for model in args.models:
         adapter = NanoBananaImageGenerationAdapter(model=model, provider=args.provider)
