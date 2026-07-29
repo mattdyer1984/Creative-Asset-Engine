@@ -145,7 +145,19 @@ _UGC_REALISM = (
     "(not staged or spotless), and NOT a polished studio, catalog or advertisement look. "
     "The product must sit naturally WITHIN the scene, with correct perspective, believable "
     "contact shadows and ambient light that matches the room, so it looks photographed "
-    "there — never pasted on top. Avoid an over-perfect, glossy, 'stock photo' feel."
+    "there — never pasted on top. Avoid an over-perfect, glossy, 'stock photo' feel. Aim "
+    "for GOOD-quality UGC — a skilled creator's clean, well-shot phone photo — not a "
+    "mediocre or amateur one."
+)
+
+# Lighting — imperfection belongs in the ROOM, never in how the product is lit. The
+# product must be bright, clearly visible and flatteringly lit (true to its colour) so
+# it sells; replicate the reference slide's good, bright lighting. Medium-agnostic.
+_GOOD_LIGHTING = (
+    " Light the product well: it must be bright, clearly visible and flatteringly lit, with "
+    "its TRUE colour and detail reading accurately — replicate the good, bright lighting of "
+    "the reference slide. Never leave the product dark, dim, muddy or in shadow; a slightly "
+    "imperfect ROOM is fine, but the product itself must always be well-lit and appealing."
 )
 
 
@@ -161,7 +173,7 @@ def _source_edit_grounded_prompt(product_name: str, scene, aspect: str) -> str:
         f"identical shape, colour, materials, proportions, branding, logos and any "
         f"printed text. Match the visual style and MEDIUM of the reference: if it is a "
         f"photograph keep it photographic; if it is illustrated, cartoon or animated, "
-        f"keep that exact style and do NOT make it photorealistic." + _UGC_REALISM +
+        f"keep that exact style and do NOT make it photorealistic." + _UGC_REALISM + _GOOD_LIGHTING +
         f" Refresh the specific background details and change the camera angle so it reads "
         f"as a new, original shot rather than a copy — but keep the change moderate and do "
         f"not invent an unrelated scene.{env}{keep} Keep the product the clear main focus. "

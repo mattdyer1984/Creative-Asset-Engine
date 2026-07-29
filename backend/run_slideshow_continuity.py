@@ -40,14 +40,15 @@ def _plate_prompt(room: str, aspect: str) -> str:
         f"REAL person's actual, lived-in room casually photographed on a phone — NOT a "
         f"pristine interior-design or furniture-catalog showroom. Include everyday realism: "
         f"a casually-made (not perfectly-styled) bed, some personal belongings and light "
-        f"clutter, natural imperfect daylight, ordinary wear. Keep it the same KIND of place "
+        f"clutter, and ordinary wear — BUT bright, airy and well-lit with plenty of natural "
+        f"daylight (a clean, good-quality phone photo, not dim or gloomy). Keep it the same KIND of place "
         f"but a clearly different specific room from the reference (different decor and "
         f"layout) for originality. No text, no people, no products. Output aspect ratio {aspect}."
     )
 
 
 def _continuity_slide_prompt(name: str, scene, aspect: str) -> str:
-    from app.benchmark.runner import _grounded_keep_clause, _UGC_REALISM
+    from app.benchmark.runner import _grounded_keep_clause, _UGC_REALISM, _GOOD_LIGHTING
 
     keep = _grounded_keep_clause(scene)
     return (
@@ -57,7 +58,7 @@ def _continuity_slide_prompt(name: str, scene, aspect: str) -> str:
         f"illustrated/cartoon keep that style). IMAGE 2 is the ROOM to use. Place the product/"
         f"subject ({name}) into the room shown in IMAGE 2: use its background, surfaces, "
         f"furniture and lighting; do NOT invent a different room — this room must stay consistent."
-        + _UGC_REALISM +
+        + _UGC_REALISM + _GOOD_LIGHTING +
         f" Change the camera angle and framing moderately for a fresh, original shot.{keep} Keep "
         f"the product the clear main focus. Any overlaid marketing caption may be removed. Output "
         f"aspect ratio {aspect}."
