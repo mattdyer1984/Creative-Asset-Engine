@@ -1,0 +1,101 @@
+{
+  "slide_index": 1,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s1_product",
+      "label": "Crocs Classic Clog Black",
+      "reference_ids": [
+        "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+        "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+        "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+        "c01ec816-017d-44de-a0ab-970339475a59",
+        "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+        "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+        "364cd171-8280-44e2-91be-911129c721bb",
+        "6bd88afe-bc56-479f-952e-dacc88180497"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s1_t0",
+      "text": "I found them on TikTok",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t1",
+      "text": "for way cheaper 🤩",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    }
+  ],
+  "scene": {
+    "subject_present": true,
+    "subject_action": "holding the shoe",
+    "subject_extent": "hand",
+    "product_subject_relation": null,
+    "subject_emotion": [
+      "Excitement",
+      "Value"
+    ],
+    "environment": "Wooden floor",
+    "lighting": "Soft natural indoor",
+    "concept": "UGC casual style ; Drive product sales"
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s1_product",
+        "primary"
+      ],
+      [
+        "subject",
+        "secondary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [
+      "product_revealed",
+      "product_is_dominant_focus"
+    ],
+    "openings": [
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ],
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ]
+    ],
+    "dynamics": "dramatic",
+    "contract_invariants": [
+      "product_revealed",
+      "product_is_dominant_focus",
+      "s1_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [
+    "whether the product must be shown *in use* (e.g. 'homemade') is not recoverable from the Plan — coarse derivation cannot assert it"
+  ],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "3:4",
+    "source_width": 1086,
+    "source_height": 1448,
+    "fit_behaviour": "identity"
+  }
+}

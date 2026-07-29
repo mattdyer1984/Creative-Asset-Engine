@@ -1,0 +1,10 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: Soft, cozy, and aesthetically pleasing lifestyle shot. ; Highlight product details and evoke a sense of desire and emotional connection to the design. A person is present in the frame. The visible subject is holding the footwear. The promoted product is held in the subject's hand. Emotional register: Affection, Comfort, Aesthetic appreciation, Desire. Environment: A tidy, bright, and cozy bedroom with white bedding, neutral pillows, and textured wall art.. Lighting: Natural, soft, diffused daylight creating a bright and airy atmosphere.. Energy: calm.
+Output aspect ratio: 3:4 (render the image at exactly 3:4). The source was 9:16; recompose for 3:4 rather than stretching.
+The promoted product must be visible in this frame.
+Make the product the dominant focal point.
+Preserve: the product stays primary — you choose the composition.
+Keep the middle area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Reproduce product 'Classic Hearts Cut Out Clog' exactly from its attached reference; regenerate the scene around it.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

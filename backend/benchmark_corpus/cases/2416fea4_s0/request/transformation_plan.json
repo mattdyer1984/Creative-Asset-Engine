@@ -1,0 +1,812 @@
+{
+  "slideshow_id": "2416fea4-5840-4bd0-b183-b9f6d7148cfb",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 2880,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x2880 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "UGC-style interior/home improvement creative with a candid, relatable smartphone aesthetic; modern grey home decor, natural lighting, and an informal social media caption overlay. ; Capture attention at the start of a conversion-oriented or educational creative by framing a high-cost problem and teasing a cheaper alternative, encouraging viewers to keep watching and consider the advertised solution.",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "relatability",
+          "cost-saving",
+          "home improvement",
+          "curiosity",
+          "practicality"
+        ],
+        "environment": "Real home dining nook/kitchen area with grey marble-effect tiled floor, a compact grey dining table and chairs, white walls, patio doors opening to a suburban garden, wall-mounted abstract black acoustic/art panels, a potted plant, and a warm floor/lamp glow in the corner.",
+        "lighting": "Mixed natural and warm ambient lighting: bright daylight enters through the patio doors on the right, while a warm amber lamp glow adds coziness on the left-center wall. Overall lighting is naturalistic with visible reflections on the glossy floor.",
+        "framing": "Wide-angle vertical/social-style interior shot with strong perspective lines from the table, floor tiles, and patio doors. The room scene fills the full frame while the caption is centered over the upper-middle/right area, partially covering the wall and window region. The composition feels casual and handheld rather than studio-produced.",
+        "text_safe_zones": [
+          [
+            0.316,
+            0.184,
+            0.761,
+            0.356
+          ],
+          [
+            0.0,
+            0.0,
+            0.781,
+            0.997
+          ],
+          [
+            0.726,
+            0.0,
+            1.0,
+            0.65
+          ],
+          [
+            0.765,
+            0.042,
+            0.981,
+            0.552
+          ]
+        ],
+        "references_provided": [
+          "product_reference:6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+          "product_reference:719b6c91-c18a-45ff-aacf-fc67701a9246"
+        ],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t0"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_product",
+          "kind": "product",
+          "label": "Bellavita",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+            "719b6c91-c18a-45ff-aacf-fc67701a9246"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 2 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "critical",
+          "verbatim": "I was about to spend £400 on a new dining table set...",
+          "text_status": "exact_commercial_value",
+          "commercial_values": [
+            {
+              "type": "price",
+              "value": "£400",
+              "raw": "£400"
+            }
+          ],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.319,
+            0.18,
+            0.76,
+            0.278
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/ copy captured",
+              "source": "ocr_results:9f593235-29ba-498a-84fb-079b7729d303:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "reveal",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 2880,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x2880 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [],
+        "environment": "",
+        "lighting": "",
+        "framing": "",
+        "text_safe_zones": [],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [
+          "scene concept (fingerprint.visual_style/marketing_objective missing)",
+          "environment (fingerprint.background_environment missing)"
+        ],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "but I found this set instead for just under 80 quid...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.438,
+            0.1,
+            0.892,
+            0.207
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/ copy captured",
+              "source": "ocr_results:4ab2f5f2-50b0-424c-a262-af7a612934f3:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=True identity_revealed=True role=reveal"
+        },
+        {
+          "decision": "product_presence_conflict",
+          "source": "narrative_structures:beats",
+          "detail": "reveal requires the promoted product but analysis detected no appearance (observed_visual_presence=False required_visual_presence=True; source=narrative reveal requirement) — the request may still require the product to appear, but no detected appearance anchors it"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "role": "proof",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 2880,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x2880 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [],
+        "environment": "",
+        "lighting": "",
+        "framing": "",
+        "text_safe_zones": [],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [
+          "scene concept (fingerprint.visual_style/marketing_objective missing)",
+          "environment (fingerprint.background_environment missing)"
+        ],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s2_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "minimal, space saving and seats 4 people...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.136,
+            0.239,
+            0.527,
+            0.325
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/ copy captured",
+              "source": "ocr_results:8c31cc82-5249-48d2-84ea-a59631e6dbc3:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=proof"
+        }
+      ]
+    },
+    {
+      "slide_index": 3,
+      "role": "proof",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 2880,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x2880 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [],
+        "environment": "",
+        "lighting": "",
+        "framing": "",
+        "text_safe_zones": [],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [
+          "scene concept (fingerprint.visual_style/marketing_objective missing)",
+          "environment (fingerprint.background_environment missing)"
+        ],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s3_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "this one hides both benches underneath...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.357,
+            0.327,
+            0.707,
+            0.374
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/ copy captured",
+              "source": "ocr_results:d642272d-8b9d-409e-9a02-81ea55ad5057:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t1",
+          "kind": "text",
+          "label": "other text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "👇",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "other/ copy captured",
+              "source": "ocr_results:d642272d-8b9d-409e-9a02-81ea55ad5057:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=other"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=proof"
+        }
+      ]
+    },
+    {
+      "slide_index": 4,
+      "role": "cta",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 2880,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x2880 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [],
+        "environment": "",
+        "lighting": "",
+        "framing": "",
+        "text_safe_zones": [],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [
+          "scene concept (fingerprint.visual_style/marketing_objective missing)",
+          "environment (fingerprint.background_environment missing)"
+        ],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s4_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "5 colours to choose",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.159,
+            0.133,
+            0.548,
+            0.184
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/ copy captured",
+              "source": "ocr_results:30689567-60d8-4d3f-a939-992dcb7b1e49:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t1",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "from... 🫶",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.257,
+            0.157,
+            0.441,
+            0.217
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/ copy captured",
+              "source": "ocr_results:30689567-60d8-4d3f-a939-992dcb7b1e49:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t2",
+          "kind": "text",
+          "label": "urgency_badge text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "low in stock",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "urgency_badge/ copy captured",
+              "source": "ocr_results:30689567-60d8-4d3f-a939-992dcb7b1e49:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=urgency_badge"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t3",
+          "kind": "text",
+          "label": "cta text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "👇👇",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.092,
+            0.905,
+            0.18,
+            0.948
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "cta/ copy captured",
+              "source": "ocr_results:30689567-60d8-4d3f-a939-992dcb7b1e49:b3",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface= role=cta"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=cta"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 1
+      },
+      "provenance": [
+        {
+          "decision": "1 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:1",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "commercial_values_present",
+      "scope": "slideshow",
+      "spec": {
+        "values": [
+          "£400"
+        ]
+      },
+      "provenance": [
+        {
+          "decision": "exact prices/discounts are the mechanism",
+          "source": "canonicalize",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

@@ -1,0 +1,15 @@
+{
+  "candidate": 0,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": false,
+  "validated": false,
+  "validation_error": null,
+  "identity_passed": null,
+  "accepted": null,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": null,
+  "estimated_cost_usd": null,
+  "generation_error": "ReadTimeout: The read operation timed out"
+}

@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The reference has subtle Crocs embossing on the footbed/button area, but the generated image does not clearly preserve this typography placement.",
+    "identity/color: The generated clogs are a darker dusty rose, while the references show a much paler baby-pink tone."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "76b311e5-7720-4ecc-9841-661cd6e51d9a"
+}

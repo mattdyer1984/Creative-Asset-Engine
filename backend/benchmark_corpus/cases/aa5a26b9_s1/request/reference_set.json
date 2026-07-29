@@ -1,0 +1,126 @@
+{
+  "reference_ids": [
+    "4c4934aa-208f-4dae-9360-9d7a99669c35",
+    "82644fed-188d-46a8-b128-6c28c588f934",
+    "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+    "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+    "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+    "1595ee15-7632-4cb9-b959-dd648993a442",
+    "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+    "1b831312-72c9-4c81-bd68-0815ebdd6210",
+    "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+    "99b9869c-659b-42c2-9785-7dff9d38947f",
+    "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+    "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+    "9b664e8f-b0fd-4172-b0f5-dd9486383685"
+  ],
+  "count": 13,
+  "resolved_count": 13,
+  "precedence_rule": "observed slide crops authoritative; listing fills gaps only",
+  "references": [
+    {
+      "reference_id": "4c4934aa-208f-4dae-9360-9d7a99669c35",
+      "stored_as": "0__4c4934aa-208f-4dae-9360-9d7a99669c35.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "a9350d9e-4518-450d-a45a-95f3a54c1526",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_4c4934aa-208f-4dae-9360-9d7a99669c35.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "82644fed-188d-46a8-b128-6c28c588f934",
+      "stored_as": "1__82644fed-188d-46a8-b128-6c28c588f934.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "eda61d62-f1d8-4587-b907-7472b6a1acfa",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_82644fed-188d-46a8-b128-6c28c588f934.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+      "stored_as": "2__85cdcfca-9363-46a4-902a-90ad1c0fa1fc.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "8c51b05d-b5f8-458a-94ec-3e77aac099d0",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_85cdcfca-9363-46a4-902a-90ad1c0fa1fc.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+      "stored_as": "3__61debf92-96cd-43c4-9de9-ba53462ca4b6.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "d4ca2afb-de0b-455a-9426-419e0175be20",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_61debf92-96cd-43c4-9de9-ba53462ca4b6.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+      "stored_as": "4__c4dea00a-1268-4c29-80c5-96d6d63c2c19.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "d383c449-c6b6-4557-ae31-f03413810af3",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_c4dea00a-1268-4c29-80c5-96d6d63c2c19.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "1595ee15-7632-4cb9-b959-dd648993a442",
+      "stored_as": "5__1595ee15-7632-4cb9-b959-dd648993a442.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "43904d1a-1943-4147-af98-01e8f14b8e0e",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_1595ee15-7632-4cb9-b959-dd648993a442.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+      "stored_as": "6__62e931fb-7fee-4cf4-a83e-6e1801af930e.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "43904d1a-1943-4147-af98-01e8f14b8e0e",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_62e931fb-7fee-4cf4-a83e-6e1801af930e.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "1b831312-72c9-4c81-bd68-0815ebdd6210",
+      "stored_as": "7__1b831312-72c9-4c81-bd68-0815ebdd6210.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "cced6f5d-cdf7-4ac7-afe8-c5d1eb71011a",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_1b831312-72c9-4c81-bd68-0815ebdd6210.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+      "stored_as": "8__25915755-4b54-4fdf-9e29-753e45c8e3b0.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "4f704966-47a3-4232-a0b7-df2665491f88",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_25915755-4b54-4fdf-9e29-753e45c8e3b0.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "99b9869c-659b-42c2-9785-7dff9d38947f",
+      "stored_as": "9__99b9869c-659b-42c2-9785-7dff9d38947f.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "3e571c59-5f10-42d7-8e3e-7203ee1311dd",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_99b9869c-659b-42c2-9785-7dff9d38947f.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+      "stored_as": "10__e6ee0986-deeb-471b-b21c-1f00a0a53119.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "b644a8bf-56aa-47fe-bca1-ce710aad7a9d",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_e6ee0986-deeb-471b-b21c-1f00a0a53119.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+      "stored_as": "11__b115c2fe-0287-4ea3-a412-0ae2b90ce7b9.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "344bea5b-a114-43fc-bc70-9eee68211a08",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_b115c2fe-0287-4ea3-a412-0ae2b90ce7b9.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "9b664e8f-b0fd-4172-b0f5-dd9486383685",
+      "stored_as": "12__9b664e8f-b0fd-4172-b0f5-dd9486383685.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "ee7f9ea1-9603-4016-8e6c-5c4caa3b4046",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/b0844b40-fee0-44a9-a464-fee533521ebc/reference_9b664e8f-b0fd-4172-b0f5-dd9486383685.jpg",
+      "resolved": true
+    }
+  ]
+}

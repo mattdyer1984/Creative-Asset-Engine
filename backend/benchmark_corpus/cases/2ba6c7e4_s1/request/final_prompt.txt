@@ -1,0 +1,14 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: User-generated content (UGC) style photo, casual and authentic. ; Drive sales through a compelling multi-buy discount offer. Only the subject's hand is visible — do NOT render a full person or any body part that was not in the source. The visible subject is holding the box. The promoted product is held in the subject's hand. Emotional register: Excitement, Curiosity, Desire for a bargain. Environment: Outdoors, slightly blurred background showing what looks like a patio or garden area, enhancing the UGC feel.. Lighting: Natural daylight, somewhat diffused.. Energy: calm.
+Output aspect ratio: 3:4 (render the image at exactly 3:4). The source was 9:16; recompose for 3:4 rather than stretching.
+The promoted product must be visible in this frame.
+Make the product the dominant focal point.
+Preserve: the product stays primary — you choose the composition.
+Keep the top-middle area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Keep the middle area visually clear and uncluttered (reserved space for secondary caption text, added later); render no text there.
+Keep the middle-lower area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Keep the lower area visually clear and uncluttered (reserved space for secondary caption text, added later); render no text there.
+Keep the idea of "SECURED THAT BAG BABE..." recognisably present (exact wording not required).
+Reproduce product 'P.Louise Obsessed For Less Skincare Set' exactly from its attached reference; regenerate the scene around it.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

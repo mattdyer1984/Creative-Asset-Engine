@@ -1,0 +1,21 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: No readable 'crocs' text is visible; only the crocodile logo appears on the side rivet.",
+    "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "seed": null,
+  "generation_time_seconds": 22.43027816700487,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "8079834f-f35d-48d8-a6bc-c98b7c00f825",
+  "photorealism": null
+}

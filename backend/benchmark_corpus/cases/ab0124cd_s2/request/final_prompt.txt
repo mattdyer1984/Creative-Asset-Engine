@@ -1,0 +1,9 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: Illustrative, cartoonish style with an educational/informational tone. ; To create awareness of a problem (inadequate cleaning from brushing alone) and likely introduce a solution (such as a new oral care product or technique). Only the subject's face and hand is visible — do NOT render a full person or any body part that was not in the source. The visible subject is holding. Emotional register: Concern, Frustration, Insecurity, Curiosity. Environment: A stylized bathroom setting, featuring a mirror, sink, and a towel on a rack.. Lighting: Flat, evenly lit illustration style without strong highlights or shadows.. Energy: calm.
+Output aspect ratio: 3:4 (render the image at exactly 3:4). The source was 410:547; recompose for 3:4 rather than stretching.
+Do NOT show the promoted product in this frame (it is withheld here).
+Make the caption text the dominant focal point.
+Preserve: subject stays primary — you choose the composition.
+Keep the top area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

@@ -1,0 +1,1201 @@
+{
+  "slideshow_id": "ab0124cd-b663-47a5-9bb5-e816274c0808",
+  "slides": [
+    {
+      "id": "7f84a26e-bc07-43d9-af8b-522f323947b8",
+      "slide_index": 0
+    },
+    {
+      "id": "8dd72a23-a863-4b87-ab9f-5c634a192636",
+      "slide_index": 1
+    },
+    {
+      "id": "d330262d-1ddf-4d6b-8e53-c9630e0d86fe",
+      "slide_index": 2
+    },
+    {
+      "id": "dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac",
+      "slide_index": 3
+    },
+    {
+      "id": "ba7ca420-6087-43d0-a41f-7e16971bcab6",
+      "slide_index": 4
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "7f84a26e-bc07-43d9-af8b-522f323947b8",
+        "slide_index": 0,
+        "beat": "hook"
+      },
+      {
+        "slide_id": "8dd72a23-a863-4b87-ab9f-5c634a192636",
+        "slide_index": 1,
+        "beat": "story"
+      },
+      {
+        "slide_id": "d330262d-1ddf-4d6b-8e53-c9630e0d86fe",
+        "slide_index": 2,
+        "beat": "story"
+      },
+      {
+        "slide_id": "dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac",
+        "slide_index": 3,
+        "beat": "reveal"
+      },
+      {
+        "slide_id": "ba7ca420-6087-43d0-a41f-7e16971bcab6",
+        "slide_index": 4,
+        "beat": "cta"
+      }
+    ],
+    "arc_summary": "The slideshow opens by calling attention to an uncomfortable oral-care problem, then explains why brushing may not solve it. It reveals a more targeted cleaning tool and closes with a quick endorsement plus prompt to learn more."
+  },
+  "marketing_text": "This creative is designed to make people suddenly notice—and worry about—a dental hygiene problem they may have been ignoring. Rather than leading with a product or service, it leads with the problem: the “rough feeling” behind the teeth. The copy is direct and memorable, while the magnified image of tartar or plaque buildup makes the issue feel immediate, physical, and hard to dismiss.\n\nThe target audience is anyone who has experienced dental discomfort, poor oral hygiene, or anxiety about their oral health. Its emotional strategy relies on disgust, concern, urgency, and curiosity. By connecting a familiar sensation with a disturbing visual, the ad creates a moment of self-diagnosis: viewers are prompted to run their tongue along their teeth and wonder whether what they feel is normal.\n\nVisually, the ad works because it is stark and focused. The plain background, serif typography, red emphasis on “rough feeling,” and clinical close-up all direct attention to one uncomfortable truth. With no product shown, the creative avoids feeling overtly sales-driven; instead, it agitates the problem so effectively that the audience is primed to seek a solution, whether that is a dental visit, hygiene product, or treatment.",
+  "per_slide": {
+    "7f84a26e-bc07-43d9-af8b-522f323947b8": {
+      "fingerprint": {
+        "visual_style": "Shocking, realistic, informative, and discomfort-inducing.",
+        "marketing_objective": "Raise awareness about dental hygiene issues (likely tartar or plaque buildup) to drive interest in a solution, product, or service.",
+        "emotional_appeal": [
+          "Disgust",
+          "Concern",
+          "Urgency",
+          "Curiosity"
+        ],
+        "target_audience": "Individuals experiencing dental discomfort, people with poor dental hygiene, or anyone concerned about their oral health.",
+        "color_palette": [
+          "Off-white (background)",
+          "Black (text)",
+          "Dark Red (highlighted text)",
+          "Yellow-brown (tartar/plaque)",
+          "Pinkish-red (gums)"
+        ],
+        "typography_style": "Classic serif font, varied in weight and color to emphasize specific words (e.g., \"rough feeling\" in red italics).",
+        "layout_and_composition": "Top half is dedicated to a bold, direct statement. The bottom half features a highly magnified, confronting image that directly illustrates the text.",
+        "background_environment": "Plain, off-white/beige background to ensure focus remains entirely on the text and the jarring image.",
+        "lighting_style": "Bright, even lighting on the teeth and gums to highlight the texture and details of the buildup without heavy shadows.",
+        "graphic_style": "Photorealistic medical/dental imagery combined with stark typography.",
+        "product_prominence": "No product is explicitly shown; the 'problem' is the focal point.",
+        "marketing_angle": "Agitation of a specific, relatable problem (roughness behind teeth) to create a sudden realization that intervention is necessary.",
+        "visual_hierarchy": "1. The highlighted red text \"rough feeling\".\n2. The graphic image of the tartar-covered teeth.\n3. The rest of the black text \"That... behind your teeth isn't normal\".",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "The text is centered in the upper half. The extreme close-up of the lower teeth (viewed from behind) fills the entire bottom half of the frame, jutting upward toward the text.",
+        "emotional_trigger": "Realization of a hidden, gross health issue; the visceral disgust combined with the relatable physical sensation of feeling behind one's teeth with the tongue.",
+        "extensions": "The ad uses a highly effective 'hook' by pairing a common physical sensation with a visually repulsive image, compelling the viewer to seek a remedy."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "The main advertising headline/copy is the key message of the creative; wording, placement, and emphasis should be preserved. The red italic phrase highlights the symptom and is central to the concept.",
+          "region_type": "primary_subject",
+          "x_max": 0.793,
+          "x_min": 0.146,
+          "y_max": 0.415,
+          "y_min": 0.095
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Close-up dental image showing teeth with heavy tartar/plaque buildup; this is the core visual proof/problem being marketed around and should not be changed except with a very similar clinical image.",
+          "region_type": "primary_subject",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.902,
+          "y_min": 0.471
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Visible gum tissue at the bottom supports the dental-health context and anchors the teeth image; should remain similar in position and clinical appearance if regenerated.",
+          "region_type": "secondary_subject",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.787
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain warm off-white background behind the copy provides clean contrast and a clinical/health-ad feel. It can be replaced with a similar neutral background but should remain uncluttered.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.53,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Empty spacing around the headline keeps the text readable and creates the top-heavy marketing layout. It can shift slightly but should preserve clear negative space and contrast.",
+          "region_type": "negative_space",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.47,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "That",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.4,
+            "y_min": 0.088,
+            "x_max": 0.6,
+            "y_max": 0.15
+          }
+        },
+        {
+          "text": "rough feeling",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.23,
+            "y_min": 0.165,
+            "x_max": 0.77,
+            "y_max": 0.25
+          }
+        },
+        {
+          "text": "behind your teeth",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.15,
+            "y_min": 0.248,
+            "x_max": 0.85,
+            "y_max": 0.332
+          }
+        },
+        {
+          "text": "isn't normal",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.26,
+            "y_min": 0.33,
+            "x_max": 0.74,
+            "y_max": 0.395
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "63cbcda5-4eee-4d38-b992-8cd8fd4c0863",
+          "display_name": "Tooth Scaling and Toothbrush all in one plus spare heads and tools",
+          "prominence": "primary",
+          "is_current": false,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1640,
+        "height": 2188
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "1": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "2": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "3": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    },
+    "8dd72a23-a863-4b87-ab9f-5c634a192636": {
+      "fingerprint": {
+        "visual_style": "Illustrative and educational, employing a simplified, cartoon-like aesthetic paired with a realistic medical inset.",
+        "marketing_objective": "To educate the audience about a common dental problem (tartar/plaque buildup) and implicitly agitate the problem to prepare them for a solution.",
+        "emotional_appeal": [
+          "Concern",
+          "Disgust",
+          "Anxiety"
+        ],
+        "target_audience": "Individuals experiencing dental issues like bad breath, visible buildup, or gum sensitivity, who feel their current brushing routine is inadequate.",
+        "color_palette": [
+          "Off-white",
+          "Black",
+          "Dark Blue",
+          "Yellow",
+          "Red",
+          "Brown"
+        ],
+        "typography_style": "A classic, elegant serif font, conveying a sense of authority and seriousness.",
+        "layout_and_composition": "The layout is divided vertically. The top half is dominated by large, centered text. The bottom half features a distressed character on the left, with a magnifying glass callout on the right showing a detailed view of the problem.",
+        "background_environment": "A plain, off-white background to ensure focus remains entirely on the text and illustrations without distraction.",
+        "lighting_style": "Flat, illustrated lighting with soft shading on the character and more detailed shading on the dental inset.",
+        "graphic_style": "2D vector illustration for the character, with a more detailed, slightly textured rendering style for the close-up inset.",
+        "product_prominence": "No specific product is shown; the focus is entirely on the problem (hardened buildup).",
+        "marketing_angle": "Problem agitation: highlighting a hidden or overlooked issue (hardened buildup where brushing fails) to create a need for a better solution.",
+        "visual_hierarchy": "1. The headline (particularly the red, italicized 'hardened buildup').\n2. The distressed character.\n3. The detailed, gross inset showing the teeth and gums.",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "The character is positioned on the bottom left, looking towards the bottom right. A thin line connects the character's mouth to a large circular inset on the right, which acts as a 'zoom-in' on the problem.",
+        "emotional_trigger": "Fear of poor hygiene and health deterioration despite perceived effort (brushing).",
+        "extensions": "The use of yellow skin for the character might be a stylistic choice to make the character more relatable or generic, but combined with the red and yellow teeth graphic, it amplifies the feeling of 'unhealthiness'."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Large headline/copy conveying the core marketing message; wording, emphasis on “hardened buildup,” and centered placement are central to the creative.",
+          "region_type": "primary_subject",
+          "x_max": 0.848,
+          "x_min": 0.134,
+          "y_max": 0.35,
+          "y_min": 0.085
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Illustrated boy/person reacting to dental concern; overall character pose, worried expression, and position in lower-left should closely match to preserve the explanatory narrative.",
+          "region_type": "human_subject",
+          "x_max": 0.586,
+          "x_min": 0.012,
+          "y_max": 1.0,
+          "y_min": 0.38
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand/finger pointing into the mouth is directly interacting with the problem area and is key to the visual explanation; pose and contact location should not change much.",
+          "region_type": "human_subject",
+          "x_max": 0.389,
+          "x_min": 0.046,
+          "y_max": 1.0,
+          "y_min": 0.686
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Open mouth/teeth area on the boy, where he is indicating the issue; important problem focal point tied to the callout graphic.",
+          "region_type": "primary_subject",
+          "x_max": 0.416,
+          "x_min": 0.318,
+          "y_max": 0.729,
+          "y_min": 0.657
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Circular dental close-up showing teeth, gums, and hardened yellow buildup/tartar; this is the main problem visualization and should remain highly consistent.",
+          "region_type": "primary_subject",
+          "x_max": 0.914,
+          "x_min": 0.587,
+          "y_max": 0.792,
+          "y_min": 0.493
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Yellow/brown tartar buildup around the teeth inside the close-up; specific visible problem being advertised against, so it must be retained.",
+          "region_type": "primary_subject",
+          "x_max": 0.897,
+          "x_min": 0.605,
+          "y_max": 0.679,
+          "y_min": 0.563
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Thin connector line linking the boy’s mouth to the enlarged dental inset; supports comprehension of the callout relationship and composition.",
+          "region_type": "decorative_element",
+          "x_max": 0.626,
+          "x_min": 0.38,
+          "y_max": 0.704,
+          "y_min": 0.664
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain warm beige background providing clean contrast for text and illustration; can be replaced by a similar simple neutral backdrop.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Large open blank space around the text and illustrations; useful for readability but visually simple and safe to adjust as long as layout remains clear.",
+          "region_type": "negative_space",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.49,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Lower-right empty beige area around the dental inset; not semantically important beyond maintaining uncluttered composition.",
+          "region_type": "negative_space",
+          "x_max": 1.0,
+          "x_min": 0.73,
+          "y_max": 1.0,
+          "y_min": 0.68
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "It's usually",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.319,
+            "y_min": 0.082,
+            "x_max": 0.678,
+            "y_max": 0.141
+          }
+        },
+        {
+          "text": "hardened buildup",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.19,
+            "y_min": 0.148,
+            "x_max": 0.823,
+            "y_max": 0.218
+          }
+        },
+        {
+          "text": "sitting where brushing",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.135,
+            "y_min": 0.219,
+            "x_max": 0.871,
+            "y_max": 0.282
+          }
+        },
+        {
+          "text": "doesn't do enough",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.208,
+            "y_min": 0.289,
+            "x_max": 0.81,
+            "y_max": 0.345
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "63cbcda5-4eee-4d38-b992-8cd8fd4c0863",
+          "display_name": "Tooth Scaling and Toothbrush all in one plus spare heads and tools",
+          "prominence": "primary",
+          "is_current": false,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1640,
+        "height": 2188
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "1": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "2": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "3": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    },
+    "d330262d-1ddf-4d6b-8e53-c9630e0d86fe": {
+      "fingerprint": {
+        "visual_style": "Illustrative, cartoonish style with an educational/informational tone.",
+        "marketing_objective": "To create awareness of a problem (inadequate cleaning from brushing alone) and likely introduce a solution (such as a new oral care product or technique).",
+        "emotional_appeal": [
+          "Concern",
+          "Frustration",
+          "Insecurity",
+          "Curiosity"
+        ],
+        "target_audience": "Individuals who are concerned about oral hygiene, specifically those who experience a lack of cleanliness after brushing.",
+        "color_palette": [
+          "Yellow",
+          "Blue",
+          "Red",
+          "Beige",
+          "White"
+        ],
+        "typography_style": "Serif font, with a mix of regular and italicized text to emphasize specific words.",
+        "layout_and_composition": "The layout is divided into two main sections: text at the top and the illustration below. The character is placed on the left, looking confused, while a magnified inset showing dental plaque is on the right, connected to his mouth by a thin line.",
+        "background_environment": "A stylized bathroom setting, featuring a mirror, sink, and a towel on a rack.",
+        "lighting_style": "Flat, evenly lit illustration style without strong highlights or shadows.",
+        "graphic_style": "2D digital illustration with simple shading and distinct outlines.",
+        "product_prominence": "No specific product is shown other than a generic toothbrush, indicating a focus on the problem rather than an immediate product pitch.",
+        "marketing_angle": "Highlighting a common frustration (dirty teeth after brushing) to hook the viewer and offer an explanation or solution.",
+        "visual_hierarchy": "The bold text at the top immediately catches the eye, followed by the confused character, and finally the graphic inset of the plaque on the teeth.",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "The character holds a toothbrush in his right hand while scratching his head with his left, positioned centrally but slightly to the left. The inset circle detailing the plaque is prominently placed on the right side, drawing attention to the specific issue being addressed.",
+        "emotional_trigger": "Fear of inadequate personal hygiene and the social or health consequences associated with it.",
+        "extensions": "The use of a line connecting the character's mouth to the detailed inset effectively bridges the gap between the character's general concern and the specific, hidden problem of plaque buildup."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Large headline/marketing claim is the core message of the creative and should be preserved exactly in wording, position, and hierarchy.",
+          "region_type": "primary_subject",
+          "x_max": 0.835,
+          "x_min": 0.166,
+          "y_max": 0.316,
+          "y_min": 0.108
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Illustrated concerned person is the main character demonstrating the problem; facial expression, pose, and overall placement are central to the ad concept.",
+          "region_type": "human_subject",
+          "x_max": 0.611,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.371
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand holding toothbrush directly represents the brushing action in the message; the hand-tool interaction and positioning should not change significantly.",
+          "region_type": "human_subject",
+          "x_max": 0.615,
+          "x_min": 0.482,
+          "y_max": 0.997,
+          "y_min": 0.751
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Toothbrush is the key prop tied to the brushing claim and the character’s action; should remain visible in the same approximate position.",
+          "region_type": "prop",
+          "x_max": 0.574,
+          "x_min": 0.492,
+          "y_max": 0.878,
+          "y_min": 0.671
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Circular dental inset showing dirty teeth/plaque is the main explanatory visual supporting the claim; the teeth, gums, plaque, and circular callout should remain prominent.",
+          "region_type": "primary_subject",
+          "x_max": 0.933,
+          "x_min": 0.61,
+          "y_max": 0.731,
+          "y_min": 0.459
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Thin connector line links the toothbrush/character area to the dirty-teeth inset, clarifying the relationship between brushing and plaque; composition should be similar.",
+          "region_type": "decorative_element",
+          "x_max": 0.622,
+          "x_min": 0.45,
+          "y_max": 0.657,
+          "y_min": 0.612
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Bathroom setting provides relevant context for tooth brushing; it can be regenerated as a similar bathroom but should remain recognizable.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Mirror on the left reinforces the bathroom environment but is not crucial to the product message and may vary.",
+          "region_type": "prop",
+          "x_max": 0.141,
+          "x_min": 0.0,
+          "y_max": 0.716,
+          "y_min": 0.397
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Sink, faucet, cup, and small toothbrushes in the lower-left are background bathroom fixtures; safe to alter while retaining bathroom context.",
+          "region_type": "prop",
+          "x_max": 0.132,
+          "x_min": 0.0,
+          "y_max": 0.995,
+          "y_min": 0.886
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Towel rack and towel on the right are bathroom decor/furnishings; they can be changed or repositioned without affecting the core message.",
+          "region_type": "prop",
+          "x_max": 0.997,
+          "x_min": 0.745,
+          "y_max": 0.901,
+          "y_min": 0.764
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Light tiled lower wall and plain upper wall form the bathroom background; should stay generally clean and neutral but exact tile pattern can vary.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Open beige wall space around the headline is mostly negative space used for readability; color and texture can vary as long as text remains legible.",
+          "region_type": "negative_space",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.45,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "That's why your teeth",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.17,
+            "y_min": 0.101,
+            "x_max": 0.869,
+            "y_max": 0.153
+          }
+        },
+        {
+          "text": "can still feel",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.339,
+            "y_min": 0.168,
+            "x_max": 0.728,
+            "y_max": 0.221
+          }
+        },
+        {
+          "text": "dirty after brushing",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.198,
+            "y_min": 0.235,
+            "x_max": 0.85,
+            "y_max": 0.304
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "63cbcda5-4eee-4d38-b992-8cd8fd4c0863",
+          "display_name": "Tooth Scaling and Toothbrush all in one plus spare heads and tools",
+          "prominence": "primary",
+          "is_current": false,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1640,
+        "height": 2188
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        },
+        "1": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "2": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    },
+    "dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac": {
+      "fingerprint": {
+        "visual_style": "Minimalist and clean, focusing strongly on product features.",
+        "marketing_objective": "To educate potential customers about the specific features and benefits of the dental tool, encouraging them to switch from their current method.",
+        "emotional_appeal": [
+          "Desire for cleanliness",
+          "Appreciation for precision and effectiveness",
+          "Comfort in using advanced tools"
+        ],
+        "target_audience": "Individuals interested in advanced oral hygiene, likely those who have experienced dissatisfaction with standard dental care tools.",
+        "color_palette": [
+          "Soft beige (background)",
+          "White (product body)",
+          "Silver/Chrome (product accents)",
+          "Black (text and control panel)",
+          "Dark red (emphasis text)"
+        ],
+        "typography_style": "Elegant serif font for the main headline, with italicized dark red for emphasis on 'more targeted'. Simple sans-serif for the feature callouts.",
+        "layout_and_composition": "Centered vertical composition. The headline sits at the top, directly above the vertically oriented product. Feature callouts are aligned to the right of the product, connected by delicate lines.",
+        "background_environment": "A solid, soft beige background that provides a warm, neutral contrast to the white product, ensuring it stands out without distraction.",
+        "lighting_style": "Soft, even lighting that highlights the sleek design of the product, with a subtle drop shadow at the base to ground it.",
+        "graphic_style": "Photorealistic product rendering combined with minimalist graphic elements (lines and dots for callouts).",
+        "product_prominence": "Extremely prominent; it is the central and largest visual element in the frame.",
+        "marketing_angle": "Highlighting superior functionality and precision ('more targeted') as the primary reason for consumers to switch to this product.",
+        "visual_hierarchy": "1. Main headline ('This is why people switch...')\n2. Emphasis text ('more targeted')\n3. The product itself\n4. Feature callouts ('angled tip', 'targeted clean', '2-in-1 tool')",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "The product is placed perfectly in the center, standing vertically. The text is balanced, with the headline centered above and the callouts stacked neatly on the right side.",
+        "emotional_trigger": "Desire for a superior, more effective solution to a common problem (oral hygiene), leveraging the frustration with less precise tools.",
+        "extensions": "The use of the phrase 'This is why people switch' acts as subtle social proof, implying that others are already making this choice."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Central white dental/water-flosser style device, including angled metal tip, body, power/control panel, and chrome base. This is the product and its exact upright placement is core to the creative.",
+          "region_type": "product",
+          "x_max": 0.514,
+          "x_min": 0.424,
+          "y_max": 0.927,
+          "y_min": 0.286
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Main headline text: “This is why people switch to something more targeted.” It carries the primary marketing message and should remain compositionally similar if regenerated.",
+          "region_type": "primary_subject",
+          "x_max": 0.851,
+          "x_min": 0.122,
+          "y_max": 0.26,
+          "y_min": 0.088
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Red italic emphasis phrase “more targeted,” visually highlights the key benefit and should closely match in placement and style.",
+          "region_type": "primary_subject",
+          "x_max": 0.701,
+          "x_min": 0.282,
+          "y_max": 0.261,
+          "y_min": 0.214
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Feature callout for the product tip: dot, horizontal leader line, and label “angled tip.” It directly identifies an essential product feature.",
+          "region_type": "secondary_subject",
+          "x_max": 0.701,
+          "x_min": 0.486,
+          "y_max": 0.354,
+          "y_min": 0.325
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Feature callout reading “targeted clean,” with dot and leader line pointing toward the device body. Important explanatory product copy.",
+          "region_type": "secondary_subject",
+          "x_max": 0.768,
+          "x_min": 0.526,
+          "y_max": 0.628,
+          "y_min": 0.6
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Feature callout reading “2-in-1 tool,” with dot and leader line near the lower product body. Important benefit annotation tied to the product.",
+          "region_type": "secondary_subject",
+          "x_max": 0.734,
+          "x_min": 0.532,
+          "y_max": 0.837,
+          "y_min": 0.811
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Black control/display panel on the front of the device, including power icon and mode indicators. This is a defining product detail and should not be altered casually.",
+          "region_type": "product",
+          "x_max": 0.494,
+          "x_min": 0.444,
+          "y_max": 0.755,
+          "y_min": 0.616
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Angled metal tip/nozzle at the top of the product. It is specifically referenced by the callout and is a core differentiating feature.",
+          "region_type": "product",
+          "x_max": 0.478,
+          "x_min": 0.463,
+          "y_max": 0.342,
+          "y_min": 0.286
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Subtle grounding shadow beneath the product. Helps the product feel placed in space but can be adjusted or regenerated freely.",
+          "region_type": "decorative_element",
+          "x_max": 0.595,
+          "x_min": 0.41,
+          "y_max": 0.922,
+          "y_min": 0.902
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain warm beige background. It provides the clean marketing backdrop and overall tone, but can be replaced with a similar neutral background.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Large areas of empty beige space around the text, product, and callouts. This negative space supports the minimalist layout and is safe to vary as long as readability remains.",
+          "region_type": "negative_space",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "This is why people switch",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.124,
+            "y_min": 0.088,
+            "x_max": 0.888,
+            "y_max": 0.138
+          }
+        },
+        {
+          "text": "to something",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.318,
+            "y_min": 0.151,
+            "x_max": 0.704,
+            "y_max": 0.201
+          }
+        },
+        {
+          "text": "more targeted",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.295,
+            "y_min": 0.208,
+            "x_max": 0.727,
+            "y_max": 0.266
+          }
+        },
+        {
+          "text": "angled tip",
+          "role": "subheadline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.633,
+            "y_min": 0.325,
+            "x_max": 0.753,
+            "y_max": 0.35
+          }
+        },
+        {
+          "text": "targeted clean",
+          "role": "subheadline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.647,
+            "y_min": 0.594,
+            "x_max": 0.814,
+            "y_max": 0.619
+          }
+        },
+        {
+          "text": "Soft",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.479,
+            "y_min": 0.678,
+            "x_max": 0.495,
+            "y_max": 0.687
+          }
+        },
+        {
+          "text": "Comfort",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.473,
+            "y_min": 0.693,
+            "x_max": 0.502,
+            "y_max": 0.702
+          }
+        },
+        {
+          "text": "Strong",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.475,
+            "y_min": 0.708,
+            "x_max": 0.5,
+            "y_max": 0.717
+          }
+        },
+        {
+          "text": "2-in-1 tool",
+          "role": "subheadline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.641,
+            "y_min": 0.798,
+            "x_max": 0.768,
+            "y_max": 0.823
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "63cbcda5-4eee-4d38-b992-8cd8fd4c0863",
+          "display_name": "Tooth Scaling and Toothbrush all in one plus spare heads and tools",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1640,
+        "height": 2188
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        },
+        "1": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "2": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "3": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "4": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "5": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "6": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "7": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "8": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    },
+    "ba7ca420-6087-43d0-a41f-7e16971bcab6": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC) style photograph",
+        "marketing_objective": "Drive clicks and conversions for a personal care device",
+        "emotional_appeal": [
+          "Curiosity",
+          "Desire for self-improvement",
+          "Trust via peer recommendation"
+        ],
+        "target_audience": "Individuals interested in personal hygiene, skincare, or dental care gadgets looking for routine upgrades",
+        "color_palette": [
+          "White",
+          "Beige",
+          "Light grey",
+          "Black (text and device details)",
+          "Flesh tones (hand)"
+        ],
+        "typography_style": "Clean, sans-serif font in a text box and overlay, typical of social media stories/posts",
+        "layout_and_composition": "First-person perspective, centralized product placement, top and bottom text framing the subject",
+        "background_environment": "Modern, minimalist bathroom sink area with a neutral stone finish",
+        "lighting_style": "Soft, natural-looking, even illumination",
+        "graphic_style": "Photographic with digital text overlays and emojis",
+        "product_prominence": "High; the product is held in the center of the frame and is the main focus.",
+        "marketing_angle": "Personal testimonial highlighting a significant positive change in a daily routine.",
+        "visual_hierarchy": "1. The top text (testimonial hook), 2. The product in hand, 3. The bottom text and emojis (call to action).",
+        "trust_elements": [
+          "First-person phrasing ('my routine') implying a genuine testimonial"
+        ],
+        "promotional_devices": [
+          "Call to action ('Tap below to see it')",
+          "Pointing emojis directing attention downward"
+        ],
+        "object_placement": "The hand holding the white device is centrally positioned vertically over the sink. The text is placed at the very top and bottom to avoid obscuring the product.",
+        "emotional_trigger": "Desire for an effortless upgrade to daily self-care, spurred by social proof (FOMO on a better routine).",
+        "extensions": "None"
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "White handheld dental/cleaning device is the advertised product and should remain unchanged in form, orientation, and central placement.",
+          "region_type": "product",
+          "x_max": 0.569,
+          "x_min": 0.352,
+          "y_max": 0.837,
+          "y_min": 0.203
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand directly holding and demonstrating the product; grip and interaction are essential to the creative.",
+          "region_type": "human_subject",
+          "x_max": 0.575,
+          "x_min": 0.079,
+          "y_max": 0.932,
+          "y_min": 0.508
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Top testimonial-style text overlay is a major marketing message and compositional element.",
+          "region_type": "decorative_element",
+          "x_max": 0.895,
+          "x_min": 0.116,
+          "y_max": 0.191,
+          "y_min": 0.034
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Bottom call-to-action text and pointing emojis are key conversion elements in the ad layout.",
+          "region_type": "decorative_element",
+          "x_max": 0.869,
+          "x_min": 0.189,
+          "y_max": 0.98,
+          "y_min": 0.878
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Bathroom sink basin and light stone countertop establish the hygiene/bathroom-use context; exact sink can vary.",
+          "region_type": "environment",
+          "x_max": 0.938,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.367
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Light tiled backsplash/wall reinforces bathroom setting but can be replaced by a similar bathroom surface.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.482,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Black faucet/spout at right indicates bathroom sink setup, but its exact design is not central to the ad.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.838,
+          "y_max": 0.581,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Soap or lotion dispenser on the counter is bathroom decor/context and can change freely.",
+          "region_type": "prop",
+          "x_max": 0.736,
+          "x_min": 0.588,
+          "y_max": 0.446,
+          "y_min": 0.213
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small potted plant in the upper-left adds decor and lifestyle atmosphere; safe to change or remove.",
+          "region_type": "decorative_element",
+          "x_max": 0.121,
+          "x_min": 0.0,
+          "y_max": 0.294,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Round sink drain/stopper area is part of the bathroom fixture but not important to the advertised product.",
+          "region_type": "prop",
+          "x_max": 0.705,
+          "x_min": 0.571,
+          "y_max": 0.888,
+          "y_min": 0.754
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Sleeve cuff of the person holding the device contributes to lifestyle styling but is not essential beyond preserving the hand/product interaction.",
+          "region_type": "human_subject",
+          "x_max": 0.241,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.849
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "This made such a difference to my routine",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.169,
+            "y_min": 0.058,
+            "x_max": 0.855,
+            "y_max": 0.155
+          }
+        },
+        {
+          "text": "Comfort",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.43,
+            "y_min": 0.589,
+            "x_max": 0.466,
+            "y_max": 0.602
+          }
+        },
+        {
+          "text": "Strong",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.428,
+            "y_min": 0.606,
+            "x_max": 0.462,
+            "y_max": 0.618
+          }
+        },
+        {
+          "text": "Tap below to see it",
+          "role": "cta",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.191,
+            "y_min": 0.828,
+            "x_max": 0.874,
+            "y_max": 0.888
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "63cbcda5-4eee-4d38-b992-8cd8fd4c0863",
+          "display_name": "Tooth Scaling and Toothbrush all in one plus spare heads and tools",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1640,
+        "height": 2188
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "1": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "2": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "3": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        }
+      }
+    }
+  },
+  "product_references": {
+    "63cbcda5-4eee-4d38-b992-8cd8fd4c0863": [
+      "ec5a20b4-8dbb-4856-aa26-94229046c6b1",
+      "de6cbe5e-2188-4078-b9ee-79e22631519e",
+      "b5634599-54fb-4c52-a498-135734f053df"
+    ]
+  }
+}

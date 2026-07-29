@@ -1,0 +1,35 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": true,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 34.37012670800323,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "f09766fb-1e9f-4341-b8a5-50d3ff441d21",
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Looks like a real outdoor handheld product photo with natural daylight and depth of field.",
+      "Cardboard packaging, metallic print, and clear plastic window appear physically plausible with appropriate highlights/reflections.",
+      "Text and decorative details are coherent and mostly legible; no visible melting, warping, or impossible geometry.",
+      "The visible hand appears anatomically normal."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: NINJA and the number 3 are visible, but the program labels are distorted/illegible and do not exactly show ICE CREAM, SORBET, GELATO, FROZEN YOGURT, SMOOTHIE BOWL, and MILKSHAKE."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "a6fda027-fb58-4c3c-b372-8dfbb09e3ccf"
+}

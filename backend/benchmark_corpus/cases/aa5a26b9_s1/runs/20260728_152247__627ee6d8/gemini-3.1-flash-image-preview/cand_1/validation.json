@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/brand: The generated image shows a visible 'Crocs' marking on the footbeds, while the expected value is unknown/no clear logo."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "e758e83c-6cc4-4c14-9bfb-64ccdee59056"
+}

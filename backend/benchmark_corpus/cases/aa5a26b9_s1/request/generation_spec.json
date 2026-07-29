@@ -1,0 +1,89 @@
+{
+  "slide_index": 1,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s1_product",
+      "label": "Classic Hearts Cut Out Clog",
+      "reference_ids": [
+        "865f8937-05d4-405d-8b50-f4531123bb8d",
+        "4c4934aa-208f-4dae-9360-9d7a99669c35",
+        "82644fed-188d-46a8-b128-6c28c588f934",
+        "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+        "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+        "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+        "1595ee15-7632-4cb9-b959-dd648993a442",
+        "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+        "1b831312-72c9-4c81-bd68-0815ebdd6210",
+        "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+        "99b9869c-659b-42c2-9785-7dff9d38947f",
+        "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+        "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+        "9b664e8f-b0fd-4172-b0f5-dd9486383685"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s1_t0",
+      "text": "All the heart details\u0010\u0011",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    }
+  ],
+  "scene": {
+    "subject_present": true,
+    "subject_action": "holding the footwear",
+    "subject_extent": "full figure",
+    "product_subject_relation": "holding",
+    "subject_emotion": [
+      "Affection",
+      "Comfort",
+      "Aesthetic appreciation",
+      "Desire"
+    ],
+    "environment": "A tidy, bright, and cozy bedroom with white bedding, neutral pillows, and textured wall art.",
+    "lighting": "Natural, soft, diffused daylight creating a bright and airy atmosphere.",
+    "concept": "Soft, cozy, and aesthetically pleasing lifestyle shot. ; Highlight product details and evoke a sense of desire and emotional connection to the design."
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s1_product",
+        "primary"
+      ],
+      [
+        "subject",
+        "secondary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "middle",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "s1_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "9:16",
+    "source_width": 2160,
+    "source_height": 3840,
+    "fit_behaviour": "retarget"
+  }
+}

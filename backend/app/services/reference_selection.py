@@ -160,3 +160,50 @@ def get_reference_image_paths(db: Session, generation_reference_set_id: str) -> 
         .all()
     )
     return [reference_image.file_path for _, reference_image in rows]
+
+
+def create_reference_set_from_ids(
+    db: Session, product_id: str, reference_ids: list[str]
+) -> GenerationReferenceSet | None:
+    """
+    Build a GenerationReferenceSet from an EXPLICIT, already-decided list of
+    product_reference_image ids - the Transformation Plan's own chosen
+    references (after the observed-crop-over-listing precedence in
+    transformation_runner). Unlike `select_reference_images`, this runs no
+    scene-keyword ranking and no `library_status` filter: the Plan already
+    decided which references anchor identity, and this only persists that
+    decision so the identity validator (image_validation_stage) compares the
+    generated image against the same references generation actually used.
+
+    Returns None for an empty list - matching `select_reference_images`'s
+    tri-state, so a slide with no references produces no Set and Stage 1
+    Identity Validation skips itself for free (generation_reference_set_id
+    stays None on each candidate), exactly like a Story Slide.
+    """
+    ids = [rid for rid in reference_ids if rid]
+    if not ids:
+        return None
+
+    generation_reference_set = GenerationReferenceSet(
+        analysis_run_id=None,
+        generated_image_id=None,
+        selection_method_json={
+            "method": "transformation_plan_references",
+            "reference_count": len(ids),
+        },
+    )
+    db.add(generation_reference_set)
+    db.flush()
+
+    for rank, reference_id in enumerate(ids):
+        db.add(
+            GenerationReferenceSetImage(
+                generation_reference_set_id=generation_reference_set.id,
+                product_reference_image_id=reference_id,
+                product_id=product_id,
+                role=None,
+                rank=rank,
+            )
+        )
+    db.flush()
+    return generation_reference_set

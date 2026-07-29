@@ -1,0 +1,15 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": false,
+  "validated": false,
+  "validation_error": null,
+  "identity_passed": null,
+  "accepted": null,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": null,
+  "estimated_cost_usd": null,
+  "generation_error": "ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+}

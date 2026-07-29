@@ -1,0 +1,31 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": null,
+  "standalone_appeal": null,
+  "commercial_score": null,
+  "verdict": "reject",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "source_mismatch",
+        "severity": "critical",
+        "suspected_cause": "source_data",
+        "cause_confidence": "high",
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "CASE INVALID: source slide is a TABLE, not Bellavita. Exclude/refreeze with correct source.",
+  "scored_at": "2026-07-28T20:39:44.586458+00:00",
+  "scored_by": "Matt"
+}

@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/brand_placement: Reference shows Crocs branding on side rivets and footbed; the generated image does not clearly preserve these brand marks.",
+    "identity/typography_placement: Embossed insole typography visible in references is missing or not accurately placed/legible in the generated image."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "a79219e9-fc9b-41ef-939e-3a089efc0c70"
+}

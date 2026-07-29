@@ -1,0 +1,33 @@
+{
+  "candidate": 0,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": true,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 29.398263292001502,
+  "estimated_cost_usd": null,
+  "generated_image_id": "b226fb11-9ac7-48e9-b1f4-675c3e4cc33a",
+  "photorealism": {
+    "ai_artefacts_detected": true,
+    "believable_shadows": true,
+    "human_anatomy": "not_applicable",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Overall resembles a polished product photograph with plausible bathroom lighting, marble/tile textures, and countertop reflections.",
+      "The box geometry and scene perspective are mostly consistent, and shadows/reflections are believable.",
+      "Some product details look slightly AI-generated: the toothbrush head/packaging illustration appears overly smooth and a bit malformed, and small side text is not fully convincing.",
+      "No humans are present."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  }
+}

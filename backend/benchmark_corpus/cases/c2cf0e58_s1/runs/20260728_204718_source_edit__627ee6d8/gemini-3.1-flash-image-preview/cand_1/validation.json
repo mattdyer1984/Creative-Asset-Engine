@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/brand_placement: The side circular Crocs badge is present, but the generated image adds prominent CROCS branding across the heel strap where the reference strap is largely unbranded.",
+    "identity/typography_placement: Reference typography is subtly embossed near the front/top collar, while the generated image places large text on the rear strap."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "8692ea12-d07f-4c9d-b0d0-df36219e0150"
+}

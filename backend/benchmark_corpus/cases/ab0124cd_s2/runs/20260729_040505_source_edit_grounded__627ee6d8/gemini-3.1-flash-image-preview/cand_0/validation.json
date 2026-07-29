@@ -1,0 +1,5 @@
+{
+  "validated": false,
+  "validation_error": "Could not resolve the product this generated image is meant to depict.",
+  "state": "validation_service_failed"
+}

@@ -1,0 +1,11 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: Minimalist, modern, and clean. ; Brand awareness and product showcase. No human subject in frame. Environment: A modern bathroom setting with a grey tiled wall and a marble countertop.. Lighting: Soft, natural-looking light with a subtle glow from a mirror in the background.. Energy: calm.
+Output aspect ratio: 3:4 (render the image at exactly 3:4).
+The promoted product must be visible in this frame.
+Make the product the dominant focal point.
+Preserve: the product stays primary — you choose the composition.
+Keep the middle-left area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Keep the idea of "SOFT / MAX WHITE ULTRA" recognisably present (exact wording not required).
+Reproduce product 'Colgate Max White Ultra toothbrush' exactly from its attached reference; regenerate the scene around it.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

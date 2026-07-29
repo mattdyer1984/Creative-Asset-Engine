@@ -1,0 +1,21 @@
+{
+  "authoritative_request": "generation_spec.json (provider-neutral)",
+  "aspect_ratio": "3:4",
+  "reference_files": [
+    "0__bfb1a246-3165-4237-a2c7-9e19faea68d4.jpg",
+    "1__83bf14df-9113-4f04-b0f8-d1b19be6e4fd.jpg",
+    "2__4b759c71-62a8-431d-aa9c-0de1efc3c44a.jpg",
+    "3__c01ec816-017d-44de-a0ab-970339475a59.jpg",
+    "4__d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93.jpg",
+    "5__c128e3df-8d8c-4a7c-993c-6f5071d0d399.jpg",
+    "6__364cd171-8280-44e2-91be-911129c721bb.jpg",
+    "7__6bd88afe-bc56-479f-952e-dacc88180497.jpg"
+  ],
+  "provider_prompts": {
+    "nano_banana": "provider_prompts/nano_banana.txt"
+  },
+  "providers_rendered": [
+    "nano_banana"
+  ],
+  "note": "To replay against another provider, render generation_spec.json through that provider's prompt adapter — the case never changes."
+}

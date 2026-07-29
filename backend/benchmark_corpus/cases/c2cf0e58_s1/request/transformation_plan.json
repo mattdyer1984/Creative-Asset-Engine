@@ -1,0 +1,801 @@
+{
+  "slideshow_id": "c2cf0e58-3730-43a4-9b40-e6a1fed4e8d3",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value",
+    "curiosity"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "hook",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": false,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1086,
+        "source_height": 1448,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1086x1448 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "User-generated content (UGC) style, casual, retail store environment. ; Highlight a price comparison or potential saving opportunity by establishing a high baseline price.",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "relatability",
+          "fomo",
+          "anticipation"
+        ],
+        "environment": "Inside a JD Sports retail store, showing shelves of shoes in the blurred background.",
+        "lighting": "Typical retail store lighting; overhead, bright, slightly cool-toned.",
+        "framing": "Center-focused on the product display, with a prominent text overlay at the top to set the narrative context.",
+        "text_safe_zones": [
+          [
+            0.118,
+            0.114,
+            0.887,
+            0.219
+          ],
+          [
+            0.0,
+            0.241,
+            0.65,
+            0.531
+          ],
+          [
+            0.0,
+            0.041,
+            0.205,
+            0.21
+          ],
+          [
+            0.859,
+            0.026,
+            1.0,
+            1.0
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t1"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_product",
+          "kind": "product",
+          "label": "Crocs Classic Clog Black",
+          "must_survive": [
+            "presence"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "medium",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "identity_constraint",
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "product visibly present but promoted identity withheld (hook curiosity gap)",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "shown in-context; not anchored to reference identity",
+              "source": "product_appearances",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "JD",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:bf8a0a09-34b1-4e94-b9df-c9653e0c6a36:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "critical",
+          "verbatim": "the pain when i scene these in JD for £50 🥹, and then...",
+          "text_status": "exact_commercial_value",
+          "commercial_values": [
+            {
+              "type": "price",
+              "value": "£50",
+              "raw": "£50"
+            }
+          ],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.148,
+            0.125,
+            0.852,
+            0.21
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:bf8a0a09-34b1-4e94-b9df-c9653e0c6a36:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t2",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "JD",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:bf8a0a09-34b1-4e94-b9df-c9653e0c6a36:b2",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-2: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t4",
+          "kind": "text",
+          "label": "price text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "critical",
+          "verbatim": "£50",
+          "text_status": "exact_commercial_value",
+          "commercial_values": [
+            {
+              "type": "price",
+              "value": "£50",
+              "raw": "£50"
+            }
+          ],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "price/physical copy captured",
+              "source": "ocr_results:bf8a0a09-34b1-4e94-b9df-c9653e0c6a36:b4",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-4: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Crocs Classic Clog Black",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:bf8a0a09-34b1-4e94-b9df-c9653e0c6a36",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=False role=hook"
+        },
+        {
+          "decision": "promoted_identity_withheld_on_hook",
+          "source": "product_appearances",
+          "detail": "product visibly present but promoted identity not anchored (observed_visual_presence=True)"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "reveal",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1086,
+        "source_height": 1448,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1086x1448 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "UGC casual style ; Drive product sales",
+        "subject_present": true,
+        "subject_action": "holding the shoe",
+        "subject_extent": "hand",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Excitement",
+          "Value"
+        ],
+        "environment": "Wooden floor",
+        "lighting": "Soft natural indoor",
+        "framing": "Centered vertical layout",
+        "text_safe_zones": [
+          [
+            0.168,
+            0.137,
+            0.837,
+            0.253
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ]
+        ],
+        "references_provided": [
+          "product_reference:bfb1a246-3165-4237-a2c7-9e19faea68d4",
+          "product_reference:83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+          "product_reference:4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+          "product_reference:c01ec816-017d-44de-a0ab-970339475a59",
+          "product_reference:d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+          "product_reference:c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+          "product_reference:364cd171-8280-44e2-91be-911129c721bb",
+          "product_reference:6bd88afe-bc56-479f-952e-dacc88180497"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          },
+          {
+            "decision": "subject_product_relation_unresolved",
+            "source": "scene_analyses",
+            "detail": "interacted object not confirmed as the promoted product; observed action preserved and product relationship left None (resolved, not missing)"
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_product",
+          "kind": "product",
+          "label": "Crocs Classic Clog Black",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+            "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+            "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+            "c01ec816-017d-44de-a0ab-970339475a59",
+            "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+            "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+            "364cd171-8280-44e2-91be-911129c721bb",
+            "6bd88afe-bc56-479f-952e-dacc88180497"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 8 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "I found them on TikTok",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.188,
+            0.147,
+            0.81,
+            0.19
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:967af935-ad08-4f90-bda8-b77f7d622eb4:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "for way cheaper 🤩",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.241,
+            0.206,
+            0.757,
+            0.245
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:967af935-ad08-4f90-bda8-b77f7d622eb4:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=caption handling=optional_overlay"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=True identity_revealed=True role=reveal"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "role": "cta",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1086,
+        "source_height": 1452,
+        "source_aspect": "181:242",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1086x1452 => 181:242"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "User-generated content (UGC), casual, direct perspective (first-person point of view). ; Drive direct sales through promotional offer and clear call-to-action.",
+        "subject_present": true,
+        "subject_action": "wearing the shoe",
+        "subject_extent": "lower legs",
+        "product_subject_relation": "wearing",
+        "subject_emotion": [
+          "Urgency",
+          "Desire for a deal",
+          "Comfort"
+        ],
+        "environment": "Light brown wood laminate flooring, providing a neutral and relatable domestic setting.",
+        "lighting": "Even, diffused indoor lighting, likely natural light from a nearby window, casting soft shadows.",
+        "framing": "First-person top-down view of feet wearing the product, centered horizontally. Text overlays at the top (offer) and bottom left (CTA).",
+        "text_safe_zones": [
+          [
+            0.144,
+            0.103,
+            0.863,
+            0.235
+          ],
+          [
+            0.051,
+            0.896,
+            0.432,
+            0.936
+          ],
+          [
+            0,
+            0,
+            1,
+            0.895
+          ]
+        ],
+        "references_provided": [
+          "product_reference:bfb1a246-3165-4237-a2c7-9e19faea68d4",
+          "product_reference:83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+          "product_reference:4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+          "product_reference:c01ec816-017d-44de-a0ab-970339475a59",
+          "product_reference:d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+          "product_reference:c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+          "product_reference:364cd171-8280-44e2-91be-911129c721bb",
+          "product_reference:6bd88afe-bc56-479f-952e-dacc88180497"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s2_product",
+          "kind": "product",
+          "label": "Crocs Classic Clog Black",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+            "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+            "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+            "c01ec816-017d-44de-a0ab-970339475a59",
+            "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+            "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+            "364cd171-8280-44e2-91be-911129c721bb",
+            "6bd88afe-bc56-479f-952e-dacc88180497"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 8 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Currently on sale with free delivery !!",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:15650dfb-df44-41ac-b57c-cc8d4db6a5a6:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t1",
+          "kind": "text",
+          "label": "cta text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Linked below ⬇️",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.053,
+            0.887,
+            0.432,
+            0.926
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "cta/overlay copy captured",
+              "source": "ocr_results:15650dfb-df44-41ac-b57c-cc8d4db6a5a6:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=caption handling=optional_overlay"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=cta"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 1
+      },
+      "provenance": [
+        {
+          "decision": "1 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:2",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "promoted_identity_withheld_on_hook",
+      "scope": "slide:0",
+      "spec": {
+        "identity_revealed": false,
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "hook shows the product in-context but does not anchor the promoted-offer identity",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "commercial_values_present",
+      "scope": "slideshow",
+      "spec": {
+        "values": [
+          "£50",
+          "£50"
+        ]
+      },
+      "provenance": [
+        {
+          "decision": "exact prices/discounts are the mechanism",
+          "source": "canonicalize",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

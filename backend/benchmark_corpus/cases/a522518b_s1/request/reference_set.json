@@ -1,0 +1,18 @@
+{
+  "reference_ids": [
+    "574ef792-d99c-4cd6-b1c7-6408702cada6"
+  ],
+  "count": 1,
+  "resolved_count": 1,
+  "precedence_rule": "observed slide crops authoritative; listing fills gaps only",
+  "references": [
+    {
+      "reference_id": "574ef792-d99c-4cd6-b1c7-6408702cada6",
+      "stored_as": "0__574ef792-d99c-4cd6-b1c7-6408702cada6.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "5e8d0f4b-4a4c-4930-a863-053ade4efeac",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/5ceb9397-ed26-4776-afe3-c9e8f0d3caea/reference_574ef792-d99c-4cd6-b1c7-6408702cada6.jpg",
+      "resolved": true
+    }
+  ]
+}

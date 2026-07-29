@@ -33,3 +33,8 @@ backend/gen_out_slideshow/
 
 # Scratch: files moved here for manual deletion — never committed
 _to_delete/
+
+# Benchmark corpus scratch (contact-sheet copies / ad-hoc outputs) — regenerable
+backend/benchmark_corpus/_review2/
+backend/benchmark_corpus/_anim/
+backend/benchmark_corpus/_adhoc/

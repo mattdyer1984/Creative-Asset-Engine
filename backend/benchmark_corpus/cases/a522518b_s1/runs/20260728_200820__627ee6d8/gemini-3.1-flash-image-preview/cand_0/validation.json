@@ -1,0 +1,13 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/brand_placement: The reference packaging has a large vertical Colgate logo; the generated visible product lacks the brand on the toothbrush and the tube/card branding is not placed like the official pack.",
+    "identity/typography_placement: Official text such as SOFT, MAX WHITE ULTRA, and Colgate appears on the tall retail pack in specific positions; the generated creative relocates text to a separate card and toothpaste tube.",
+    "identity/packaging: The official product is shown in a tall red retail blister/card pack with window and printed brush image, while the generated image shows a toothpaste tube and small display card instead."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "1c3bd3aa-a7fe-41c6-8d9a-1a2ca062dd14"
+}

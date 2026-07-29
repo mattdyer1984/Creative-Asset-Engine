@@ -1,0 +1,92 @@
+{
+  "run_id": "20260728_201809__627ee6d8",
+  "started_at": "2026-07-28T20:18:09.493192+00:00",
+  "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+  "git_dirty": true,
+  "models": [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview"
+  ],
+  "candidates_per_model": 2,
+  "drift": null,
+  "notes": "first 5-product dataset",
+  "results": {
+    "gemini-3.1-flash-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": false,
+        "validated": false,
+        "validation_error": null,
+        "identity_passed": null,
+        "accepted": null,
+        "rejection_reasons": [],
+        "seed": null,
+        "generation_time_seconds": null,
+        "estimated_cost_usd": null,
+        "generation_error": "ReadTimeout: The read operation timed out"
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/silhouette: The rectangular bottle is similar, but the added tall black vertical stick/protrusion above the cap changes the product outline significantly.",
+          "identity/cap_geometry: The reference has a plain metallic gold cylindrical cap with no protruding rod; the generated image adds a long black vertical element."
+        ],
+        "seed": null,
+        "generation_time_seconds": 18.60371175000182,
+        "estimated_cost_usd": null,
+        "generated_image_id": "b9de88a7-f623-4e4f-b93e-9df935bfb4b7",
+        "photorealism": null
+      }
+    ],
+    "gemini-3-pro-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/aspect_ratio: The generated bottles look noticeably shorter and squarer than the taller rectangular proportions in the references."
+        ],
+        "seed": null,
+        "generation_time_seconds": 21.937261499995657,
+        "estimated_cost_usd": null,
+        "generated_image_id": "172663a5-1ac2-48be-8174-c63eafd9454b",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/color: Only a black bottle with a gold cap/text is visible; the expected amber/brown gradient left bottle is missing.",
+          "detail/branding_text: Visible text includes BELLA VITA LUXURY, CEO MAN, and eau de parfum sizing, but G.O.A.T. MAN and the full expected text set are not present.",
+          "detail/packaging: The expected two bottles side-by-side, one brown and one black, are not shown; only one black bottle with a cylindrical cap appears."
+        ],
+        "seed": null,
+        "generation_time_seconds": 25.982978250001906,
+        "estimated_cost_usd": null,
+        "generated_image_id": "1bce5a5a-a315-4af3-a60d-86b167cd22e8",
+        "photorealism": null
+      }
+    ]
+  },
+  "finished_at": "2026-07-28T20:23:08.389084+00:00"
+}

@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: NINJA and 3 are visible, and some program labels appear, but several expected labels are missing, distorted, or incorrect, such as FROZEN YOGURT and SMOOTHIE BOWL."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "40955c7b-c275-4c26-ad96-ef453b5c68a2"
+}

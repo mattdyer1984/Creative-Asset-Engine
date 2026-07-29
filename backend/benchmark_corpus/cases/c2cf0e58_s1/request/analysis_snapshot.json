@@ -1,0 +1,594 @@
+{
+  "slideshow_id": "c2cf0e58-3730-43a4-9b40-e6a1fed4e8d3",
+  "slides": [
+    {
+      "id": "bf8a0a09-34b1-4e94-b9df-c9653e0c6a36",
+      "slide_index": 0
+    },
+    {
+      "id": "967af935-ad08-4f90-bda8-b77f7d622eb4",
+      "slide_index": 1
+    },
+    {
+      "id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+      "slide_index": 2
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "bf8a0a09-34b1-4e94-b9df-c9653e0c6a36",
+        "slide_index": 0,
+        "beat": "hook"
+      },
+      {
+        "slide_id": "967af935-ad08-4f90-bda8-b77f7d622eb4",
+        "slide_index": 1,
+        "beat": "reveal"
+      },
+      {
+        "slide_id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+        "slide_index": 2,
+        "beat": "cta"
+      }
+    ],
+    "arc_summary": "The slideshow opens by highlighting the frustration of seeing Crocs priced at £50, then reveals a cheaper TikTok find. It closes by emphasizing the sale/free delivery and directing viewers to the link."
+  },
+  "marketing_text": "This creative uses a casual UGC-style retail moment to set up a deal-finding narrative. By showing a black Croc prominently displayed in a JD Sports store with a visible £50 price tag, it establishes a clear price anchor before hinting that something better is coming with the “and then...” style hook. The in-store setting, recognizable retailer branding, and native social media text overlay make it feel spontaneous and authentic rather than polished advertising.\n\nThe target audience is price-conscious shoppers, Crocs fans, and people who enjoy discovering bargains or “shopping hacks” on platforms like TikTok and Instagram Reels. The emotional appeal comes from relatability and shared frustration around high retail prices, combined with anticipation and FOMO: viewers are encouraged to keep watching because they expect a cheaper alternative, surprise discount, or smarter way to buy.\n\nAs marketing, it works because it turns a simple product shot into a mini-story. The £50 price tag creates the baseline, the product is instantly recognizable, and the cliffhanger creates momentum. The unfiltered look, including the casual text style and even the typo, reinforces the feeling that this is a real shopper’s discovery, which can make the message more trustworthy and engaging than a traditional promotional ad.",
+  "per_slide": {
+    "bf8a0a09-34b1-4e94-b9df-c9653e0c6a36": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC) style, casual, retail store environment.",
+        "marketing_objective": "Highlight a price comparison or potential saving opportunity by establishing a high baseline price.",
+        "emotional_appeal": [
+          "relatability",
+          "fomo",
+          "anticipation"
+        ],
+        "target_audience": "Shoppers looking for deals, Crocs fans, price-conscious consumers.",
+        "color_palette": [
+          "black",
+          "white",
+          "grey"
+        ],
+        "typography_style": "Standard sans-serif, typical of social media text overlays (like TikTok or Instagram Reels).",
+        "layout_and_composition": "Center-focused on the product display, with a prominent text overlay at the top to set the narrative context.",
+        "background_environment": "Inside a JD Sports retail store, showing shelves of shoes in the blurred background.",
+        "lighting_style": "Typical retail store lighting; overhead, bright, slightly cool-toned.",
+        "graphic_style": "Photographic with native social media text overlay and emoji.",
+        "product_prominence": "Very prominent; the black Croc takes up the center of the frame.",
+        "marketing_angle": "Creating a narrative of finding an expensive item in-store, likely to contrast with a cheaper online find or an alternative later in the video/story.",
+        "visual_hierarchy": "1. Social media text overlay (hook). 2. Black Croc on display. 3. £50 price tag. 4. Blurred background store elements.",
+        "trust_elements": [
+          "Recognizable JD Sports logo",
+          "Authentic in-store setting"
+        ],
+        "promotional_devices": [
+          "Suspense/Cliffhanger ('and then...')",
+          "Price anchoring (£50)"
+        ],
+        "object_placement": "The black Croc is placed horizontally on a black display stand right in the middle of the frame, with the price label directly beneath it.",
+        "emotional_trigger": "Anticipation of a 'hack' or a better deal, playing on the shared frustration of high retail prices.",
+        "extensions": "The use of 'scene' instead of 'seen' adds to the casual, unfiltered UGC aesthetic, whether intentional or not."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main advertised item: the black Crocs Classic Clog. Its style, color, side profile, and position on the display are central to the creative and should not change.",
+          "region_type": "product",
+          "x_max": 0.827,
+          "x_min": 0.09,
+          "y_max": 0.526,
+          "y_min": 0.303
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "JD product/price placard identifying the item as Crocs Classic Clog Black and showing £50. This directly supports the joke/message and should remain highly faithful.",
+          "region_type": "prop",
+          "x_max": 0.884,
+          "x_min": 0.081,
+          "y_max": 0.644,
+          "y_min": 0.511
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Large overlaid caption text that frames the marketing/meme message. The wording and placement are central to the creative.",
+          "region_type": "decorative_element",
+          "x_max": 0.887,
+          "x_min": 0.118,
+          "y_max": 0.219,
+          "y_min": 0.114
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Black display shelf/platform holding the main Croc. It anchors the product and establishes the retail presentation, so its position should broadly match.",
+          "region_type": "prop",
+          "x_max": 0.886,
+          "x_min": 0.079,
+          "y_max": 0.648,
+          "y_min": 0.493
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Black vertical display stand and lower hanging bracket beneath the price shelf. It is part of the product display structure and affects the composition.",
+          "region_type": "prop",
+          "x_max": 0.86,
+          "x_min": 0.387,
+          "y_max": 1.0,
+          "y_min": 0.631
+        },
+        {
+          "importance_tier": "context",
+          "notes": "JD Sports store interior with shoe wall and retail lighting in the background. The exact store details can vary, but it should remain a footwear retail setting.",
+          "region_type": "environment",
+          "x_max": 0.7,
+          "x_min": 0.0,
+          "y_max": 0.52,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Blurred wall of shoes behind the main product. It reinforces the JD footwear-store context but individual shoes are not important.",
+          "region_type": "background",
+          "x_max": 0.65,
+          "x_min": 0.0,
+          "y_max": 0.531,
+          "y_min": 0.241
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Large illuminated JD sign at the upper left. It helps identify the retail store context, though the exact sign crop/lighting could vary.",
+          "region_type": "decorative_element",
+          "x_max": 0.205,
+          "x_min": 0.0,
+          "y_max": 0.21,
+          "y_min": 0.041
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Cream Crocs hanging below the main shelf. They are related merchandise but secondary to the black clog and can be changed or repositioned.",
+          "region_type": "secondary_subject",
+          "x_max": 0.709,
+          "x_min": 0.236,
+          "y_max": 1.0,
+          "y_min": 0.796
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Additional cream Crocs on the right-side shelving. They add retail context but are not central to the message.",
+          "region_type": "secondary_subject",
+          "x_max": 1.0,
+          "x_min": 0.859,
+          "y_max": 1.0,
+          "y_min": 0.026
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Right-side black shelving/frame around the secondary shoes. It helps frame the scene but can vary freely as store fixture detail.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.694,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Grey store floor and open walking area. This is part of the retail environment and can be replaced by a similar shop floor.",
+          "region_type": "environment",
+          "x_max": 0.593,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.596
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Small green price tags/clips on the lower hanging Crocs. These are minor retail details and safe to alter or remove.",
+          "region_type": "decorative_element",
+          "x_max": 0.566,
+          "x_min": 0.352,
+          "y_max": 0.894,
+          "y_min": 0.754
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "JD",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.01,
+            "y_min": 0.096,
+            "x_max": 0.147,
+            "y_max": 0.183
+          }
+        },
+        {
+          "text": "the pain when i scene these in JD for £50 🥹, and then...",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.148,
+            "y_min": 0.125,
+            "x_max": 0.852,
+            "y_max": 0.21
+          }
+        },
+        {
+          "text": "JD",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.136,
+            "y_min": 0.556,
+            "x_max": 0.217,
+            "y_max": 0.613
+          }
+        },
+        {
+          "text": "Crocs Classic Clog Black",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.244,
+            "y_min": 0.558,
+            "x_max": 0.372,
+            "y_max": 0.609
+          }
+        },
+        {
+          "text": "£50",
+          "role": "price",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.668,
+            "y_min": 0.558,
+            "x_max": 0.817,
+            "y_max": 0.599
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8",
+          "display_name": "Crocs Classic Clog Black",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1086,
+        "height": 1448
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "1": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.824
+        },
+        "2": {
+          "owner": "image",
+          "text_class": "environmental",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "3": {
+          "owner": "image",
+          "text_class": "environmental",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        },
+        "4": {
+          "owner": "image",
+          "text_class": "environmental",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        }
+      }
+    },
+    "967af935-ad08-4f90-bda8-b77f7d622eb4": {
+      "fingerprint": {
+        "visual_style": "UGC casual style",
+        "marketing_objective": "Drive product sales",
+        "emotional_appeal": [
+          "Excitement",
+          "Value"
+        ],
+        "target_audience": "Bargain-hunting social media users",
+        "color_palette": [
+          "Black",
+          "Brown",
+          "White"
+        ],
+        "typography_style": "Basic social media sans-serif",
+        "layout_and_composition": "Centered vertical layout",
+        "background_environment": "Wooden floor",
+        "lighting_style": "Soft natural indoor",
+        "graphic_style": "Native social sticker",
+        "product_prominence": "High",
+        "marketing_angle": "Cheaper alternative found online",
+        "visual_hierarchy": "Text, then product",
+        "trust_elements": [
+          "UGC authenticity",
+          "Familiar platform"
+        ],
+        "promotional_devices": [
+          "Cheaper price claim",
+          "Star-struck emoji"
+        ],
+        "object_placement": "Hand holds shoe in center; text at top",
+        "emotional_trigger": "Thrill of a cheap find",
+        "extensions": "Mimics organic feed post"
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Black clog/sandal product is the core marketed item; its silhouette, holes, strap, logo badge, color, and position should be preserved closely.",
+          "region_type": "product",
+          "x_max": 0.841,
+          "x_min": 0.25,
+          "y_max": 0.562,
+          "y_min": 0.349
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand and fingers directly support and interact with the shoe, establishing scale and holding pose; should not change substantially.",
+          "region_type": "human_subject",
+          "x_max": 0.563,
+          "x_min": 0.017,
+          "y_max": 1,
+          "y_min": 0.51
+        },
+        {
+          "importance_tier": "important",
+          "notes": "White rounded text sticker with black marketing copy and emoji is a prominent compositional element and message; typography/content should closely match if regenerated.",
+          "region_type": "decorative_element",
+          "x_max": 0.837,
+          "x_min": 0.168,
+          "y_max": 0.253,
+          "y_min": 0.137
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Wood/laminate floor provides the simple indoor setting and neutral product backdrop; can be replaced with a similar floor surface while maintaining overall context.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Open negative space around the product, especially upper and right areas, supports readability and TikTok-style layout; composition should remain similarly uncluttered.",
+          "region_type": "negative_space",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 0.89,
+          "y_min": 0.02
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "I found them on TikTok",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.188,
+            "y_min": 0.147,
+            "x_max": 0.81,
+            "y_max": 0.19
+          }
+        },
+        {
+          "text": "for way cheaper 🤩",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.241,
+            "y_min": 0.206,
+            "x_max": 0.757,
+            "y_max": 0.245
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8",
+          "display_name": "Crocs Classic Clog Black",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1086,
+        "height": 1448
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "1": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    },
+    "15650dfb-df44-41ac-b57c-cc8d4db6a5a6": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC), casual, direct perspective (first-person point of view).",
+        "marketing_objective": "Drive direct sales through promotional offer and clear call-to-action.",
+        "emotional_appeal": [
+          "Urgency",
+          "Desire for a deal",
+          "Comfort"
+        ],
+        "target_audience": "Bargain hunters, casual footwear consumers, Crocs enthusiasts, social media users looking for deals.",
+        "color_palette": [
+          "Black",
+          "Wood brown",
+          "White",
+          "Red (emojis)"
+        ],
+        "typography_style": "Bold, sans-serif, high contrast (black text on white background with rounded corners for the top banner, white text with black outline for the bottom CTA).",
+        "layout_and_composition": "First-person top-down view of feet wearing the product, centered horizontally. Text overlays at the top (offer) and bottom left (CTA).",
+        "background_environment": "Light brown wood laminate flooring, providing a neutral and relatable domestic setting.",
+        "lighting_style": "Even, diffused indoor lighting, likely natural light from a nearby window, casting soft shadows.",
+        "graphic_style": "Native social media text overlay style (resembling Instagram or TikTok text tools) with emojis used for emphasis.",
+        "product_prominence": "High. The black Crocs are centrally located and take up a significant portion of the middle frame, drawing immediate attention.",
+        "marketing_angle": "Promotional/Discount-driven. Highlighting a current sale and added value (free delivery) to incentivize immediate purchase.",
+        "visual_hierarchy": "1. Top text banner ('Currently on sale... !!') due to high contrast. 2. Central product (feet in black Crocs). 3. Bottom CTA ('Linked below').",
+        "trust_elements": [],
+        "promotional_devices": [
+          "Discount mention ('on sale')",
+          "Added value ('free delivery')",
+          "Urgency indicators (red exclamation mark emojis)",
+          "Directing arrow emoji pointing to link"
+        ],
+        "object_placement": "Legs and feet extend from the bottom edge towards the center, feet positioned side-by-side in the middle of the frame. Top text spans the upper third, bottom text sits in the lower left corner.",
+        "emotional_trigger": "Excitement and fear of missing out (FOMO) on a good deal, triggered by the 'Currently on sale' phrasing and urgent red exclamation points.",
+        "extensions": "The inclusion of Nike socks adds a slight brand synergy/streetwear styling element, despite the main product being Crocs. The style is highly typical of affiliate marketing or direct-to-consumer social media ads."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Pair of black clog shoes being advertised/worn; product appearance, color, holes, and placement should be preserved closely.",
+          "region_type": "product",
+          "x_max": 0.745,
+          "x_min": 0.234,
+          "y_max": 0.699,
+          "y_min": 0.354
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Wearer's lower legs and black socks interacting with and demonstrating the shoes; pose and orientation establish how the product looks when worn.",
+          "region_type": "human_subject",
+          "x_max": 0.999,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0.514
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Top promotional callout text in a white rounded rectangle: 'Currently on sale with free delivery !!'; central marketing message should remain readable and in a similar position.",
+          "region_type": "decorative_element",
+          "x_max": 0.863,
+          "x_min": 0.144,
+          "y_max": 0.235,
+          "y_min": 0.103
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Bottom-left call-to-action text 'Linked below' with downward arrow; directs users to purchase link and should remain legible.",
+          "region_type": "decorative_element",
+          "x_max": 0.432,
+          "x_min": 0.051,
+          "y_max": 0.936,
+          "y_min": 0.896
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Wood-look floor background provides simple indoor setting and contrast for the black footwear; can be replaced by a similar neutral floor surface.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Visible plank seams and wood grain texture are background detail, not core to the advertisement; safe to vary while keeping a floor-like setting.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 0.895,
+          "y_min": 0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "Currently on sale with free delivery !!",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.144,
+            "y_min": 0.099,
+            "x_max": 0.864,
+            "y_max": 0.235
+          }
+        },
+        {
+          "text": "Linked below ⬇️",
+          "role": "cta",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.053,
+            "y_min": 0.887,
+            "x_max": 0.432,
+            "y_max": 0.926
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8",
+          "display_name": "Crocs Classic Clog Black",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1086,
+        "height": 1452
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "image",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        },
+        "1": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        }
+      }
+    }
+  },
+  "product_references": {
+    "8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8": [
+      "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+      "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+      "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+      "c01ec816-017d-44de-a0ab-970339475a59",
+      "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+      "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+      "364cd171-8280-44e2-91be-911129c721bb",
+      "6bd88afe-bc56-479f-952e-dacc88180497"
+    ]
+  }
+}

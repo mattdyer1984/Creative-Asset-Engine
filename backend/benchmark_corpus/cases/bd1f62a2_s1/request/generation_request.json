@@ -1,0 +1,14 @@
+{
+  "authoritative_request": "generation_spec.json (provider-neutral)",
+  "aspect_ratio": "3:4",
+  "reference_files": [
+    "0__972cc31a-b043-47d2-90df-c3a2b9198120.jpg"
+  ],
+  "provider_prompts": {
+    "nano_banana": "provider_prompts/nano_banana.txt"
+  },
+  "providers_rendered": [
+    "nano_banana"
+  ],
+  "note": "To replay against another provider, render generation_spec.json through that provider's prompt adapter — the case never changes."
+}

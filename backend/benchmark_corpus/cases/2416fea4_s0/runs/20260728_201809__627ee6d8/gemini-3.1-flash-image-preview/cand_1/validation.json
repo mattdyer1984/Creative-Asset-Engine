@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/silhouette: The rectangular bottle is similar, but the added tall black vertical stick/protrusion above the cap changes the product outline significantly.",
+    "identity/cap_geometry: The reference has a plain metallic gold cylindrical cap with no protruding rod; the generated image adds a long black vertical element."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "da7fde6e-eff9-4f63-bbe7-72e60f4200e3"
+}

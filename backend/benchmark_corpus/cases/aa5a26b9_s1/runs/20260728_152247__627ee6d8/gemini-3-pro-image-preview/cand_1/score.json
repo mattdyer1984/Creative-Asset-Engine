@@ -1,0 +1,37 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": 4,
+  "standalone_appeal": 3,
+  "commercial_score": null,
+  "verdict": "reject",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": true
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "color_drift",
+        "severity": "critical",
+        "suspected_cause": "model",
+        "cause_confidence": "high",
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [],
+    "repair_hypotheses": [
+      {
+        "strategy": "color_correction",
+        "confidence": "high",
+        "outcome": null
+      }
+    ],
+    "repairable": true
+  },
+  "notes": "Crocs colour too dark. Suspect model, high confidence (colour rendering is the model's job).",
+  "scored_at": "2026-07-28T19:50:21.047240+00:00",
+  "scored_by": "Matt"
+}

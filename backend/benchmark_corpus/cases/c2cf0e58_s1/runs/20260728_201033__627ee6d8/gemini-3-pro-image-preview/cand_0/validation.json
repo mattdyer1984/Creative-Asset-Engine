@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The embossed CROCS text on the upper/collar area seen in references is not clearly preserved in the generated image."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "58034f01-bf88-4d15-a6d8-f92fb6a16f4d"
+}

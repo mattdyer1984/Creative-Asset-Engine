@@ -1,0 +1,26 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": 10,
+  "standalone_appeal": 10,
+  "commercial_score": 10,
+  "verdict": "usable",
+  "decision": {
+    "would_ship": true,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [],
+    "appeal_strengths": [
+      "authenticity",
+      "realistic_background",
+      "material_realism"
+    ],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "BEST of set. Completely accurate, best detail & background. Should have been accepted (FALSE-NEGATIVE; validator id-fail).",
+  "scored_at": "2026-07-28T20:39:44.586458+00:00",
+  "scored_by": "Matt"
+}

@@ -1,0 +1,655 @@
+{
+  "slideshow_id": "aa5a26b9-cfa1-48e7-84cc-7decc8bb42bb",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "hook",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": false,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 3840,
+        "source_aspect": "9:16",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x3840 => 9:16"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Soft, cozy, user-generated content (UGC) style. ; Drive product awareness and desire through relatable, aesthetic imagery.",
+        "subject_present": true,
+        "subject_action": "holding the can",
+        "subject_extent": "hand and forearm",
+        "product_subject_relation": "holding",
+        "subject_emotion": [
+          "Cuteness",
+          "Comfort",
+          "Desire",
+          "Aesthetic pleasure"
+        ],
+        "environment": "A tidy, aesthetically pleasing bedroom featuring a made bed with neutral-toned pillows and a textured wall art piece, creating a cozy and aspirational atmosphere.",
+        "lighting": "Soft, natural, diffused daylight filling the room, avoiding harsh shadows and enhancing the pastel colors.",
+        "framing": "First-person perspective, with the product held up in the center of the frame against a blurred, aesthetically pleasing bedroom background.",
+        "text_safe_zones": [
+          [
+            0.208,
+            0.29,
+            0.606,
+            0.432
+          ],
+          [
+            0.0,
+            0.19,
+            1.0,
+            0.73
+          ],
+          [
+            0.0,
+            0.54,
+            1.0,
+            1.0
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t0"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_product",
+          "kind": "product",
+          "label": "Classic Hearts Cut Out Clog",
+          "must_survive": [
+            "presence"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "medium",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "identity_constraint",
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "product visibly present but promoted identity withheld (hook curiosity gap)",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "shown in-context; not anchored to reference identity",
+              "source": "product_appearances",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "high",
+          "verbatim": "These might just be the cutest pair of Crocs ever 🥺🌸",
+          "text_status": "trusted_exact",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.203,
+            0.303,
+            0.584,
+            0.342
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:a9350d9e-4518-450d-a45a-95f3a54c1526:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t1",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "crocs",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:a9350d9e-4518-450d-a45a-95f3a54c1526:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=image handling=preserve_visual_role"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=False role=hook"
+        },
+        {
+          "decision": "promoted_identity_withheld_on_hook",
+          "source": "product_appearances",
+          "detail": "product visibly present but promoted identity not anchored (observed_visual_presence=True)"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 3840,
+        "source_aspect": "9:16",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x3840 => 9:16"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Soft, cozy, and aesthetically pleasing lifestyle shot. ; Highlight product details and evoke a sense of desire and emotional connection to the design.",
+        "subject_present": true,
+        "subject_action": "holding the footwear",
+        "subject_extent": "full figure",
+        "product_subject_relation": "holding",
+        "subject_emotion": [
+          "Affection",
+          "Comfort",
+          "Aesthetic appreciation",
+          "Desire"
+        ],
+        "environment": "A tidy, bright, and cozy bedroom with white bedding, neutral pillows, and textured wall art.",
+        "lighting": "Natural, soft, diffused daylight creating a bright and airy atmosphere.",
+        "framing": "The product is held in the foreground, centrally located but angled, drawing immediate attention against a blurred, aesthetically pleasing bedroom background.",
+        "text_safe_zones": [
+          [
+            0.267,
+            0.439,
+            0.804,
+            0.829
+          ],
+          [
+            0.229,
+            0.444,
+            0.558,
+            0.478
+          ],
+          [
+            0,
+            0.536,
+            1,
+            1
+          ]
+        ],
+        "references_provided": [
+          "product_reference:865f8937-05d4-405d-8b50-f4531123bb8d",
+          "product_reference:4c4934aa-208f-4dae-9360-9d7a99669c35",
+          "product_reference:82644fed-188d-46a8-b128-6c28c588f934",
+          "product_reference:85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+          "product_reference:61debf92-96cd-43c4-9de9-ba53462ca4b6",
+          "product_reference:c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+          "product_reference:1595ee15-7632-4cb9-b959-dd648993a442",
+          "product_reference:62e931fb-7fee-4cf4-a83e-6e1801af930e",
+          "product_reference:1b831312-72c9-4c81-bd68-0815ebdd6210",
+          "product_reference:25915755-4b54-4fdf-9e29-753e45c8e3b0",
+          "product_reference:99b9869c-659b-42c2-9785-7dff9d38947f",
+          "product_reference:e6ee0986-deeb-471b-b21c-1f00a0a53119",
+          "product_reference:b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+          "product_reference:9b664e8f-b0fd-4172-b0f5-dd9486383685"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_product",
+          "kind": "product",
+          "label": "Classic Hearts Cut Out Clog",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "865f8937-05d4-405d-8b50-f4531123bb8d",
+            "4c4934aa-208f-4dae-9360-9d7a99669c35",
+            "82644fed-188d-46a8-b128-6c28c588f934",
+            "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+            "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+            "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+            "1595ee15-7632-4cb9-b959-dd648993a442",
+            "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+            "1b831312-72c9-4c81-bd68-0815ebdd6210",
+            "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+            "99b9869c-659b-42c2-9785-7dff9d38947f",
+            "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+            "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+            "9b664e8f-b0fd-4172-b0f5-dd9486383685"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 14 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "All the heart details\u0010\u0011",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.226,
+            0.365,
+            0.548,
+            0.382
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:eda61d62-f1d8-4587-b907-7472b6a1acfa:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2160,
+        "source_height": 3840,
+        "source_aspect": "9:16",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2160x3840 => 9:16"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "User-generated content (UGC), casual, aesthetic, lifestyle ; Product awareness, highlighting aesthetic appeal, generating desire",
+        "subject_present": true,
+        "subject_action": "holding the clog",
+        "subject_extent": "hand",
+        "product_subject_relation": "holding",
+        "subject_emotion": [
+          "Aesthetic pleasure",
+          "Comfort",
+          "Desire for cute things",
+          "Relatability"
+        ],
+        "environment": "A clean, modern, neutral-toned bedroom setting with a neatly made bed and textured wall art.",
+        "lighting": "Soft, natural, diffused daylight creating a bright and airy atmosphere.",
+        "framing": "First-person perspective. The hand holding the shoes is the central focal point, slightly off-center to show the background.",
+        "text_safe_zones": [
+          [
+            0.098,
+            0.417,
+            0.728,
+            0.867
+          ],
+          [
+            0.418,
+            0.345,
+            0.751,
+            0.482
+          ],
+          [
+            0.77,
+            0.542,
+            1.0,
+            0.835
+          ],
+          [
+            0.0,
+            0.0,
+            0.984,
+            0.405
+          ]
+        ],
+        "references_provided": [
+          "product_reference:865f8937-05d4-405d-8b50-f4531123bb8d",
+          "product_reference:4c4934aa-208f-4dae-9360-9d7a99669c35",
+          "product_reference:82644fed-188d-46a8-b128-6c28c588f934",
+          "product_reference:85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+          "product_reference:61debf92-96cd-43c4-9de9-ba53462ca4b6",
+          "product_reference:c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+          "product_reference:1595ee15-7632-4cb9-b959-dd648993a442",
+          "product_reference:62e931fb-7fee-4cf4-a83e-6e1801af930e",
+          "product_reference:1b831312-72c9-4c81-bd68-0815ebdd6210",
+          "product_reference:25915755-4b54-4fdf-9e29-753e45c8e3b0",
+          "product_reference:99b9869c-659b-42c2-9785-7dff9d38947f",
+          "product_reference:e6ee0986-deeb-471b-b21c-1f00a0a53119",
+          "product_reference:b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+          "product_reference:9b664e8f-b0fd-4172-b0f5-dd9486383685"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s2_product",
+          "kind": "product",
+          "label": "Classic Hearts Cut Out Clog",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "865f8937-05d4-405d-8b50-f4531123bb8d",
+            "4c4934aa-208f-4dae-9360-9d7a99669c35",
+            "82644fed-188d-46a8-b128-6c28c588f934",
+            "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+            "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+            "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+            "1595ee15-7632-4cb9-b959-dd648993a442",
+            "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+            "1b831312-72c9-4c81-bd68-0815ebdd6210",
+            "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+            "99b9869c-659b-42c2-9785-7dff9d38947f",
+            "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+            "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+            "9b664e8f-b0fd-4172-b0f5-dd9486383685"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 14 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "And this bubble ice colour?! Perfectionᅠᅠ",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.416,
+            0.324,
+            0.805,
+            0.363
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:8c51b05d-b5f8-458a-94ec-3e77aac099d0:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 1
+      },
+      "provenance": [
+        {
+          "decision": "1 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:2",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "promoted_identity_withheld_on_hook",
+      "scope": "slide:0",
+      "spec": {
+        "identity_revealed": false,
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "hook shows the product in-context but does not anchor the promoted-offer identity",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

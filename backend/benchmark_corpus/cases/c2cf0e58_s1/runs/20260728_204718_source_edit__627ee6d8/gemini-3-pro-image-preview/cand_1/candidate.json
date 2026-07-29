@@ -1,0 +1,20 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The subtle embossed Crocs text/marking on the upper rim area seen in references is not clearly preserved."
+  ],
+  "seed": null,
+  "generation_time_seconds": 20.444511250003416,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "c323a756-9932-43c0-a1ce-276c49f47bcd",
+  "photorealism": null
+}

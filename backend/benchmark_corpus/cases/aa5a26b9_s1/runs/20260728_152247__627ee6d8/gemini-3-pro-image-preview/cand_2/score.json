@@ -1,0 +1,25 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": 8,
+  "standalone_appeal": 8,
+  "commercial_score": null,
+  "verdict": "usable",
+  "decision": {
+    "would_ship": true,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [],
+    "appeal_strengths": [
+      "authenticity",
+      "strong_composition"
+    ],
+    "repair_hypotheses": [],
+    "repairable": false
+  },
+  "notes": "Very good; validator-accepted. numbers inferred.",
+  "scored_at": "2026-07-28T19:50:21.047240+00:00",
+  "scored_by": "Matt"
+}

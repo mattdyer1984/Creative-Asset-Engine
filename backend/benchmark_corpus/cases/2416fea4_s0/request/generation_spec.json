@@ -1,0 +1,74 @@
+{
+  "slide_index": 0,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s0_product",
+      "label": "Bellavita",
+      "reference_ids": [
+        "6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+        "719b6c91-c18a-45ff-aacf-fc67701a9246"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s0_t0",
+      "text": "I was about to spend £400 on a new dining table set...",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    }
+  ],
+  "scene": {
+    "subject_present": false,
+    "subject_action": null,
+    "subject_extent": null,
+    "product_subject_relation": null,
+    "subject_emotion": [
+      "relatability",
+      "cost-saving",
+      "home improvement",
+      "curiosity",
+      "practicality"
+    ],
+    "environment": "Real home dining nook/kitchen area with grey marble-effect tiled floor, a compact grey dining table and chairs, white walls, patio doors opening to a suburban garden, wall-mounted abstract black acoustic/art panels, a potted plant, and a warm floor/lamp glow in the corner.",
+    "lighting": "Mixed natural and warm ambient lighting: bright daylight enters through the patio doors on the right, while a warm amber lamp glow adds coziness on the left-center wall. Overall lighting is naturalistic with visible reflections on the glossy floor.",
+    "concept": "UGC-style interior/home improvement creative with a candid, relatable smartphone aesthetic; modern grey home decor, natural lighting, and an informal social media caption overlay. ; Capture attention at the start of a conversion-oriented or educational creative by framing a high-cost problem and teasing a cheaper alternative, encouraging viewers to keep watching and consider the advertised solution."
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s0_product",
+        "primary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "s0_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "3:4",
+    "source_width": 2160,
+    "source_height": 2880,
+    "fit_behaviour": "identity"
+  }
+}

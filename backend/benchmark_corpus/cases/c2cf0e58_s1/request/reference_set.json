@@ -1,0 +1,81 @@
+{
+  "reference_ids": [
+    "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+    "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+    "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+    "c01ec816-017d-44de-a0ab-970339475a59",
+    "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+    "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+    "364cd171-8280-44e2-91be-911129c721bb",
+    "6bd88afe-bc56-479f-952e-dacc88180497"
+  ],
+  "count": 8,
+  "resolved_count": 8,
+  "precedence_rule": "observed slide crops authoritative; listing fills gaps only",
+  "references": [
+    {
+      "reference_id": "bfb1a246-3165-4237-a2c7-9e19faea68d4",
+      "stored_as": "0__bfb1a246-3165-4237-a2c7-9e19faea68d4.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "bf8a0a09-34b1-4e94-b9df-c9653e0c6a36",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_bfb1a246-3165-4237-a2c7-9e19faea68d4.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "83bf14df-9113-4f04-b0f8-d1b19be6e4fd",
+      "stored_as": "1__83bf14df-9113-4f04-b0f8-d1b19be6e4fd.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "967af935-ad08-4f90-bda8-b77f7d622eb4",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_83bf14df-9113-4f04-b0f8-d1b19be6e4fd.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "4b759c71-62a8-431d-aa9c-0de1efc3c44a",
+      "stored_as": "2__4b759c71-62a8-431d-aa9c-0de1efc3c44a.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_4b759c71-62a8-431d-aa9c-0de1efc3c44a.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "c01ec816-017d-44de-a0ab-970339475a59",
+      "stored_as": "3__c01ec816-017d-44de-a0ab-970339475a59.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_c01ec816-017d-44de-a0ab-970339475a59.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93",
+      "stored_as": "4__d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "bf8a0a09-34b1-4e94-b9df-c9653e0c6a36",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_d1ea0ab0-3daa-47e5-b0c5-738e8bc72e93.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "c128e3df-8d8c-4a7c-993c-6f5071d0d399",
+      "stored_as": "5__c128e3df-8d8c-4a7c-993c-6f5071d0d399.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "967af935-ad08-4f90-bda8-b77f7d622eb4",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_c128e3df-8d8c-4a7c-993c-6f5071d0d399.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "364cd171-8280-44e2-91be-911129c721bb",
+      "stored_as": "6__364cd171-8280-44e2-91be-911129c721bb.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_364cd171-8280-44e2-91be-911129c721bb.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "6bd88afe-bc56-479f-952e-dacc88180497",
+      "stored_as": "7__6bd88afe-bc56-479f-952e-dacc88180497.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "15650dfb-df44-41ac-b57c-cc8d4db6a5a6",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/8ad8b864-9ac4-4d5b-ab37-709a0f8d3be8/reference_6bd88afe-bc56-479f-952e-dacc88180497.jpg",
+      "resolved": true
+    }
+  ]
+}

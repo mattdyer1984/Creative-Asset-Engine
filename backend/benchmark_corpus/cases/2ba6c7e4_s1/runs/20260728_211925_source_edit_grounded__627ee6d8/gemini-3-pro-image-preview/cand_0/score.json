@@ -1,0 +1,22 @@
+{
+  "scored": false,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": null,
+  "standalone_appeal": null,
+  "commercial_score": null,
+  "verdict": null,
+  "decision": {
+    "would_ship": null,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [],
+    "appeal_strengths": [],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "",
+  "scored_at": null,
+  "scored_by": null
+}

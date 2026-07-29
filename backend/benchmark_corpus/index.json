@@ -1,0 +1,198 @@
+{
+  "corpus_schema_version": "1.2",
+  "generated_at": "2026-07-29T04:06:13.081423+00:00",
+  "case_count": 7,
+  "cases": [
+    {
+      "case_id": "2416fea4_s0",
+      "slideshow_id": "2416fea4-5840-4bd0-b183-b9f6d7148cfb",
+      "slide_index": 0,
+      "frozen_at": "2026-07-28T20:18:09.259737+00:00",
+      "reference_count": 2,
+      "run_count": 1,
+      "runs": [
+        {
+          "run_id": "20260728_201809__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:18:09.493192+00:00",
+          "candidates": 4,
+          "scored": 3
+        }
+      ]
+    },
+    {
+      "case_id": "2ba6c7e4_s1",
+      "slideshow_id": "2ba6c7e4-5378-406c-8d44-79d4519cdc52",
+      "slide_index": 1,
+      "frozen_at": "2026-07-28T20:16:15.242686+00:00",
+      "reference_count": 1,
+      "run_count": 2,
+      "runs": [
+        {
+          "run_id": "20260728_201615__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:16:15.386096+00:00",
+          "candidates": 4,
+          "scored": 1
+        },
+        {
+          "run_id": "20260728_211925_source_edit_grounded__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T21:19:25.787172+00:00",
+          "candidates": 4,
+          "scored": 0
+        }
+      ]
+    },
+    {
+      "case_id": "a522518b_s1",
+      "slideshow_id": "a522518b-03bb-4642-9c82-ed14740b28e3",
+      "slide_index": 1,
+      "frozen_at": "2026-07-28T20:08:20.283961+00:00",
+      "reference_count": 1,
+      "run_count": 2,
+      "runs": [
+        {
+          "run_id": "20260728_200820__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:08:20.591128+00:00",
+          "candidates": 4,
+          "scored": 3
+        },
+        {
+          "run_id": "20260728_212316_source_edit_grounded__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T21:23:16.300465+00:00",
+          "candidates": 4,
+          "scored": 0
+        }
+      ]
+    },
+    {
+      "case_id": "aa5a26b9_s1",
+      "slideshow_id": "aa5a26b9-cfa1-48e7-84cc-7decc8bb42bb",
+      "slide_index": 1,
+      "frozen_at": "2026-07-28T15:22:47.675579+00:00",
+      "reference_count": 13,
+      "run_count": 1,
+      "runs": [
+        {
+          "run_id": "20260728_152247__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T15:22:47.965182+00:00",
+          "candidates": 6,
+          "scored": 5
+        }
+      ]
+    },
+    {
+      "case_id": "ab0124cd_s2",
+      "slideshow_id": "ab0124cd-b663-47a5-9bb5-e816274c0808",
+      "slide_index": 2,
+      "frozen_at": "2026-07-29T04:05:05.292254+00:00",
+      "reference_count": 0,
+      "run_count": 1,
+      "runs": [
+        {
+          "run_id": "20260729_040505_source_edit_grounded__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-29T04:05:05.591219+00:00",
+          "candidates": 4,
+          "scored": 0
+        }
+      ]
+    },
+    {
+      "case_id": "bd1f62a2_s1",
+      "slideshow_id": "bd1f62a2-21ce-49e4-bb32-55691e695805",
+      "slide_index": 1,
+      "frozen_at": "2026-07-28T20:13:51.401796+00:00",
+      "reference_count": 1,
+      "run_count": 1,
+      "runs": [
+        {
+          "run_id": "20260728_201351__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:13:51.692160+00:00",
+          "candidates": 4,
+          "scored": 4
+        }
+      ]
+    },
+    {
+      "case_id": "c2cf0e58_s1",
+      "slideshow_id": "c2cf0e58-3730-43a4-9b40-e6a1fed4e8d3",
+      "slide_index": 1,
+      "frozen_at": "2026-07-28T20:10:33.282255+00:00",
+      "reference_count": 8,
+      "run_count": 3,
+      "runs": [
+        {
+          "run_id": "20260728_201033__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:10:33.573381+00:00",
+          "candidates": 4,
+          "scored": 3
+        },
+        {
+          "run_id": "20260728_204718_source_edit__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T20:47:18.923565+00:00",
+          "candidates": 4,
+          "scored": 0
+        },
+        {
+          "run_id": "20260728_211322_source_edit_grounded__627ee6d8",
+          "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+          "models": [
+            "gemini-3.1-flash-image-preview",
+            "gemini-3-pro-image-preview"
+          ],
+          "started_at": "2026-07-28T21:13:22.928958+00:00",
+          "candidates": 4,
+          "scored": 0
+        }
+      ]
+    }
+  ]
+}

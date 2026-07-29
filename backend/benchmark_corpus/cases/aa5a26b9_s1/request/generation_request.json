@@ -1,0 +1,20 @@
+{
+  "aspect_ratio": "3:4",
+  "reference_files": [
+    "0__4c4934aa-208f-4dae-9360-9d7a99669c35.jpg",
+    "1__82644fed-188d-46a8-b128-6c28c588f934.jpg",
+    "2__85cdcfca-9363-46a4-902a-90ad1c0fa1fc.jpg",
+    "3__61debf92-96cd-43c4-9de9-ba53462ca4b6.jpg",
+    "4__c4dea00a-1268-4c29-80c5-96d6d63c2c19.jpg",
+    "5__1595ee15-7632-4cb9-b959-dd648993a442.jpg",
+    "6__62e931fb-7fee-4cf4-a83e-6e1801af930e.jpg",
+    "7__1b831312-72c9-4c81-bd68-0815ebdd6210.jpg",
+    "8__25915755-4b54-4fdf-9e29-753e45c8e3b0.jpg",
+    "9__99b9869c-659b-42c2-9785-7dff9d38947f.jpg",
+    "10__e6ee0986-deeb-471b-b21c-1f00a0a53119.jpg",
+    "11__b115c2fe-0287-4ea3-a412-0ae2b90ce7b9.jpg",
+    "12__9b664e8f-b0fd-4172-b0f5-dd9486383685.jpg"
+  ],
+  "precompiled_prompt_file": "final_prompt.txt",
+  "prompt_chars": 1350
+}

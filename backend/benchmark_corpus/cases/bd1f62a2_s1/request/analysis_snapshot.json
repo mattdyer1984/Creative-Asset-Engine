@@ -1,0 +1,1127 @@
+{
+  "slideshow_id": "bd1f62a2-21ce-49e4-bb32-55691e695805",
+  "slides": [
+    {
+      "id": "69e1d421-e3ba-42e2-b44f-b243f88de7ed",
+      "slide_index": 0
+    },
+    {
+      "id": "7dd71769-6998-43dc-bc3c-fbe691d8db5c",
+      "slide_index": 1
+    },
+    {
+      "id": "d3f74906-8e26-4ac5-bb4b-d0e4d276eb59",
+      "slide_index": 2
+    },
+    {
+      "id": "138248c3-0c84-4b4b-a00c-b332ef1efc89",
+      "slide_index": 3
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "69e1d421-e3ba-42e2-b44f-b243f88de7ed",
+        "slide_index": 0,
+        "beat": "hook"
+      },
+      {
+        "slide_id": "7dd71769-6998-43dc-bc3c-fbe691d8db5c",
+        "slide_index": 1,
+        "beat": "proof"
+      },
+      {
+        "slide_id": "d3f74906-8e26-4ac5-bb4b-d0e4d276eb59",
+        "slide_index": 2,
+        "beat": "proof"
+      },
+      {
+        "slide_id": "138248c3-0c84-4b4b-a00c-b332ef1efc89",
+        "slide_index": 3,
+        "beat": "cta"
+      }
+    ],
+    "arc_summary": "The slideshow opens with urgency around a sale on the Ninja Creami Deluxe, then highlights key features and included extras to build desire. It closes by emphasizing coupon savings and directing viewers to the product link if still available."
+  },
+  "marketing_text": "This creative is designed to drive immediate sales for a specific dessert promotion by pairing a highly appetizing product shot with a simple sale announcement. The pint of chocolate chip ice cream dominates the frame, held close to the camera in a candid, point-of-view style that feels native to Instagram or TikTok. The minimal text overlay keeps the message clear: this is a treat worth noticing, and there’s a timely deal attached.\n\nThe target audience is home cooks, dessert lovers, and health-conscious consumers who are interested in making or enjoying their own treats. By placing the product in a bright, modern kitchen rather than a polished studio setting, the creative makes the dessert feel accessible and homemade-adjacent. The UGC look adds authenticity, making it feel like a real person sharing a recommendation rather than a brand pushing an ad.\n\nEmotionally, the ad leans into desire, excitement, and indulgence. The rich brown chocolate tones, soft daylight, and close-up texture of the ice cream create immediate appetite appeal, while the “sale” message adds urgency and a light sense of FOMO. It works because it combines sensory craving with a clear promotional reason to act now, all in a format that feels casual, trustworthy, and easy to engage with on social media.",
+  "per_slide": {
+    "69e1d421-e3ba-42e2-b44f-b243f88de7ed": {
+      "fingerprint": {
+        "visual_style": "UGC (User-Generated Content), candid, appetizing",
+        "marketing_objective": "Drive sales for a specific product promotion",
+        "emotional_appeal": [
+          "Desire",
+          "Excitement",
+          "Indulgence"
+        ],
+        "target_audience": "Home cooks, dessert lovers, health-conscious individuals interested in making their own treats",
+        "color_palette": [
+          "Rich brown (chocolate)",
+          "White (text box)",
+          "Neutral wood tones (background)",
+          "Soft gray/silver (appliances)"
+        ],
+        "typography_style": "Modern, sans-serif, casual (typical of social media text overlays)",
+        "layout_and_composition": "Central focus on the product, held by a hand, creating a point-of-view perspective. Text overlay at the top third.",
+        "background_environment": "A modern, well-lit domestic kitchen, slightly out of focus to emphasize the foreground object.",
+        "lighting_style": "Natural, soft, diffused daylight, highlighting the texture of the dessert.",
+        "graphic_style": "Minimalist overlay with a plain white rounded rectangle for text, typical of Instagram/TikTok stories.",
+        "product_prominence": "Very high; the container of ice cream dominates the center foreground.",
+        "marketing_angle": "Appetite appeal combined with a time-sensitive deal.",
+        "visual_hierarchy": "1. The rich chocolate dessert (central, largest element) 2. The text overlay ('sale' announcement) 3. The blurred kitchen background.",
+        "trust_elements": [
+          "Realistic, unpolished UGC style implies authenticity."
+        ],
+        "promotional_devices": [
+          "Announcement of a 'sale' implies a discount and urgency."
+        ],
+        "object_placement": "A hand holds a clear pint container filled with chocolate chip ice cream directly in the center of the frame, close to the camera.",
+        "emotional_trigger": "Desire for indulgence triggered by appetizing imagery, coupled with FOMO (fear of missing out) on a freshly announced sale.",
+        "extensions": "The use of the ice cream emoji reinforces the casual, conversational tone of the copy."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main visible food/product result: a clear plastic container filled with chocolate ice cream/cream dessert with chocolate chips. This is the hero subject and should retain its appearance, contents, scale, and central placement.",
+          "region_type": "product",
+          "x_max": 0.826,
+          "x_min": 0.179,
+          "y_max": 0.817,
+          "y_min": 0.331
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand holding and presenting the container. The pose and interaction directly support the product presentation and should not change substantially.",
+          "region_type": "human_subject",
+          "x_max": 0.764,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.623
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Large white rounded text overlay with black promotional copy and ice cream emoji. It communicates the sale message and is a major compositional element, though the exact graphic treatment could be regenerated if the text intent is preserved.",
+          "region_type": "prop",
+          "x_max": 0.872,
+          "x_min": 0.132,
+          "y_max": 0.215,
+          "y_min": 0.099
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Kitchen countertop and lower cabinets on the right side. Establishes the home kitchen setting associated with making/eating the dessert; exact cabinetry and counter details can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.587,
+          "y_max": 0.792,
+          "y_min": 0.216
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Built-in oven/cabinetry on the left side. Part of the kitchen environment; useful for context but not central to the offer or product.",
+          "region_type": "environment",
+          "x_max": 0.198,
+          "x_min": 0.0,
+          "y_max": 0.744,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Blurred hallway/open kitchen background behind the text and product. Provides depth and domestic setting; can be replaced with another similar interior background.",
+          "region_type": "background",
+          "x_max": 0.686,
+          "x_min": 0.145,
+          "y_max": 0.369,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Cutting boards or upright kitchen items at the far right rear. Decorative/utilitarian kitchen clutter that is not important to the product message.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.842,
+          "y_max": 0.223,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Sink/stovetop edge and counter details on the right. Minor kitchen fixtures that add realism but are safe to alter or remove.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.823,
+          "y_max": 0.399,
+          "y_min": 0.285
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Wood floor visible below and behind the hand/container. Contributes to the residential kitchen context and perspective; exact material/color can change.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.657
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Soft blurred upper background/walls and cabinet surfaces behind the promotional text. Mostly negative/background space supporting readability; safe to vary.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.13,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "soo the ninja creami deluxe",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.131,
+            "y_min": 0.098,
+            "x_max": 0.871,
+            "y_max": 0.162
+          }
+        },
+        {
+          "text": "just went on sale... 🍦",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.211,
+            "y_min": 0.16,
+            "x_max": 0.789,
+            "y_max": 0.21
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+          "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+          "prominence": "primary",
+          "is_current": false,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1206,
+        "height": 1608
+      },
+      "text_ownership": {}
+    },
+    "7dd71769-6998-43dc-bc3c-fbe691d8db5c": {
+      "fingerprint": {
+        "visual_style": "UGC kitchen demo",
+        "marketing_objective": "Highlight versatility",
+        "emotional_appeal": [
+          "Convenience",
+          "Satisfaction"
+        ],
+        "target_audience": "Home dessert lovers",
+        "color_palette": [
+          "Black",
+          "Silver",
+          "White",
+          "Grey"
+        ],
+        "typography_style": "Sans-serif overlay",
+        "layout_and_composition": "Central focus with top banner",
+        "background_environment": "Blurred modern kitchen",
+        "lighting_style": "Soft natural daylight",
+        "graphic_style": "Minimalist social overlay",
+        "product_prominence": "High central",
+        "marketing_angle": "Feature versatility",
+        "visual_hierarchy": "Text box then hand then panel",
+        "trust_elements": [
+          "Brand name",
+          "Live user demo"
+        ],
+        "promotional_devices": [
+          "Checkmark emoji"
+        ],
+        "object_placement": "Machine centered, hand bottom left, text top",
+        "emotional_trigger": "Desire for diverse easy treats",
+        "extensions": "Social media Reel aesthetic"
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main Ninja appliance/control head with visible branding, mode dial, display, and front panel; this is the advertised product and must remain in the same position and appearance.",
+          "region_type": "product",
+          "x_max": 0.729,
+          "x_min": 0.094,
+          "y_max": 0.897,
+          "y_min": 0.164
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Lower container/bowl and lid area attached to the product; part of the product system and important to preserve for accurate depiction.",
+          "region_type": "product",
+          "x_max": 0.856,
+          "x_min": 0.246,
+          "y_max": 1,
+          "y_min": 0.779
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand/finger directly pressing or indicating the product's control panel; the interaction and pose are central to the creative's demonstration.",
+          "region_type": "human_subject",
+          "x_max": 0.407,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0.632
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Text overlay reading '9 diff modes' with green checkmark; key marketing claim and visual message, should closely match if regenerated.",
+          "region_type": "decorative_element",
+          "x_max": 0.813,
+          "x_min": 0.187,
+          "y_max": 0.164,
+          "y_min": 0.077
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Close-up control panel area showing the selected mode options, dial, icons, and display; central functional detail supporting the marketing claim.",
+          "region_type": "product",
+          "x_max": 0.681,
+          "x_min": 0.303,
+          "y_max": 0.807,
+          "y_min": 0.323
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Kitchen setting behind the product establishes home-use context; can be replaced with a similar kitchen environment.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Bright window on the left with outdoor greenery; contributes natural light and home atmosphere but is not central to the product message.",
+          "region_type": "background",
+          "x_max": 0.171,
+          "x_min": 0,
+          "y_max": 0.522,
+          "y_min": 0.018
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Countertop surface beneath the appliance; supports the product but can vary in material/color without harming the concept.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0.835
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Right-side shelving, plants, bottles, and small decor objects; background clutter that can be swapped or removed freely.",
+          "region_type": "decorative_element",
+          "x_max": 1,
+          "x_min": 0.746,
+          "y_max": 0.692,
+          "y_min": 0.061
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Kitchen cabinetry and appliance area in the rear; reinforces the kitchen context but details are not important.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0.602,
+          "y_max": 0.922,
+          "y_min": 0.62
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Blurred wall/empty upper background around the text and product; negative visual space used for readability, safe to alter as long as contrast remains.",
+          "region_type": "negative_space",
+          "x_max": 1,
+          "x_min": 0.154,
+          "y_max": 0.273,
+          "y_min": 0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "9 diff modes ✅",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.187,
+            "y_min": 0.076,
+            "x_max": 0.813,
+            "y_max": 0.16
+          }
+        },
+        {
+          "text": "NINJA",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.418,
+            "y_min": 0.222,
+            "x_max": 0.588,
+            "y_max": 0.292
+          }
+        },
+        {
+          "text": "INSTALL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.345,
+            "y_min": 0.366,
+            "x_max": 0.414,
+            "y_max": 0.377
+          }
+        },
+        {
+          "text": "3",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.49,
+            "y_min": 0.348,
+            "x_max": 0.518,
+            "y_max": 0.392
+          }
+        },
+        {
+          "text": "MINUTES",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.472,
+            "y_min": 0.399,
+            "x_max": 0.534,
+            "y_max": 0.41
+          }
+        },
+        {
+          "text": "ENJOY",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.596,
+            "y_min": 0.366,
+            "x_max": 0.634,
+            "y_max": 0.377
+          }
+        },
+        {
+          "text": "ADVANCED CREAMIFY TECHNOLOGY",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.362,
+            "y_min": 0.425,
+            "x_max": 0.638,
+            "y_max": 0.438
+          }
+        },
+        {
+          "text": "TOP",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.395,
+            "y_min": 0.473,
+            "x_max": 0.423,
+            "y_max": 0.485
+          }
+        },
+        {
+          "text": "FULL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.491,
+            "y_min": 0.471,
+            "x_max": 0.528,
+            "y_max": 0.483
+          }
+        },
+        {
+          "text": "BOTTOM",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.573,
+            "y_min": 0.469,
+            "x_max": 0.631,
+            "y_max": 0.481
+          }
+        },
+        {
+          "text": "ICE CREAM",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.34,
+            "y_min": 0.513,
+            "x_max": 0.41,
+            "y_max": 0.524
+          }
+        },
+        {
+          "text": "LITE ICE CREAM",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.334,
+            "y_min": 0.555,
+            "x_max": 0.392,
+            "y_max": 0.578
+          }
+        },
+        {
+          "text": "SORBET",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.334,
+            "y_min": 0.601,
+            "x_max": 0.388,
+            "y_max": 0.612
+          }
+        },
+        {
+          "text": "GELATO",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.336,
+            "y_min": 0.643,
+            "x_max": 0.392,
+            "y_max": 0.655
+          }
+        },
+        {
+          "text": "FROZEN YOGHURT",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.338,
+            "y_min": 0.679,
+            "x_max": 0.458,
+            "y_max": 0.695
+          }
+        },
+        {
+          "text": "SCOOPABLE",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.422,
+            "y_min": 0.527,
+            "x_max": 0.486,
+            "y_max": 0.582
+          }
+        },
+        {
+          "text": "DRINKABLE",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.528,
+            "y_min": 0.527,
+            "x_max": 0.595,
+            "y_max": 0.574
+          }
+        },
+        {
+          "text": "FRAPPE",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.608,
+            "y_min": 0.505,
+            "x_max": 0.669,
+            "y_max": 0.516
+          }
+        },
+        {
+          "text": "FROZEN DRINK",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.62,
+            "y_min": 0.542,
+            "x_max": 0.673,
+            "y_max": 0.564
+          }
+        },
+        {
+          "text": "SLUSHI",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.629,
+            "y_min": 0.583,
+            "x_max": 0.673,
+            "y_max": 0.594
+          }
+        },
+        {
+          "text": "MILKSHAKE",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.602,
+            "y_min": 0.622,
+            "x_max": 0.672,
+            "y_max": 0.634
+          }
+        },
+        {
+          "text": "+ MIX-IN",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.491,
+            "y_min": 0.742,
+            "x_max": 0.54,
+            "y_max": 0.753
+          }
+        },
+        {
+          "text": "RE-SPIN",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.604,
+            "y_min": 0.73,
+            "x_max": 0.654,
+            "y_max": 0.744
+          }
+        },
+        {
+          "text": "LID",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.731,
+            "y_min": 0.806,
+            "x_max": 0.781,
+            "y_max": 0.822
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+          "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1206,
+        "height": 1608
+      },
+      "text_ownership": {}
+    },
+    "d3f74906-8e26-4ac5-bb4b-d0e4d276eb59": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC), bright, domestic, lifestyle-oriented.",
+        "marketing_objective": "Highlight product features and accessories (extra tubs) to drive consideration or purchase.",
+        "emotional_appeal": [
+          "Practicality",
+          "Convenience",
+          "Satisfaction"
+        ],
+        "target_audience": "Home cooks, health-conscious individuals, dessert lovers, existing or potential Ninja Creami owners.",
+        "color_palette": [
+          "Natural wood tones",
+          "Black",
+          "Silver/Grey",
+          "Off-white/Cream",
+          "Green (accent)"
+        ],
+        "typography_style": "Bold, sans-serif, clean, modern.",
+        "layout_and_composition": "First-person perspective; product and accessories are central, with text overlay at the top.",
+        "background_environment": "A well-lit, modern kitchen with wooden cabinets and a window showing greenery.",
+        "lighting_style": "Natural daylight, bright and even.",
+        "graphic_style": "Minimalist text overlay with a simple white background block and an emoji.",
+        "product_prominence": "Very high; the filled tub is in the immediate foreground, with the machine directly behind it.",
+        "marketing_angle": "Value addition through extra capacity/accessories.",
+        "visual_hierarchy": "1. The filled tub in hand. 2. The text overlay ('2 EXTRA long tubs ✅'). 3. The Ninja machine. 4. The empty tub.",
+        "trust_elements": [
+          "Recognizable brand logo (Ninja)",
+          "Visual proof of product use (filled tub)"
+        ],
+        "promotional_devices": [
+          "Green checkmark emoji (implies approval, success, or included feature)"
+        ],
+        "object_placement": "Hand holding a full tub in the left foreground; Ninja machine in the center background; an empty tub to the right; a lid on the counter in the bottom center.",
+        "emotional_trigger": "Desire for abundance and convenience (having extra tubs ready for use).",
+        "extensions": "The image feels like a social media post or story, leveraging the authenticity of UGC."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main Ninja Creami appliance/body with visible controls and branding; core product and its approximate position in the composition should remain unchanged.",
+          "region_type": "product",
+          "x_max": 0.779,
+          "x_min": 0.475,
+          "y_max": 0.681,
+          "y_min": 0.14
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Filled Ninja tub held in the foreground; this is the key advertised 'extra long tub' visual and should preserve size, fill level, and placement.",
+          "region_type": "product",
+          "x_max": 0.529,
+          "x_min": 0.158,
+          "y_max": 0.855,
+          "y_min": 0.397
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand directly interacting with/holding the filled tub; pose and contact with the product are essential to the demonstration.",
+          "region_type": "human_subject",
+          "x_max": 0.224,
+          "x_min": 0.0,
+          "y_max": 0.992,
+          "y_min": 0.495
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Empty clear extra tub on the counter demonstrating the second long tub; important product accessory and count claim support.",
+          "region_type": "product",
+          "x_max": 0.823,
+          "x_min": 0.553,
+          "y_max": 0.837,
+          "y_min": 0.558
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Grey Ninja lid in the foreground; product accessory related to the tub set and should remain recognizable.",
+          "region_type": "product",
+          "x_max": 0.699,
+          "x_min": 0.422,
+          "y_max": 0.978,
+          "y_min": 0.821
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Large text overlay reading '2 EXTRA long tubs' with green check mark; marketing message is central and should closely match if regenerated.",
+          "region_type": "decorative_element",
+          "x_max": 0.849,
+          "x_min": 0.141,
+          "y_max": 0.14,
+          "y_min": 0.062
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Green check icon within the text banner reinforcing the claim; should remain if the creative message is preserved.",
+          "region_type": "decorative_element",
+          "x_max": 0.819,
+          "x_min": 0.751,
+          "y_max": 0.124,
+          "y_min": 0.072
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Kitchen countertop surface supporting products; general setting should remain a kitchen counter but exact stone texture can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.552
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Wood cabinetry behind appliance; establishes warm kitchen setting, replaceable with similar cabinetry.",
+          "region_type": "environment",
+          "x_max": 0.938,
+          "x_min": 0.394,
+          "y_max": 0.569,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Window area with outdoor greenery; provides home kitchen lighting/context and can be swapped for a similar window scene.",
+          "region_type": "environment",
+          "x_max": 0.327,
+          "x_min": 0.0,
+          "y_max": 0.418,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Potted fern/plant on the left windowsill; decorative kitchen prop, not central to the product claim.",
+          "region_type": "prop",
+          "x_max": 0.269,
+          "x_min": 0.0,
+          "y_max": 0.461,
+          "y_min": 0.312
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small books/cards near window behind the tub; minor background clutter and safe to alter.",
+          "region_type": "prop",
+          "x_max": 0.38,
+          "x_min": 0.278,
+          "y_max": 0.414,
+          "y_min": 0.349
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Built-in oven/appliance at right background; nonessential background element and can be removed or swapped.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.865,
+          "y_max": 0.597,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Overall indoor kitchen background beyond the products; supports lifestyle setting but exact layout is flexible.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.62,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "2 EXTRA long tubs ✅",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.171,
+            "y_min": 0.076,
+            "x_max": 0.828,
+            "y_max": 0.12
+          }
+        },
+        {
+          "text": "MAX FILL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.247,
+            "y_min": 0.463,
+            "x_max": 0.312,
+            "y_max": 0.479
+          }
+        },
+        {
+          "text": "NINJA",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.612,
+            "y_min": 0.158,
+            "x_max": 0.697,
+            "y_max": 0.183
+          }
+        },
+        {
+          "text": "LID",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.766,
+            "y_min": 0.448,
+            "x_max": 0.785,
+            "y_max": 0.457
+          }
+        },
+        {
+          "text": "MAX FILL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.628,
+            "y_min": 0.656,
+            "x_max": 0.681,
+            "y_max": 0.67
+          }
+        },
+        {
+          "text": "NINJA",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.518,
+            "y_min": 0.863,
+            "x_max": 0.605,
+            "y_max": 0.888
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+          "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1206,
+        "height": 1608
+      },
+      "text_ownership": {}
+    },
+    "138248c3-0c84-4b4b-a00c-b332ef1efc89": {
+      "fingerprint": {
+        "visual_style": "Social media lifestyle photo.",
+        "marketing_objective": "Drive affiliate clicks.",
+        "emotional_appeal": [
+          "Urgency",
+          "Desire for savings"
+        ],
+        "target_audience": "Bargain shoppers.",
+        "color_palette": [
+          "Gray",
+          "White",
+          "Beige",
+          "Black"
+        ],
+        "typography_style": "Basic sans-serif.",
+        "layout_and_composition": "Central product with top and bottom text.",
+        "background_environment": "Standard home kitchen.",
+        "lighting_style": "Natural daylight.",
+        "graphic_style": "Native social media text stickers.",
+        "product_prominence": "Clear focal point.",
+        "marketing_angle": "Scarcity and discounts.",
+        "visual_hierarchy": "Top banner to product to bottom CTA.",
+        "trust_elements": [
+          "Brand recognition"
+        ],
+        "promotional_devices": [
+          "Scarcity",
+          "Discount claim"
+        ],
+        "object_placement": "Main unit on left, accessory containers on right.",
+        "emotional_trigger": "Anxiety about missing a limited stock deal.",
+        "extensions": "UGC style."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "important",
+          "notes": "Large headline/coupon message overlay; not a physical object, but central to the marketing creative and should be preserved closely if regenerated.",
+          "region_type": "decorative_element",
+          "x_max": 0.877,
+          "x_min": 0.129,
+          "y_max": 0.191,
+          "y_min": 0.07
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Main advertised Ninja appliance, including its exact placement, front-facing orientation, controls, jar, handle, and base; this is the core product and should not change.",
+          "region_type": "product",
+          "x_max": 0.516,
+          "x_min": 0.136,
+          "y_max": 0.862,
+          "y_min": 0.23
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Front product pint/container filled with light-colored mixture; part of the product setup and positioned prominently beside the appliance.",
+          "region_type": "product",
+          "x_max": 0.789,
+          "x_min": 0.532,
+          "y_max": 0.844,
+          "y_min": 0.619
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Rear product pint/container filled with cookies-and-cream mixture; supports the product use case and should remain in roughly this placement.",
+          "region_type": "product",
+          "x_max": 0.931,
+          "x_min": 0.703,
+          "y_max": 0.813,
+          "y_min": 0.602
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Lower call-to-action text overlay with link/down-arrow message; important marketing copy that should stay visually similar and legible.",
+          "region_type": "decorative_element",
+          "x_max": 0.469,
+          "x_min": 0.077,
+          "y_max": 0.843,
+          "y_min": 0.782
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Marble/light stone countertop surface holding the appliance and containers; establishes kitchen setting and can be replaced with a similar counter.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.554
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Kitchen backsplash/wall area behind the product; provides the overall room context and lighting pattern, but exact texture can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.614,
+          "y_min": 0.13
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Upper wooden kitchen cabinets; define the kitchen environment and warm tone, but are not the product.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.136,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Wood cutting board in the background; decorative kitchen prop that can change without harming the main product message.",
+          "region_type": "prop",
+          "x_max": 0.749,
+          "x_min": 0.585,
+          "y_max": 0.559,
+          "y_min": 0.321
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Utensil holder with spoons behind the product containers; background kitchen prop, safe to vary.",
+          "region_type": "prop",
+          "x_max": 0.844,
+          "x_min": 0.715,
+          "y_max": 0.56,
+          "y_min": 0.426
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Cooktop/stove area at right rear; part of kitchen background, not essential to the product demonstration.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.831,
+          "y_max": 0.562,
+          "y_min": 0.508
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small dark pot/plant or bowl on the left background shelf/counter; minor decor that can be swapped or removed.",
+          "region_type": "prop",
+          "x_max": 0.142,
+          "x_min": 0.0,
+          "y_max": 0.309,
+          "y_min": 0.214
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Open backsplash area and soft shadowing around the main product; functions mostly as visual breathing room and can be altered freely as long as the product remains clear.",
+          "region_type": "negative_space",
+          "x_max": 0.97,
+          "x_min": 0.43,
+          "y_max": 0.55,
+          "y_min": 0.199
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Dark horizontal lower cabinet/drawer strip behind the countertop; contributes to kitchen setting but is not important individually.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.699,
+          "y_min": 0.608
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "last time I looked you can add stackable coupons!",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.129,
+            "y_min": 0.068,
+            "x_max": 0.88,
+            "y_max": 0.191
+          }
+        },
+        {
+          "text": "NINJA",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.258,
+            "y_min": 0.256,
+            "x_max": 0.344,
+            "y_max": 0.282
+          }
+        },
+        {
+          "text": "if it's still in stock I'll leave the link for you here ⬇️",
+          "role": "cta",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.076,
+            "y_min": 0.776,
+            "x_max": 0.47,
+            "y_max": 0.84
+          }
+        },
+        {
+          "text": "NINJA",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.253,
+            "y_min": 0.658,
+            "x_max": 0.328,
+            "y_max": 0.68
+          }
+        },
+        {
+          "text": "MAX FILL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.638,
+            "y_min": 0.675,
+            "x_max": 0.681,
+            "y_max": 0.683
+          }
+        },
+        {
+          "text": "MAX FILL",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.803,
+            "y_min": 0.647,
+            "x_max": 0.844,
+            "y_max": 0.655
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "5cf08f06-7736-4852-b616-6a235f8cf3da",
+          "display_name": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker | 2 Tubs, 10 Functions, Makes Ice Cream, Gelato, Sorbet, Frozen Yoghurt, Milkshakes, Slushi & More | 2-in-1 Flavour Option | Silver, NC501UK",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1206,
+        "height": 1608
+      },
+      "text_ownership": {}
+    }
+  },
+  "product_references": {
+    "5cf08f06-7736-4852-b616-6a235f8cf3da": [
+      "972cc31a-b043-47d2-90df-c3a2b9198120"
+    ]
+  }
+}

@@ -1,0 +1,590 @@
+{
+  "slideshow_id": "aa5a26b9-cfa1-48e7-84cc-7decc8bb42bb",
+  "slides": [
+    {
+      "id": "a9350d9e-4518-450d-a45a-95f3a54c1526",
+      "slide_index": 0
+    },
+    {
+      "id": "eda61d62-f1d8-4587-b907-7472b6a1acfa",
+      "slide_index": 1
+    },
+    {
+      "id": "8c51b05d-b5f8-458a-94ec-3e77aac099d0",
+      "slide_index": 2
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "a9350d9e-4518-450d-a45a-95f3a54c1526",
+        "slide_index": 0,
+        "beat": "hook"
+      },
+      {
+        "slide_id": "eda61d62-f1d8-4587-b907-7472b6a1acfa",
+        "slide_index": 1,
+        "beat": "story"
+      },
+      {
+        "slide_id": "8c51b05d-b5f8-458a-94ec-3e77aac099d0",
+        "slide_index": 2,
+        "beat": "story"
+      }
+    ],
+    "arc_summary": "The slideshow immediately grabs attention with an enthusiastic claim about an adorable pair of Crocs, then builds desire by spotlighting specific design details and the appealing bubble ice color."
+  },
+  "marketing_text": "This creative is designed to spark immediate product desire by presenting the pink Crocs as a cute, cozy, must-have item rather than simply a functional shoe. The first-person UGC-style composition makes it feel like a casual social media post from a friend, with the product held front and center against a softly blurred, aesthetically pleasing bedroom. The minimal text overlay and emojis reinforce the native Instagram/TikTok feel, helping the ad blend into the viewer’s feed instead of looking overly polished or sales-driven.\n\nThe target audience is young women, teens, and Gen Z consumers who are drawn to comfort, soft colors, and trendy “cute” aesthetics. The pastel pink, cream, beige, and white palette creates a gentle, aspirational mood, while the bedroom setting signals relaxation, personal style, and everyday wearability. The heart-shaped holes are the key marketing hook: they add novelty and charm, turning a familiar product into something more emotionally compelling and shareable.\n\nIts emotional appeal comes from a mix of cuteness, comfort, and aesthetic belonging. The creative taps into the “I need this” impulse by making the product feel both adorable and aligned with a specific lifestyle identity: cozy, feminine, casual, and trend-aware. As marketing, it works because it removes friction from desire — the viewer instantly understands what the product is, why it is different, and how it fits into the visual world they already want to be part of.",
+  "per_slide": {
+    "a9350d9e-4518-450d-a45a-95f3a54c1526": {
+      "fingerprint": {
+        "visual_style": "Soft, cozy, user-generated content (UGC) style.",
+        "marketing_objective": "Drive product awareness and desire through relatable, aesthetic imagery.",
+        "emotional_appeal": [
+          "Cuteness",
+          "Comfort",
+          "Desire",
+          "Aesthetic pleasure"
+        ],
+        "target_audience": "Young women, teens, and Gen Z consumers who value comfort, trendy aesthetics, and cute apparel.",
+        "color_palette": [
+          "Soft pink",
+          "Cream",
+          "Beige",
+          "Light gray",
+          "White"
+        ],
+        "typography_style": "Simple, clean sans-serif font, typical of native social media text overlays (like Instagram or TikTok stories).",
+        "layout_and_composition": "First-person perspective, with the product held up in the center of the frame against a blurred, aesthetically pleasing bedroom background.",
+        "background_environment": "A tidy, aesthetically pleasing bedroom featuring a made bed with neutral-toned pillows and a textured wall art piece, creating a cozy and aspirational atmosphere.",
+        "lighting_style": "Soft, natural, diffused daylight filling the room, avoiding harsh shadows and enhancing the pastel colors.",
+        "graphic_style": "Minimalist; relies entirely on the photographic content and a simple native text overlay with emojis.",
+        "product_prominence": "Extremely high; the product is the central focus, held up right in front of the camera, occupying a large portion of the frame.",
+        "marketing_angle": "Highlighting the unique and highly appealing design (heart-shaped holes) to trigger an immediate 'I need this' reaction based on cuteness.",
+        "visual_hierarchy": "1. The pink Crocs. 2. The text overlay. 3. The cozy bedroom background.",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "A hand wearing a soft pink sleeve holds a pair of light pink Crocs in the foreground, angled slightly to show the top design and interior logo. The background consists of a bed and wall art, softly out of focus.",
+        "emotional_trigger": "Desire for aesthetic belonging and comfort; the 'aww' factor triggered by the heart-shaped details and soft color palette.",
+        "extensions": "The use of emojis (pleading face and flower) in the text overlay enhances the relatable, informal, and highly emotional tone typical of viral social media content."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main advertised product: the pair of light pink Crocs with distinctive heart-shaped ventilation holes. Product color, style, heart pattern, and foreground placement should be preserved.",
+          "region_type": "product",
+          "x_max": 0.838,
+          "x_min": 0.144,
+          "y_max": 0.897,
+          "y_min": 0.375
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand/fingers directly holding and positioning the Crocs; this interaction is part of the product presentation and should remain consistent.",
+          "region_type": "human_subject",
+          "x_max": 0.43,
+          "x_min": 0.235,
+          "y_max": 0.858,
+          "y_min": 0.579
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Pink sweatshirt sleeve/forearm connected to the hand holding the product; supports the lifestyle pose and color palette, but exact fabric folds can vary.",
+          "region_type": "human_subject",
+          "x_max": 0.464,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.632
+        },
+        {
+          "importance_tier": "important",
+          "notes": "White text overlay reading 'These might just be the cutest pair of Crocs ever' with emojis. It is a key marketing/message element and should be retained if regenerating the creative.",
+          "region_type": "decorative_element",
+          "x_max": 0.606,
+          "x_min": 0.208,
+          "y_max": 0.432,
+          "y_min": 0.29
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Soft neutral bedroom/bed setting behind the product, including the headboard area; establishes cozy lifestyle context but can be replaced with a similar bedroom scene.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.73,
+          "y_min": 0.19
+        },
+        {
+          "importance_tier": "context",
+          "notes": "White quilted/striped bedding surface beneath the product; contributes to the clean bedroom setting and should remain generally similar, though exact texture can change.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.54
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Beige pillows/cushions on the bed behind and beside the Crocs; useful for warm neutral composition but safe to alter within the same cozy bedroom aesthetic.",
+          "region_type": "prop",
+          "x_max": 0.945,
+          "x_min": 0.514,
+          "y_max": 0.849,
+          "y_min": 0.441
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small bedside lamp or cylindrical decor object on the left edge; background furnishing not central to the ad and can be swapped or removed.",
+          "region_type": "prop",
+          "x_max": 0.083,
+          "x_min": 0.0,
+          "y_max": 0.553,
+          "y_min": 0.33
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Framed abstract wall art at the top of the image; decorative background element, safe to replace with other wall art or omit.",
+          "region_type": "decorative_element",
+          "x_max": 0.996,
+          "x_min": 0.33,
+          "y_max": 0.211,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain light wall and open negative space around the wall art; provides airy neutral background and can be regenerated as a similar wall surface.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 0.34,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "These might just be the cutest pair of Crocs ever 🥺🌸",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.203,
+            "y_min": 0.303,
+            "x_max": 0.584,
+            "y_max": 0.342
+          }
+        },
+        {
+          "text": "crocs",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.413,
+            "y_min": 0.65,
+            "x_max": 0.485,
+            "y_max": 0.698
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "b0844b40-fee0-44a9-a464-fee533521ebc",
+          "display_name": "Classic Hearts Cut Out Clog",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 2160,
+        "height": 3840
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "caption",
+          "text_class": "platform_caption",
+          "handling_policy": "optional_overlay",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.4
+        },
+        "1": {
+          "owner": "image",
+          "text_class": "product_native",
+          "handling_policy": "preserve_visual_role",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 1.0
+        }
+      }
+    },
+    "eda61d62-f1d8-4587-b907-7472b6a1acfa": {
+      "fingerprint": {
+        "visual_style": "Soft, cozy, and aesthetically pleasing lifestyle shot.",
+        "marketing_objective": "Highlight product details and evoke a sense of desire and emotional connection to the design.",
+        "emotional_appeal": [
+          "Affection",
+          "Comfort",
+          "Aesthetic appreciation",
+          "Desire"
+        ],
+        "target_audience": "Young adults or teenagers who appreciate cute, trendy, and comfortable footwear.",
+        "color_palette": [
+          "Soft pink",
+          "White",
+          "Light beige",
+          "Light grey"
+        ],
+        "typography_style": "Clean, simple, sans-serif font used for social media captions.",
+        "layout_and_composition": "The product is held in the foreground, centrally located but angled, drawing immediate attention against a blurred, aesthetically pleasing bedroom background.",
+        "background_environment": "A tidy, bright, and cozy bedroom with white bedding, neutral pillows, and textured wall art.",
+        "lighting_style": "Natural, soft, diffused daylight creating a bright and airy atmosphere.",
+        "graphic_style": "Minimalist, relying on a text overlay with emojis native to social media platforms (like Instagram or TikTok).",
+        "product_prominence": "High. The pink Crocs are the focal point, held up close to the camera, showcasing the heart-shaped holes.",
+        "marketing_angle": "Focusing on the unique and adorable 'heart details' of the product to create a 'must-have' feeling.",
+        "visual_hierarchy": "1. Pink Crocs (Product) 2. Text overlay ('All the heart details') 3. The hand holding the shoe 4. The cozy bedroom background.",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "A hand, wearing a matching soft pink sleeve, holds the pink Croc in the center-left foreground. The shoe is angled to show the side profile and top details (heart cutouts). The background consists of a neatly made bed and wall art, slightly out of focus.",
+        "emotional_trigger": "Desire for cute, trendy, and comfortable aesthetics, driven by the specific design detail (heart cutouts) highlighted by the emotive text and emojis.",
+        "extensions": "The use of emojis (pleading face and pink heart) in the text overlay enhances the emotional connection and aligns with casual, relatable social media communication."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Pink Crocs-style clog/slide footwear is the marketed product and focal point; color, heart-shaped ventilation details, texture, and placement should be preserved.",
+          "region_type": "product",
+          "x_max": 0.804,
+          "x_min": 0.267,
+          "y_max": 0.829,
+          "y_min": 0.439
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Visible hand holding/interacting with the footwear; grip and relationship to product are part of the product presentation and should not change substantially.",
+          "region_type": "human_subject",
+          "x_max": 0.391,
+          "x_min": 0.229,
+          "y_max": 0.702,
+          "y_min": 0.587
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Sleeved arm leading into the hand; supports the pose and lifestyle composition, though exact fabric folds can vary.",
+          "region_type": "human_subject",
+          "x_max": 0.279,
+          "x_min": 0,
+          "y_max": 0.919,
+          "y_min": 0.566
+        },
+        {
+          "importance_tier": "important",
+          "notes": "White overlaid caption text with emojis reading 'All the heart details🥺💗'; messaging is part of the marketing creative and should remain if regenerating the same ad.",
+          "region_type": "decorative_element",
+          "x_max": 0.558,
+          "x_min": 0.229,
+          "y_max": 0.478,
+          "y_min": 0.444
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Bed surface with white textured quilt/comforter creates the cozy bedroom/lifestyle setting; can be replaced with a similar soft neutral bedding surface.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0.536
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Large beige/taupe throw pillow behind the shoes; contributes soft neutral styling but can be changed freely within the room aesthetic.",
+          "region_type": "prop",
+          "x_max": 0.812,
+          "x_min": 0.499,
+          "y_max": 0.818,
+          "y_min": 0.503
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "White pillow on right side; background bedding prop that is not core to the product message.",
+          "region_type": "prop",
+          "x_max": 0.914,
+          "x_min": 0.764,
+          "y_max": 0.754,
+          "y_min": 0.55
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Light gray upholstered headboard/background panel behind the product; establishes bedroom setting and neutral color palette.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0.205,
+          "y_max": 0.52,
+          "y_min": 0.298
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Abstract framed wall art above the bed; decorative background element safe to remove or swap without affecting product communication.",
+          "region_type": "decorative_element",
+          "x_max": 1,
+          "x_min": 0.319,
+          "y_max": 0.273,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain light wall area surrounding the artwork and bed; general bedroom wall/background, replaceable with similar neutral wall.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 0.383,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small bedside table/lamp or bottle-like object at left edge; peripheral room decor with little importance to the creative.",
+          "region_type": "prop",
+          "x_max": 0.085,
+          "x_min": 0,
+          "y_max": 0.59,
+          "y_min": 0.417
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Dark narrow edge/furniture sliver at lower right; background clutter that can be removed or changed.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0.965,
+          "y_max": 0.854,
+          "y_min": 0.604
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "All the heart details\u0010\u0011",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.226,
+            "y_min": 0.365,
+            "x_max": 0.548,
+            "y_max": 0.382
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "b0844b40-fee0-44a9-a464-fee533521ebc",
+          "display_name": "Classic Hearts Cut Out Clog",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 2160,
+        "height": 3840
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        }
+      }
+    },
+    "8c51b05d-b5f8-458a-94ec-3e77aac099d0": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC), casual, aesthetic, lifestyle",
+        "marketing_objective": "Product awareness, highlighting aesthetic appeal, generating desire",
+        "emotional_appeal": [
+          "Aesthetic pleasure",
+          "Comfort",
+          "Desire for cute things",
+          "Relatability"
+        ],
+        "target_audience": "Young women, teens, Gen Z, Millennials who value comfortable, trendy, and cute footwear.",
+        "color_palette": [
+          "Soft pink",
+          "White",
+          "Beige",
+          "Light gray"
+        ],
+        "typography_style": "Simple, clean sans-serif font, typical of Instagram/TikTok stories.",
+        "layout_and_composition": "First-person perspective. The hand holding the shoes is the central focal point, slightly off-center to show the background.",
+        "background_environment": "A clean, modern, neutral-toned bedroom setting with a neatly made bed and textured wall art.",
+        "lighting_style": "Soft, natural, diffused daylight creating a bright and airy atmosphere.",
+        "graphic_style": "Minimalist text overlay with emojis.",
+        "product_prominence": "High. The pink clogs are the primary focus, held up to the camera.",
+        "marketing_angle": "Focusing on the specific, appealing 'bubble ice' color and the 'perfection' of the design (heart-shaped cutouts).",
+        "visual_hierarchy": "1. The pink clogs (center). 2. The text overlay (top right). 3. The hand and sleeve (left). 4. The bedroom background.",
+        "trust_elements": [],
+        "promotional_devices": [],
+        "object_placement": "A hand extends from the left side of the frame, holding a pair of light pink clogs in the center. The shoes are angled towards the viewer. The background consists of a bed with pillows and a framed artwork on the wall.",
+        "emotional_trigger": "Desire for aesthetic perfection and trendy, cute fashion items.",
+        "extensions": "The use of the 🥺 (pleading face) and 🌸 (cherry blossom) emojis enhances the 'cute' and desirable aesthetic of the post."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Pink 'bubble ice' clogs/sandals are the marketed product and central subject; color, heart cutouts, strap texture, and front positioning should be preserved.",
+          "region_type": "product",
+          "x_max": 0.728,
+          "x_min": 0.098,
+          "y_max": 0.867,
+          "y_min": 0.417
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Visible hand is directly holding/interacting with the product, establishing scale and authenticity; grip/position should remain closely consistent.",
+          "region_type": "human_subject",
+          "x_max": 0.496,
+          "x_min": 0.379,
+          "y_max": 0.71,
+          "y_min": 0.492
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Sleeved arm holding the clogs supports the product presentation and composition; clothing color and pose influence the soft pastel aesthetic.",
+          "region_type": "human_subject",
+          "x_max": 0.449,
+          "x_min": 0.0,
+          "y_max": 0.742,
+          "y_min": 0.404
+        },
+        {
+          "importance_tier": "important",
+          "notes": "White overlaid social caption draws attention to the product color and sentiment; placement and legibility are important for the creative message.",
+          "region_type": "decorative_element",
+          "x_max": 0.751,
+          "x_min": 0.418,
+          "y_max": 0.482,
+          "y_min": 0.345
+        },
+        {
+          "importance_tier": "context",
+          "notes": "White/cream bed or cushioned surface provides the cozy bedroom/lifestyle setting beneath the product; can be replaced with a similar soft neutral surface.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.62
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Upholstered headboard/back cushion creates the neutral bedroom backdrop behind the product; general tone and softness matter, exact item can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.206,
+          "y_max": 0.615,
+          "y_min": 0.275
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Abstract framed wall art is background decor and not tied to the product; safe to swap or remove if the neutral aesthetic remains.",
+          "region_type": "decorative_element",
+          "x_max": 1.0,
+          "x_min": 0.319,
+          "y_max": 0.284,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Plain off-white wall behind the bed and artwork defines the clean room setting; can be regenerated as a similar neutral wall.",
+          "region_type": "background",
+          "x_max": 0.324,
+          "x_min": 0.0,
+          "y_max": 0.49,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Small cylindrical object on the left appears like a bottle/candle on a surface; minor background prop that can change freely.",
+          "region_type": "prop",
+          "x_max": 0.07,
+          "x_min": 0.0,
+          "y_max": 0.565,
+          "y_min": 0.455
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Beige pillow/cushion behind and below the shoes adds layering and warmth but is not essential to the product message.",
+          "region_type": "prop",
+          "x_max": 0.742,
+          "x_min": 0.493,
+          "y_max": 0.862,
+          "y_min": 0.589
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Right-side white pillow/soft furnishing is background bedding detail; can be altered while keeping a soft bedroom context.",
+          "region_type": "prop",
+          "x_max": 1.0,
+          "x_min": 0.77,
+          "y_max": 0.835,
+          "y_min": 0.542
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Open neutral wall/upper empty space mainly provides visual breathing room and contrast for the caption; safe to simplify or alter.",
+          "region_type": "negative_space",
+          "x_max": 0.984,
+          "x_min": 0.0,
+          "y_max": 0.405,
+          "y_min": 0.0
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "And this bubble ice colour?!\nPerfectionᅠᅠ",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.416,
+            "y_min": 0.324,
+            "x_max": 0.805,
+            "y_max": 0.363
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "b0844b40-fee0-44a9-a464-fee533521ebc",
+          "display_name": "Classic Hearts Cut Out Clog",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 2160,
+        "height": 3840
+      },
+      "text_ownership": {
+        "0": {
+          "owner": "typography",
+          "text_class": "designed_typography",
+          "handling_policy": "preserve_verbatim",
+          "copy_policy": "preserve_verbatim",
+          "confidence": 0.0
+        }
+      }
+    }
+  },
+  "product_references": {
+    "b0844b40-fee0-44a9-a464-fee533521ebc": [
+      "865f8937-05d4-405d-8b50-f4531123bb8d",
+      "4c4934aa-208f-4dae-9360-9d7a99669c35",
+      "82644fed-188d-46a8-b128-6c28c588f934",
+      "85cdcfca-9363-46a4-902a-90ad1c0fa1fc",
+      "61debf92-96cd-43c4-9de9-ba53462ca4b6",
+      "c4dea00a-1268-4c29-80c5-96d6d63c2c19",
+      "1595ee15-7632-4cb9-b959-dd648993a442",
+      "62e931fb-7fee-4cf4-a83e-6e1801af930e",
+      "1b831312-72c9-4c81-bd68-0815ebdd6210",
+      "25915755-4b54-4fdf-9e29-753e45c8e3b0",
+      "99b9869c-659b-42c2-9785-7dff9d38947f",
+      "e6ee0986-deeb-471b-b21c-1f00a0a53119",
+      "b115c2fe-0287-4ea3-a412-0ae2b90ce7b9",
+      "9b664e8f-b0fd-4172-b0f5-dd9486383685"
+    ]
+  }
+}

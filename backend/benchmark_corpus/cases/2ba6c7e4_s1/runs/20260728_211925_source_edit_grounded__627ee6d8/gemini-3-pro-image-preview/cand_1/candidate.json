@@ -1,0 +1,20 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: Most expected text is present, but 'HAT BAG BABE...' appears rendered as 'HIT HAT BAG BABE...' or otherwise inaccurate."
+  ],
+  "seed": null,
+  "generation_time_seconds": 33.74747320800088,
+  "estimated_cost_usd": null,
+  "attempts": 2,
+  "generated_image_id": "9cb732a2-ce53-43b9-9e2d-f05b11da8609",
+  "photorealism": null
+}

@@ -1,0 +1,31 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": null,
+  "standalone_appeal": null,
+  "commercial_score": null,
+  "verdict": "reject",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "product_too_distant",
+        "severity": "major",
+        "suspected_cause": "prompt",
+        "cause_confidence": "medium",
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "Too far from the product to sell it.",
+  "scored_at": "2026-07-28T20:39:44.586458+00:00",
+  "scored_by": "Matt"
+}

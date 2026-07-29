@@ -1,0 +1,503 @@
+{
+  "slideshow_id": "2ba6c7e4-5378-406c-8d44-79d4519cdc52",
+  "slides": [
+    {
+      "id": "f205b26c-6c4e-4e72-b667-bd901d118ae8",
+      "slide_index": 0
+    },
+    {
+      "id": "1f711733-cac8-4476-91fd-05fa939ac9fe",
+      "slide_index": 1
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "f205b26c-6c4e-4e72-b667-bd901d118ae8",
+        "slide_index": 0,
+        "beat": "hook"
+      },
+      {
+        "slide_id": "1f711733-cac8-4476-91fd-05fa939ac9fe",
+        "slide_index": 1,
+        "beat": "cta"
+      }
+    ],
+    "arc_summary": "The slideshow opens with a dramatic, curiosity-driven hook about a surprising P.Louise deal, then pushes viewers to add three items to their basket to discover the discounted offer. The arc is urgency and excitement around getting more products for less, ending in a purchase prompt."
+  },
+  "marketing_text": "This creative is designed to feel like a casual social media post rather than a polished ad. Shot vertically in natural daylight on a residential driveway, it uses a centered woman covering her mouth and a simple native text overlay to create an immediate pattern interrupt in the feed. With no product shown, the goal is not direct product education but to drive engagement and curiosity through a sense that something surprising has just happened.\n\nThe likely audience is young female beauty consumers who are already accustomed to UGC-style content, reaction shots, and “wait for it” storytelling on social platforms. The emotional hook is curiosity, with a layer of surprise: the viewer is prompted to wonder what drama, reveal, or unexpected outcome is being hinted at. The minimalist sans-serif text, informal setting, and unpolished visual style make the moment feel authentic and peer-generated.\n\nAs marketing, it works by creating a curiosity gap before introducing or implying the brand message. The viewer’s attention is first captured by the subject’s facial expression and body language, then directed to the central text. This strategy is effective for engagement-driven campaigns because it mirrors organic social behavior, invites viewers to pause, and encourages them to seek the payoff behind the mystery.",
+  "per_slide": {
+    "f205b26c-6c4e-4e72-b667-bd901d118ae8": {
+      "fingerprint": {
+        "visual_style": "casual social media ugc",
+        "marketing_objective": "drive engagement and curiosity",
+        "emotional_appeal": [
+          "surprise",
+          "curiosity"
+        ],
+        "target_audience": "young female beauty consumers",
+        "color_palette": [
+          "brick red",
+          "black",
+          "sky blue",
+          "white"
+        ],
+        "typography_style": "basic sans-serif native social font",
+        "layout_and_composition": "center-aligned vertical portrait",
+        "background_environment": "outdoor residential driveway",
+        "lighting_style": "natural outdoor daylight",
+        "graphic_style": "minimalist native text overlay",
+        "product_prominence": "absent",
+        "marketing_angle": "mystery and unexpected outcome",
+        "visual_hierarchy": "subject face then central text",
+        "trust_elements": [
+          "authentic user generation"
+        ],
+        "promotional_devices": [
+          "curiosity gap"
+        ],
+        "object_placement": "woman centered in mid-ground covering mouth with text overlay across lower torso",
+        "emotional_trigger": "desire to uncover hidden drama",
+        "extensions": "relies on pattern interrupt"
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "important",
+          "notes": "Main human subject occupying the lower-right/center of the frame; overall selfie-style composition and pose should closely match.",
+          "region_type": "primary_subject",
+          "x_max": 0.98,
+          "x_min": 0.19,
+          "y_max": 1,
+          "y_min": 0.29
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Face and head are the focal expression area, looking off-frame with mouth slightly open; should remain similar for composition.",
+          "region_type": "human_subject",
+          "x_max": 0.82,
+          "x_min": 0.42,
+          "y_max": 0.62,
+          "y_min": 0.32
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Hand posed against the mouth/face is a key interaction in the creative and should keep the same placement and gesture.",
+          "region_type": "human_subject",
+          "x_max": 0.51,
+          "x_min": 0,
+          "y_max": 0.95,
+          "y_min": 0.49
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Decorated manicure/nail art is prominently displayed and likely the product/beauty focus; nail design and placement should not change significantly.",
+          "region_type": "product",
+          "x_max": 0.52,
+          "x_min": 0.34,
+          "y_max": 0.61,
+          "y_min": 0.47
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Black top/upper torso forms a large part of the subject silhouette and composition; can vary slightly but should remain similar in placement.",
+          "region_type": "human_subject",
+          "x_max": 0.94,
+          "x_min": 0.22,
+          "y_max": 0.94,
+          "y_min": 0.57
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Extended right arm creates the selfie perspective and frames the right edge; pose should closely match.",
+          "region_type": "human_subject",
+          "x_max": 1,
+          "x_min": 0.82,
+          "y_max": 1,
+          "y_min": 0.57
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Sunglasses resting on top of the head are an accessory; useful to match but safe to alter or remove if needed.",
+          "region_type": "prop",
+          "x_max": 0.73,
+          "x_min": 0.45,
+          "y_max": 0.37,
+          "y_min": 0.25
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Jewelry accessories including hoop earring, necklace, bracelet, and ring add styling detail but are not central to the message.",
+          "region_type": "prop",
+          "x_max": 0.76,
+          "x_min": 0.29,
+          "y_max": 0.78,
+          "y_min": 0.51
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Large white text overlay contains the creative message/brand callout; exact wording and approximate placement should be preserved.",
+          "region_type": "decorative_element",
+          "x_max": 0.89,
+          "x_min": 0.18,
+          "y_max": 0.72,
+          "y_min": 0.6
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Brick wall backdrop establishes the outdoor residential setting; can be replaced with a similar wall/background.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 0.69,
+          "y_min": 0.19
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Open sky at the top provides outdoor context and negative visual breathing room; can be regenerated similarly.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 0.22,
+          "y_min": 0
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Distant rooftops in the upper-right background are not important to the creative and can be swapped or removed.",
+          "region_type": "background",
+          "x_max": 1,
+          "x_min": 0.69,
+          "y_max": 0.23,
+          "y_min": 0.14
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Concrete/patio ground indicates the outdoor location; general surface can change while preserving the setting type.",
+          "region_type": "environment",
+          "x_max": 1,
+          "x_min": 0,
+          "y_max": 1,
+          "y_min": 0.72
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Large planter and plant leaves at the lower-left edge are peripheral decorative/background objects.",
+          "region_type": "prop",
+          "x_max": 0.12,
+          "x_min": 0,
+          "y_max": 0.92,
+          "y_min": 0.66
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Dark storage/bin object at the far right edge is background clutter and safe to remove or replace.",
+          "region_type": "prop",
+          "x_max": 1,
+          "x_min": 0.96,
+          "y_max": 0.87,
+          "y_min": 0.55
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "P.LOUISE WHAT HAVE YOU DONE?!?!?!",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.175,
+            "y_min": 0.548,
+            "x_max": 0.825,
+            "y_max": 0.608
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "34722657-fee1-4244-9839-9f7e532f7e73",
+          "display_name": "P.Louise Obsessed For Less Skincare Set",
+          "prominence": "primary",
+          "is_current": false,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 2156,
+        "height": 3836
+      },
+      "text_ownership": {}
+    },
+    "1f711733-cac8-4476-91fd-05fa939ac9fe": {
+      "fingerprint": {
+        "visual_style": "User-generated content (UGC) style photo, casual and authentic.",
+        "marketing_objective": "Drive sales through a compelling multi-buy discount offer.",
+        "emotional_appeal": [
+          "Excitement",
+          "Curiosity",
+          "Desire for a bargain"
+        ],
+        "target_audience": "Makeup enthusiasts, likely younger demographic (Gen Z/Millennials), bargain hunters.",
+        "color_palette": [
+          "Light green",
+          "Gold",
+          "White",
+          "Black (text)"
+        ],
+        "typography_style": "A mix of standard sans-serif for the overlaid text (typical of social media platforms like TikTok or Instagram) and decorative, stylized fonts on the product packaging.",
+        "layout_and_composition": "Center-focused, hand-held product shot taking up most of the frame, with text overlays strategically placed around the product.",
+        "background_environment": "Outdoors, slightly blurred background showing what looks like a patio or garden area, enhancing the UGC feel.",
+        "lighting_style": "Natural daylight, somewhat diffused.",
+        "graphic_style": "The packaging features ornate, almost vintage-inspired graphics with modern twists (strawberries, money motifs). The text overlays have a standard social media aesthetic.",
+        "product_prominence": "Very high; the product box is the main subject and fills the majority of the screen.",
+        "marketing_angle": "Highlighting a seemingly 'too good to be true' discount to spark curiosity and immediate action.",
+        "visual_hierarchy": "The main text overlay '27 + 27 + 27 = 24?!?!' grabs attention first, followed by the call to action 'add 3 to the basket...', then the visual of the product itself, and finally the bottom text 'what have they done 😭😭😭'.",
+        "trust_elements": [
+          "The authentic UGC style acts as a form of social proof, implying a real customer is sharing a great deal."
+        ],
+        "promotional_devices": [
+          "Implied massive discount (Buy 3 for less than the price of 1)",
+          "Curiosity gap ('see for yourself')",
+          "Use of emojis to convey extreme emotion/unbelievability"
+        ],
+        "object_placement": "The product box is held centrally in the foreground, with text overlays stacked vertically across the middle.",
+        "emotional_trigger": "The thrill of discovering a 'glitch' or unbelievable deal, combined with the curiosity to verify if the math actually works at checkout.",
+        "extensions": "The use of 'girl math' style humor ('27 + 27 + 27 = 24?!?!') is highly effective for the target demographic on platforms like TikTok."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "Main P.Louise 'Obsessed For Less' boxed parcel/product dominates the creative; product shape, front-facing placement, branding, colors, and packaging design are central to the ad and should not change.",
+          "region_type": "product",
+          "x_max": 0.956,
+          "x_min": 0.0,
+          "y_max": 0.945,
+          "y_min": 0.205
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Top flap/closure of the product box with heart-shaped PL logo; part of the product's distinctive packaging and exact positioning near the top is important.",
+          "region_type": "product",
+          "x_max": 0.899,
+          "x_min": 0.177,
+          "y_max": 0.314,
+          "y_min": 0.196
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Central transparent window and strawberry/PL emblem on the product; key visible feature of the packaging and should be preserved.",
+          "region_type": "product",
+          "x_max": 0.69,
+          "x_min": 0.318,
+          "y_max": 0.661,
+          "y_min": 0.427
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Large 'OBSESSED FOR LESS' branding on the lower front of the box; critical readable product/offer identity.",
+          "region_type": "product",
+          "x_max": 0.85,
+          "x_min": 0.135,
+          "y_max": 0.805,
+          "y_min": 0.614
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Bottom tagline strip on the product packaging; part of the product design and brand messaging printed on the box.",
+          "region_type": "product",
+          "x_max": 0.927,
+          "x_min": 0.0,
+          "y_max": 0.944,
+          "y_min": 0.837
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Hand/fingers holding the box from below; directly interacts with and supports the product, so pose/location should remain similar though exact hand appearance can vary.",
+          "region_type": "human_subject",
+          "x_max": 0.558,
+          "x_min": 0.176,
+          "y_max": 1.0,
+          "y_min": 0.898
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Overlay text reading '27 + 27 + 27 = 24?!?!' is a marketing/message element placed over the product; should be retained if regenerating this specific creative concept.",
+          "region_type": "prop",
+          "x_max": 0.539,
+          "x_min": 0.143,
+          "y_max": 0.373,
+          "y_min": 0.329
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Overlay caption 'add 3 to the basket and see for yourself...' is central promotional copy; placement over the product should closely match.",
+          "region_type": "prop",
+          "x_max": 0.925,
+          "x_min": 0.307,
+          "y_max": 0.505,
+          "y_min": 0.424
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Overlay caption 'what have they done😭😭😭' provides the social-media style hook/reaction; should remain similar for the ad concept.",
+          "region_type": "prop",
+          "x_max": 0.787,
+          "x_min": 0.231,
+          "y_max": 0.7,
+          "y_min": 0.658
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Outdoor/porch or garden setting behind the product; provides casual real-world context but can be replaced by a similar outdoor background.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Dark storage bins or steps in the upper background; not central to the product message and can change freely within the same outdoor setting.",
+          "region_type": "background",
+          "x_max": 0.925,
+          "x_min": 0.204,
+          "y_max": 0.205,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Brown wall/fence area at upper left; environmental background with no product relevance.",
+          "region_type": "background",
+          "x_max": 0.223,
+          "x_min": 0.0,
+          "y_max": 0.199,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Paving/ground visible around the product; supports outdoor context but is not important to preserve exactly.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.177
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Small grass/greenery patches near the bottom and side edges; background clutter that can be removed or swapped without affecting the ad.",
+          "region_type": "decorative_element",
+          "x_max": 0.232,
+          "x_min": 0.0,
+          "y_max": 1.0,
+          "y_min": 0.785
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "text": "27 + 27 + 27 = 24?!?!",
+          "role": "headline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.141,
+            "y_min": 0.311,
+            "x_max": 0.528,
+            "y_max": 0.331
+          }
+        },
+        {
+          "text": "add 3 to the basket and see for yourself...",
+          "role": "subheadline",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.306,
+            "y_min": 0.392,
+            "x_max": 0.952,
+            "y_max": 0.449
+          }
+        },
+        {
+          "text": "what have they done 😭😭😭",
+          "role": "other",
+          "surface": "overlay",
+          "bounding_box": {
+            "x_min": 0.229,
+            "y_min": 0.601,
+            "x_max": 0.767,
+            "y_max": 0.627
+          }
+        },
+        {
+          "text": "PL",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.468,
+            "y_min": 0.229,
+            "x_max": 0.598,
+            "y_max": 0.258
+          }
+        },
+        {
+          "text": "P.LOUISE",
+          "role": "logo_text",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.418,
+            "y_min": 0.362,
+            "x_max": 0.599,
+            "y_max": 0.38
+          }
+        },
+        {
+          "text": "SECURED THAT BAG BABE...",
+          "role": "other",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.407,
+            "y_min": 0.418,
+            "x_max": 0.748,
+            "y_max": 0.562
+          }
+        },
+        {
+          "text": "OBSESSED FOR LESS",
+          "role": "headline",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.126,
+            "y_min": 0.598,
+            "x_max": 0.868,
+            "y_max": 0.835
+          }
+        },
+        {
+          "text": "WHOEVER SAID MONEY CAN'T BUY HAPPINESS HAS NEVER RECEIVED A P.LOUISE PARCEL...",
+          "role": "subheadline",
+          "surface": "physical",
+          "bounding_box": {
+            "x_min": 0.121,
+            "y_min": 0.846,
+            "x_max": 0.858,
+            "y_max": 0.906
+          }
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "34722657-fee1-4244-9839-9f7e532f7e73",
+          "display_name": "P.Louise Obsessed For Less Skincare Set",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 1620,
+        "height": 2880
+      },
+      "text_ownership": {}
+    }
+  },
+  "product_references": {
+    "34722657-fee1-4244-9839-9f7e532f7e73": [
+      "4d431c52-3102-4270-a26a-5323f39120ce"
+    ]
+  }
+}

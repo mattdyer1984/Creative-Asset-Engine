@@ -1,0 +1,18 @@
+{
+  "candidate": 0,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The front panel text layout is altered, with a large MIX-IN label replacing the reference display/control text arrangement."
+  ],
+  "seed": null,
+  "generation_time_seconds": 22.31390770800499,
+  "estimated_cost_usd": null,
+  "generated_image_id": "c6599caf-d7d7-47e5-a039-a0560b25a24a",
+  "photorealism": null
+}

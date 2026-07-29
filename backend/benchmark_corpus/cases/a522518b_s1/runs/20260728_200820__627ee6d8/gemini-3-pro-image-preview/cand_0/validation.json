@@ -1,0 +1,26 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": true,
+  "identity_passed": true,
+  "rejection_reasons": [],
+  "photorealism": {
+    "ai_artefacts_detected": true,
+    "believable_shadows": true,
+    "human_anatomy": "not_applicable",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Overall resembles a polished product photograph with plausible bathroom lighting, marble/tile textures, and countertop reflections.",
+      "The box geometry and scene perspective are mostly consistent, and shadows/reflections are believable.",
+      "Some product details look slightly AI-generated: the toothbrush head/packaging illustration appears overly smooth and a bit malformed, and small side text is not fully convincing.",
+      "No humans are present."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  },
+  "image_validation_result_id": "3c900be6-05f3-40fe-841c-cb4eb17433fd"
+}

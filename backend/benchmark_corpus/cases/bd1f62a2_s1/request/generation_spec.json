@@ -1,0 +1,92 @@
+{
+  "slide_index": 1,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s1_product",
+      "label": "Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker |",
+      "reference_ids": [
+        "972cc31a-b043-47d2-90df-c3a2b9198120"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s1_t0",
+      "text": "9 diff modes ✅",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t1",
+      "text": "NINJA",
+      "disposition": "render_in_asset",
+      "fidelity_required": "unresolved",
+      "reference_target": null,
+      "source": "disposition<-ownership:design_integral+fidelity<-role/identity(brand)"
+    },
+    {
+      "ref": "s1_packaging",
+      "text": "INSTALL / 3 / MINUTES / ENJOY / ADVANCED CREAMIFY TECHNOLOGY / TOP / FULL / BOTTOM / ICE CREAM / LITE ICE CREAM / SORBET / GELATO / FROZEN YOGHURT / SCOOPABLE / DRINKABLE / FRAPPE / FROZEN DRINK / SLUSHI / MILKSHAKE / + MIX-IN / RE-SPIN / LID",
+      "disposition": "render_in_asset",
+      "fidelity_required": "semantic_presence",
+      "reference_target": null,
+      "source": "disposition<-ownership:product_native+fidelity<-trust:meaning_preserve"
+    }
+  ],
+  "scene": {
+    "subject_present": true,
+    "subject_action": "using the product",
+    "subject_extent": "hand",
+    "product_subject_relation": "using",
+    "subject_emotion": [
+      "Convenience",
+      "Satisfaction"
+    ],
+    "environment": "Blurred modern kitchen",
+    "lighting": "Soft natural daylight",
+    "concept": "UGC kitchen demo ; Highlight versatility"
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s1_product",
+        "primary"
+      ],
+      [
+        "subject",
+        "secondary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "s1_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [
+    "s1_t1: brand/label needs reference fidelity but owning reference target is unknown"
+  ],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "3:4",
+    "source_width": 1206,
+    "source_height": 1608,
+    "fit_behaviour": "identity"
+  }
+}

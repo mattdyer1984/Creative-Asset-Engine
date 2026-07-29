@@ -1,0 +1,19 @@
+{
+  "candidate": 0,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/brand_placement: Reference shows Crocs branding on side rivets and footbed; the generated image does not clearly preserve these brand marks.",
+    "identity/typography_placement: Embossed insole typography visible in references is missing or not accurately placed/legible in the generated image."
+  ],
+  "seed": null,
+  "generation_time_seconds": 35.28198129100201,
+  "estimated_cost_usd": null,
+  "generated_image_id": "11ee0106-1b6b-4391-802e-65375fa335de",
+  "photorealism": null
+}

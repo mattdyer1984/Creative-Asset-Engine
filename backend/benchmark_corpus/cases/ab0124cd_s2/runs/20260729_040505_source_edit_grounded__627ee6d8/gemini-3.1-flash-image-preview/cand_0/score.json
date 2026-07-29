@@ -1,0 +1,31 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": null,
+  "standalone_appeal": null,
+  "commercial_score": null,
+  "verdict": "reject",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "insufficient_originality",
+        "severity": "major",
+        "suspected_cause": "model",
+        "cause_confidence": "high",
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "Too similar to original: same character position + similar background. Also dropped the baked-in caption (note: caption is overlay_handoff -> composite layer re-adds it; the real defect is insufficient change for originality).",
+  "scored_at": "2026-07-29T04:12:11.385327+00:00",
+  "scored_by": "Matt"
+}

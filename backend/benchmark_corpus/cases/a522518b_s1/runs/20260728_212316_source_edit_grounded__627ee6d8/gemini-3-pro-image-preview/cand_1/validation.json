@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: SOFT and Colgate are visible, and MAX WHITE appears, but the expected full text 'MAX WHITE ULTRA' is not preserved; the small text appears different/garbled."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "bd4bbf32-475a-4aaa-a590-b6fa62672b77"
+}

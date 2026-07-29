@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/brand_placement: The official product has Crocs branding on the side button/footbed, while the generated image does not show clear, faithful branding.",
+    "identity/typography_placement: Reference photos show embossed Crocs text/logo placement, but the generated image lacks legible typography in those areas."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "9192ff88-c92e-4081-bee1-82f2336cb966"
+}

@@ -1,0 +1,31 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": null,
+  "standalone_appeal": null,
+  "commercial_score": null,
+  "verdict": "reject",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": null
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "wrong_count",
+        "severity": "critical",
+        "suspected_cause": "model",
+        "cause_confidence": "medium",
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [],
+    "repair_hypotheses": [],
+    "repairable": null
+  },
+  "notes": "VALIDATOR FALSE-POSITIVE. Three boxes \u2014 two floating behind the one being shown off.",
+  "scored_at": "2026-07-28T20:39:44.586458+00:00",
+  "scored_by": "Matt"
+}

@@ -1,0 +1,21 @@
+{
+  "candidate": 0,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: The Crocs logo is visible, but the exact lowercase text 'crocs' is not clearly readable/preserved.",
+    "detail/packaging: The product is unpackaged, but it is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "seed": null,
+  "generation_time_seconds": 15.764356667001266,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "833a2448-1be7-49ad-be30-a7133a7600bd",
+  "photorealism": null
+}

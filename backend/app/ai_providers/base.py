@@ -164,6 +164,19 @@ class GenerationRequest:
     aspect_ratio: str
     story_mode: bool = False
 
+    # precompiled_prompt (Transformation Plan integration) - when set, the
+    # image adapter sends this string to the provider VERBATIM and skips its
+    # own `_compile_*_prompt` step. It exists because the transformation
+    # layer's own provider-prompt adapter (app.transformation.adapters.
+    # nano_banana_prompt_adapter.NanoBananaPromptAdapter) already emits the
+    # complete, final provider request - re-wrapping it through the SDK
+    # adapter's creative_intent path would double-instruct it ("preserve the
+    # product…" appended on top of a prompt that already says exactly that).
+    # None (the default, and every vNext/Creative-Specification caller) keeps
+    # the existing two-stage behaviour untouched. When set, creative_intent
+    # still carries the same text so `prompt_used`/logging stay meaningful.
+    precompiled_prompt: str | None = None
+
 
 @dataclass
 class ProviderCapabilities:

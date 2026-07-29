@@ -1,0 +1,19 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/silhouette: The rectangular bottle is similar, but the added tall black vertical stick/protrusion above the cap changes the product outline significantly.",
+    "identity/cap_geometry: The reference has a plain metallic gold cylindrical cap with no protruding rod; the generated image adds a long black vertical element."
+  ],
+  "seed": null,
+  "generation_time_seconds": 18.60371175000182,
+  "estimated_cost_usd": null,
+  "generated_image_id": "b9de88a7-f623-4e4f-b93e-9df935bfb4b7",
+  "photorealism": null
+}

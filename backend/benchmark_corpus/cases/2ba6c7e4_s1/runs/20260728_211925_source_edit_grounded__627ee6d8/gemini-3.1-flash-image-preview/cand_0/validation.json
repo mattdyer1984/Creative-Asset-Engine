@@ -1,0 +1,27 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": true,
+  "identity_passed": true,
+  "rejection_reasons": [],
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Looks like a real handheld product photo with natural outdoor lighting and plausible depth of field.",
+      "Packaging geometry, folds, window cutout, printed graphics, and transparent plastic reflections appear physically consistent.",
+      "Hand anatomy and fingernail shape look normal; no extra or malformed fingers visible.",
+      "Text on the actual packaging is legible and coherent, and the overlaid caption is clean, not AI-garbled.",
+      "Minor softness/background blur is consistent with phone-camera focus rather than generation artefacts."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  },
+  "image_validation_result_id": "12d172dd-2204-4c9b-8289-2b09820e8aae"
+}

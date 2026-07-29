@@ -1,0 +1,19 @@
+{
+  "candidate": 2,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/brand_placement: The official product has Crocs branding on the side button/footbed, while the generated image does not show clear, faithful branding.",
+    "identity/typography_placement: Reference photos show embossed Crocs text/logo placement, but the generated image lacks legible typography in those areas."
+  ],
+  "seed": null,
+  "generation_time_seconds": 38.8693776250002,
+  "estimated_cost_usd": null,
+  "generated_image_id": "e3e5b982-7a85-444b-a783-7a5f3045f473",
+  "photorealism": null
+}

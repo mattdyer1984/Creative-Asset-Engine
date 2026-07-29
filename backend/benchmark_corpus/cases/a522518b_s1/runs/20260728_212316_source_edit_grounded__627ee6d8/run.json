@@ -1,0 +1,117 @@
+{
+  "run_id": "20260728_212316_source_edit_grounded__627ee6d8",
+  "started_at": "2026-07-28T21:23:16.300465+00:00",
+  "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+  "git_dirty": true,
+  "models": [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview"
+  ],
+  "candidates_per_model": 2,
+  "strategy": "source_edit_grounded",
+  "strategy_prompt": "Use the provided image as the reference. Produce a NEW, original image of the same subject (Colgate Max White Ultra toothbrush). Keep the product itself EXACTLY the same — identical shape, colour, materials, proportions, branding, logos and any printed text. Match the visual style and MEDIUM of the reference: if it is a photograph keep it photographic; if it is illustrated, cartoon or animated, keep that exact style and do NOT make it photorealistic. Refresh the specific background details and change the camera angle so it reads as a new, original shot rather than a copy — but keep the change moderate and do not invent an unrelated scene. Keep the SAME TYPE of setting as the reference (originally: A modern bathroom setting with a grey tiled wall and a marble countertop): you may vary the specific decor, props, colours and layout for originality, but the scene must stay the same kind of place — a kitchen stays a kitchen, a bedroom stays a bedroom, a bathroom stays a bathroom, an outdoor shot stays outdoors. Keep the product the clear main focus. Any overlaid marketing caption from the reference may be removed. Output aspect ratio 3:4.",
+  "drift": null,
+  "notes": "grounded widen: P.Louise + Colgate",
+  "results": {
+    "gemini-3.1-flash-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "strategy": "source_edit_grounded",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/branding_text: SOFT and Colgate are visible, and MAX WHITE ULTRA appears approximately, but the text is broken/stylized as “MAX WHITE ULTRA” in separated small lines rather than exact prominent branding text."
+        ],
+        "seed": null,
+        "generation_time_seconds": 14.109051042003557,
+        "estimated_cost_usd": null,
+        "attempts": 1,
+        "generated_image_id": "e6033a2f-ff5f-48ab-9b66-5d2d7165ac4a",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "strategy": "source_edit_grounded",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": true,
+        "rejection_reasons": [],
+        "seed": null,
+        "generation_time_seconds": 28.353125084002386,
+        "estimated_cost_usd": null,
+        "attempts": 1,
+        "generated_image_id": "224c136a-32dc-4d9f-a053-29c33ee7776d",
+        "photorealism": {
+          "ai_artefacts_detected": true,
+          "believable_shadows": true,
+          "human_anatomy": "not_applicable",
+          "image_sharpness": "good",
+          "material_accuracy": true,
+          "object_integrity": true,
+          "perspective_correct": true,
+          "realistic_lighting": true,
+          "reasons": [
+            "Overall composition, bathroom materials, mirror glow, and product placement look close to a real staged product photo.",
+            "Shadows and reflections on the marble countertop are mostly plausible, though the box reflection appears slightly too clean/soft.",
+            "Small packaging details on the side and toothbrush graphic look somewhat synthetic/garbled, suggesting AI generation.",
+            "Geometry is generally intact with no obvious warping or impossible object structure."
+          ],
+          "reflections_correct": true,
+          "texture_quality": "good"
+        }
+      }
+    ],
+    "gemini-3-pro-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "strategy": "source_edit_grounded",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/branding_text: It includes SOFT and Colgate, but the MAX WHITE ULTRA text is not exactly preserved; it appears distorted/incorrect as 'MAX WHITE' with unclear or wrong smaller text."
+        ],
+        "seed": null,
+        "generation_time_seconds": 28.28391250000277,
+        "estimated_cost_usd": null,
+        "attempts": 1,
+        "generated_image_id": "129acd46-168f-407b-a73c-b5410e628746",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "strategy": "source_edit_grounded",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/branding_text: SOFT and Colgate are visible, and MAX WHITE appears, but the expected full text 'MAX WHITE ULTRA' is not preserved; the small text appears different/garbled."
+        ],
+        "seed": null,
+        "generation_time_seconds": 24.409225834002427,
+        "estimated_cost_usd": null,
+        "attempts": 1,
+        "generated_image_id": "b6f99e24-f490-4b35-b9bb-aa2e70b1c854",
+        "photorealism": null
+      }
+    ]
+  },
+  "finished_at": "2026-07-28T21:25:55.317120+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: No readable 'crocs' text is visible; only the crocodile logo appears on the side rivet.",
+    "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "2aa608cf-49aa-465e-be08-bf1d37cbbbe5"
+}

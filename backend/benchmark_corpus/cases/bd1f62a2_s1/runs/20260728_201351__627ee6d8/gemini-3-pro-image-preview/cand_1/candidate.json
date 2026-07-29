@@ -1,0 +1,18 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: NINJA and the number 3 are visible, but the program labels are distorted/illegible and do not exactly show ICE CREAM, SORBET, GELATO, FROZEN YOGURT, SMOOTHIE BOWL, and MILKSHAKE."
+  ],
+  "seed": null,
+  "generation_time_seconds": 32.48350387499522,
+  "estimated_cost_usd": null,
+  "generated_image_id": "791f176d-fa58-4829-b906-db025b31367c",
+  "photorealism": null
+}

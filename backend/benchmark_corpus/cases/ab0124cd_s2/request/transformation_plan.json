@@ -1,0 +1,1333 @@
+{
+  "slideshow_id": "ab0124cd-b663-47a5-9bb5-e816274c0808",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value",
+    "curiosity",
+    "product_desirability"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "hook",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": false,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1640,
+        "source_height": 2188,
+        "source_aspect": "410:547",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1640x2188 => 410:547"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Shocking, realistic, informative, and discomfort-inducing. ; Raise awareness about dental hygiene issues (likely tartar or plaque buildup) to drive interest in a solution, product, or service.",
+        "subject_present": true,
+        "subject_action": null,
+        "subject_extent": "head and shoulders",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Disgust",
+          "Concern",
+          "Urgency",
+          "Curiosity"
+        ],
+        "environment": "Plain, off-white/beige background to ensure focus remains entirely on the text and the jarring image.",
+        "lighting": "Bright, even lighting on the teeth and gums to highlight the texture and details of the buildup without heavy shadows.",
+        "framing": "Top half is dedicated to a bold, direct statement. The bottom half features a highly magnified, confronting image that directly illustrates the text.",
+        "text_safe_zones": [
+          [
+            0.146,
+            0.095,
+            0.793,
+            0.415
+          ],
+          [
+            0.0,
+            0.787,
+            1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.53
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.47
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t0"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "high",
+          "verbatim": "That",
+          "text_status": "trusted_exact",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.4,
+            0.088,
+            0.6,
+            0.15
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:7f84a26e-bc07-43d9-af8b-522f323947b8:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "rough feeling",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.23,
+            0.165,
+            0.77,
+            0.25
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:7f84a26e-bc07-43d9-af8b-522f323947b8:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t2",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "behind your teeth",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.15,
+            0.248,
+            0.85,
+            0.332
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:7f84a26e-bc07-43d9-af8b-522f323947b8:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t3",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "isn't normal",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.26,
+            0.33,
+            0.74,
+            0.395
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:7f84a26e-bc07-43d9-af8b-522f323947b8:b3",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=False role=hook"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "story",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1640,
+        "source_height": 2188,
+        "source_aspect": "410:547",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1640x2188 => 410:547"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Illustrative and educational, employing a simplified, cartoon-like aesthetic paired with a realistic medical inset. ; To educate the audience about a common dental problem (tartar/plaque buildup) and implicitly agitate the problem to prepare them for a solution.",
+        "subject_present": true,
+        "subject_action": null,
+        "subject_extent": "face and hand",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Concern",
+          "Disgust",
+          "Anxiety"
+        ],
+        "environment": "A plain, off-white background to ensure focus remains entirely on the text and illustrations without distraction.",
+        "lighting": "Flat, illustrated lighting with soft shading on the character and more detailed shading on the dental inset.",
+        "framing": "The layout is divided vertically. The top half is dominated by large, centered text. The bottom half features a distressed character on the left, with a magnifying glass callout on the right showing a detailed view of the problem.",
+        "text_safe_zones": [
+          [
+            0.134,
+            0.085,
+            0.848,
+            0.35
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.49
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "It's usually",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.319,
+            0.082,
+            0.678,
+            0.141
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:8dd72a23-a863-4b87-ab9f-5c634a192636:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "hardened buildup",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.19,
+            0.148,
+            0.823,
+            0.218
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:8dd72a23-a863-4b87-ab9f-5c634a192636:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t2",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "sitting where brushing",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.135,
+            0.219,
+            0.871,
+            0.282
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:8dd72a23-a863-4b87-ab9f-5c634a192636:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t3",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "doesn't do enough",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.208,
+            0.289,
+            0.81,
+            0.345
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:8dd72a23-a863-4b87-ab9f-5c634a192636:b3",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "role": "story",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1640,
+        "source_height": 2188,
+        "source_aspect": "410:547",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1640x2188 => 410:547"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Illustrative, cartoonish style with an educational/informational tone. ; To create awareness of a problem (inadequate cleaning from brushing alone) and likely introduce a solution (such as a new oral care product or technique).",
+        "subject_present": true,
+        "subject_action": "holding",
+        "subject_extent": "face and hand",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Concern",
+          "Frustration",
+          "Insecurity",
+          "Curiosity"
+        ],
+        "environment": "A stylized bathroom setting, featuring a mirror, sink, and a towel on a rack.",
+        "lighting": "Flat, evenly lit illustration style without strong highlights or shadows.",
+        "framing": "The layout is divided into two main sections: text at the top and the illustration below. The character is placed on the left, looking confused, while a magnified inset showing dental plaque is on the right, connected to his mouth by a thin line.",
+        "text_safe_zones": [
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.886,
+            0.132,
+            0.995
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.45
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          },
+          {
+            "decision": "subject_product_relation_unresolved",
+            "source": "scene_analyses",
+            "detail": "interacted object not confirmed as the promoted product; observed action preserved and product relationship left None (resolved, not missing)"
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s2_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "That's why your teeth",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.17,
+            0.101,
+            0.869,
+            0.153
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:d330262d-1ddf-4d6b-8e53-c9630e0d86fe:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "can still feel",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.339,
+            0.168,
+            0.728,
+            0.221
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:d330262d-1ddf-4d6b-8e53-c9630e0d86fe:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t2",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "dirty after brushing",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.198,
+            0.235,
+            0.85,
+            0.304
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:d330262d-1ddf-4d6b-8e53-c9630e0d86fe:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 3,
+      "role": "reveal",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1640,
+        "source_height": 2188,
+        "source_aspect": "410:547",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1640x2188 => 410:547"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Minimalist and clean, focusing strongly on product features. ; To educate potential customers about the specific features and benefits of the dental tool, encouraging them to switch from their current method.",
+        "subject_present": true,
+        "subject_action": null,
+        "subject_extent": "head and shoulders",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Desire for cleanliness",
+          "Appreciation for precision and effectiveness",
+          "Comfort in using advanced tools"
+        ],
+        "environment": "A solid, soft beige background that provides a warm, neutral contrast to the white product, ensuring it stands out without distraction.",
+        "lighting": "Soft, even lighting that highlights the sleek design of the product, with a subtle drop shadow at the base to ground it.",
+        "framing": "Centered vertical composition. The headline sits at the top, directly above the vertically oriented product. Feature callouts are aligned to the right of the product, connected by delicate lines.",
+        "text_safe_zones": [
+          [
+            0.122,
+            0.088,
+            0.851,
+            0.26
+          ],
+          [
+            0.526,
+            0.6,
+            0.768,
+            0.628
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "references_provided": [
+          "product_reference:ec5a20b4-8dbb-4856-aa26-94229046c6b1",
+          "product_reference:de6cbe5e-2188-4078-b9ee-79e22631519e",
+          "product_reference:b5634599-54fb-4c52-a498-135734f053df"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s3_product",
+          "kind": "product",
+          "label": "Tooth Scaling and Toothbrush all in one plus spare heads and",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "ec5a20b4-8dbb-4856-aa26-94229046c6b1",
+            "de6cbe5e-2188-4078-b9ee-79e22631519e",
+            "b5634599-54fb-4c52-a498-135734f053df"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 3 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "This is why people switch",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.124,
+            0.088,
+            0.888,
+            0.138
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t1",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "to something",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.318,
+            0.151,
+            0.704,
+            0.201
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t2",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "more targeted",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.295,
+            0.208,
+            0.727,
+            0.266
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t3",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "angled tip",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.633,
+            0.325,
+            0.753,
+            0.35
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b3",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t4",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "targeted clean",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.647,
+            0.594,
+            0.814,
+            0.619
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b4",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t8",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "2-in-1 tool",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.641,
+            0.798,
+            0.768,
+            0.823
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/overlay copy captured",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac:b8",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Soft / Comfort / Strong",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:dfd4a5a5-aff5-45d5-adf1-56c29f3eb0ac",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=True identity_revealed=True role=reveal"
+        }
+      ]
+    },
+    {
+      "slide_index": 4,
+      "role": "cta",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1640,
+        "source_height": 2188,
+        "source_aspect": "410:547",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1640x2188 => 410:547"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "User-generated content (UGC) style photograph ; Drive clicks and conversions for a personal care device",
+        "subject_present": true,
+        "subject_action": "holding the product",
+        "subject_extent": "hand",
+        "product_subject_relation": "holding",
+        "subject_emotion": [
+          "Curiosity",
+          "Desire for self-improvement",
+          "Trust via peer recommendation"
+        ],
+        "environment": "Modern, minimalist bathroom sink area with a neutral stone finish",
+        "lighting": "Soft, natural-looking, even illumination",
+        "framing": "First-person perspective, centralized product placement, top and bottom text framing the subject",
+        "text_safe_zones": [
+          [
+            0.116,
+            0.034,
+            0.895,
+            0.191
+          ],
+          [
+            0.189,
+            0.878,
+            0.869,
+            0.98
+          ],
+          [
+            0.0,
+            0.367,
+            0.938,
+            1.0
+          ],
+          [
+            0.588,
+            0.213,
+            0.736,
+            0.446
+          ]
+        ],
+        "references_provided": [
+          "product_reference:ec5a20b4-8dbb-4856-aa26-94229046c6b1",
+          "product_reference:de6cbe5e-2188-4078-b9ee-79e22631519e",
+          "product_reference:b5634599-54fb-4c52-a498-135734f053df"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s4_product",
+          "kind": "product",
+          "label": "Tooth Scaling and Toothbrush all in one plus spare heads and",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "ec5a20b4-8dbb-4856-aa26-94229046c6b1",
+            "de6cbe5e-2188-4078-b9ee-79e22631519e",
+            "b5634599-54fb-4c52-a498-135734f053df"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 3 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "This made such a difference to my routine",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.169,
+            0.058,
+            0.855,
+            0.155
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:ba7ca420-6087-43d0-a41f-7e16971bcab6:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t3",
+          "kind": "text",
+          "label": "cta text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Tap below to see it",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.191,
+            0.828,
+            0.874,
+            0.888
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "cta/overlay copy captured",
+              "source": "ocr_results:ba7ca420-6087-43d0-a41f-7e16971bcab6:b3",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-3: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Comfort / Strong",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:ba7ca420-6087-43d0-a41f-7e16971bcab6",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=cta"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 1
+      },
+      "provenance": [
+        {
+          "decision": "1 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:4",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_absent_on_hook",
+      "scope": "slide:0",
+      "spec": {
+        "present": false
+      },
+      "provenance": [
+        {
+          "decision": "hook withholds the absent product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

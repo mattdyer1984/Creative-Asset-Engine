@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The embossed Crocs text on the front collar/upper area is not clearly preserved in the generated image."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "9aebe56e-a8b6-472f-aad9-84307c2c3c67"
+}

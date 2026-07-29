@@ -1,0 +1,89 @@
+{
+  "slide_index": 2,
+  "product_allowed": false,
+  "products": [],
+  "texts": [
+    {
+      "ref": "s2_t0",
+      "text": "That's why your teeth",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s2_t1",
+      "text": "can still feel",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s2_t2",
+      "text": "dirty after brushing",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    }
+  ],
+  "scene": {
+    "subject_present": true,
+    "subject_action": "holding",
+    "subject_extent": "face and hand",
+    "product_subject_relation": null,
+    "subject_emotion": [
+      "Concern",
+      "Frustration",
+      "Insecurity",
+      "Curiosity"
+    ],
+    "environment": "A stylized bathroom setting, featuring a mirror, sink, and a towel on a rack.",
+    "lighting": "Flat, evenly lit illustration style without strong highlights or shadows.",
+    "concept": "Illustrative, cartoonish style with an educational/informational tone. ; To create awareness of a problem (inadequate cleaning from brushing alone) and likely introduce a solution (such as a new oral care product or technique)."
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "subject",
+        "primary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ],
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ],
+      [
+        "hook_caption",
+        "top",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "subject stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "410:547",
+    "source_width": 1640,
+    "source_height": 2188,
+    "fit_behaviour": "retarget"
+  }
+}

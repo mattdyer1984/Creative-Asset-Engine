@@ -1,0 +1,29 @@
+{
+  "corpus_schema_version": "1.2",
+  "case_id": "bd1f62a2_s1",
+  "frozen_at": "2026-07-28T20:13:51.401796+00:00",
+  "slideshow_id": "bd1f62a2-21ce-49e4-bb32-55691e695805",
+  "slide_id": "7dd71769-6998-43dc-bc3c-fbe691d8db5c",
+  "slide_index": 1,
+  "aspect_ratio": "3:4",
+  "reference_count": 1,
+  "reference_resolved_count": 1,
+  "source_slide_stored_as": "source_slide.jpg",
+  "authoritative_request": "generation_spec.json (provider-neutral)",
+  "providers_rendered": [
+    "nano_banana"
+  ],
+  "prompt_chars": {
+    "nano_banana": 1441
+  },
+  "plan_schema_version": "0.4.0-slice",
+  "plan_version": 1,
+  "intended_models": [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview"
+  ],
+  "intended_candidates_per_model": 2,
+  "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+  "git_dirty": true,
+  "db_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/creative_asset_engine.db"
+}

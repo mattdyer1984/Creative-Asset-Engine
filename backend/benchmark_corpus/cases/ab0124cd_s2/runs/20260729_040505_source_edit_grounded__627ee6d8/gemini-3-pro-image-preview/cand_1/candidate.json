@@ -1,0 +1,17 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": false,
+  "validation_error": "Could not resolve the product this generated image is meant to depict.",
+  "identity_passed": null,
+  "accepted": null,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 23.70794891701371,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "50d10713-b3b8-4ad0-94dc-b4fd5347f93c"
+}

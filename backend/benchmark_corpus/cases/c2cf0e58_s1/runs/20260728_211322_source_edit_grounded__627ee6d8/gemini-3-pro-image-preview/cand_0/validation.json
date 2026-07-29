@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: The expected text 'crocs' is not visibly present; only a small logo badge appears.",
+    "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "6cc994a2-1432-438a-8dbc-86d11cd4bcb6"
+}

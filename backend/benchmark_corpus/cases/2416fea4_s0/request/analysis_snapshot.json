@@ -1,0 +1,372 @@
+{
+  "slideshow_id": "2416fea4-5840-4bd0-b183-b9f6d7148cfb",
+  "slides": [
+    {
+      "id": "9f593235-29ba-498a-84fb-079b7729d303",
+      "slide_index": 0
+    },
+    {
+      "id": "4ab2f5f2-50b0-424c-a262-af7a612934f3",
+      "slide_index": 1
+    },
+    {
+      "id": "8c31cc82-5249-48d2-84ea-a59631e6dbc3",
+      "slide_index": 2
+    },
+    {
+      "id": "d642272d-8b9d-409e-9a02-81ea55ad5057",
+      "slide_index": 3
+    },
+    {
+      "id": "30689567-60d8-4d3f-a939-992dcb7b1e49",
+      "slide_index": 4
+    }
+  ],
+  "narrative": {
+    "slides": [
+      {
+        "slide_id": "9f593235-29ba-498a-84fb-079b7729d303",
+        "slide_index": 0,
+        "beat": "story"
+      },
+      {
+        "slide_id": "4ab2f5f2-50b0-424c-a262-af7a612934f3",
+        "slide_index": 1,
+        "beat": "reveal"
+      },
+      {
+        "slide_id": "8c31cc82-5249-48d2-84ea-a59631e6dbc3",
+        "slide_index": 2,
+        "beat": "proof"
+      },
+      {
+        "slide_id": "d642272d-8b9d-409e-9a02-81ea55ad5057",
+        "slide_index": 3,
+        "beat": "proof"
+      },
+      {
+        "slide_id": "30689567-60d8-4d3f-a939-992dcb7b1e49",
+        "slide_index": 4,
+        "beat": "cta"
+      }
+    ],
+    "arc_summary": "The slideshow uses a personal near-purchase story to frame a cheaper dining table set as a smart alternative, then highlights its practical features and urgency around availability."
+  },
+  "marketing_text": "This creative is designed as the opening hook of a short-form social ad, likely for a home makeover, furniture refurbishment, or affordable decor solution. By showing a real dining nook with an existing grey table set and overlaying a bold caption about almost buying a new £400 dining table, it immediately frames a familiar problem: wanting to improve a home without overspending. The actual product or solution is not revealed yet, which creates a curiosity gap and encourages viewers to keep watching.\n\nThe target audience is budget-conscious homeowners or renters interested in DIY interiors, small-space upgrades, and practical home improvement. The setting feels authentic rather than staged: a real kitchen/dining area, natural daylight, warm ambient lighting, visible floors, chairs, wall panels, and garden doors. This relatability makes the message feel more like a personal recommendation or “before” moment than a polished brand ad.\n\nEmotionally, the creative uses a near-miss savings trigger: the viewer is invited to think, “I almost spent too much too.” The £400 reference acts as a strong price anchor, making any cheaper alternative feel immediately valuable. Combined with the first-person testimonial framing and mobile-friendly TikTok/Reels-style text, the ad builds trust while promising a practical payoff.\n\nAs marketing, it works because it leads with a high-cost pain point, not a product pitch. The bold caption captures attention, the home setting grounds the claim in everyday reality, and the unresolved story creates momentum. It positions the advertised solution as smart, affordable, and achievable—exactly the kind of content likely to resonate with people browsing for home inspiration on social platforms.",
+  "per_slide": {
+    "9f593235-29ba-498a-84fb-079b7729d303": {
+      "fingerprint": {
+        "background_environment": "Real home dining nook/kitchen area with grey marble-effect tiled floor, a compact grey dining table and chairs, white walls, patio doors opening to a suburban garden, wall-mounted abstract black acoustic/art panels, a potted plant, and a warm floor/lamp glow in the corner.",
+        "color_palette": [
+          "cool grey",
+          "charcoal black",
+          "white",
+          "warm amber",
+          "muted green",
+          "daylight blue"
+        ],
+        "emotional_appeal": [
+          "relatability",
+          "cost-saving",
+          "home improvement",
+          "curiosity",
+          "practicality"
+        ],
+        "emotional_trigger": "near-miss savings realization: the viewer is invited to feel they almost made an expensive purchase before discovering a cheaper or smarter alternative.",
+        "extensions": "The creative appears to be the opening hook of a short-form social ad or UGC-style home makeover video. The text creates an unresolved narrative—what stopped the purchase?—which encourages continued viewing.",
+        "graphic_style": "Minimal social-video overlay style with no complex graphics, icons, badges, or branded design system; the visual relies on a candid room photo/video frame plus bold caption text.",
+        "layout_and_composition": "Wide-angle vertical/social-style interior shot with strong perspective lines from the table, floor tiles, and patio doors. The room scene fills the full frame while the caption is centered over the upper-middle/right area, partially covering the wall and window region. The composition feels casual and handheld rather than studio-produced.",
+        "lighting_style": "Mixed natural and warm ambient lighting: bright daylight enters through the patio doors on the right, while a warm amber lamp glow adds coziness on the left-center wall. Overall lighting is naturalistic with visible reflections on the glossy floor.",
+        "marketing_angle": "Positioning the product or solution as a budget-friendly alternative to buying a new £400 dining table set, likely suggesting a makeover, refurbishment, covering, DIY upgrade, or affordable home decor solution.",
+        "marketing_objective": "Capture attention at the start of a conversion-oriented or educational creative by framing a high-cost problem and teasing a cheaper alternative, encouraging viewers to keep watching and consider the advertised solution.",
+        "object_placement": "The dining table occupies the lower center foreground, angled diagonally into the room. A grey chair is in the immediate foreground with another chair partly visible behind the table. Decorative black wall panels are mounted vertically along the left wall, creating a visual anchor. The patio doors sit on the right, providing outdoor context and daylight. The caption sits prominently across the mid-to-upper center, overlapping the room scene.",
+        "product_prominence": "Moderate but indirect. The dining table set is visible and central, but it is not styled like a polished product hero shot. The actual advertised product or solution is not explicitly shown in this frame; the table acts as the problem/object of consideration.",
+        "promotional_devices": [
+          "price anchoring with £400 reference",
+          "curiosity gap",
+          "personal anecdote/testimonial-style hook",
+          "implied savings"
+        ],
+        "target_audience": "Budget-conscious homeowners or renters, especially people interested in home makeovers, dining room upgrades, DIY interiors, small-space decor, and affordable alternatives to replacing furniture.",
+        "trust_elements": [
+          "authentic real-home setting",
+          "first-person testimonial framing",
+          "visible before/real-life context rather than polished studio imagery"
+        ],
+        "typography_style": "Large bold sans-serif caption text in white with a thick black outline, typical of TikTok/Reels-style subtitles. High-contrast and optimized for mobile readability.",
+        "visual_hierarchy": "The bold text hook is the primary focal point, followed by the dining table set beneath it, then the warm-lit decor wall and patio-door daylight. The £400 figure stands out as the key attention-grabbing detail within the text.",
+        "visual_style": "UGC-style interior/home improvement creative with a candid, relatable smartphone aesthetic; modern grey home decor, natural lighting, and an informal social media caption overlay."
+      },
+      "scene_regions": [
+        {
+          "importance_tier": "essential",
+          "notes": "The existing dining table is the central product/comparison object referenced by the marketing message; its size, grey stone-like surface, and placement should remain consistent.",
+          "region_type": "product",
+          "x_max": 0.717,
+          "x_min": 0.277,
+          "y_max": 0.712,
+          "y_min": 0.418
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Main chair paired with the dining table; part of the dining set and important to the product comparison, including its front-facing position.",
+          "region_type": "product",
+          "x_max": 0.507,
+          "x_min": 0.307,
+          "y_max": 0.897,
+          "y_min": 0.676
+        },
+        {
+          "importance_tier": "essential",
+          "notes": "Second chair behind the table helps establish the dining set arrangement and scale, though details can be less exact than the main table/chair.",
+          "region_type": "product",
+          "x_max": 0.585,
+          "x_min": 0.552,
+          "y_max": 0.514,
+          "y_min": 0.361
+        },
+        {
+          "importance_tier": "important",
+          "notes": "Large overlaid marketing caption is the primary message of the creative and must remain readable and similarly positioned.",
+          "region_type": "primary_subject",
+          "x_max": 0.761,
+          "x_min": 0.316,
+          "y_max": 0.356,
+          "y_min": 0.184
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Dining room wall and corner define the indoor setting; general room type should remain, but exact wall color/texture can vary.",
+          "region_type": "environment",
+          "x_max": 0.781,
+          "x_min": 0.0,
+          "y_max": 0.997,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Black acoustic/decorative wall panels add style to the room but are not central to the product message and can be changed.",
+          "region_type": "decorative_element",
+          "x_max": 0.365,
+          "x_min": 0.0,
+          "y_max": 0.466,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Warm wall light/glow creates atmosphere but is not essential to the dining set or message.",
+          "region_type": "prop",
+          "x_max": 0.571,
+          "x_min": 0.356,
+          "y_max": 0.405,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "incidental",
+          "notes": "Potted plant beside/behind the table is decorative greenery and can be replaced or altered freely.",
+          "region_type": "prop",
+          "x_max": 0.625,
+          "x_min": 0.337,
+          "y_max": 0.568,
+          "y_min": 0.322
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Sliding glass door/window is part of the dining-room environment and provides daylight/context; should remain a similar opening but exact details can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.726,
+          "y_max": 0.65,
+          "y_min": 0.0
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Outdoor garden, fence, neighboring houses, and laundry seen through the door are background context and safe to swap or simplify.",
+          "region_type": "background",
+          "x_max": 0.981,
+          "x_min": 0.765,
+          "y_max": 0.552,
+          "y_min": 0.042
+        },
+        {
+          "importance_tier": "context",
+          "notes": "Glossy grey tiled floor anchors the dining set and room perspective; general flooring style should remain but exact veining/reflections can vary.",
+          "region_type": "environment",
+          "x_max": 1.0,
+          "x_min": 0.12,
+          "y_max": 1.0,
+          "y_min": 0.529
+        },
+        {
+          "importance_tier": "replaceable",
+          "notes": "Right-edge vertical blinds/door frame detail is peripheral background clutter and can be changed or removed without affecting the message.",
+          "region_type": "background",
+          "x_max": 1.0,
+          "x_min": 0.94,
+          "y_max": 0.822,
+          "y_min": 0.014
+        }
+      ],
+      "ocr_blocks": [
+        {
+          "bounding_box": {
+            "x_max": 0.76,
+            "x_min": 0.319,
+            "y_max": 0.278,
+            "y_min": 0.18
+          },
+          "role": "headline",
+          "text": "I was about to spend\n£400 on a new dining\ntable set..."
+        }
+      ],
+      "product_appearances": [
+        {
+          "product_id": "feea8706-fffd-4da8-b877-8554426705d8",
+          "display_name": "Bellavita",
+          "prominence": "primary",
+          "is_current": true,
+          "has_lock": true
+        }
+      ],
+      "source_dims": {
+        "width": 2160,
+        "height": 2880
+      },
+      "text_ownership": {}
+    },
+    "4ab2f5f2-50b0-424c-a262-af7a612934f3": {
+      "fingerprint": {},
+      "scene_regions": [],
+      "ocr_blocks": [
+        {
+          "bounding_box": {
+            "x_max": 0.892,
+            "x_min": 0.438,
+            "y_max": 0.207,
+            "y_min": 0.1
+          },
+          "role": "headline",
+          "text": "but I found this set\ninstead for just under 80\nquid..."
+        }
+      ],
+      "product_appearances": [],
+      "source_dims": {
+        "width": 2160,
+        "height": 2880
+      },
+      "text_ownership": {}
+    },
+    "8c31cc82-5249-48d2-84ea-a59631e6dbc3": {
+      "fingerprint": {},
+      "scene_regions": [],
+      "ocr_blocks": [
+        {
+          "bounding_box": {
+            "x_max": 0.527,
+            "x_min": 0.136,
+            "y_max": 0.325,
+            "y_min": 0.239
+          },
+          "role": "headline",
+          "text": "minimal, space saving\nand seats 4 people..."
+        }
+      ],
+      "product_appearances": [],
+      "source_dims": {
+        "width": 2160,
+        "height": 2880
+      },
+      "text_ownership": {}
+    },
+    "d642272d-8b9d-409e-9a02-81ea55ad5057": {
+      "fingerprint": {},
+      "scene_regions": [],
+      "ocr_blocks": [
+        {
+          "bounding_box": {
+            "x_max": 0.707,
+            "x_min": 0.357,
+            "y_max": 0.374,
+            "y_min": 0.327
+          },
+          "role": "headline",
+          "text": "this one hides both\nbenches underneath..."
+        },
+        {
+          "bounding_box": {
+            "x_max": 0.495,
+            "x_min": 0.431,
+            "y_max": 0.461,
+            "y_min": 0.407
+          },
+          "role": "other",
+          "text": "👇"
+        }
+      ],
+      "product_appearances": [],
+      "source_dims": {
+        "width": 2160,
+        "height": 2880
+      },
+      "text_ownership": {}
+    },
+    "30689567-60d8-4d3f-a939-992dcb7b1e49": {
+      "fingerprint": {},
+      "scene_regions": [],
+      "ocr_blocks": [
+        {
+          "bounding_box": {
+            "x_max": 0.548,
+            "x_min": 0.159,
+            "y_max": 0.184,
+            "y_min": 0.133
+          },
+          "role": "headline",
+          "text": "5 colours to choose"
+        },
+        {
+          "bounding_box": {
+            "x_max": 0.441,
+            "x_min": 0.257,
+            "y_max": 0.217,
+            "y_min": 0.157
+          },
+          "role": "subheadline",
+          "text": "from... 🫶"
+        },
+        {
+          "bounding_box": {
+            "x_max": 0.295,
+            "x_min": 0.066,
+            "y_max": 0.883,
+            "y_min": 0.843
+          },
+          "role": "urgency_badge",
+          "text": "low in stock"
+        },
+        {
+          "bounding_box": {
+            "x_max": 0.18,
+            "x_min": 0.092,
+            "y_max": 0.948,
+            "y_min": 0.905
+          },
+          "role": "cta",
+          "text": "👇👇"
+        }
+      ],
+      "product_appearances": [],
+      "source_dims": {
+        "width": 2160,
+        "height": 2880
+      },
+      "text_ownership": {}
+    }
+  },
+  "product_references": {
+    "feea8706-fffd-4da8-b877-8554426705d8": [
+      "6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+      "719b6c91-c18a-45ff-aacf-fc67701a9246"
+    ]
+  }
+}

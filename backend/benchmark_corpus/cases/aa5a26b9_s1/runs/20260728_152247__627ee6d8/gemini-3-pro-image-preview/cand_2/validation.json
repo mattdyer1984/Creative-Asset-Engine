@@ -1,0 +1,27 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": true,
+  "identity_passed": true,
+  "rejection_reasons": [],
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Overall reads as a plausible real lifestyle product photograph with soft natural window light.",
+      "Shadows and depth of field are consistent with an indoor bedroom scene.",
+      "Foam clogs, knit sleeve, bedding, curtains, and ceramic mug have believable textures and materials.",
+      "Hand anatomy appears plausible, though partially occluded by the shoes.",
+      "No obvious AI artefacts such as warped objects, impossible geometry, garbled text, or inconsistent reflections are visible."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  },
+  "image_validation_result_id": "f5580cee-178e-4f49-a640-1082514a72a6"
+}

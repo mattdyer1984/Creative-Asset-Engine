@@ -1,0 +1,19 @@
+{
+  "candidate": 0,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: The circular logo is visible, but the text 'crocs' is not clearly readable in the image.",
+    "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "seed": null,
+  "generation_time_seconds": 89.80382887500309,
+  "estimated_cost_usd": null,
+  "generated_image_id": "b6f9e8f4-5ecd-4604-8631-d1900db5f860",
+  "photorealism": null
+}

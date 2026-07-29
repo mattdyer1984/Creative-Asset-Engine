@@ -1,0 +1,11 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: UGC kitchen demo ; Highlight versatility Only the subject's hand is visible — do NOT render a full person or any body part that was not in the source. The visible subject is using the product. The promoted product is used by the subject. Emotional register: Convenience, Satisfaction. Environment: Blurred modern kitchen. Lighting: Soft natural daylight. Energy: calm.
+Output aspect ratio: 3:4 (render the image at exactly 3:4).
+The promoted product must be visible in this frame.
+Make the product the dominant focal point.
+Preserve: the product stays primary — you choose the composition.
+Keep the top area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Keep the idea of "INSTALL / 3 / MINUTES / ENJOY / ADVANCED CREAMIFY TECHNOLOGY / TOP / FULL / BOTTOM / ICE CREAM / LITE ICE CREAM / SORBET / GELATO / FROZEN YOGHURT / SCOOPABLE / DRINKABLE / FRAPPE / FROZEN DRINK / SLUSHI / MILKSHAKE / + MIX-IN / RE-SPIN / LID" recognisably present (exact wording not required).
+Reproduce product 'Ninja CREAMi Deluxe Ice Cream Maker & Frozen Dessert Maker |' exactly from its attached reference; regenerate the scene around it.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

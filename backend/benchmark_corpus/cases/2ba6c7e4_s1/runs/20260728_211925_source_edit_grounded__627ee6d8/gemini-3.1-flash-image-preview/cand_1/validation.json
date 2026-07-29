@@ -1,0 +1,26 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": true,
+  "identity_passed": true,
+  "rejection_reasons": [],
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Looks like a real outdoor handheld product photo with natural daylight and depth of field.",
+      "Cardboard packaging, metallic print, and clear plastic window appear physically plausible with appropriate highlights/reflections.",
+      "Text and decorative details are coherent and mostly legible; no visible melting, warping, or impossible geometry.",
+      "The visible hand appears anatomically normal."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  },
+  "image_validation_result_id": "15101e44-f89e-439a-ad0c-ac875f8e08e2"
+}

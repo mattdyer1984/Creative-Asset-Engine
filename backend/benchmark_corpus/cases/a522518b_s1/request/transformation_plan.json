@@ -1,0 +1,1469 @@
+{
+  "slideshow_id": "a522518b-03bb-4642-9c82-ed14740b28e3",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "hook",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": false,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1524,
+        "source_height": 2032,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1524x2032 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Casual, user-generated content (UGC), informal, POV (point of view). ; To tease a high-value product or offer available for a low price, generating curiosity and encouraging viewers to watch the rest of the video or click a link.",
+        "subject_present": true,
+        "subject_action": "holding the banknote",
+        "subject_extent": "hand",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Curiosity",
+          "Excitement",
+          "Thriftiness",
+          "Surprise"
+        ],
+        "environment": "A slightly blurry, everyday domestic setting, likely a bedroom, showing a wooden chest of drawers.",
+        "lighting": "Natural, soft indoor lighting.",
+        "framing": "Central focus on the £20 note held in a hand, taking up the lower two-thirds of the frame. Large text overlay at the top third, typical portrait video format (9:16).",
+        "text_safe_zones": [
+          [
+            0.062,
+            0.122,
+            0.86,
+            0.24
+          ],
+          [
+            0.0,
+            0.0,
+            0.815,
+            0.463
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.32
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          },
+          {
+            "decision": "subject_product_relation_unresolved",
+            "source": "scene_analyses",
+            "detail": "interacted object not confirmed as the promoted product; observed action preserved and product relationship left None (resolved, not missing)"
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t0"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "critical",
+          "verbatim": "So you're telling me for less than a saucy £20 I can get...",
+          "text_status": "exact_commercial_value",
+          "commercial_values": [
+            {
+              "type": "price",
+              "value": "£20",
+              "raw": "£20"
+            }
+          ],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.053,
+            0.111,
+            0.887,
+            0.222
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_t1",
+          "kind": "text",
+          "label": "other text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "critical",
+          "verbatim": "£20",
+          "text_status": "exact_commercial_value",
+          "commercial_values": [
+            {
+              "type": "price",
+              "value": "£20",
+              "raw": "£20"
+            }
+          ],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "other/physical copy captured",
+              "source": "ocr_results:0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s0_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "LONDON FOR THE GOVERNOR AND COMPANY OF THE BANK OF ENGLAND Sarah John CHIEF CASHIER / Bank of England / I PROMISE TO PAY THE BEARER ON DEMAND THE SUM OF TWENTY POUNDS / 20 / Twenty Pounds",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:0a602b05-bb7b-4f82-b0bd-7f7e56dc82a3",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=False role=hook"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1524,
+        "source_height": 2032,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1524x2032 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Minimalist, modern, and clean. ; Brand awareness and product showcase.",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Simplicity",
+          "Curiosity"
+        ],
+        "environment": "A modern bathroom setting with a grey tiled wall and a marble countertop.",
+        "lighting": "Soft, natural-looking light with a subtle glow from a mirror in the background.",
+        "framing": "The product is placed centrally on a clean countertop with a minimalist background, emphasizing the item.",
+        "text_safe_zones": [
+          [
+            0.151,
+            0.613,
+            0.379,
+            0.674
+          ],
+          [
+            0,
+            0.751,
+            1,
+            1
+          ],
+          [
+            0.89,
+            0.537,
+            1,
+            0.79
+          ],
+          [
+            0.79,
+            0.843,
+            1,
+            1
+          ],
+          [
+            0.05,
+            0.02,
+            0.86,
+            0.56
+          ]
+        ],
+        "references_provided": [
+          "product_reference:574ef792-d99c-4cd6-b1c7-6408702cada6"
+        ],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_product",
+          "kind": "product",
+          "label": "Colgate Max White Ultra toothbrush",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "574ef792-d99c-4cd6-b1c7-6408702cada6"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 1 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Not 1...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.155,
+            0.536,
+            0.378,
+            0.582
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:5e8d0f4b-4a4c-4930-a863-053ade4efeac:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t3",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate®",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:5e8d0f4b-4a4c-4930-a863-053ade4efeac:b3",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-3: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "SOFT / MAX WHITE ULTRA",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:5e8d0f4b-4a4c-4930-a863-053ade4efeac",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1524,
+        "source_height": 2032,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1524x2032 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Minimalist and modern lifestyle photography. ; To introduce or tease a new oral care product, highlighting its unique format (serum).",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Curiosity",
+          "Desire for improvement (whitening)"
+        ],
+        "environment": "A modern bathroom setting with grey textured wall tiles and a white marble-patterned countertop.",
+        "lighting": "Soft, natural-looking indoor lighting with a warm glow from a mirror light in the upper right, casting gentle shadows.",
+        "framing": "Center-focused composition with the product box placed centrally on a bathroom counter. A faucet is visible on the right, providing context. Overlaid text is placed centrally above the product.",
+        "text_safe_zones": [
+          [
+            0.337,
+            0.235,
+            0.547,
+            0.301
+          ],
+          [
+            0.0,
+            0.663,
+            1.0,
+            1.0
+          ],
+          [
+            0.724,
+            0.812,
+            1.0,
+            1.0
+          ],
+          [
+            0.771,
+            0.0,
+            1.0,
+            0.303
+          ],
+          [
+            0.0,
+            0.0,
+            0.77,
+            0.371
+          ]
+        ],
+        "references_provided": [
+          "product_reference:60b49c9d-6e07-4381-89d1-8bebb350f24d"
+        ],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s2_product",
+          "kind": "product",
+          "label": "Colgate Max White Purple Reveal serum",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "60b49c9d-6e07-4381-89d1-8bebb350f24d"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 1 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Not 2..",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.339,
+            0.208,
+            0.548,
+            0.258
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:c325bf9d-6baa-47fd-b3dd-1fb5c02dc432:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t1",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:c325bf9d-6baa-47fd-b3dd-1fb5c02dc432:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_t4",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:c325bf9d-6baa-47fd-b3dd-1fb5c02dc432:b4",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-4: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s2_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "SERUM / AFTER BRUSHING TEETH WHITENING BOOSTER* / MAX WHITE PURPLE SERUM / 40 ml e",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:c325bf9d-6baa-47fd-b3dd-1fb5c02dc432",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 3,
+      "role": "story",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1524,
+        "source_height": 2032,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1524x2032 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Modern, Clean, Minimalist ; Product Awareness, Highlighting Key Benefits",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Desire for self-improvement",
+          "Confidence"
+        ],
+        "environment": "A modern bathroom setting with grey textured wall tiles and a white marble countertop.",
+        "lighting": "Soft, natural-looking ambient light, with a warm glow from the backlit mirror in the background.",
+        "framing": "Centered product focus with overlay text placed to the left to balance the composition. Clean, uncluttered background.",
+        "text_safe_zones": [
+          [
+            0.435,
+            0.397,
+            0.612,
+            0.842
+          ],
+          [
+            0.177,
+            0.484,
+            0.377,
+            0.525
+          ],
+          [
+            0,
+            0,
+            1,
+            0.79
+          ],
+          [
+            0,
+            0.785,
+            1,
+            1
+          ],
+          [
+            0.897,
+            0.57,
+            0.999,
+            0.833
+          ]
+        ],
+        "references_provided": [
+          "product_reference:3756f003-4778-4777-a5b9-26c214302061"
+        ],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s3_product",
+          "kind": "product",
+          "label": "Colgate Max White Purple Reveal toothpaste",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "3756f003-4778-4777-a5b9-26c214302061"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 1 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Not 3...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.179,
+            0.395,
+            0.384,
+            0.435
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:d75c355f-1e8b-4267-b461-e325fd2fd94e:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t1",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate®",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:d75c355f-1e8b-4267-b461-e325fd2fd94e:b1",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-1: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t2",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "MAX* WHITE..",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:d75c355f-1e8b-4267-b461-e325fd2fd94e:b2",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-2: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_t3",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "PURPLE REVEAL",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:d75c355f-1e8b-4267-b461-e325fd2fd94e:b3",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-3: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s3_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Instantly Corrects Yellow Tones* / Removes up to 100% Surface Stains* / ENAMEL SAFE",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:d75c355f-1e8b-4267-b461-e325fd2fd94e",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=story"
+        }
+      ]
+    },
+    {
+      "slide_index": 4,
+      "role": "cta",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1524,
+        "source_height": 2032,
+        "source_aspect": "3:4",
+        "fit_behaviour": "identity",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1524x2032 => 3:4"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "Casual, user-generated content (UGC) style social media screenshot. ; Drive direct sales and conversions through an in-app shopping feature.",
+        "subject_present": false,
+        "subject_action": null,
+        "subject_extent": null,
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "Excitement",
+          "Desire for self-improvement",
+          "Thrill of a bargain"
+        ],
+        "environment": "A clean, modern bathroom interior featuring grey wall tiles, a marble-patterned countertop, a small potted plant, and bathroom fixtures.",
+        "lighting": "Soft, even, natural-looking indoor lighting that clearly illuminates the products without harsh shadows.",
+        "framing": "Centered composition with products lined up in the middle, framed by a prominent text hook at the top and directional call-to-action emojis at the bottom.",
+        "text_safe_zones": [
+          [
+            0.097,
+            0.094,
+            0.89,
+            0.314
+          ],
+          [
+            0.697,
+            0.815,
+            1,
+            1
+          ],
+          [
+            0.011,
+            0.005,
+            1,
+            0.881
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "change_environment",
+          "change_lighting",
+          "change_composition",
+          "swap_props"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s4_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "But 3 of these on a huge sale! Get yours here and check your price in the yellow basket below!",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.1,
+            0.08,
+            0.9,
+            0.29
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b0",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-0: owner=caption handling=optional_overlay"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t3",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b3",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-3: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t5",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b5",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-5: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t6",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "VISIBLY CORRECTS YELLOW TONES",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b6",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-6: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t7",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "MAX WHITE PURPLE REVEAL",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b7",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-7: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t8",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Removes up to 100% Surface Stains*",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b8",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-8: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t9",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Instantly Corrects Yellow Tones*",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b9",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-9: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t11",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "Colgate",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b11",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-11: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t12",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "SERUM",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b12",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-12: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_t13",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "AFTER BRUSHING TEETH WHITENING BOOSTER*",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0:b13",
+              "detail": ""
+            },
+            {
+              "decision": "rendering owner consumed from ownership artifact",
+              "source": "text_ownership_artifacts",
+              "detail": "block-13: owner=image handling=preserve_visual_role"
+            }
+          ]
+        },
+        {
+          "element_id": "s4_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "SLIM / MAX WHITE / MEDIUM / ENAMEL SAFE / Colgate MAX WHITE PURPLE REVEAL / 40ml e",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:dda5b28c-de09-4c5b-8cbd-d7a0155635c0",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=True role=cta"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 3
+      },
+      "provenance": [
+        {
+          "decision": "3 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:3",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_absent_on_hook",
+      "scope": "slide:0",
+      "spec": {
+        "present": false
+      },
+      "provenance": [
+        {
+          "decision": "hook withholds the absent product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "commercial_values_present",
+      "scope": "slideshow",
+      "spec": {
+        "values": [
+          "£20",
+          "£20"
+        ]
+      },
+      "provenance": [
+        {
+          "decision": "exact prices/discounts are the mechanism",
+          "source": "canonicalize",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

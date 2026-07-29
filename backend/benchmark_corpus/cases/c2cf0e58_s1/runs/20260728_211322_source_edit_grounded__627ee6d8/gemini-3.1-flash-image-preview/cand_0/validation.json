@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: The Crocs logo is visible, but the exact lowercase text 'crocs' is not clearly readable/preserved.",
+    "detail/packaging: The product is unpackaged, but it is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "80151bd0-a15c-4819-8dfe-e6d09c613dd2"
+}

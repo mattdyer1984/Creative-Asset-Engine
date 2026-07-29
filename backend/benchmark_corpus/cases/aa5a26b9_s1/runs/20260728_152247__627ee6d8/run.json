@@ -1,0 +1,144 @@
+{
+  "run_id": "20260728_152247__627ee6d8",
+  "started_at": "2026-07-28T15:22:47.965182+00:00",
+  "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+  "git_dirty": true,
+  "models": [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview"
+  ],
+  "candidates_per_model": 3,
+  "drift": null,
+  "notes": "flash vs pro, first corpus run",
+  "results": {
+    "gemini-3.1-flash-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": false,
+        "validated": false,
+        "validation_error": null,
+        "identity_passed": null,
+        "accepted": null,
+        "rejection_reasons": [],
+        "seed": null,
+        "generation_time_seconds": null,
+        "estimated_cost_usd": null,
+        "generation_error": "RuntimeError: Nano Banana response contained no image data - the model may have returned only text (e.g. a refusal or clarifying question)."
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/brand: The generated image shows a visible 'Crocs' marking on the footbeds, while the expected value is unknown/no clear logo."
+        ],
+        "seed": null,
+        "generation_time_seconds": 91.56793954100067,
+        "estimated_cost_usd": null,
+        "generated_image_id": "a16e3afb-4fd5-417f-8b6c-c039e3dba9f1",
+        "photorealism": null
+      },
+      {
+        "candidate": 2,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/brand_placement: The official product has Crocs branding on the side button/footbed, while the generated image does not show clear, faithful branding.",
+          "identity/typography_placement: Reference photos show embossed Crocs text/logo placement, but the generated image lacks legible typography in those areas."
+        ],
+        "seed": null,
+        "generation_time_seconds": 38.8693776250002,
+        "estimated_cost_usd": null,
+        "generated_image_id": "e3e5b982-7a85-444b-a783-7a5f3045f473",
+        "photorealism": null
+      }
+    ],
+    "gemini-3-pro-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/brand_placement: Reference shows Crocs branding on side rivets and footbed; the generated image does not clearly preserve these brand marks.",
+          "identity/typography_placement: Embossed insole typography visible in references is missing or not accurately placed/legible in the generated image."
+        ],
+        "seed": null,
+        "generation_time_seconds": 35.28198129100201,
+        "estimated_cost_usd": null,
+        "generated_image_id": "11ee0106-1b6b-4391-802e-65375fa335de",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/typography_placement: The reference has subtle Crocs embossing on the footbed/button area, but the generated image does not clearly preserve this typography placement.",
+          "identity/color: The generated clogs are a darker dusty rose, while the references show a much paler baby-pink tone."
+        ],
+        "seed": null,
+        "generation_time_seconds": 44.73021008299838,
+        "estimated_cost_usd": null,
+        "generated_image_id": "2514eef3-cc5d-4747-a01e-4040d243b3aa",
+        "photorealism": null
+      },
+      {
+        "candidate": 2,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": true,
+        "rejection_reasons": [],
+        "seed": null,
+        "generation_time_seconds": 62.73753070800012,
+        "estimated_cost_usd": null,
+        "generated_image_id": "9d3c142a-fce9-496e-aa6c-4a9ee445ff9f",
+        "photorealism": {
+          "ai_artefacts_detected": false,
+          "believable_shadows": true,
+          "human_anatomy": "correct",
+          "image_sharpness": "good",
+          "material_accuracy": true,
+          "object_integrity": true,
+          "perspective_correct": true,
+          "realistic_lighting": true,
+          "reasons": [
+            "Overall reads as a plausible real lifestyle product photograph with soft natural window light.",
+            "Shadows and depth of field are consistent with an indoor bedroom scene.",
+            "Foam clogs, knit sleeve, bedding, curtains, and ceramic mug have believable textures and materials.",
+            "Hand anatomy appears plausible, though partially occluded by the shoes.",
+            "No obvious AI artefacts such as warped objects, impossible geometry, garbled text, or inconsistent reflections are visible."
+          ],
+          "reflections_correct": true,
+          "texture_quality": "good"
+        }
+      }
+    ]
+  },
+  "finished_at": "2026-07-28T15:29:25.490757+00:00"
+}

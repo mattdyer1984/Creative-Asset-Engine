@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/aspect_ratio: The generated bottles look noticeably shorter and squarer than the taller rectangular proportions in the references."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "982c12e0-fd36-4dca-9597-e0bc8d842dfb"
+}

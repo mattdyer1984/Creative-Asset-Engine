@@ -1,0 +1,585 @@
+{
+  "slideshow_id": "2ba6c7e4-5378-406c-8d44-79d4519cdc52",
+  "plan_version": 1,
+  "processing_mode": "direct_response",
+  "mechanisms_to_preserve": [
+    "value"
+  ],
+  "slides": [
+    {
+      "slide_index": 0,
+      "role": "hook",
+      "promoted_product_allowed": false,
+      "cta_allowed": false,
+      "promoted_identity_revealed": false,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 2156,
+        "source_height": 3836,
+        "source_aspect": "77:137",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "2156x3836 => 77:137"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "casual social media ugc ; drive engagement and curiosity",
+        "subject_present": true,
+        "subject_action": null,
+        "subject_extent": "head and shoulders",
+        "product_subject_relation": null,
+        "subject_emotion": [
+          "surprise",
+          "curiosity"
+        ],
+        "environment": "outdoor residential driveway",
+        "lighting": "natural outdoor daylight",
+        "framing": "center-aligned vertical portrait",
+        "text_safe_zones": [
+          [
+            0.18,
+            0.6,
+            0.89,
+            0.72
+          ],
+          [
+            0,
+            0,
+            1,
+            0.22
+          ]
+        ],
+        "references_provided": [],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [
+        "s0_t0"
+      ],
+      "elements": [
+        {
+          "element_id": "s0_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "exact_text"
+          ],
+          "should_improve": [],
+          "commercial_importance": "high",
+          "verbatim": "P.LOUISE WHAT HAVE YOU DONE?!?!?!",
+          "text_status": "trusted_exact",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.175,
+            0.548,
+            0.825,
+            0.608
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:f205b26c-6c4e-4e72-b667-bd901d118ae8:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=False required_visual_presence=False identity_revealed=False role=hook"
+        }
+      ]
+    },
+    {
+      "slide_index": 1,
+      "role": "cta",
+      "promoted_product_allowed": true,
+      "cta_allowed": false,
+      "promoted_identity_revealed": true,
+      "canvas": {
+        "output_aspect": "3:4",
+        "source_width": 1620,
+        "source_height": 2880,
+        "source_aspect": "9:16",
+        "fit_behaviour": "retarget",
+        "provenance": [
+          {
+            "decision": "output aspect (fixed policy)",
+            "source": "canvas_policy",
+            "detail": "output=3:4"
+          },
+          {
+            "decision": "source aspect measured",
+            "source": "slides.stored_file_path",
+            "detail": "1620x2880 => 9:16"
+          }
+        ],
+        "gaps": []
+      },
+      "scene": {
+        "concept": "User-generated content (UGC) style photo, casual and authentic. ; Drive sales through a compelling multi-buy discount offer.",
+        "subject_present": true,
+        "subject_action": "holding the box",
+        "subject_extent": "hand",
+        "product_subject_relation": "holding",
+        "subject_emotion": [
+          "Excitement",
+          "Curiosity",
+          "Desire for a bargain"
+        ],
+        "environment": "Outdoors, slightly blurred background showing what looks like a patio or garden area, enhancing the UGC feel.",
+        "lighting": "Natural daylight, somewhat diffused.",
+        "framing": "Center-focused, hand-held product shot taking up most of the frame, with text overlays strategically placed around the product.",
+        "text_safe_zones": [
+          [
+            0.143,
+            0.329,
+            0.539,
+            0.373
+          ],
+          [
+            0.307,
+            0.424,
+            0.925,
+            0.505
+          ],
+          [
+            0.231,
+            0.658,
+            0.787,
+            0.7
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.177,
+            1.0,
+            1.0
+          ]
+        ],
+        "references_provided": [
+          "product_reference:4d431c52-3102-4270-a26a-5323f39120ce"
+        ],
+        "change_directives": [
+          "swap_person",
+          "change_environment",
+          "change_lighting",
+          "change_angle_or_crop"
+        ],
+        "gaps": [],
+        "provenance": [
+          {
+            "decision": "scene concept & framing",
+            "source": "creative_fingerprints",
+            "detail": ""
+          },
+          {
+            "decision": "text-safe zones",
+            "source": "scene_analyses",
+            "detail": ""
+          }
+        ]
+      },
+      "required_text_element_ids": [],
+      "elements": [
+        {
+          "element_id": "s1_product",
+          "kind": "product",
+          "label": "P.Louise Obsessed For Less Skincare Set",
+          "must_survive": [
+            "identity"
+          ],
+          "should_improve": [
+            "environment",
+            "composition",
+            "styling"
+          ],
+          "commercial_importance": "critical",
+          "verbatim": null,
+          "text_status": null,
+          "commercial_values": [],
+          "rendering_owner": null,
+          "reserved_zone": null,
+          "preservation_mode": "product_reference",
+          "reference_ids": [
+            "4d431c52-3102-4270-a26a-5323f39120ce"
+          ],
+          "provenance": [
+            {
+              "decision": "promoted product identity revealed",
+              "source": "narrative_structures:beats",
+              "detail": ""
+            },
+            {
+              "decision": "identity anchored by 1 reference(s)",
+              "source": "product_reference_images",
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t0",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "27 + 27 + 27 = 24?!?!",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.141,
+            0.311,
+            0.528,
+            0.331
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/overlay copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b0",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t1",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "add 3 to the basket and see for yourself...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.306,
+            0.392,
+            0.952,
+            0.449
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/overlay copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b1",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t2",
+          "kind": "text",
+          "label": "other text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "what have they done 😭😭😭",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.229,
+            0.601,
+            0.767,
+            0.627
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "other/overlay copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b2",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=overlay role=other"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t3",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "PL",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b3",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=physical role=logo_text"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t4",
+          "kind": "text",
+          "label": "logo_text text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "P.LOUISE",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "logo_text/physical copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b4",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=physical role=logo_text"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t6",
+          "kind": "text",
+          "label": "headline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "OBSESSED FOR LESS",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.126,
+            0.598,
+            0.868,
+            0.835
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "headline/physical copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b6",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=physical role=headline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_t7",
+          "kind": "text",
+          "label": "subheadline text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "WHOEVER SAID MONEY CAN'T BUY HAPPINESS HAS NEVER RECEIVED A P.LOUISE PARCEL...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "composite_layer",
+          "reserved_zone": [
+            0.121,
+            0.846,
+            0.858,
+            0.906
+          ],
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "subheadline/physical copy captured",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe:b7",
+              "detail": ""
+            },
+            {
+              "decision": "GAP: rendering owner inferred from OCR (ownership artifact absent/undecided)",
+              "source": "ocr_heuristic",
+              "detail": "surface=physical role=subheadline"
+            }
+          ]
+        },
+        {
+          "element_id": "s1_packaging",
+          "kind": "text",
+          "label": "on-product feature text",
+          "must_survive": [
+            "meaning"
+          ],
+          "should_improve": [],
+          "commercial_importance": "medium",
+          "verbatim": "SECURED THAT BAG BABE...",
+          "text_status": "meaning_preserve",
+          "commercial_values": [],
+          "rendering_owner": "provider_scene",
+          "reserved_zone": null,
+          "preservation_mode": null,
+          "reference_ids": [],
+          "provenance": [
+            {
+              "decision": "printed on packaging; rides with product reference",
+              "source": "ocr_results:1f711733-cac8-4476-91fd-05fa939ac9fe",
+              "detail": "surface=physical"
+            }
+          ]
+        }
+      ],
+      "originality_levers_required": 3,
+      "provenance": [
+        {
+          "decision": "product presence",
+          "source": "product_appearances/narrative_structures:beats",
+          "detail": "observed_visual_presence=True required_visual_presence=False identity_revealed=True role=cta"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "distinct_promoted_products",
+      "scope": "slideshow",
+      "spec": {
+        "distinct_promoted": 1
+      },
+      "provenance": [
+        {
+          "decision": "1 distinct promoted product(s) across the set (counted from evidence, not assumed to be one)",
+          "source": "product_appearances",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_present_on_reveal",
+      "scope": "slide:1",
+      "spec": {
+        "present": true
+      },
+      "provenance": [
+        {
+          "decision": "reveal must show the product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "product_absent_on_hook",
+      "scope": "slide:0",
+      "spec": {
+        "present": false
+      },
+      "provenance": [
+        {
+          "decision": "hook withholds the absent product",
+          "source": "narrative_structures:beats",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "no_cta",
+      "scope": "slideshow",
+      "spec": {
+        "cta_allowed": false
+      },
+      "provenance": [
+        {
+          "decision": "arc has no direct CTA",
+          "source": "narrative_structures",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "schema_version": "0.4.0-slice"
+}

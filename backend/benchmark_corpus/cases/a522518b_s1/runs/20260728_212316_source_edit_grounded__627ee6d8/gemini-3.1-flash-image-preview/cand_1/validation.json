@@ -1,0 +1,26 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": true,
+  "identity_passed": true,
+  "rejection_reasons": [],
+  "photorealism": {
+    "ai_artefacts_detected": true,
+    "believable_shadows": true,
+    "human_anatomy": "not_applicable",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Overall composition, bathroom materials, mirror glow, and product placement look close to a real staged product photo.",
+      "Shadows and reflections on the marble countertop are mostly plausible, though the box reflection appears slightly too clean/soft.",
+      "Small packaging details on the side and toothbrush graphic look somewhat synthetic/garbled, suggesting AI generation.",
+      "Geometry is generally intact with no obvious warping or impossible object structure."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  },
+  "image_validation_result_id": "8190d48f-0d67-4dcb-9816-aaa008780db5"
+}

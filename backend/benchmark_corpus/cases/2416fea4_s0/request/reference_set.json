@@ -1,0 +1,27 @@
+{
+  "reference_ids": [
+    "6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+    "719b6c91-c18a-45ff-aacf-fc67701a9246"
+  ],
+  "count": 2,
+  "resolved_count": 2,
+  "precedence_rule": "observed slide crops authoritative; listing fills gaps only",
+  "references": [
+    {
+      "reference_id": "6425a444-70c1-46a5-b6d3-5c22e2e42e92",
+      "stored_as": "0__6425a444-70c1-46a5-b6d3-5c22e2e42e92.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "dcf427ec-587e-469b-97eb-c1dec1c3f629",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/feea8706-fffd-4da8-b877-8554426705d8/reference_6425a444-70c1-46a5-b6d3-5c22e2e42e92.jpg",
+      "resolved": true
+    },
+    {
+      "reference_id": "719b6c91-c18a-45ff-aacf-fc67701a9246",
+      "stored_as": "1__719b6c91-c18a-45ff-aacf-fc67701a9246.jpg",
+      "origin": "observed_crop",
+      "source_slide_id": "dcf427ec-587e-469b-97eb-c1dec1c3f629",
+      "original_path": "/Users/apple/Downloads/creative-asset-engine/backend/data/storage/products/feea8706-fffd-4da8-b877-8554426705d8/reference_719b6c91-c18a-45ff-aacf-fc67701a9246.jpg",
+      "resolved": true
+    }
+  ]
+}

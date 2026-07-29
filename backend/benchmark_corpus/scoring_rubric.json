@@ -1,0 +1,13 @@
+{
+  "current": "1.0",
+  "versions": {
+    "1.0": {
+      "version": "1.0",
+      "reproduction_fidelity": "0-10. Faithful stand-in for the ORIGINAL slide: identity + narrative beat recognisable. Full restage NOT penalised if identity/beat survive. 10=indistinguishable; 8=clearly same slide, minor deviations; 5=recognisable but notable drift; 1=looks like a different slide.",
+      "standalone_appeal": "0-10. How good/usable the image is on its OWN. 10=shippable hero; 7-8=strong; 5=usable but plain; <=3=weak/artefacted.",
+      "would_ship": "Ship THIS as the slide, as-is? True/False.",
+      "repair_then_ship": "Ship after a BOUNDED repair (minutes, not a regeneration)? True/False.",
+      "principle": "Observation is recorded as fact; suspected cause and repair are hypotheses with confidence, never fact."
+    }
+  }
+}

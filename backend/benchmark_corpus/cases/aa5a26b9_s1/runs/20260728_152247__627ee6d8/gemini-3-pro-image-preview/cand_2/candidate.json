@@ -1,0 +1,34 @@
+{
+  "candidate": 2,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": true,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 62.73753070800012,
+  "estimated_cost_usd": null,
+  "generated_image_id": "9d3c142a-fce9-496e-aa6c-4a9ee445ff9f",
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Overall reads as a plausible real lifestyle product photograph with soft natural window light.",
+      "Shadows and depth of field are consistent with an indoor bedroom scene.",
+      "Foam clogs, knit sleeve, bedding, curtains, and ceramic mug have believable textures and materials.",
+      "Hand anatomy appears plausible, though partially occluded by the shoes.",
+      "No obvious AI artefacts such as warped objects, impossible geometry, garbled text, or inconsistent reflections are visible."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  }
+}

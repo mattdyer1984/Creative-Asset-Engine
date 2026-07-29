@@ -1,0 +1,18 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: NINJA and 3 are visible, and some program labels appear, but several expected labels are missing, distorted, or incorrect, such as FROZEN YOGURT and SMOOTHIE BOWL."
+  ],
+  "seed": null,
+  "generation_time_seconds": 15.777591999998549,
+  "estimated_cost_usd": null,
+  "generated_image_id": "a9592a71-ec73-4c6e-9fb8-89b2531e60aa",
+  "photorealism": null
+}

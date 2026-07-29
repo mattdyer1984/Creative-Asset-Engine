@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The front panel text layout is altered, with a large MIX-IN label replacing the reference display/control text arrangement."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "7cfadbe3-b640-45c0-9dae-1ffa84955621"
+}

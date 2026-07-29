@@ -1,0 +1,17 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": false,
+  "validation_error": "Could not resolve the product this generated image is meant to depict.",
+  "identity_passed": null,
+  "accepted": null,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 10.400380916005815,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "f4322fd6-4d07-4d08-b9bc-e5496d027d57"
+}

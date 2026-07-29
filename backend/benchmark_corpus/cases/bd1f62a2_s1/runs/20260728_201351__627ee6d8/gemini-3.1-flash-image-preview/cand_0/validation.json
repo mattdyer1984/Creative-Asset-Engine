@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/brand: The visible brand reads 'NINJA' or appears slightly misshapen like 'NINJA/NINJA', not clearly the expected Ninja branding exactly.",
+    "detail/branding_text: Some expected text is present, such as NINJA, 3, ICE CREAM, SORBET, GELATO, FROZEN YOGURT, and MILKSHAKE, but several labels are distorted or missing, including SMOOTHIE BOWL, and some extra/incorrect text appears."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "cf4828df-66c6-4998-9b42-8c0ba17e6eeb"
+}

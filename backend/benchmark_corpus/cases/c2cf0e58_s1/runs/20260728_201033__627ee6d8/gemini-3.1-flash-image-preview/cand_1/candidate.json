@@ -1,0 +1,18 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The embossed Crocs wordmark/typography seen near the upper opening in references is not clearly preserved."
+  ],
+  "seed": null,
+  "generation_time_seconds": 21.07537087500532,
+  "estimated_cost_usd": null,
+  "generated_image_id": "728b95a1-6863-4bc5-9248-5626217e1bba",
+  "photorealism": null
+}

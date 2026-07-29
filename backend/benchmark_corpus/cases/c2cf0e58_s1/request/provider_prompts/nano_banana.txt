@@ -1,0 +1,12 @@
+[nano_banana] Generate an original TikTok-Shop image.
+Scene: UGC casual style ; Drive product sales Only the subject's hand is visible — do NOT render a full person or any body part that was not in the source. The visible subject is holding the shoe. Emotional register: Excitement, Value. Environment: Wooden floor. Lighting: Soft natural indoor. Energy: dramatic.
+Output aspect ratio: 3:4 (render the image at exactly 3:4).
+The promoted product must be visible in this frame.
+Make the product the dominant focal point.
+Preserve: the product is shown — you choose the composition.
+Preserve: the product is the main focus — you choose the composition.
+Preserve: the product stays primary — you choose the composition.
+Keep the top area visually clear and uncluttered (reserved space for a headline caption, added later); render no text there.
+Reproduce product 'Crocs Classic Clog Black' exactly from its attached reference; regenerate the scene around it.
+Render NO overlay text, captions, prices or watermarks — that copy is added later.
+Do not reuse the source framing; vary: setting, lighting, person_identity, palette, props, framing, viewpoint, styling.

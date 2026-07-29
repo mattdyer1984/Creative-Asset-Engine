@@ -610,7 +610,9 @@ class OpenAIImageGenerationAdapter:
         )
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
-        prompt = self._compile_openai_prompt(request)
+        # See GenerationRequest.precompiled_prompt: a transformation-layer
+        # request already carries the final prompt; send it verbatim.
+        prompt = request.precompiled_prompt or self._compile_openai_prompt(request)
         size = _size_for_aspect_ratio(request.aspect_ratio)
         reference_files = [_load_reference_file(path) for path in request.reference_image_paths]
 

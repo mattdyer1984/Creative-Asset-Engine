@@ -1,0 +1,21 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/brand_placement: The side circular Crocs badge is present, but the generated image adds prominent CROCS branding across the heel strap where the reference strap is largely unbranded.",
+    "identity/typography_placement: Reference typography is subtly embossed near the front/top collar, while the generated image places large text on the rear strap."
+  ],
+  "seed": null,
+  "generation_time_seconds": 22.75749283299956,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "19389e66-2a29-4dfe-9ca8-d212cb9de309",
+  "photorealism": null
+}

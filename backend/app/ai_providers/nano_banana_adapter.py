@@ -174,7 +174,11 @@ class NanoBananaImageGenerationAdapter:
         return [image.copy() for image in cached]
 
     def generate_image(self, request: GenerationRequest) -> GeneratedImageResult:
-        prompt = self._compile_prompt(request)
+        # A transformation-layer request carries the final prompt already
+        # (its own provider-prompt adapter built it); send that verbatim
+        # rather than re-wrapping it. Every vNext caller leaves
+        # precompiled_prompt None and compiles here exactly as before.
+        prompt = request.precompiled_prompt or self._compile_prompt(request)
         reference_images = self._decoded_reference_images(request.reference_image_paths)
         aspect_ratio = _aspect_ratio_for(request.aspect_ratio)
 

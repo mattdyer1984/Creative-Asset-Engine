@@ -1,0 +1,19 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The reference has subtle Crocs embossing on the footbed/button area, but the generated image does not clearly preserve this typography placement.",
+    "identity/color: The generated clogs are a darker dusty rose, while the references show a much paler baby-pink tone."
+  ],
+  "seed": null,
+  "generation_time_seconds": 44.73021008299838,
+  "estimated_cost_usd": null,
+  "generated_image_id": "2514eef3-cc5d-4747-a01e-4040d243b3aa",
+  "photorealism": null
+}

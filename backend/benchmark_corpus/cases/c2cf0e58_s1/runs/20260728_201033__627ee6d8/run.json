@@ -1,0 +1,90 @@
+{
+  "run_id": "20260728_201033__627ee6d8",
+  "started_at": "2026-07-28T20:10:33.573381+00:00",
+  "git_commit": "627ee6d8f9cd43c7d67f62d724ea5ffdddcae0b1",
+  "git_dirty": true,
+  "models": [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview"
+  ],
+  "candidates_per_model": 2,
+  "drift": null,
+  "notes": "first 5-product dataset",
+  "results": {
+    "gemini-3.1-flash-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": true,
+        "accepted": false,
+        "rejection_reasons": [
+          "detail/branding_text: The circular logo is visible, but the text 'crocs' is not clearly readable in the image.",
+          "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+        ],
+        "seed": null,
+        "generation_time_seconds": 89.80382887500309,
+        "estimated_cost_usd": null,
+        "generated_image_id": "b6f9e8f4-5ecd-4604-8631-d1900db5f860",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3.1-flash-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/typography_placement: The embossed Crocs wordmark/typography seen near the upper opening in references is not clearly preserved."
+        ],
+        "seed": null,
+        "generation_time_seconds": 21.07537087500532,
+        "estimated_cost_usd": null,
+        "generated_image_id": "728b95a1-6863-4bc5-9248-5626217e1bba",
+        "photorealism": null
+      }
+    ],
+    "gemini-3-pro-image-preview": [
+      {
+        "candidate": 0,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": true,
+        "validated": true,
+        "validation_error": null,
+        "identity_passed": false,
+        "accepted": false,
+        "rejection_reasons": [
+          "identity/typography_placement: The embossed CROCS text on the upper/collar area seen in references is not clearly preserved in the generated image."
+        ],
+        "seed": null,
+        "generation_time_seconds": 26.485826084004657,
+        "estimated_cost_usd": null,
+        "generated_image_id": "03e4aa87-c20d-42d9-953e-7f420edd6e53",
+        "photorealism": null
+      },
+      {
+        "candidate": 1,
+        "model": "gemini-3-pro-image-preview",
+        "provider": "nano_banana",
+        "generated": false,
+        "validated": false,
+        "validation_error": null,
+        "identity_passed": null,
+        "accepted": null,
+        "rejection_reasons": [],
+        "seed": null,
+        "generation_time_seconds": null,
+        "estimated_cost_usd": null,
+        "generation_error": "ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+      }
+    ]
+  },
+  "finished_at": "2026-07-28T20:13:51.381715+00:00"
+}

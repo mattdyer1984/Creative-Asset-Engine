@@ -104,7 +104,12 @@ from app.services.decision_engine import GenerationPlan
 from app.services.product_profile import extract_branding_text
 from app.services.prompt_compiler import compile_generation_request
 from app.services.provider_call_log import record_provider_call
-from app.services.reference_selection import get_reference_image_paths, select_reference_images
+from app.services.reference_selection import (
+    create_reference_set_from_ids,
+    get_reference_image_paths,
+    select_reference_images,
+)
+from app.services.transformation_runner import build_transformation_request
 from app.slideshow_stages.base import StageResult
 from app.slideshow_stages.concurrency import run_concurrently
 from app.slideshow_stages.creative_specification_stage import resolve_primary_appearance
@@ -497,39 +502,36 @@ def run_generation_attempt(
 
     image_provider, tier_decision = _route_image_provider(db, slide, plan)
 
-    generation_reference_set = select_reference_images(
-        db, product.id, creative_specification.structured_json, image_provider.capabilities
-    )
-    if generation_reference_set is None:
+    # Transformation Plan path (replaces the vNext Creative-Specification
+    # construction): the request's prompt and references come from the
+    # remediated transformation layer, which consumes each slide's own
+    # observed evidence rather than the product listing. The
+    # `creative_specification` row is still threaded through below for the
+    # existing DB linkage (GeneratedImage/GenerationAttempt.creative_specification_id),
+    # but its *content* no longer drives generation.
+    transformation = build_transformation_request(db, slide)
+    if transformation is None:
         return StageResult(
             succeeded=False,
-            error=(
-                "No Generation Reference Set available - the product's Canonical "
-                "Reference Library is empty. Run Reference Scoring first "
-                "(POST /api/products/{id}/score-references)."
-            ),
+            error="The Transformation Plan produced no specification for this slide.",
         )
+    request = transformation.request
 
-    reference_image_paths = get_reference_image_paths(db, generation_reference_set.id)
-    enriched_specification = _enriched_creative_specification(
-        db, slide, product, creative_specification, plan
+    # Build the reference set from the Plan's own chosen (observed) references
+    # so Stage 1 Identity Validation compares against exactly what generation
+    # used. None when the Plan carried no references - validation then skips,
+    # the same tri-state as a Story Slide.
+    generation_reference_set = create_reference_set_from_ids(
+        db, product.id, transformation.reference_ids
     )
-    lock_profile = _current_lock_profile(db, product.id)
-    branding_text = extract_branding_text(lock_profile) if lock_profile else None
-    request = compile_generation_request(
-        enriched_specification,
-        reference_image_paths,
-        source_style=_classify_slide_style(db, slide),
-        suppress_overlay_text=plan.text_strategy is not None,
-        branding_text=branding_text,
-        user_feedback=plan.user_feedback,
-        retry_reason=plan.retry_reason,
+    generation_reference_set_id = (
+        generation_reference_set.id if generation_reference_set is not None else None
     )
 
     attempt = GenerationAttempt(
         slide_id=slide.id,
         creative_specification_id=creative_specification.id,
-        generation_reference_set_id=generation_reference_set.id,
+        generation_reference_set_id=generation_reference_set_id,
         quality_mode=plan.quality_mode,
         decision_json=plan.to_dict(),
         retry_of_generation_attempt_id=plan.retry_of_generation_attempt_id,
@@ -539,7 +541,7 @@ def run_generation_attempt(
 
     candidates = _generate_candidates(
         db, slide, creative_specification, attempt, image_provider, request,
-        plan.candidate_count, generation_reference_set.id,
+        plan.candidate_count, generation_reference_set_id,
     )
     return GenerationAttemptResult(attempt=attempt, candidates=candidates)
 

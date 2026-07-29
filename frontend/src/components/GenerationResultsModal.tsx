@@ -209,7 +209,10 @@ export function GenerationResultsModal({
     });
 
   const handleBackdropClick = () => {
-    if (!closeBlocked) onClose();
+    // The modal must always be closeable. Learning Mode still nudges toward a
+    // review (the hint below), but it never traps the window - clicking the
+    // backdrop, the ×, the footer Close, or pressing Escape all close it.
+    onClose();
   };
 
   const handleSaveReview = async () => {
@@ -262,11 +265,9 @@ export function GenerationResultsModal({
   return (
     <div className="results-modal-backdrop" onClick={handleBackdropClick}>
       <div className="results-modal" onClick={(e) => e.stopPropagation()}>
-        {!closeBlocked && (
-          <button className="results-modal-close" onClick={onClose} aria-label="Close">
-            ×
-          </button>
-        )}
+        <button className="results-modal-close" onClick={onClose} aria-label="Close">
+          ×
+        </button>
 
         <div className="results-modal-viewer">
           {activeSlide.error && (
@@ -519,13 +520,13 @@ export function GenerationResultsModal({
           <button className="rerun-button secondary" onClick={onOpenAdvanced}>
             Advanced
           </button>
-          <button className="rerun-button secondary" disabled={closeBlocked} onClick={onClose}>
+          <button className="rerun-button secondary" onClick={onClose}>
             Close
           </button>
         </div>
         {closeBlocked && (
           <p className="results-modal-close-hint">
-            Save a review for every slide to close this window (Learning Mode is on).
+            Tip: a quick review on each slide helps the system learn (Learning Mode is on) — but you can close any time.
           </p>
         )}
       </div>

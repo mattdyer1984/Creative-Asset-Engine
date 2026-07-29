@@ -1,0 +1,88 @@
+{
+  "slide_index": 1,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s1_product",
+      "label": "Colgate Max White Ultra toothbrush",
+      "reference_ids": [
+        "574ef792-d99c-4cd6-b1c7-6408702cada6"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s1_t0",
+      "text": "Not 1...",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t3",
+      "text": "Colgate®",
+      "disposition": "render_in_asset",
+      "fidelity_required": "unresolved",
+      "reference_target": null,
+      "source": "disposition<-ownership:design_integral+fidelity<-role/identity(brand)"
+    },
+    {
+      "ref": "s1_packaging",
+      "text": "SOFT / MAX WHITE ULTRA",
+      "disposition": "render_in_asset",
+      "fidelity_required": "semantic_presence",
+      "reference_target": null,
+      "source": "disposition<-ownership:product_native+fidelity<-trust:meaning_preserve"
+    }
+  ],
+  "scene": {
+    "subject_present": false,
+    "subject_action": null,
+    "subject_extent": null,
+    "product_subject_relation": null,
+    "subject_emotion": [
+      "Simplicity",
+      "Curiosity"
+    ],
+    "environment": "A modern bathroom setting with a grey tiled wall and a marble countertop.",
+    "lighting": "Soft, natural-looking light with a subtle glow from a mirror in the background.",
+    "concept": "Minimalist, modern, and clean. ; Brand awareness and product showcase."
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s1_product",
+        "primary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "middle-left",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "s1_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [
+    "s1_t3: brand/label needs reference fidelity but owning reference target is unknown"
+  ],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "3:4",
+    "source_width": 1524,
+    "source_height": 2032,
+    "fit_behaviour": "identity"
+  }
+}

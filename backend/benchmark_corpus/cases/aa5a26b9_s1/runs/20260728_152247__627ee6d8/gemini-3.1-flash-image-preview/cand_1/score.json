@@ -1,0 +1,35 @@
+{
+  "scored": true,
+  "schema_version": "1.2",
+  "scoring_rubric_version": "1.0",
+  "reproduction_fidelity": 1,
+  "standalone_appeal": 7.5,
+  "commercial_score": null,
+  "verdict": "usable",
+  "decision": {
+    "would_ship": false,
+    "repair_then_ship": false
+  },
+  "diagnostics": {
+    "observed_issues": [
+      {
+        "observation": "restaged_scene",
+        "severity": "critical",
+        "suspected_cause": null,
+        "cause_confidence": null,
+        "diagnosis_status": "unverified",
+        "verification_note": ""
+      }
+    ],
+    "appeal_strengths": [
+      "natural_lighting",
+      "strong_composition",
+      "authenticity"
+    ],
+    "repair_hypotheses": [],
+    "repairable": false
+  },
+  "notes": "Loved as an image; full restage so it doesn't read as THIS slide. Cause of restage left undiagnosed (prompt-lever vs model-choice unresolved).",
+  "scored_at": "2026-07-28T19:50:21.047240+00:00",
+  "scored_by": "Matt"
+}

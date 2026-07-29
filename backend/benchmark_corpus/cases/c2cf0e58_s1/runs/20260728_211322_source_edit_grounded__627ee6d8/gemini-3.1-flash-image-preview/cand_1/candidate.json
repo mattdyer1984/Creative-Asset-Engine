@@ -1,0 +1,20 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/typography_placement: Embossed Crocs text/detailing on the upper rim/strap area is not clearly preserved or is missing."
+  ],
+  "seed": null,
+  "generation_time_seconds": 19.37530062499718,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "049d7b6b-156b-453e-a137-a5326729307d",
+  "photorealism": null
+}

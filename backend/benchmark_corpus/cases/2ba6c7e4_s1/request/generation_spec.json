@@ -1,0 +1,154 @@
+{
+  "slide_index": 1,
+  "product_allowed": true,
+  "products": [
+    {
+      "ref": "s1_product",
+      "label": "P.Louise Obsessed For Less Skincare Set",
+      "reference_ids": [
+        "4d431c52-3102-4270-a26a-5323f39120ce"
+      ],
+      "identity_required": true
+    }
+  ],
+  "texts": [
+    {
+      "ref": "s1_t0",
+      "text": "27 + 27 + 27 = 24?!?!",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t1",
+      "text": "add 3 to the basket and see for yourself...",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t2",
+      "text": "what have they done 😭😭😭",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t3",
+      "text": "PL",
+      "disposition": "render_in_asset",
+      "fidelity_required": "unresolved",
+      "reference_target": null,
+      "source": "disposition<-ownership:design_integral+fidelity<-role/identity(brand)"
+    },
+    {
+      "ref": "s1_t4",
+      "text": "P.LOUISE",
+      "disposition": "render_in_asset",
+      "fidelity_required": "unresolved",
+      "reference_target": null,
+      "source": "disposition<-ownership:design_integral+fidelity<-role/identity(brand)"
+    },
+    {
+      "ref": "s1_t6",
+      "text": "OBSESSED FOR LESS",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_t7",
+      "text": "WHOEVER SAID MONEY CAN'T BUY HAPPINESS HAS NEVER RECEIVED A P.LOUISE PARCEL...",
+      "disposition": "overlay_handoff",
+      "fidelity_required": "none",
+      "reference_target": null,
+      "source": "ownership:creator_overlay@0.90"
+    },
+    {
+      "ref": "s1_packaging",
+      "text": "SECURED THAT BAG BABE...",
+      "disposition": "render_in_asset",
+      "fidelity_required": "semantic_presence",
+      "reference_target": null,
+      "source": "disposition<-ownership:product_native+fidelity<-trust:meaning_preserve"
+    }
+  ],
+  "scene": {
+    "subject_present": true,
+    "subject_action": "holding the box",
+    "subject_extent": "hand",
+    "product_subject_relation": "holding",
+    "subject_emotion": [
+      "Excitement",
+      "Curiosity",
+      "Desire for a bargain"
+    ],
+    "environment": "Outdoors, slightly blurred background showing what looks like a patio or garden area, enhancing the UGC feel.",
+    "lighting": "Natural daylight, somewhat diffused.",
+    "concept": "User-generated content (UGC) style photo, casual and authentic. ; Drive sales through a compelling multi-buy discount offer."
+  },
+  "attention": {
+    "focal_order": [
+      [
+        "s1_product",
+        "primary"
+      ],
+      [
+        "subject",
+        "secondary"
+      ],
+      [
+        "scene",
+        "supporting"
+      ]
+    ],
+    "relationships": [],
+    "openings": [
+      [
+        "hook_caption",
+        "top-middle",
+        "medium"
+      ],
+      [
+        "subhead",
+        "middle",
+        "medium"
+      ],
+      [
+        "subhead",
+        "middle",
+        "medium"
+      ],
+      [
+        "hook_caption",
+        "middle-lower",
+        "medium"
+      ],
+      [
+        "subhead",
+        "lower",
+        "medium"
+      ]
+    ],
+    "dynamics": "calm",
+    "contract_invariants": [
+      "s1_product stays primary"
+    ],
+    "reuse_source_framing": false
+  },
+  "gaps": [
+    "s1_t3: brand/label needs reference fidelity but owning reference target is unknown",
+    "s1_t4: brand/label needs reference fidelity but owning reference target is unknown"
+  ],
+  "canvas": {
+    "output_aspect": "3:4",
+    "source_aspect": "9:16",
+    "source_width": 1620,
+    "source_height": 2880,
+    "fit_behaviour": "retarget"
+  }
+}

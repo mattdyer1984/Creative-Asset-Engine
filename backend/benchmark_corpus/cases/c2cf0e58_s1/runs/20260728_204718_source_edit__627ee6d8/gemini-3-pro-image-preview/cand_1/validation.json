@@ -1,0 +1,11 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": false,
+  "rejection_reasons": [
+    "identity/typography_placement: The subtle embossed Crocs text/marking on the upper rim area seen in references is not clearly preserved."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "5319a79c-ccf1-40d6-a8ca-861dd34f528a"
+}

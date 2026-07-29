@@ -1,0 +1,36 @@
+{
+  "candidate": 0,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": true,
+  "rejection_reasons": [],
+  "seed": null,
+  "generation_time_seconds": 25.919061458000215,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "269b8680-0340-460a-972c-2dd5d3e6e55f",
+  "photorealism": {
+    "ai_artefacts_detected": false,
+    "believable_shadows": true,
+    "human_anatomy": "correct",
+    "image_sharpness": "good",
+    "material_accuracy": true,
+    "object_integrity": true,
+    "perspective_correct": true,
+    "realistic_lighting": true,
+    "reasons": [
+      "Looks like a real handheld product photo with natural outdoor lighting and plausible depth of field.",
+      "Packaging geometry, folds, window cutout, printed graphics, and transparent plastic reflections appear physically consistent.",
+      "Hand anatomy and fingernail shape look normal; no extra or malformed fingers visible.",
+      "Text on the actual packaging is legible and coherent, and the overlaid caption is clean, not AI-garbled.",
+      "Minor softness/background blur is consistent with phone-camera focus rather than generation artefacts."
+    ],
+    "reflections_correct": true,
+    "texture_quality": "good"
+  }
+}

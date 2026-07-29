@@ -1,0 +1,18 @@
+{
+  "candidate": 1,
+  "model": "gemini-3.1-flash-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/brand: The generated image shows a visible 'Crocs' marking on the footbeds, while the expected value is unknown/no clear logo."
+  ],
+  "seed": null,
+  "generation_time_seconds": 91.56793954100067,
+  "estimated_cost_usd": null,
+  "generated_image_id": "a16e3afb-4fd5-417f-8b6c-c039e3dba9f1",
+  "photorealism": null
+}

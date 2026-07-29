@@ -1,0 +1,20 @@
+{
+  "candidate": 1,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "strategy": "source_edit_grounded",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": true,
+  "accepted": false,
+  "rejection_reasons": [
+    "detail/branding_text: SOFT and Colgate are visible, and MAX WHITE appears, but the expected full text 'MAX WHITE ULTRA' is not preserved; the small text appears different/garbled."
+  ],
+  "seed": null,
+  "generation_time_seconds": 24.409225834002427,
+  "estimated_cost_usd": null,
+  "attempts": 1,
+  "generated_image_id": "b6f99e24-f490-4b35-b9bb-aa2e70b1c854",
+  "photorealism": null
+}

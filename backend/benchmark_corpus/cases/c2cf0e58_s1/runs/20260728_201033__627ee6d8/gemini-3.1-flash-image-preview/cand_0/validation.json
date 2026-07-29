@@ -1,0 +1,12 @@
+{
+  "validated": true,
+  "state": "validated",
+  "accepted": false,
+  "identity_passed": true,
+  "rejection_reasons": [
+    "detail/branding_text: The circular logo is visible, but the text 'crocs' is not clearly readable in the image.",
+    "detail/packaging: There is no packaging, but the product is being held in a hand rather than actively worn on the user's feet."
+  ],
+  "photorealism": null,
+  "image_validation_result_id": "e6666a55-94bb-480f-93b9-5f3ff9bf73ad"
+}

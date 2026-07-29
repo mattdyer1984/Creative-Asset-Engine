@@ -1,0 +1,18 @@
+{
+  "candidate": 0,
+  "model": "gemini-3-pro-image-preview",
+  "provider": "nano_banana",
+  "generated": true,
+  "validated": true,
+  "validation_error": null,
+  "identity_passed": false,
+  "accepted": false,
+  "rejection_reasons": [
+    "identity/aspect_ratio: The generated bottles look noticeably shorter and squarer than the taller rectangular proportions in the references."
+  ],
+  "seed": null,
+  "generation_time_seconds": 21.937261499995657,
+  "estimated_cost_usd": null,
+  "generated_image_id": "172663a5-1ac2-48be-8174-c63eafd9454b",
+  "photorealism": null
+}
