@@ -133,6 +133,22 @@ def _grounded_environment_clause(scene) -> str:
             f"stays a bedroom, a bathroom stays a bathroom, an outdoor shot stays outdoors.")
 
 
+# UGC realism — the end goal for photographic slides is an authentic, casual
+# user-generated phone photo, NOT a polished studio/catalog shot. Over-perfection is
+# what reads as "AI"; a lived-in, slightly imperfect scene reads as real. Also forces
+# the product to sit IN the scene (perspective, contact shadows, matching light) so it
+# doesn't look pasted over the background. Applies only to photographic output.
+_UGC_REALISM = (
+    " If the result is photographic, it MUST look like an authentic, casual phone photo "
+    "taken by a real person for social media (UGC) — natural, slightly imperfect lighting "
+    "and framing, a genuinely lived-in space with everyday clutter and personal touches "
+    "(not staged or spotless), and NOT a polished studio, catalog or advertisement look. "
+    "The product must sit naturally WITHIN the scene, with correct perspective, believable "
+    "contact shadows and ambient light that matches the room, so it looks photographed "
+    "there — never pasted on top. Avoid an over-perfect, glossy, 'stock photo' feel."
+)
+
+
 def _source_edit_grounded_prompt(product_name: str, scene, aspect: str) -> str:
     """GROUNDED source-edit: condition on the original slide AND on a few analysis
     facts (subject/hand, setting type, and preserve the medium), refreshing only the
@@ -145,11 +161,12 @@ def _source_edit_grounded_prompt(product_name: str, scene, aspect: str) -> str:
         f"identical shape, colour, materials, proportions, branding, logos and any "
         f"printed text. Match the visual style and MEDIUM of the reference: if it is a "
         f"photograph keep it photographic; if it is illustrated, cartoon or animated, "
-        f"keep that exact style and do NOT make it photorealistic. Refresh the specific "
-        f"background details and change the camera angle so it reads as a new, original "
-        f"shot rather than a copy — but keep the change moderate and do not invent an "
-        f"unrelated scene.{env}{keep} Keep the product the clear main focus. Any overlaid "
-        f"marketing caption from the reference may be removed. Output aspect ratio {aspect}."
+        f"keep that exact style and do NOT make it photorealistic." + _UGC_REALISM +
+        f" Refresh the specific background details and change the camera angle so it reads "
+        f"as a new, original shot rather than a copy — but keep the change moderate and do "
+        f"not invent an unrelated scene.{env}{keep} Keep the product the clear main focus. "
+        f"Any overlaid marketing caption from the reference may be removed. Output aspect "
+        f"ratio {aspect}."
     )
 
 
